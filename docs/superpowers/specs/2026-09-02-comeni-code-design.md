@@ -113,9 +113,21 @@ is the right answer for reasons beyond taste:
 - **Zones replace blobs.** Regions become bands with labelled boundaries, which say where a
   region *ends*.
 
-Zoom then changes labelling density rather than dimming: your line → the lines that share your
-stops → every minor stop. That is honest in a way dimming is not, and it is how a real transit
-map already works.
+**The trunk is straight, and this is not a stylistic preference.** The first transit draft ran
+the main line octilinearly — up, across, up again — and the operator's reading was that the core
+was *not aligned, so it looks confusing*, which is correct: a route that zigzags makes the reader
+work to find the very thing the route exists to make obvious. Real transit maps straighten the
+trunk and bend the branches, for exactly this reason.
+
+So: **the spine is one straight line with evenly spaced stops**, labels alternating above and
+below so adjacent labels never crowd. **Everything else branches off it at a named stop**, which
+makes a divergence legible *as* a divergence — you can see that *Call variants* leaves after
+*what an aligner does*, and that *Assemble a genome* leaves after *FASTQ on disk*. Elaborations
+hang off their own stop as short stubs.
+
+Zoom then changes labelling density rather than dimming: your line → where the branches leave →
+every stop including elaborations and the minor ones nobody names. That is honest in a way
+dimming is not, and it is how a real transit map already works.
 
 **The warning that governs all of this** comes from Obsidian's graph view, which its own
 community describes as *"beautiful and almost completely useless"* and *"more fun to look at
@@ -487,8 +499,10 @@ runtime is pure lookup*) transplanted intact.
 
 - **The map is the front door, and it is a transit map** (§2.0.2): a track is a **line**, a node
   is a **stop**, a node several tracks need is an **interchange**.
-- **Octilinear and schematic.** Every segment runs at 0, 45 or 90 degrees. Relative order and
-  connection are the content; absolute position is not.
+- **The trunk is straight; branches bend.** The track's own line runs dead straight with evenly
+  spaced stops and labels alternating above and below. Every other segment is octilinear — 0, 45
+  or 90 degrees. Relative order and connection are the content; absolute position is not.
+- **A branch leaves at a named stop**, so a divergence reads as one.
 - **Zones, not blobs.** Regions are bands with labelled boundaries, so a region has an end.
 - **Threshold nodes are interchanges** — drawn larger and always labelled, legible when zoomed
   out. PoE's Notables, and the reason §6.3's boolean stays rare: a map where everything is a

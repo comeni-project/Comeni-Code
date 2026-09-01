@@ -49,14 +49,14 @@
   </style>
 </helmet>
 
-<div style="position:relative; min-height:1010px; overflow:hidden; background:#080B0D;">
+<div style="position:relative; min-height:980px; overflow:hidden; background:#080B0D;">
 
-  <svg class="layer" viewBox="0 0 1440 1010" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="layer" viewBox="0 0 1440 980" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <g class="breathe" fill="none">
       <g class="slowA" stroke="#6CB7FF" stroke-width="1">
-        <circle cx="140" cy="930" r="620" opacity=".07"/>
-        <circle cx="140" cy="930" r="900" opacity=".045"/>
-        <circle cx="140" cy="930" r="1240" opacity=".028"/>
+        <circle cx="140" cy="900" r="600" opacity=".07"/>
+        <circle cx="140" cy="900" r="880" opacity=".045"/>
+        <circle cx="140" cy="900" r="1220" opacity=".028"/>
       </g>
       <g stroke="#10AA91">
         <circle cx="1380" cy="40" r="460" opacity=".045" stroke-width="1"/>
@@ -95,9 +95,8 @@
         <div style="font-size:32px; font-weight:600; letter-spacing:-.035em; line-height:1.06;">
           Align your reads and get a counts matrix</div>
         <div style="padding-top:10px; font-size:12.5px; color:#889699;">
-          <span style="color:#DFE6E6;">11 stops</span> &middot;
-          8 of them shared with two other tracks &middot; ends by running the pipeline on your
-          own FASTQs
+          <span style="color:#DFE6E6;">11 stops, in a line</span> &middot;
+          two other tracks branch off it &middot; ends by running the pipeline on your own FASTQs
         </div>
       </div>
       <div>
@@ -132,52 +131,66 @@
           </div>
         </div>
 
-        <div style="position:relative; height:596px;">
+        <div style="position:relative; height:568px;">
 
-          <svg class="layer" viewBox="0 0 1094 596" preserveAspectRatio="none" aria-hidden="true">
+          <svg class="layer" viewBox="0 0 1094 568" preserveAspectRatio="none" aria-hidden="true">
             <!-- zone rules -->
             <g stroke="#141C20" stroke-width="1" stroke-dasharray="2 5">
-              <line x1="204" y1="46" x2="204" y2="560"/>
-              <line x1="384" y1="46" x2="384" y2="560"/>
-              <line x1="644" y1="46" x2="644" y2="560"/>
-              <line x1="900" y1="46" x2="900" y2="560"/>
+              <line x1="197" y1="44" x2="197" y2="534"/>
+              <line x1="377" y1="44" x2="377" y2="534"/>
+              <line x1="647" y1="44" x2="647" y2="534"/>
+              <line x1="917" y1="44" x2="917" y2="534"/>
             </g>
-            <!-- registration ticks, top and bottom -->
+            <!-- frame rules and registration marks -->
             <g stroke="#1A252A" stroke-width="1">
-              <line x1="24" y1="40" x2="1070" y2="40"/>
-              <line x1="24" y1="566" x2="1070" y2="566"/>
+              <line x1="24" y1="38" x2="1070" y2="38"/>
+              <line x1="24" y1="540" x2="1070" y2="540"/>
             </g>
             <g stroke="#28353C" stroke-width="1">
-              <line x1="24" y1="34" x2="24" y2="46"/><line x1="1070" y1="34" x2="1070" y2="46"/>
-              <line x1="24" y1="560" x2="24" y2="572"/><line x1="1070" y1="560" x2="1070" y2="572"/>
+              <line x1="24" y1="32" x2="24" y2="44"/><line x1="1070" y1="32" x2="1070" y2="44"/>
+              <line x1="24" y1="534" x2="24" y2="546"/><line x1="1070" y1="534" x2="1070" y2="546"/>
             </g>
 
-            <!-- other tracks -->
+            <!-- elaboration stubs -->
+            <path d="{{stubs}}" fill="none" stroke="#253239" stroke-width="1.25"
+                  stroke-linecap="round" opacity="{{stubOp}}"/>
+            <!-- branch lines -->
             <path class="ln" d="{{lineB}}" fill="none" stroke="{{otherStroke}}"
-                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
-                  opacity="{{otherOp}}"/>
+                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
             <path class="ln" d="{{lineC}}" fill="none" stroke="{{otherStroke}}"
-                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
-                  opacity="{{otherOp}}"/>
-            <!-- your track -->
-            <path class="ln" d="{{lineA}}" fill="none" stroke="#10AA91" stroke-width="1.75"
-                  stroke-linejoin="round" stroke-linecap="round"/>
+                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <!-- the trunk -->
+            <path d="M62 286 L962 286" fill="none" stroke="#10AA91" stroke-width="2"
+                  stroke-linecap="round"/>
             <!-- minor stops -->
             <path d="{{minor}}" fill="none" stroke="#2A3438" stroke-width="1"
                   opacity="{{minorOp}}"/>
           </svg>
 
           <!-- zone names, in the top gutter -->
-          <div class="lb" style="position:absolute; left:24px; top:18px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:24px; top:16px; font-size:9px;">
             &#8212;&ensp;The molecule</div>
-          <div class="lb" style="position:absolute; left:212px; top:18px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:205px; top:16px; font-size:9px;">
             &#8212;&ensp;Measuring it</div>
-          <div class="lb" style="position:absolute; left:392px; top:18px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:385px; top:16px; font-size:9px;">
             &#8212;&ensp;On disk</div>
-          <div class="lb" style="position:absolute; left:652px; top:18px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:655px; top:16px; font-size:9px;">
             &#8212;&ensp;Placing the reads</div>
-          <div class="lb" style="position:absolute; left:908px; top:18px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:925px; top:16px; font-size:9px;">
             &#8212;&ensp;Making a claim</div>
+
+          <!-- line names, at the terminus, metro-style -->
+          <div class="m" style="position:absolute; left:978px; top:279px; font-size:9.5px;
+                      letter-spacing:.1em; text-transform:uppercase; color:#10AA91;">
+            &#9656; yours</div>
+          <sc-if value="{{showBranchTags}}" hint-placeholder-val="{{ true }}">
+            <div class="m" style="position:absolute; left:1000px; top:396px; font-size:9.5px;
+                        letter-spacing:.1em; text-transform:uppercase; color:#455257;
+                        width:90px; line-height:1.4;">&#9656; call<br>variants</div>
+            <div class="m" style="position:absolute; left:820px; top:150px; font-size:9.5px;
+                        letter-spacing:.1em; text-transform:uppercase; color:#455257;
+                        width:90px; line-height:1.4;">&#9656; assemble<br>a genome</div>
+          </sc-if>
 
           <!-- stations -->
           <sc-for list="{{stops}}" as="p" hint-placeholder-count="24">
@@ -207,14 +220,14 @@
           <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%;
                 border:1px solid #2C3E45; box-sizing:border-box; margin-right:6px;
                 vertical-align:-1px;"></span>not yet</span>
-          <span><span style="display:inline-block; width:11px; height:11px; border-radius:50%;
+          <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%;
                 border:1.5px solid #889699; box-sizing:border-box; margin-right:7px;
-                vertical-align:-2px;"></span>interchange &mdash; three tracks need it</span>
+                vertical-align:-2px;"></span>interchange &mdash; more than one track needs it</span>
           <span style="margin-left:auto; display:flex; align-items:center; gap:18px;">
             <span><span style="display:inline-block; width:20px; height:2px; background:#10AA91;
-                  margin-right:7px; vertical-align:4px;"></span>yours</span>
+                  margin-right:7px; vertical-align:4px;"></span>your line</span>
             <span><span style="display:inline-block; width:20px; height:2px; background:#455257;
-                  margin-right:7px; vertical-align:4px;"></span>other tracks</span>
+                  margin-right:7px; vertical-align:4px;"></span>branches</span>
           </span>
         </div>
       </div>
@@ -252,18 +265,24 @@
 
         <div class="pl">
           <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Also through here</div>
+            <div class="lb">Branches from your line</div>
           </div>
           <div>
-            <div style="padding:11px 14px; border-bottom:1px solid #121A1D;
-                        display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:12.5px; color:#889699;">Call variants</span>
-              <span class="m" style="font-size:10px; color:#67757A;">8 shared</span>
+            <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:12.5px; color:#889699;">Call variants</span>
+                <span class="m" style="font-size:10px; color:#67757A;">8 shared</span>
+              </div>
+              <div style="font-size:11px; color:#455257; padding-top:3px;">
+                leaves after &ldquo;what an aligner does&rdquo;</div>
             </div>
-            <div style="padding:11px 14px; display:flex; justify-content:space-between;
-                        align-items:baseline;">
-              <span style="font-size:12.5px; color:#889699;">Assemble a genome</span>
-              <span class="m" style="font-size:10px; color:#67757A;">5 shared</span>
+            <div style="padding:11px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:12.5px; color:#889699;">Assemble a genome</span>
+                <span class="m" style="font-size:10px; color:#67757A;">5 shared</span>
+              </div>
+              <div style="font-size:11px; color:#455257; padding-top:3px;">
+                leaves after &ldquo;FASTQ on disk&rdquo;</div>
             </div>
           </div>
           <div style="padding:11px 14px; border-top:1px solid #172025;">
@@ -278,64 +297,73 @@
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"$preview":{"width":1440,"height":1010}}'>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
 class Component extends DCLogic {
-  // octilinear metro geometry: every segment is 0, 45 or 90 degrees
-  lineA() {
+  // one straight trunk. everything else branches off it.
+  geom() { return { y: 286, x0: 62, dx: 90, up: 196, dn: 376 }; }
+  tx(i) { const g = this.geom(); return g.x0 + i * g.dx; }
+
+  trunk() {
     return [
-      [60, 470], [148, 382], [236, 382], [324, 294], [412, 294],
-      [500, 382], [588, 382], [676, 294], [764, 206], [852, 206], [940, 294]
-    ];
-  }
-  lineB() { // call variants — shares the trunk to "what an aligner does"
-    return [
-      [60, 475], [148, 387], [236, 387], [324, 299], [412, 299],
-      [500, 387], [588, 387], [676, 299], [764, 387], [852, 387], [940, 475], [1028, 475]
-    ];
-  }
-  lineC() { // assemble a genome — diverges at FASTQ
-    return [
-      [60, 465], [148, 377], [236, 377], [324, 289], [412, 289],
-      [500, 201], [588, 201], [676, 113], [764, 113]
+      { t: 'What DNA is made of',       s: 'known',  i: 0,  up: true },
+      { t: 'Genes and transcripts',     s: 'stale',  i: 1,  up: false },
+      { t: 'What a sequencer measures', s: 'known',  i: 2,  up: true },
+      { t: 'A read is a sample',        s: 'ready',  i: 3,  up: false, ix: true, th: true },
+      { t: 'FASTQ on disk',             s: 'ready',  i: 4,  up: true,  ix: true },
+      { t: 'Quality scores',            s: 'locked', i: 5,  up: false },
+      { t: 'Why reads get trimmed',     s: 'locked', i: 6,  up: true },
+      { t: 'What an aligner does',      s: 'known',  i: 7,  up: false, ix: true, th: true },
+      { t: 'Splicing',                  s: 'locked', i: 8,  up: true,  th: true },
+      { t: 'STAR',                      s: 'locked', i: 9,  up: false },
+      { t: 'A counts matrix',           s: 'locked', i: 10, up: true }
     ];
   }
 
-  stopsA() {
+  // branch B leaves the trunk after stop 7; branch C after stop 4
+  branchB() {
+    const g = this.geom();
+    return { from: this.tx(7), pts: [[this.tx(7), g.y], [this.tx(8), g.dn],
+      [this.tx(9), g.dn], [this.tx(10), g.dn], [this.tx(11), g.dn]] };
+  }
+  branchC() {
+    const g = this.geom();
+    return { pts: [[this.tx(4), g.y], [this.tx(5), g.up],
+      [this.tx(6), g.up], [this.tx(7), g.up], [this.tx(8), g.up]] };
+  }
+
+  branchStops() {
+    const g = this.geom();
     return [
-      { t: 'What DNA is made of',        s: 'known',  x: 60,  y: 470, up: false, ix: true },
-      { t: 'Genes and transcripts',      s: 'stale',  x: 148, y: 382, up: true,  ix: true },
-      { t: 'What a sequencer measures',  s: 'known',  x: 236, y: 382, up: false, ix: true },
-      { t: 'A read is a sample',         s: 'ready',  x: 324, y: 294, up: true,  ix: true, th: true },
-      { t: 'FASTQ on disk',              s: 'ready',  x: 412, y: 294, up: false, ix: true },
-      { t: 'Quality scores',             s: 'locked', x: 500, y: 382, up: false },
-      { t: 'Why reads get trimmed',      s: 'locked', x: 588, y: 382, up: false },
-      { t: 'What an aligner does',       s: 'known',  x: 676, y: 294, up: true,  ix: true, th: true },
-      { t: 'Splicing',                   s: 'locked', x: 764, y: 206, up: true,  th: true },
-      { t: 'STAR',                       s: 'locked', x: 852, y: 206, up: true },
-      { t: 'A counts matrix',            s: 'locked', x: 940, y: 294, up: false }
+      { t: 'BWA',              x: this.tx(8),  y: g.dn, up: false },
+      { t: 'Duplicate marking', x: this.tx(9),  y: g.dn, up: false },
+      { t: 'Variant calling',  x: this.tx(10), y: g.dn, up: false, th: true },
+      { t: 'A VCF',            x: this.tx(11), y: g.dn, up: false },
+      { t: 'k-mers',           x: this.tx(5),  y: g.up, up: true },
+      { t: 'de Bruijn graphs', x: this.tx(6),  y: g.up, up: true, th: true },
+      { t: 'Contigs',          x: this.tx(7),  y: g.up, up: true },
+      { t: 'Scaffolding',      x: this.tx(8),  y: g.up, up: true }
     ];
   }
 
-  // named stops that belong to the OTHER lines
-  stopsOther() {
+  // short stubs hanging off the trunk — the elaborations
+  elaborations() {
     return [
-      { t: 'BWA',                x: 764, y: 387, up: false },
-      { t: 'Duplicate marking',  x: 852, y: 387, up: false },
-      { t: 'Variant calling',    x: 940, y: 475, up: false, th: true },
-      { t: 'A VCF',              x: 1028, y: 475, up: false },
-      { t: 'k-mers',             x: 500, y: 201, up: true },
-      { t: 'de Bruijn graphs',   x: 588, y: 201, up: true, th: true },
-      { t: 'Contigs',            x: 676, y: 113, up: true },
-      { t: 'Scaffolding',        x: 764, y: 113, up: true }
+      { t: 'Introns',       i: 1,  dir: 1 },
+      { t: 'PCR duplicates', i: 3, dir: -1 },
+      { t: 'Phred scores',  i: 5,  dir: 1 },
+      { t: 'Adapters',      i: 6,  dir: -1 },
+      { t: 'Genome index',  i: 9,  dir: 1 },
+      { t: 'Normalisation', i: 10, dir: -1 }
     ];
   }
 
   renderVals() {
     const level = this.state.level ?? 0;
+    const g = this.geom();
     const L = [
-      { label: 'Your line', blurb: 'the eleven stops on your track' },
-      { label: '+ other lines', blurb: 'the tracks that share these stops' },
-      { label: 'Every stop', blurb: 'including the minor ones nobody names' }
+      { label: 'Your line',     blurb: 'eleven stops, one line' },
+      { label: '+ branches',    blurb: 'the tracks that leave your line, and where' },
+      { label: 'Every stop',    blurb: 'including the elaborations hanging off each stop' }
     ];
 
     const segs = L.map((l, i) => ({
@@ -344,60 +372,65 @@ class Component extends DCLogic {
       pick: () => this.setState({ level: i })
     }));
 
-    const d = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ');
+    const d = (pts) => pts.map((p, k) => `${k ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ');
 
     const mark = (p) => {
-      const ix = p.ix || p.th;
-      const size = ix ? 13 : 9;
-      let border = '1px solid #2C3E45', bg = '#0B1013', extra = '';
-      if (p.s === 'known') { border = '1px solid #67757A'; bg = '#67757A'; }
-      if (p.s === 'stale') { border = '1.5px solid #C1B508'; }
-      if (p.s === 'ready') {
-        border = '1.5px solid #6CB7FF';
-        extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 5px #6CB7FF;';
-      }
-      if (ix) { border = `${p.s === 'known' ? 1.5 : 1.5}px solid ` +
-                         (p.s === 'known' ? '#889699' : p.s === 'ready' ? '#6CB7FF'
-                          : p.s === 'stale' ? '#C1B508' : '#455257');
-                if (p.s === 'known') { bg = '#0B1013';
-                  extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 6px #67757A;'; } }
+      const big = p.ix || p.th;
+      const size = big ? 13 : 9;
+      const col = p.s === 'known' ? '#889699'
+                : p.s === 'stale' ? '#C1B508'
+                : p.s === 'ready' ? '#6CB7FF' : '#2C3E45';
+      let border = `${p.s === 'locked' ? 1 : 1.5}px solid ${col}`;
+      let bg = '#0B1013', extra = '';
+      if (p.s === 'known' && !big) { bg = '#67757A'; border = '1px solid #67757A'; }
+      if (p.s === 'known' && big) { extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 6px #67757A;'; }
+      if (p.s === 'ready') { extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 5px #6CB7FF;'; }
       return `width:${size}px; height:${size}px; border-radius:50%; box-sizing:border-box;`
            + `border:${border}; background:${bg}; ${extra}`;
     };
 
     const stops = [];
-    const push = (p, dim, strong) => {
+    const push = (p, strong, small) => {
       stops.push({
         t: p.t,
         wrap: `position:absolute; left:${p.x}px; top:${p.y}px;`
-            + `transform:translate(-50%,-50%); width:148px; margin-left:-74px;`
-            + `display:flex; flex-direction:column; align-items:center; gap:6px;`
-            + `opacity:${dim};`,
+            + `transform:translate(-50%,-50%); width:96px; margin-left:-48px;`
+            + `display:flex; flex-direction:column; align-items:center; gap:7px;`,
         mark: mark(p),
         above: !!p.up,
         below: !p.up,
-        lab: `font-size:${p.th ? 10.5 : 10}px; line-height:1.28; text-align:center;`
-           + `color:${strong ? '#DFE6E6' : '#889699'}; font-weight:${p.th ? 500 : 400};`
-           + `letter-spacing:-.005em; text-shadow:0 0 5px #080B0D, 0 0 3px #080B0D;`
+        lab: `font-size:${small ? 9.5 : (p.th ? 10.5 : 10)}px; line-height:1.3;`
+           + `text-align:center; color:${strong ? '#DFE6E6' : (small ? '#67757A' : '#889699')};`
+           + `font-weight:${p.th ? 500 : 400}; letter-spacing:-.005em;`
+           + `text-shadow:0 0 5px #080B0D, 0 0 3px #080B0D;`
       });
     };
 
-    this.stopsA().forEach((p) => push(p, 1, true));
-    if (level >= 1) this.stopsOther().forEach((p) => push({ ...p, s: 'locked' }, 1, false));
+    this.trunk().forEach((p) => push({ ...p, x: this.tx(p.i), y: g.y }, true, false));
+    if (level >= 1) this.branchStops().forEach((p) => push({ ...p, s: 'locked' }, false, false));
 
-    // minor stops: hairline ticks across the line, metro-style
+    // elaboration stubs
+    const stubs = [];
+    if (level >= 2) {
+      this.elaborations().forEach((e) => {
+        const x = this.tx(e.i);
+        const y = g.y + e.dir * 66;
+        stubs.push(`M${x} ${g.y} L${x} ${y}`);
+        push({ ...e, x, y, s: 'locked', up: e.dir < 0 }, false, true);
+      });
+    }
+
+    // minor stops: hairline ticks mid-segment, the stops nobody names
     const minor = [];
     if (level >= 2) {
-      const all = [this.lineA(), this.lineB(), this.lineC()];
-      all.forEach((pts) => {
-        for (let i = 0; i < pts.length - 1; i++) {
-          const [x1, y1] = pts[i], [x2, y2] = pts[i + 1];
-          const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-          const dx = x2 - x1, dy = y2 - y1;
-          const len = Math.hypot(dx, dy) || 1;
-          const nx = -dy / len * 4.5, ny = dx / len * 4.5;
-          minor.push(`M${(mx - nx).toFixed(1)} ${(my - ny).toFixed(1)}`
-                   + ` L${(mx + nx).toFixed(1)} ${(my + ny).toFixed(1)}`);
+      for (let i = 0; i < 10; i++) {
+        const mx = this.tx(i) + g.dx / 2;
+        minor.push(`M${mx} ${g.y - 4.5} L${mx} ${g.y + 4.5}`);
+      }
+      [this.branchB().pts, this.branchC().pts].forEach((pts) => {
+        for (let i = 1; i < pts.length - 1; i++) {
+          const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = pts[i][1];
+          minor.push(`M${mx} ${my - 4.5} L${mx} ${my + 4.5}`);
         }
       });
     }
@@ -405,13 +438,14 @@ class Component extends DCLogic {
     return {
       segs,
       stops,
-      lineA: d(this.lineA()),
-      lineB: d(this.lineB()),
-      lineC: d(this.lineC()),
+      lineB: d(this.branchB().pts),
+      lineC: d(this.branchC().pts),
+      stubs: stubs.join(' '),
+      stubOp: level >= 2 ? '1' : '0',
       minor: minor.join(' '),
       minorOp: level >= 2 ? '1' : '0',
-      otherStroke: level === 0 ? '#1E282C' : '#455257',
-      otherOp: level === 0 ? '.85' : '1',
+      otherStroke: level === 0 ? '#1A252A' : '#455257',
+      showBranchTags: level >= 1,
       blurb: L[level].blurb
     };
   }

@@ -1,6 +1,6 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "title": "B2 · The map — lines, stops and interchanges", "x": 0, "y": 0, "w": 1440, "h": 1010, "is_interactive": true },
+    { "file": "Main.dc.html", "title": "B2 · The map — a trunk line, and what branches off it", "x": 0, "y": 0, "w": 1440, "h": 980, "is_interactive": true },
     { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1560, "y": 0, "w": 1440, "h": 1000 },
     { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1240, "w": 1000, "h": 1420 },
     { "file": "Problem.dc.html", "title": "B3 · A problem, Rosalind-shaped", "x": 1080, "y": 1240, "w": 1100, "h": 1180 },
@@ -12,7 +12,7 @@
       "x": 0,
       "y": -196,
       "w": 460,
-      "text": "B2 — a transit map. Click the three-position control.\n\nThis is MetroSets, a published hypergraph visualisation method: hyperedges drawn as coloured lines running through their member nodes on a schematic map. It is the answer to both problems at once. A track is a LINE; a node is a STOP; a node several tracks depend on is an INTERCHANGE — so the reusable-node claim becomes something you can see rather than a paragraph. And it is drawn like an instrument, not a game: octilinear segments, hairlines, one colour, no glow.\n\nZones across the top are the regions. Level 0 shows your line; level 1 brings up the tracks that share your stops; level 2 adds the minor stops nobody names.\n\nSettled spends no colour — Labs' own law, which the previous constellation version broke."
+      "text": "B2 — a transit map. Click the three-position control.\n\nThe trunk is DEAD STRAIGHT: eleven evenly spaced stops on one line, labels alternating above and below. A zigzagging core made the reader work to find the path, which was the whole point of having one. Everything else BRANCHES off it at a named stop, so a divergence is legible as a divergence.\n\nThe form is MetroSets, a published hypergraph visualisation method: hyperedges as lines running through their member nodes on a schematic map. A track is a LINE, a node is a STOP, a node more than one track needs is an INTERCHANGE — so the reusable-node claim is something you see rather than a paragraph you read.\n\nZones across the top are the regions. Level 1 shows where each branch leaves; level 2 hangs the elaborations off their stops as stubs, and marks the minor stops nobody names.\n\nSettled spends no colour. That is Labs' own law, and the constellation draft broke it."
     },
     {
       "id": "note-review",
