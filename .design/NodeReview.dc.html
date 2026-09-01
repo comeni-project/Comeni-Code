@@ -1,0 +1,315 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin:0; background:#080B0D; color:#DFE6E6; font-variant-numeric:tabular-nums;
+           font-family:"Geist","Geist Variable",system-ui,sans-serif; }
+    a { color:#6CB7FF; text-decoration:none; } a:hover { color:#fff; }
+    .m  { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace; }
+    .lb { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
+          font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:#67757A; }
+    .layer { position:absolute; inset:0; pointer-events:none; }
+    .breathe { animation:breathe 46s ease-in-out infinite alternate; }
+    @keyframes breathe { to { opacity:1.85; } }
+    .slowA { transform-box:view-box; transform-origin:1240px 60px; animation:spin 760s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .rule { background-image:
+              linear-gradient(rgba(108,183,255,.026) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(108,183,255,.026) 1px, transparent 1px);
+            background-size:36px 36px;
+            mask-image:radial-gradient(105% 62% at 84% 0%, #000 0%, transparent 66%); }
+    .scan { background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.010) 0 1px, transparent 1px 3px); }
+    .vig  { background:radial-gradient(130% 92% at 50% 3%, transparent 44%, rgba(8,11,13,.9) 100%); }
+    .pl { background:rgba(12,18,22,.62); border:1px solid #172025; }
+    .settle { animation:settle 200ms cubic-bezier(.32,.72,0,1) backwards; }
+    @keyframes settle { from { opacity:0; transform:translateY(4px); } }
+    /* an assertion the reviewer has not yet matched to a source */
+    .unsup { border-bottom:1.5px dotted #E3674E; cursor:pointer;
+             background:rgba(227,103,78,.06); }
+    /* an assertion carrying a source */
+    .sup sup { color:#6CB7FF; font-size:9px; padding-left:2px; }
+    @media (prefers-reduced-motion: reduce) {
+      .breathe,.slowA,.settle { animation:none !important; }
+    }
+  </style>
+</helmet>
+
+<div style="position:relative; min-height:1000px; overflow:hidden; background:#080B0D;">
+
+  <svg class="layer" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g class="breathe" fill="none">
+      <g class="slowA" stroke="#6CB7FF" stroke-width="1">
+        <circle cx="1240" cy="60" r="520" opacity=".07"/>
+        <circle cx="1240" cy="60" r="820" opacity=".045"/>
+        <circle cx="1240" cy="60" r="1180" opacity=".028"/>
+      </g>
+      <path d="M-60 820 Q 700 1010 1520 660" stroke="#10AA91" stroke-width="1" opacity=".026"/>
+    </g>
+  </svg>
+  <div class="layer rule"></div>
+  <div class="layer scan"></div>
+  <div class="layer vig"></div>
+
+  <div style="position:relative; padding:28px 44px 40px;">
+
+    <!-- shell -->
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding-bottom:20px; border-bottom:1px solid #172025;">
+      <div style="display:flex; align-items:baseline; gap:28px;">
+        <span style="font-size:14px; font-weight:700; letter-spacing:-.02em;">Comeni</span>
+        <span style="font-size:12.5px; color:#67757A;">Code</span>
+        <span style="font-size:12.5px; color:#67757A;">Tracks</span>
+        <span style="font-size:12.5px; color:#67757A;">Map</span>
+        <span style="font-size:12.5px; color:#DFE6E6;">Review</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:20px;">
+        <span class="m" style="font-size:11px; color:#889699;">
+          <span style="color:#C1B508;">14</span> holes waiting</span>
+        <span class="m" style="font-size:11px; color:#67757A;">R. Correia</span>
+      </div>
+    </div>
+
+    <!-- node identity -->
+    <div class="settle" style="display:flex; align-items:flex-end;
+                justify-content:space-between; gap:40px; padding:28px 0 22px;">
+      <div>
+        <div class="lb" style="padding-bottom:10px;">Node under review
+          &middot; <span class="m" style="color:#455257;">cc.read-is-a-sample</span></div>
+        <div style="font-size:29px; font-weight:600; letter-spacing:-.03em; line-height:1.1;">
+          A read is a sample of a molecule, not the molecule</div>
+        <div style="padding-top:11px; display:flex; align-items:center; gap:14px;
+                    font-size:12px; color:#889699;">
+          <span style="color:#6CB7FF;">&#9670; threshold</span>
+          <span style="color:#2A3438;">|</span>
+          <span>claim approved by R. Correia, 2 days ago &mdash; and locked</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="lb" style="padding-bottom:9px;">Provenance</div>
+        <div class="m" style="font-size:11px; color:#889699; line-height:1.75;">
+          prompt <span style="color:#DFE6E6;">cc-exposition-014</span><br>
+          model <span style="color:#DFE6E6;">claude-opus-5</span><br>
+          <span style="color:#DFE6E6;">4</span> sources retrieved,
+          <span style="color:#10AA91;">4</span> resolve
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:212px 1fr 356px; gap:26px; align-items:start;">
+
+      <!-- ── the holes ─────────────────────────────────────────────────── -->
+      <div class="pl">
+        <div style="padding:13px 15px; border-bottom:1px solid #121A1D;">
+          <div class="lb">The holes</div>
+        </div>
+        <div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#889699;">claim</span>
+            <span class="m" style="font-size:9.5px; letter-spacing:.1em;
+                  text-transform:uppercase; color:#10AA91;">locked</span>
+          </div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#889699;">prerequisites</span>
+            <span class="m" style="font-size:10px; color:#C1B508;">4 of 6</span>
+          </div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      background:#0E1418; border-left:2px solid #6CB7FF;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#DFE6E6; font-weight:500;">exposition</span>
+            <span class="m" style="font-size:9.5px; letter-spacing:.1em;
+                  text-transform:uppercase; color:#6CB7FF;">now</span>
+          </div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#67757A;">worked example</span>
+            <span class="m" style="font-size:9.5px; letter-spacing:.1em;
+                  text-transform:uppercase; color:#10AA91;">runs</span>
+          </div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#67757A;">misconception</span>
+            <span class="m" style="font-size:10px; color:#455257;">drafted</span>
+          </div>
+          <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#67757A;">check</span>
+            <span class="m" style="font-size:10px; color:#455257;">drafted</span>
+          </div>
+          <div style="padding:11px 15px;
+                      display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12.5px; color:#67757A;">framing</span>
+            <span class="m" style="font-size:10px; color:#455257;">2 tracks</span>
+          </div>
+        </div>
+        <div style="padding:13px 15px; border-top:1px solid #172025;">
+          <div style="font-size:11.5px; color:#67757A; line-height:1.5;">
+            Each hole is approved on its own. Nothing here approves the node.
+          </div>
+        </div>
+      </div>
+
+      <!-- ── the draft ─────────────────────────────────────────────────── -->
+      <div class="pl">
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:13px 20px; border-bottom:1px solid #121A1D;">
+          <div class="lb">Exposition &mdash; draft 2</div>
+          <div class="m" style="font-size:10.5px; color:#67757A;">
+            9 assertions &middot; <span style="color:#E3674E;">3 with no source</span></div>
+        </div>
+
+        <div style="padding:22px 26px 8px; font-size:14.5px; line-height:1.72; color:#DFE6E6;">
+          <p style="margin:0 0 15px;">
+            <span class="sup">When you hand a tube to the sequencing facility, you are handing
+            over millions of molecules, and what comes back is not those molecules &mdash; it is
+            a few hundred letters read off some of them<sup>1</sup>.</span>
+            <span class="unsup">Each read is one observation, drawn from a population you never
+            see directly.</span>
+          </p>
+          <p style="margin:0 0 15px;">
+            <span class="sup">This is why coverage is spoken of as depth: sequencing the same
+            library twice gives you two different samples of the same underlying
+            pool<sup>2</sup>.</span>
+            <span class="unsup">Two reads that look identical may come from one molecule read
+            twice, or from two molecules that happen to share a sequence &mdash; and nothing in
+            the FASTQ tells you which.</span>
+          </p>
+          <p style="margin:0 0 15px;">
+            <span class="sup">The consequence runs through everything downstream. A count is
+            not a measurement of how much RNA was present; it is a count of how many times
+            a sampling process happened to draw from that transcript<sup>3</sup>.</span>
+            <span class="unsup">That is the whole reason differential expression needs
+            statistics rather than subtraction.</span>
+          </p>
+          <p style="margin:0;">
+            <span class="sup">Once you see reads as samples, the rest of the pipeline stops
+            looking like a series of file conversions and starts looking like what it is:
+            an attempt to say something about a population from a sample of it<sup>4</sup>.</span>
+          </p>
+        </div>
+
+        <div style="padding:14px 26px 18px;">
+          <div style="font-size:11.5px; color:#67757A;">
+            Click any sentence to attach a source, or mark it as one the node may assert
+            without one.
+          </div>
+        </div>
+
+        <!-- the gate -->
+        <div style="border-top:1px solid #172025; background:rgba(8,11,13,.5);
+                    padding:17px 26px 19px;">
+          <div class="lb" style="padding-bottom:12px;">Before this hole can be approved</div>
+          <div style="display:flex; flex-direction:column; gap:9px; font-size:12.5px;">
+            <div style="display:flex; align-items:center; gap:10px; color:#889699;">
+              <span style="width:13px; height:13px; border:1px solid #10AA91;
+                    background:#10AA91; color:#041014; font-size:9px; line-height:13px;
+                    text-align:center;">&#10003;</span>
+              <span>You opened all four sources</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#DFE6E6;">
+              <span style="width:13px; height:13px; border:1px solid #E3674E;"></span>
+              <span>Every assertion carries a source, or is marked as not needing one
+                <span style="color:#E3674E;"> &mdash; 3 left</span></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#DFE6E6;">
+              <span style="width:13px; height:13px; border:1px solid #E3674E;"></span>
+              <span>You answered this node's own two checks
+                <span style="color:#67757A;"> &mdash; not started</span></span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; padding-top:17px;">
+            <span style="background:#1E282C; color:#455257; font-size:12px; font-weight:500;
+                  padding:9px 20px; cursor:not-allowed;">Approve exposition</span>
+            <span style="border:1px solid #2A3438; color:#889699; font-size:12px;
+                  padding:9px 18px;">Send back with a note</span>
+            <span style="font-size:11.5px; color:#67757A; margin-left:auto;">
+              Approving is two steps away, on purpose.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── sources ───────────────────────────────────────────────────── -->
+      <div style="display:flex; flex-direction:column; gap:18px;">
+        <div class="pl">
+          <div style="display:flex; align-items:center; justify-content:space-between;
+                      padding:13px 16px; border-bottom:1px solid #121A1D;">
+            <div class="lb">What it was written from</div>
+            <span class="m" style="font-size:10px; color:#10AA91;">4/4 resolve</span>
+          </div>
+
+          <div style="padding:14px 16px; border-bottom:1px solid #121A1D;">
+            <div style="display:flex; gap:9px; align-items:baseline; padding-bottom:6px;">
+              <span class="m" style="font-size:10px; color:#6CB7FF;">1</span>
+              <span style="font-size:12.5px; font-weight:500; line-height:1.35;">
+                Sims et al., Sequencing depth and coverage</span>
+            </div>
+            <div class="m" style="font-size:10px; color:#67757A; padding-bottom:8px;">
+              10.1038/nrg3642 <span style="color:#10AA91;">&#10003; resolves</span></div>
+            <div style="font-size:11.5px; color:#889699; line-height:1.55;
+                        border-left:2px solid #1E282C; padding-left:10px;">
+              &ldquo;&hellip;sequencing produces a random sample of the fragments present in
+              the library, and the number of reads observed for a feature is therefore a
+              sampling statistic&hellip;&rdquo;
+            </div>
+          </div>
+
+          <div style="padding:14px 16px; border-bottom:1px solid #121A1D;">
+            <div style="display:flex; gap:9px; align-items:baseline; padding-bottom:6px;">
+              <span class="m" style="font-size:10px; color:#6CB7FF;">2</span>
+              <span style="font-size:12.5px; font-weight:500; line-height:1.35;">
+                Conesa et al., A survey of best practices for RNA-seq</span>
+            </div>
+            <div class="m" style="font-size:10px; color:#67757A;">
+              10.1186/s13059-016-0881-8 <span style="color:#10AA91;">&#10003; resolves</span></div>
+          </div>
+
+          <div style="padding:14px 16px; border-bottom:1px solid #121A1D;">
+            <div style="display:flex; gap:9px; align-items:baseline; padding-bottom:6px;">
+              <span class="m" style="font-size:10px; color:#6CB7FF;">3</span>
+              <span style="font-size:12.5px; font-weight:500; line-height:1.35;">
+                Love et al., DESeq2</span>
+            </div>
+            <div class="m" style="font-size:10px; color:#67757A;">
+              10.1186/s13059-014-0550-8 <span style="color:#10AA91;">&#10003; resolves</span></div>
+          </div>
+
+          <div style="padding:14px 16px;">
+            <div style="display:flex; gap:9px; align-items:baseline; padding-bottom:6px;">
+              <span class="m" style="font-size:10px; color:#6CB7FF;">4</span>
+              <span style="font-size:12.5px; font-weight:500; line-height:1.35;">
+                Comeni registry &mdash; star/align contract</span>
+            </div>
+            <div class="m" style="font-size:10px; color:#67757A;">
+              layer 0 &middot; digest 9f3a1c
+              <span style="color:#10AA91;">&#10003; matches</span></div>
+          </div>
+        </div>
+
+        <div class="pl" style="border-color:#2A3438;">
+          <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
+            <div class="lb">What the learner will see</div>
+          </div>
+          <div style="padding:14px 16px; font-size:11.5px; color:#889699; line-height:1.6;">
+            Drafted by a model from four sources, approved by
+            <span style="color:#DFE6E6;">you</span> on the day you approve it.
+            <div style="padding-top:9px; color:#67757A;">
+              This line appears on the node itself. It is not a disclaimer &mdash; it is the
+              same promise Mendel makes about a pipeline.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

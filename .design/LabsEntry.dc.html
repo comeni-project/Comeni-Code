@@ -1,0 +1,262 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin:0; background:#080B0D; color:#DFE6E6; font-variant-numeric:tabular-nums;
+           font-family:"Geist","Geist Variable",system-ui,sans-serif; }
+    a { color:#6CB7FF; text-decoration:none; } a:hover { color:#fff; }
+    .m  { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace; }
+    .lb { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
+          font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:#67757A; }
+    .layer { position:absolute; inset:0; pointer-events:none; }
+    .breathe { animation:breathe 46s ease-in-out infinite alternate; }
+    @keyframes breathe { to { opacity:1.85; } }
+    .slowA { transform-box:view-box; transform-origin:200px 880px; animation:spin 700s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .rule { background-image:
+              linear-gradient(rgba(108,183,255,.026) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(108,183,255,.026) 1px, transparent 1px);
+            background-size:36px 36px;
+            mask-image:radial-gradient(105% 62% at 20% 0%, #000 0%, transparent 66%); }
+    .scan { background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.010) 0 1px, transparent 1px 3px); }
+    .vig  { background:radial-gradient(130% 92% at 50% 3%, transparent 44%, rgba(8,11,13,.9) 100%); }
+    .pl { background:rgba(12,18,22,.62); border:1px solid #172025; }
+    .settle { animation:settle 200ms cubic-bezier(.32,.72,0,1) backwards; }
+    @keyframes settle { from { opacity:0; transform:translateY(4px); } }
+    .slide { animation:slide 260ms cubic-bezier(.32,.72,0,1) backwards; }
+    @keyframes slide { from { opacity:0; transform:translateX(10px); } }
+    @media (prefers-reduced-motion: reduce) {
+      .breathe,.slowA,.settle,.slide { animation:none !important; } }
+  </style>
+</helmet>
+
+<div style="position:relative; min-height:900px; overflow:hidden; background:#080B0D;">
+
+  <svg class="layer" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g class="breathe" fill="none">
+      <g class="slowA" stroke="#6CB7FF" stroke-width="1">
+        <circle cx="200" cy="880" r="560" opacity=".075"/>
+        <circle cx="200" cy="880" r="880" opacity=".048"/>
+        <circle cx="200" cy="880" r="1200" opacity=".03"/>
+      </g>
+      <g stroke="#10AA91">
+        <circle cx="1340" cy="40" r="420" opacity=".05" stroke-width="1"/>
+      </g>
+    </g>
+  </svg>
+  <div class="layer rule"></div>
+  <div class="layer scan"></div>
+  <div class="layer vig"></div>
+
+  <div style="position:relative; padding:26px 40px 40px;">
+
+    <!-- Labs shell -->
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding-bottom:18px; border-bottom:1px solid #172025;">
+      <div style="display:flex; align-items:baseline; gap:26px;">
+        <span style="font-size:14px; font-weight:700; letter-spacing:-.02em;">Comeni</span>
+        <span style="font-size:12.5px; color:#DFE6E6;">Builder</span>
+        <span style="font-size:12.5px; color:#67757A;">Runs</span>
+        <span style="font-size:12.5px; color:#67757A;">Registry</span>
+      </div>
+      <span class="m" style="font-size:11px; color:#67757A;">
+        rnaseq-counts &middot; draft <span style="color:#889699;">7c1f</span></span>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 512px; gap:30px;
+                align-items:start; padding-top:26px;">
+
+      <!-- ── the pipeline decision, as Mendel emitted it ────────────────── -->
+      <div class="settle">
+        <div class="lb" style="padding-bottom:12px;">Comeni Labs &middot; pipeline.yml</div>
+
+        <!-- graph fragment -->
+        <div class="pl" style="padding:20px 22px 22px; margin-bottom:20px;">
+          <div style="display:flex; align-items:center; gap:0;">
+            <div style="width:150px; height:64px; background:#0C1216; border:1px solid #253239;
+                        padding:9px 11px; box-sizing:border-box;">
+              <div class="m" style="font-size:9px; letter-spacing:.1em; color:#67757A;">TRIMGALORE</div>
+              <div style="font-size:11.5px; color:#889699; padding-top:6px;">trimmed reads</div>
+            </div>
+            <div style="width:46px; height:1px; background:#253239;"></div>
+            <div style="width:172px; height:74px; background:#0C1216; border:2px solid #C1B508;
+                        padding:10px 12px; box-sizing:border-box;">
+              <div class="m" style="font-size:9px; letter-spacing:.1em; color:#C1B508;">STAR_ALIGN</div>
+              <div style="font-size:12.5px; color:#DFE6E6; padding-top:6px; font-weight:500;">
+                selected at tier 3</div>
+            </div>
+            <div style="width:46px; height:1px; background:#253239;"></div>
+            <div style="width:150px; height:64px; background:#0C1216; border:1px solid #253239;
+                        padding:9px 11px; box-sizing:border-box;">
+              <div class="m" style="font-size:9px; letter-spacing:.1em; color:#67757A;">SAMTOOLS_SORT</div>
+              <div style="font-size:11.5px; color:#889699; padding-top:6px;">sorted bam</div>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="text-align:right;">
+              <div class="lb" style="padding-bottom:6px;">Selected</div>
+              <div style="font-size:19px; font-weight:600; letter-spacing:-.02em;">STAR</div>
+              <div style="font-size:11.5px; color:#67757A;">over HISAT2</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- the why block -->
+        <div class="pl">
+          <div style="display:flex; align-items:center; justify-content:space-between;
+                      padding:13px 20px; border-bottom:1px solid #121A1D;">
+            <div class="lb">Why</div>
+            <span class="m" style="font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+                  color:#C1B508; border:1px solid #2A2708; padding:3px 9px;">
+              tier 3 &middot; data-profiled &middot; advisory</span>
+          </div>
+
+          <div style="padding:18px 20px 6px;">
+            <div style="font-size:14.5px; line-height:1.65; color:#DFE6E6; max-width:66ch;">
+              A rule matched something measured about your data. The machinery worked
+              &mdash; what nobody has checked is the premise.
+            </div>
+          </div>
+
+          <div style="padding:16px 20px 4px; display:grid;
+                      grid-template-columns:112px 1fr; gap:10px 18px; align-items:baseline;">
+            <div class="lb">Rule</div>
+            <div class="m" style="font-size:12px; color:#DFE6E6;">
+              R07 &middot; aligner.short-read.spliced</div>
+
+            <div class="lb">Premise</div>
+            <div style="font-size:13px; color:#DFE6E6; line-height:1.6;">
+              <span class="m" style="color:#889699;">read_length</span> = 100 bp,
+              measured from your first 10,000 reads<br>
+              <span class="m" style="color:#889699;">reference_genome</span> = GRCh38, annotated
+            </div>
+
+            <div class="lb">Citation</div>
+            <div style="font-size:13px; color:#889699; line-height:1.6;">
+              Dobin et al. 2013, STAR: ultrafast universal RNA-seq aligner
+              <span class="m" style="font-size:11px; color:#67757A;">10.1093/bioinformatics/bts635</span>
+            </div>
+
+            <div class="lb">Layer</div>
+            <div class="m" style="font-size:12px; color:#889699;">
+              comeni-registry v0.2.0 &middot; digest 9f3a1c</div>
+          </div>
+
+          <div style="padding:18px 20px 20px; margin-top:12px; border-top:1px solid #121A1D;
+                      display:flex; align-items:center; gap:16px;">
+            <span style="border:1px solid #2A3438; color:#889699; font-size:12px;
+                  padding:8px 16px;">Override this</span>
+            <span style="border:1px solid #2A3438; color:#889699; font-size:12px;
+                  padding:8px 16px;">Show the rule</span>
+            <span style="font-size:11.5px; color:#455257; margin-left:auto;">
+              Tier 3 is yellow on purpose: a rule match is only as good as the measurement
+              behind it.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── the Code drawer ───────────────────────────────────────────── -->
+      <div class="slide pl" style="border-color:#1E3A4E;">
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:14px 20px; border-bottom:1px solid #121A1D;
+                    background:rgba(18,32,41,.5);">
+          <div style="display:flex; align-items:baseline; gap:10px;">
+            <span style="font-size:12.5px; font-weight:600;">Comeni Code</span>
+            <span class="m" style="font-size:10px; color:#67757A;">from this decision</span>
+          </div>
+          <span style="color:#455257; font-size:13px;">&times;</span>
+        </div>
+
+        <div style="padding:22px 22px 6px;">
+          <div class="lb" style="padding-bottom:11px;">To judge this yourself you need</div>
+          <div style="font-size:20px; font-weight:600; letter-spacing:-.025em; line-height:1.25;">
+            Why splicing makes RNA alignment a different problem</div>
+          <div style="padding-top:12px; font-size:13px; color:#889699; line-height:1.65;">
+            The rule fired on read length and an annotated genome. Both of those matter for
+            one reason, and it is not a fact about STAR &mdash; it is a fact about where a
+            read can land when the molecule it came from had its introns cut out.
+          </div>
+        </div>
+
+        <!-- the chain -->
+        <div style="padding:22px 22px 0;">
+          <div class="lb" style="padding-bottom:13px;">What sits under it</div>
+
+          <div style="display:flex; gap:13px; align-items:flex-start; padding-bottom:2px;">
+            <div style="display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+              <span style="width:9px; height:9px; background:#10AA91;"></span>
+              <span style="width:1px; height:34px; background:#1E282C;"></span>
+            </div>
+            <div>
+              <div style="font-size:13px; color:#889699;">What an aligner does</div>
+              <div style="font-size:11px; color:#10AA91; padding-top:3px;">solid &middot; you read this</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:13px; align-items:flex-start; padding-bottom:2px;">
+            <div style="display:flex; flex-direction:column; align-items:center; padding-top:4px;">
+              <span style="width:9px; height:9px; background:#C1B508;"></span>
+              <span style="width:1px; height:34px; background:#1E282C;"></span>
+            </div>
+            <div>
+              <div style="font-size:13px; color:#889699;">Genes, transcripts, and why RNA is not DNA</div>
+              <div style="font-size:11px; color:#C1B508; padding-top:3px;">
+                stale &middot; 18 days, worth 90 seconds</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:13px; align-items:flex-start;">
+            <div style="padding-top:4px;">
+              <span style="width:9px; height:9px; border:1px solid #6CB7FF; display:block;"></span>
+            </div>
+            <div>
+              <div style="font-size:13px; color:#DFE6E6; font-weight:500;">
+                Splicing, and why RNA alignment is harder
+                <span class="m" style="font-size:9.5px; color:#6CB7FF; padding-left:6px;">
+                  &#9670; threshold</span></div>
+              <div style="font-size:11px; color:#6CB7FF; padding-top:3px;">
+                ready for you now &middot; 16 min</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:24px 22px 22px;">
+          <div style="display:flex; gap:12px; align-items:center;">
+            <span style="background:#10AA91; color:#041014; font-size:12.5px; font-weight:600;
+                  padding:10px 20px;">Read the three &middot; 22 min</span>
+            <span style="border:1px solid #2A3438; color:#889699; font-size:12.5px;
+                  padding:10px 18px;">Add to my track</span>
+          </div>
+        </div>
+
+        <!-- the short answer, deliberately secondary -->
+        <div style="border-top:1px solid #172025; padding:17px 22px 20px;
+                    background:rgba(8,11,13,.4);">
+          <div class="lb" style="padding-bottom:10px;">If you only have a minute</div>
+          <div style="font-size:12.5px; line-height:1.68; color:#889699;">
+            A 100 bp read from a spliced transcript can straddle two exons, so part of it
+            matches one place in the genome and part of it matches another, thousands of
+            bases away. STAR is built to find that split; HISAT2 makes a different trade.
+            <span style="color:#67757A;">That is the rule's reasoning, not a substitute for
+            understanding it &mdash; the next time this fires the numbers will be different.</span>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid #172025; padding:14px 22px 16px;">
+          <div style="font-size:11.5px; color:#455257; line-height:1.6;">
+            This track ends by running this pipeline on your own reads.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

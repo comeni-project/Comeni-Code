@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "title": "B2 · Track path and map", "x": 0, "y": 0, "w": 1280, "h": 1000, "is_interactive": true },
+    { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1400, "y": 0, "w": 1440, "h": 1000 },
+    { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1200, "w": 1000, "h": 1240 },
+    { "file": "LabsEntry.dc.html", "title": "C · Entering from a Labs decision", "x": 1080, "y": 1200, "w": 1440, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "note-map",
+      "x": 0,
+      "y": -170,
+      "w": 420,
+      "text": "B2 — the front door is a PATH, not a graph.\n\nThe zoom control works: click it. Three positions, collapsing rather than hiding — at 'spine' the 47 other nodes are folded into the +N chips, so you can see more exists without facing it.\n\nMetacademy and Khan's Knowledge Map both put the graph on the front door. Both are gone."
+    },
+    {
+      "id": "note-review",
+      "x": 1400,
+      "y": -170,
+      "w": 420,
+      "text": "A — the highest-risk screen in the project.\n\nMeasured finding: teacher-revised AI items carry MORE flaws than teacher-only ones. Automation bias, visible as low interaction density.\n\nSo Approve is two steps away on purpose: mark every unsourced assertion, then answer the node's own checks. The claim is already locked — it gates everything else."
+    },
+    {
+      "id": "note-read",
+      "x": 0,
+      "y": 1040,
+      "w": 420,
+      "text": "B — one node, all its holes rendered.\n\nGreen band = the per-track FRAMING hole, the escape from the reusability paradox. Red band = the misconception. The worked example is real and executable; the check has a discriminating answer.\n\nFooter discloses AI-drafted / human-approved, per the MIT report."
+    },
+    {
+      "id": "note-labs",
+      "x": 1080,
+      "y": 1040,
+      "w": 420,
+      "text": "C — the forcing function no competitor has.\n\nLeft is Mendel's tier-3 decision with its rule, premise and citation. Right is Code, entered FROM it.\n\nNote what the drawer leads with: what you need to judge the decision yourself. The short answer is present but deliberately last and framed as the rule's reasoning — that is the cognitive-surrender guard."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
