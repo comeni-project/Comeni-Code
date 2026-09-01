@@ -84,9 +84,49 @@ enormous networks work do not hide them; they make them **readable**:
 **Binding consequence:** the network *is* the picture. Regions are drawn and named; **threshold
 nodes are the landmarks** that make a region readable from far away — they are this product's
 Notables, which is a second, independent argument for §6.3's rare boolean; and the **spine is
-drawn as a lit route through the constellation**, not as a replacement for it. Zooming out dims
-the rest to a faint sky: still visible, so a learner can see the subject is bigger than their
-route, but not legible, so it does not compete. See §7.2.
+drawn as a route through the network**, not as a replacement for it.
+
+### 2.0.2 The map is a transit map — settled 2026-09-02
+
+A first attempt at §2.0.1 drew a constellation: glowing coloured points, tinted region blobs,
+diamonds for thresholds. The operator's verdict was **cartoonish**, and that is the correct
+reading of it — it was a game map, where Labs' whole visual argument is that a screen is an
+*instrument*. Three specific failures, worth recording because they are easy to repeat:
+
+1. **It broke Labs' own colour law.** `tokens.css` states it plainly: *settled gets NO COLOUR AT
+   ALL. Only measured (amber) and open (red) spend any.* Every known node was painted teal.
+2. **Glow is chartjunk.** Tufte's term for content-free embellishment, and box-shadow halos on
+   nodes are the definition of it: they encode nothing.
+3. **Blobs and diamonds are decoration standing in for structure.** A tinted ellipse says
+   "region" without saying where the region ends.
+
+**The form settled on is MetroSets** — a published hypergraph visualisation method that draws
+hyperedges as coloured lines running through their member nodes on a schematic transit map. It
+is the right answer for reasons beyond taste:
+
+- **A track is a line, a node is a stop, and a node several tracks need is an interchange.**
+  The reusable-node claim — the thing this whole product rests on — stops being a paragraph and
+  becomes something a learner sees in one glance.
+- **A transit map is drawn like an instrument**: octilinear segments, hairlines, restrained
+  colour, no glow. Schematic rather than geographic, which is exactly the trade a prerequisite
+  map wants — relative order and connection matter, absolute position does not.
+- **Zones replace blobs.** Regions become bands with labelled boundaries, which say where a
+  region *ends*.
+
+Zoom then changes labelling density rather than dimming: your line → the lines that share your
+stops → every minor stop. That is honest in a way dimming is not, and it is how a real transit
+map already works.
+
+**The warning that governs all of this** comes from Obsidian's graph view, which its own
+community describes as *"beautiful and almost completely useless"* and *"more fun to look at
+than navigate"*. Past a few thousand nodes it is a hairball; what rescues it is filtering,
+depth-limiting and grouping. Two consequences: **filtering is not a feature, it is the
+precondition**, and the map's second honest job is an authoring **health check** — finding
+orphan nodes and unexpectedly disconnected clusters — which belongs in subsystem A, not B.
+
+**And do not bundle edges.** Edge bundling reduces clutter but introduces ambiguity: following
+a bundled edge from source to target can suggest connectivity that is not there. In a
+prerequisite map, following an edge *is* the task.
 
 ### 2.1 What is different here
 
@@ -379,6 +419,39 @@ A boolean with a published bar (must be transformative **and** integrative **and
 graph. Threshold nodes get the `misconception` hole filled properly, the hardest checks, and
 visual weight.
 
+### 6.3.1 Prerequisites are a hypergraph, not a graph — open, and worth deciding early
+
+The `prerequisites` hole (§5.1) is currently a set of edges: *D needs A*, *D needs B*, *D needs
+C*. That representation **cannot distinguish two different claims**:
+
+- *You need A **and** B **and** C before D.* — one conjunctive requirement.
+- *You need A, **or** B, **or** C — any of them gets you in.* — three alternative routes.
+
+Three separate edges look identical in both cases. The correct model is a **hyperedge**: one
+requirement joining several nodes at once. This is not novel in the field — prerequisite
+structure research works with *conjunctive* skill models explicitly — and it matters here in
+three concrete places:
+
+- **`readiness` (§6.4) is computed wrongly without it.** A node whose prerequisites are
+  alternatives becomes reachable much earlier than a plain DAG says.
+- **The review scheduler is wrong without it.** Math Academy's fractional implicit repetition
+  credits a topic's prerequisites when the topic is reviewed. Crediting all three members of an
+  *or* is crediting things the learner may never have touched.
+- **It changes the review interaction.** A reviewer confirming *"these four together are what
+  you need"* is answering a different, better question than confirming four edges one at a time.
+
+**The drawing consequence is real but manageable.** Hypergraph visualisation splits into a
+*subset standard* (hyperedges as closed envelopes around their members — Euler diagrams, Bubble
+Sets) and an *edge standard* (clique expansion, or an explicit crux node). Both become illegible
+as the hypergraph grows, and this is where MetroSets earns its place twice over: a line through
+its member stops **is** a readable hyperedge, and it is the one form in the literature that
+scales.
+
+**Not decided.** The cost is a more complex schema and a harder editor, and a v1 whose graph is
+almost entirely conjunctive would pay it for very little. What is decided is that the schema
+must not *foreclose* it: a prerequisite is a **group** with one member by default, never a bare
+edge. That is a cheap shape today and an impossible retrofit later.
+
 ### 6.4 `readiness` — computed, never authored
 
 The **fringe**, in the sense of knowledge space theory: the set of nodes a learner is ready to
@@ -412,21 +485,22 @@ runtime is pure lookup*) transplanted intact.
 
 ### 7.2 B: the interface rules that follow from §2
 
-- **The map is the front door, and it is a network** — drawn as a constellation of named
-  regions, not a flowchart and not a list.
-- **Regions are drawn and labelled.** PoE's suburbs. A learner should be able to point at where
-  they are.
-- **Threshold nodes are the landmarks** — larger, always labelled, legible when zoomed out.
-  PoE's Notables, and the reason §6.3's boolean has to stay rare: a map where everything is a
+- **The map is the front door, and it is a transit map** (§2.0.2): a track is a **line**, a node
+  is a **stop**, a node several tracks need is an **interchange**.
+- **Octilinear and schematic.** Every segment runs at 0, 45 or 90 degrees. Relative order and
+  connection are the content; absolute position is not.
+- **Zones, not blobs.** Regions are bands with labelled boundaries, so a region has an end.
+- **Threshold nodes are interchanges** — drawn larger and always labelled, legible when zoomed
+  out. PoE's Notables, and the reason §6.3's boolean stays rare: a map where everything is a
   landmark has none.
-- **The spine is a lit route drawn *through* the network**, never a substitute for it.
-- **A zoom control, three positions, dimming rather than deleting:** *route (11)* →
-  *+ landmarks (21)* → *everything (52)*. At the first position the rest of the region stays
-  visible as a faint sky — the learner can see the subject is bigger than their route, and
-  cannot read it yet. Removing it destroys that signal; keeping it legible makes it compete.
-  Three discrete positions rather than a slider, per §6.4.
+- **Settled spends no colour.** Labs' law, not a preference. Only stale (amber) and next (blue)
+  spend any, plus one colour for the line you are on.
+- **No glow, no gradients on marks, no bundled edges** (§2.0.2).
+- **A zoom control, three positions, changing labelling density rather than dimming:**
+  *your line* → *+ the lines that share your stops* → *every minor stop*.
 - **Search highlights across the whole map**, PoE-style — the affordance that makes a large
-  network navigable without shrinking it.
+  network navigable without shrinking it, and the filtering that Obsidian's hairball says is a
+  precondition rather than a nicety.
 - **Elaborations are also side-doors on the node being read**, for the learner who never opens
   the map.
 - **Labels are outcomes and time, never jargon or counts alone.**
@@ -596,6 +670,17 @@ Map and progression design:
 [Sphere grid analysis](http://whats-in-a-game.com/ffx-sphere-grid-analysis/) ·
 [Skill tree design guide](https://adriancrook.com/skill-tree-design-ultimate-guide-for-freemium-games/) ·
 [Duolingo's path redesign](https://blog.duolingo.com/new-duolingo-home-screen-design/)
+
+Hypergraphs and network drawing:
+[Hypergraphs: an introduction and review](https://arxiv.org/pdf/2002.05014) ·
+[Automatic polygon layout for primal-dual hypergraph visualization](https://arxiv.org/pdf/2108.00671) ·
+[Refining prerequisite skill structure graphs (conjunctive models)](https://digital.wpi.edu/downloads/bz60cw54g) ·
+[Inferring prerequisite concepts in educational knowledge graphs](https://arxiv.org/html/2509.05393) ·
+[Force-directed edge bundling](https://classes.engineering.wustl.edu/cse557/readings/holten-edgebundling.pdf) ·
+[Towards unambiguous edge bundling](https://ialab.it.monash.edu/~dwyer/papers/confluentbundling.pdf) ·
+[Knowledge graphs in practice: users, challenges, visualization](https://arxiv.org/pdf/2304.01311) ·
+[Obsidian's graph view is beautiful and almost completely useless](https://codeculture.store/blogs/developer-culture/obsidian-graph-view-useful) ·
+[In defence of Obsidian's graph view](https://www.eleanorkonik.com/p/its-not-just-a-pretty-gimmick-in-defense-of-obsidians-graph-view)
 
 Problems and auto-grading:
 [Rosalind problem page](https://rosalind.info/problems/dna/) ·

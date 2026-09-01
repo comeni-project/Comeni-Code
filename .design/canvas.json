@@ -1,6 +1,6 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "title": "B2 · The map — a region, with a route through it", "x": 0, "y": 0, "w": 1440, "h": 1060, "is_interactive": true },
+    { "file": "Main.dc.html", "title": "B2 · The map — lines, stops and interchanges", "x": 0, "y": 0, "w": 1440, "h": 1010, "is_interactive": true },
     { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1560, "y": 0, "w": 1440, "h": 1000 },
     { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1240, "w": 1000, "h": 1420 },
     { "file": "Problem.dc.html", "title": "B3 · A problem, Rosalind-shaped", "x": 1080, "y": 1240, "w": 1100, "h": 1180 },
@@ -12,7 +12,7 @@
       "x": 0,
       "y": -196,
       "w": 460,
-      "text": "B2 — the network IS the picture. Click the three-position control.\n\nPath of Exile's designers describe their 1,325-node tree as a map with suburbs and roads: clusters are suburbs, and Notables — bigger, named, readable zoomed out — let you understand a region at a glance. FFX's sphere grid is circular clusters of nodes.\n\nSo: five regions, thresholds as the named landmarks, and the spine drawn as a lit ROUTE through the constellation rather than replacing it. At 'route' the rest dims to a faint sky — still visible, not legible. Metacademy died from an undifferentiated DAG, not from having a map."
+      "text": "B2 — a transit map. Click the three-position control.\n\nThis is MetroSets, a published hypergraph visualisation method: hyperedges drawn as coloured lines running through their member nodes on a schematic map. It is the answer to both problems at once. A track is a LINE; a node is a STOP; a node several tracks depend on is an INTERCHANGE — so the reusable-node claim becomes something you can see rather than a paragraph. And it is drawn like an instrument, not a game: octilinear segments, hairlines, one colour, no glow.\n\nZones across the top are the regions. Level 0 shows your line; level 1 brings up the tracks that share your stops; level 2 adds the minor stops nobody names.\n\nSettled spends no colour — Labs' own law, which the previous constellation version broke."
     },
     {
       "id": "note-review",
