@@ -1,0 +1,302 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin:0; background:#080B0D; color:#DFE6E6; font-variant-numeric:tabular-nums;
+           font-family:"Geist","Geist Variable",system-ui,sans-serif; }
+    a { color:#6CB7FF; text-decoration:none; } a:hover { color:#fff; }
+    .m  { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace; }
+    .lb { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
+          font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:#67757A; }
+    .layer { position:absolute; inset:0; pointer-events:none; }
+    .breathe { animation:breathe 46s ease-in-out infinite alternate; }
+    @keyframes breathe { to { opacity:1.85; } }
+    .slowA { transform-box:view-box; transform-origin:1080px 60px; animation:spin 740s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .rule { background-image:
+              linear-gradient(rgba(108,183,255,.026) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(108,183,255,.026) 1px, transparent 1px);
+            background-size:36px 36px;
+            mask-image:radial-gradient(100% 55% at 82% 0%, #000 0%, transparent 68%); }
+    .scan { background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.010) 0 1px, transparent 1px 3px); }
+    .vig  { background:radial-gradient(130% 92% at 50% 3%, transparent 44%, rgba(8,11,13,.9) 100%); }
+    .pl { background:rgba(12,18,22,.62); border:1px solid #172025; }
+    .settle { animation:settle 200ms cubic-bezier(.32,.72,0,1) backwards; }
+    @keyframes settle { from { opacity:0; transform:translateY(4px); } }
+    .cur { animation:blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+    .data { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
+            font-size:11.5px; line-height:1.85; color:#889699; white-space:pre;
+            overflow-x:auto; }
+    @media (prefers-reduced-motion: reduce) {
+      .breathe,.slowA,.settle,.cur { animation:none !important; } }
+  </style>
+</helmet>
+
+<div style="position:relative; min-height:1180px; overflow:hidden; background:#080B0D;">
+
+  <svg class="layer" viewBox="0 0 1100 1180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g class="breathe" fill="none">
+      <g class="slowA" stroke="#6CB7FF" stroke-width="1">
+        <circle cx="1080" cy="60" r="500" opacity=".07"/>
+        <circle cx="1080" cy="60" r="820" opacity=".045"/>
+      </g>
+      <path d="M-60 1000 Q 520 1200 1180 840" stroke="#10AA91" stroke-width="1" opacity=".028"/>
+    </g>
+  </svg>
+  <div class="layer rule"></div>
+  <div class="layer scan"></div>
+  <div class="layer vig"></div>
+
+  <div style="position:relative; padding:26px 46px 46px;">
+
+    <!-- shell -->
+    <div style="display:flex; align-items:center; justify-content:space-between;
+                padding-bottom:18px; border-bottom:1px solid #172025;">
+      <div style="display:flex; align-items:baseline; gap:26px;">
+        <span style="font-size:14px; font-weight:700; letter-spacing:-.02em;">Comeni</span>
+        <span style="font-size:12.5px; color:#67757A;">Code</span>
+        <span style="font-size:12.5px; color:#67757A;">Tracks</span>
+        <span style="font-size:12.5px; color:#DFE6E6;">Problems</span>
+      </div>
+      <span class="m" style="font-size:11px; color:#67757A;">
+        <span style="color:#10AA91;">7</span> solved &middot; rung 2</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 268px; gap:34px;
+                align-items:start; padding-top:28px;">
+
+      <!-- ── the problem ───────────────────────────────────────────────── -->
+      <div class="settle">
+
+        <div style="display:flex; align-items:center; gap:12px; padding-bottom:13px;">
+          <span class="m" style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+                color:#889699; border:1px solid #2A3438; padding:3px 9px;">Problem &middot; DUPS</span>
+          <span class="m" style="font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+                color:#10AA91;">rung 1 &mdash; no code needed</span>
+        </div>
+
+        <h1 style="margin:0; font-size:31px; font-weight:600; letter-spacing:-.032em;
+                   line-height:1.12;">Counting reads, and counting molecules</h1>
+
+        <div style="padding-top:14px; font-size:13px; color:#889699; line-height:1.6;
+                    max-width:70ch;">
+          Attached to <a href="#">A read is a sample, not the molecule</a>.
+          Solving it is what marks that node solid &mdash; reading it is not.
+        </div>
+
+        <!-- statement -->
+        <div style="padding-top:30px; max-width:70ch;">
+          <div class="lb" style="padding-bottom:12px;">The problem</div>
+          <p style="margin:0 0 16px; font-size:14.5px; line-height:1.75;">
+            A FASTQ file records one read per four lines: an identifier, the sequence, a
+            separator, and the quality string. Two reads may carry different identifiers and
+            the same sequence &mdash; the sequencer saw the same letters twice, and nothing in
+            the file says whether that was one molecule read twice or two molecules that
+            happened to match.
+          </p>
+          <p style="margin:0; font-size:14.5px; line-height:1.75;">
+            Your dataset holds a small library. Count how many reads it contains, and how many
+            <em>distinct</em> sequences appear among them.
+          </p>
+        </div>
+
+        <!-- given / return -->
+        <div style="padding-top:26px; display:grid; grid-template-columns:74px 1fr;
+                    gap:12px 20px; align-items:baseline; max-width:70ch;">
+          <div class="lb" style="padding-top:2px;">Given</div>
+          <div style="font-size:13.5px; line-height:1.6; color:#DFE6E6;">
+            A FASTQ file of at most 50,000 reads, each at most 300 nt.</div>
+          <div class="lb" style="padding-top:2px;">Return</div>
+          <div style="font-size:13.5px; line-height:1.6; color:#DFE6E6;">
+            Two integers separated by a space: the number of reads, then the number of
+            distinct sequences.</div>
+        </div>
+
+        <!-- sample -->
+        <div style="padding-top:28px; display:grid; grid-template-columns:1fr 232px; gap:18px;
+                    align-items:stretch;">
+          <div>
+            <div class="lb" style="padding-bottom:10px;">Sample dataset</div>
+            <div style="border:1px solid #172025; background:#0B1013; padding:14px 18px;">
+              <div class="data">@r1
+GATTACAGATTACAGATTACA
++
+FFFFFFFFFFFFFFFFFFFFF
+@r2
+CCTGAATCCTGAATCCTGAAT
++
+FFFFFFFF:FFFFFFFFFFFF
+@r3
+GATTACAGATTACAGATTACA
++
+FFFF,FFFFFFFFFFFFFFFF</div>
+            </div>
+          </div>
+          <div>
+            <div class="lb" style="padding-bottom:10px;">Sample output</div>
+            <div style="border:1px solid #172025; background:#0B1013; padding:14px 18px;
+                        height:calc(100% - 30px); box-sizing:border-box;">
+              <div class="data" style="color:#DFE6E6;">3 2</div>
+              <div style="padding-top:14px; font-size:11.5px; color:#67757A; line-height:1.6;
+                          white-space:normal;">
+                Three reads. Two sequences &mdash; r1 and r3 are the same letters.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- your dataset + answer -->
+        <div class="pl" style="margin-top:30px; border-color:#1E3A4E;">
+          <div style="display:flex; align-items:center; justify-content:space-between;
+                      padding:13px 20px; border-bottom:1px solid #121A1D;
+                      background:rgba(18,32,41,.4);">
+            <div class="lb" style="color:#6CB7FF;">Your dataset</div>
+            <span class="m" style="font-size:10.5px; color:#889699;">
+              yours alone &middot; expires in <span style="color:#DFE6E6;">4:31</span></span>
+          </div>
+
+          <div style="padding:18px 20px 20px;">
+            <div style="display:flex; align-items:center; gap:14px; padding-bottom:20px;">
+              <span style="border:1px solid #2A3438; color:#DFE6E6; font-size:12.5px;
+                    padding:9px 18px;">&#8595;&ensp;rosalind_dups_7c1f.fastq</span>
+              <span class="m" style="font-size:11px; color:#67757A;">
+                18,442 reads &middot; 2.1 MB</span>
+            </div>
+
+            <div class="lb" style="padding-bottom:11px;">Your answer</div>
+            <div style="display:flex; gap:12px; align-items:stretch;">
+              <div style="flex:1; border:1px solid #2A3438; background:#0B1013;
+                          padding:11px 15px;">
+                <span class="m" style="font-size:13.5px; color:#DFE6E6;">18442 18109</span><span
+                      class="m cur" style="font-size:13.5px; color:#6CB7FF;">&#9646;</span>
+              </div>
+              <span style="background:#10AA91; color:#041014; font-size:12.5px; font-weight:600;
+                    padding:11px 24px; display:flex; align-items:center;">Submit</span>
+            </div>
+
+            <!-- a previous, wrong attempt — fed by the node's misconception hole -->
+            <div style="margin-top:18px; border-left:2px solid #E3674E;
+                        background:rgba(44,23,18,.34); padding:14px 18px;">
+              <div style="display:flex; align-items:baseline; gap:10px; padding-bottom:7px;">
+                <span class="m" style="font-size:10px; letter-spacing:.12em;
+                      text-transform:uppercase; color:#E3674E;">Attempt 1 &middot; not right</span>
+                <span class="m" style="font-size:11px; color:#67757A;">you answered 18442 18442</span>
+              </div>
+              <div style="font-size:13px; line-height:1.65; color:#DFE6E6;">
+                Those two numbers being equal would mean every read came from a different
+                molecule. Have another look at r1 and r3 in the sample.
+              </div>
+              <div style="padding-top:9px; font-size:11.5px; color:#67757A;">
+                This nudge comes from the node's own recorded misconception &mdash; not from a
+                model reading your answer.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding-top:22px; font-size:12px; color:#455257; line-height:1.6;
+                    max-width:70ch;">
+          Every learner gets a different dataset, so an answer is worth nothing to anyone else.
+          No timer beyond the dataset's own life, no penalty for a wrong attempt, and nothing
+          you have solved ever expires.
+        </div>
+      </div>
+
+      <!-- ── rail ──────────────────────────────────────────────────────── -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+
+        <div class="pl">
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
+            <div class="lb">The rungs</div>
+          </div>
+          <div>
+            <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                        display:flex; gap:11px; align-items:baseline;
+                        background:#0E1418; border-left:2px solid #10AA91;">
+              <span class="m" style="font-size:10px; color:#10AA91;">1</span>
+              <div>
+                <div style="font-size:12.5px; color:#DFE6E6;">Read it off the file</div>
+                <div style="font-size:11px; color:#67757A; padding-top:2px;">
+                  a text editor is enough</div>
+              </div>
+            </div>
+            <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                        display:flex; gap:11px; align-items:baseline;">
+              <span class="m" style="font-size:10px; color:#67757A;">2</span>
+              <div>
+                <div style="font-size:12.5px; color:#889699;">One command</div>
+                <div style="font-size:11px; color:#67757A; padding-top:2px;">
+                  the shell, given to you</div>
+              </div>
+            </div>
+            <div style="padding:11px 15px; border-bottom:1px solid #121A1D;
+                        display:flex; gap:11px; align-items:baseline;">
+              <span class="m" style="font-size:10px; color:#67757A;">3</span>
+              <div>
+                <div style="font-size:12.5px; color:#889699;">A few lines you write</div>
+              </div>
+            </div>
+            <div style="padding:11px 15px; display:flex; gap:11px; align-items:baseline;">
+              <span class="m" style="font-size:10px; color:#67757A;">4</span>
+              <div>
+                <div style="font-size:12.5px; color:#889699;">It has to be efficient</div>
+                <div style="font-size:11px; color:#67757A; padding-top:2px;">
+                  50M reads, not 50k</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 15px; border-top:1px solid #172025;">
+            <div style="font-size:11.5px; color:#67757A; line-height:1.55;">
+              You did not sign up to program. Rung 1 exists so that never becomes the reason
+              you stop.
+            </div>
+          </div>
+        </div>
+
+        <div class="pl">
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
+            <div class="lb">This problem</div>
+          </div>
+          <div style="padding:13px 15px; display:flex; flex-direction:column; gap:9px;
+                      font-size:12px; color:#889699;">
+            <div style="display:flex; justify-content:space-between;">
+              <span>solved by</span><span class="m" style="color:#DFE6E6;">412</span></div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>usually right first time</span>
+              <span class="m" style="color:#C1B508;">38%</span></div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>median time</span><span class="m" style="color:#DFE6E6;">6 min</span></div>
+          </div>
+          <div style="padding:0 15px 14px;">
+            <div style="font-size:11.5px; color:#67757A; line-height:1.55;">
+              38% is why this problem exists. A question nearly everyone gets right on the
+              first try is measuring nothing.
+            </div>
+          </div>
+        </div>
+
+        <div class="pl">
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
+            <div class="lb">Once you solve it</div>
+          </div>
+          <div style="padding:13px 15px; font-size:12.5px; color:#889699; line-height:1.6;">
+            The node goes solid on your map, and
+            <span style="color:#DFE6E6;">PCR duplicates</span> and
+            <span style="color:#DFE6E6;">UMIs</span> become reachable.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -59,8 +59,34 @@ about a year, using generative AI". It has not.
 *are* the product die.** Metacademy and the Knowledge Map both put the graph on the front door
 and asked it to carry the content.
 
-**Design consequence (binding):** the graph is infrastructure. The front door is a **path**.
-The full map is a view a learner can open — a reference, never the entry point. See §7.2.
+### 2.0.1 What that pattern does *not* license — corrected 2026-09-02
+
+The first draft of this section concluded *the front door is a path, and the map is a reference
+view*. That was the wrong lesson, and the operator caught it: a legible network map is the whole
+reason this product is interesting, and designing it away answered a research finding that was
+never about maps.
+
+**What killed Metacademy and the Knowledge Map was an undifferentiated DAG** — no regions, no
+landmarks, no route — presented to a newcomer as the first thing they see. The games that make
+enormous networks work do not hide them; they make them **readable**:
+
+- **Path of Exile** — 1,325 nodes, and its own designers describe the tree as *a map with
+  suburbs and roads*: clusters of related passives are suburbs, the connecting runs are roads.
+  **Notables** carry larger icons and names so a whole cluster can be understood at a glance
+  when zoomed out, and search highlights matching nodes with a pulsing glow across the entire
+  tree.
+- **Final Fantasy X's sphere grid** — a roughly circular grid of interconnected nodes arranged
+  in *smaller circular clusters*, which is the shape Healthy Gamer's Dr. K's Guide borrows
+  outright for its hex grid (its own product manager names the sphere grid as the inspiration).
+- **Healthy Gamer** bounds it differently again: five modules, hand-curated, each unlocked by a
+  Core Knowledge Path.
+
+**Binding consequence:** the network *is* the picture. Regions are drawn and named; **threshold
+nodes are the landmarks** that make a region readable from far away — they are this product's
+Notables, which is a second, independent argument for §6.3's rare boolean; and the **spine is
+drawn as a lit route through the constellation**, not as a replacement for it. Zooming out dims
+the rest to a faint sky: still visible, so a learner can see the subject is bigger than their
+route, but not legible, so it does not compete. See §7.2.
 
 ### 2.1 What is different here
 
@@ -141,7 +167,8 @@ is the specific interaction the evidence says fails.
 | **prerequisites** | AI proposes, human confirms **each edge** | This *is* the graph. Each edge carries its own reason ("you cannot parse a CIGAR string without knowing what an alignment is"), reviewable one at a time. |
 | **exposition** | AI, grounded in cited sources | The bulk, and where hallucination lives. Subject to the citation constraint (§5.3). |
 | **worked example** | AI, mechanically verified where possible | Can be *real*: a command, a file, five lines of FASTQ. Executable, therefore checkable. |
-| **check** | AI drafts, human validates | Rosalind-style where the domain allows. Where discrimination matters (§5.5). |
+| **check** | AI drafts, human validates | A 90-second question that returns on a spacing schedule. Feeds the review queue (§9.1) and item discrimination (§5.3). |
+| **problem** | AI drafts, human validates, **machine grades** | Rosalind-shaped: a generated dataset, one auto-graded answer. §5.1.1. |
 | **misconception** | AI, from literature and forums | The wrong model learners actually hold. Highest pedagogical value per word; the hole that makes a node read as if written by someone who has taught. |
 | **framing** | AI, cheap, regenerable, **one per track** | The escape from the reusability paradox (§5.2). The only hole with N versions. |
 | **threshold** | node author, boolean | §6.3. |
@@ -150,6 +177,41 @@ Two consequences fall out. The claim/prerequisite pair is the **only** part that
 the graph to be navigable — exposition can be a stub and the map still works, which makes a
 skeleton-first authoring strategy possible. And `worked example` is checkable in a way the
 others are not.
+
+### 5.1.1 `problem` is not `check`, and conflating them was an omission
+
+Added 2026-09-02, after the operator asked where the Rosalind-style questions had gone. The
+first draft had one assessment hole holding a multiple-choice question, which throws away the
+mechanism that has kept Rosalind alive since 2012 and Project Euler since 2001.
+
+| | `check` | `problem` |
+|---|---|---|
+| Shape | a question with options | statement, **Given / Return**, sample dataset, sample output, then *your own generated dataset* |
+| Graded by | matching an answer key | comparing one submitted answer against the one computed for your dataset |
+| Costs | seconds | minutes to hours |
+| Returns | yes — on a spacing schedule | no; solved once, and never expires |
+| Means | you can still recall this | **the node is solid** |
+
+The distinction is load-bearing in three places. **Only `problem` marks a node solid** — reading
+does not, and answering a multiple-choice question does not. **Only `check` feeds the review
+queue**, because a spaced-repetition schedule needs an item you can answer in seconds.
+And **a per-learner generated dataset makes an answer worthless to anyone else**, which is how
+Rosalind runs an auto-graded platform of 284 problems without an honour code. Project Euler adds
+the other half of the argument: a numeric answer needs no code execution on our side, so the
+grader stays trivial while the problem can be arbitrarily hard.
+
+**Rungs.** The v1 learner (§4) did not sign up to program, so `problem` carries a rung:
+
+1. **Read it off the file** — a text editor is enough.
+2. **One command** — the shell, given to them.
+3. **A few lines they write.**
+4. **It has to be efficient** — 50M reads, not 50k.
+
+Rung 1 exists so that *"I cannot program"* never becomes the reason a wet-lab biologist stops.
+
+**Wrong answers are answered from the `misconception` hole**, not by a model reading the
+submission. That keeps the feedback deterministic, reviewable and attributable — and it gives
+the misconception hole a second consumer, which is what stops it being decorative.
 
 ### 5.2 The reusability paradox, and why `framing` exists
 
@@ -350,15 +412,23 @@ runtime is pure lookup*) transplanted intact.
 
 ### 7.2 B: the interface rules that follow from §2
 
-- **The front door is a path**, rendered as the track's spine.
-- **Elaborations are side-doors on the node being read** — progressive disclosure, revealed when
-  relevant.
-- **The map is a view, not the entry point.**
-- **A zoom control over the map, three positions, collapsing rather than hiding:**
-  *spine (11 nodes · ~2h)* → *+ key elaborations (23)* → *everything (100)*. Collapsing folds
-  elaborations into their spine node with a `+3` affordance, so the learner sees that more exists
-  without facing it; hiding destroys that signal, which is the whole point of progressive
-  disclosure. Three discrete positions rather than a slider, per §6.4.
+- **The map is the front door, and it is a network** — drawn as a constellation of named
+  regions, not a flowchart and not a list.
+- **Regions are drawn and labelled.** PoE's suburbs. A learner should be able to point at where
+  they are.
+- **Threshold nodes are the landmarks** — larger, always labelled, legible when zoomed out.
+  PoE's Notables, and the reason §6.3's boolean has to stay rare: a map where everything is a
+  landmark has none.
+- **The spine is a lit route drawn *through* the network**, never a substitute for it.
+- **A zoom control, three positions, dimming rather than deleting:** *route (11)* →
+  *+ landmarks (21)* → *everything (52)*. At the first position the rest of the region stays
+  visible as a faint sky — the learner can see the subject is bigger than their route, and
+  cannot read it yet. Removing it destroys that signal; keeping it legible makes it compete.
+  Three discrete positions rather than a slider, per §6.4.
+- **Search highlights across the whole map**, PoE-style — the affordance that makes a large
+  network navigable without shrinking it.
+- **Elaborations are also side-doors on the node being read**, for the learner who never opens
+  the map.
 - **Labels are outcomes and time, never jargon or counts alone.**
 
 ### 7.3 C: the two directions
@@ -518,6 +588,19 @@ AI authoring and review:
 [Bias in the loop: how humans evaluate AI-generated suggestions](https://arxiv.org/pdf/2509.08514) ·
 [Dean of LLM Tutors](https://arxiv.org/pdf/2508.05952) ·
 [MIT Ad Hoc Committee on AI Use in Teaching, Learning, and Research Training (2026)](https://aiandeducation.mit.edu/report/)
+
+Map and progression design:
+[Path of Exile passive skill tree](https://www.pathofexile.com/passive-skill-tree) ·
+[Passive skill notables and keystones](https://pathofexile.fandom.com/wiki/Passive_skill) ·
+[FFX sphere grid](https://finalfantasy.fandom.com/wiki/Sphere_Grid) ·
+[Sphere grid analysis](http://whats-in-a-game.com/ffx-sphere-grid-analysis/) ·
+[Skill tree design guide](https://adriancrook.com/skill-tree-design-ultimate-guide-for-freemium-games/) ·
+[Duolingo's path redesign](https://blog.duolingo.com/new-duolingo-home-screen-design/)
+
+Problems and auto-grading:
+[Rosalind problem page](https://rosalind.info/problems/dna/) ·
+[Rosalind problem tree](https://rosalind.info/problems/tree-view/) ·
+[Project Euler](https://en.wikipedia.org/wiki/Project_Euler)
 
 Sequencing, priority and load:
 [Threshold concepts and troublesome knowledge](https://link.springer.com/rwe/10.1007/978-981-13-6106-7_25-1) ·

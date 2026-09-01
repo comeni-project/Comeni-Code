@@ -38,29 +38,32 @@
            transition:background-color 140ms cubic-bezier(.32,.72,0,1), color 140ms cubic-bezier(.32,.72,0,1); }
     .seg:hover { color:#DFE6E6; }
     .seg:focus-visible { outline:2px solid #6CB7FF; outline-offset:2px; }
-    .nd { transition:border-color 140ms cubic-bezier(.32,.72,0,1),
+    /* a point in the constellation */
+    .pt { transition:opacity 260ms cubic-bezier(.32,.72,0,1),
                      transform 140ms cubic-bezier(.32,.72,0,1); }
-    .nd:hover { transform:translateY(-1px); }
+    .pt:hover { transform:translate(-50%,-50%) scale(1.14); z-index:5; }
+    .road { transition:opacity 260ms cubic-bezier(.32,.72,0,1); }
+    .pulse { animation:pulse 3.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity:.42; } }
     @media (prefers-reduced-motion: reduce) {
-      .breathe,.slowA,.slowB,.settle { animation:none !important; }
-      .nd { transition:none; }
+      .breathe,.slowA,.slowB,.settle,.pulse { animation:none !important; }
+      .pt,.road { transition:none; }
     }
   </style>
 </helmet>
 
-<div style="position:relative; min-height:1000px; overflow:hidden; background:#080B0D;">
+<div style="position:relative; min-height:1060px; overflow:hidden; background:#080B0D;">
 
-  <svg class="layer" viewBox="0 0 1280 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="layer" viewBox="0 0 1440 1060" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <g class="breathe" fill="none">
       <g class="slowA" stroke="#6CB7FF" stroke-width="1">
-        <circle cx="140" cy="900" r="600" opacity=".085"/>
-        <circle cx="140" cy="900" r="880" opacity=".055"/>
-        <circle cx="140" cy="900" r="1220" opacity=".034"/>
-        <path d="M140 900 L1520 200" stroke-width=".75" opacity=".055"/>
+        <circle cx="140" cy="960" r="620" opacity=".075"/>
+        <circle cx="140" cy="960" r="900" opacity=".05"/>
+        <circle cx="140" cy="960" r="1240" opacity=".03"/>
       </g>
       <g class="slowB" stroke="#10AA91">
-        <circle cx="1300" cy="70" r="470" opacity=".055" stroke-width="1"/>
-        <circle cx="1300" cy="70" r="790" opacity=".034" stroke-width="1"/>
+        <circle cx="1380" cy="60" r="470" opacity=".05" stroke-width="1"/>
+        <circle cx="1380" cy="60" r="800" opacity=".03" stroke-width="1"/>
       </g>
     </g>
   </svg>
@@ -68,61 +71,64 @@
   <div class="layer scan"></div>
   <div class="layer vig"></div>
 
-  <div style="position:relative; padding:28px 44px 44px;">
+  <div style="position:relative; padding:26px 40px 40px;">
 
     <!-- shell -->
     <div style="display:flex; align-items:center; justify-content:space-between;
-                padding-bottom:20px; border-bottom:1px solid #172025;">
-      <div style="display:flex; align-items:baseline; gap:28px;">
+                padding-bottom:18px; border-bottom:1px solid #172025;">
+      <div style="display:flex; align-items:baseline; gap:26px;">
         <span style="font-size:14px; font-weight:700; letter-spacing:-.02em;">Comeni</span>
         <span style="font-size:12.5px; color:#DFE6E6;">Code</span>
         <span style="font-size:12.5px; color:#67757A;">Tracks</span>
-        <span style="font-size:12.5px; color:#67757A;">Map</span>
+        <span style="font-size:12.5px; color:#67757A;">Problems</span>
         <span style="font-size:12.5px; color:#67757A;">Review</span>
       </div>
       <div style="display:flex; align-items:center; gap:20px;">
         <span class="m" style="font-size:11px; color:#455257;">
-          <span style="color:#6CB7FF;">&rsaquo;</span> what do you want to be able to do?
+          <span style="color:#6CB7FF;">&rsaquo;</span> search the map
           <span style="color:#2A3438;">&#8984;K</span></span>
         <span class="m" style="font-size:11px; color:#67757A;">Ferreira lab</span>
       </div>
     </div>
 
-    <!-- track header -->
-    <div class="settle" style="display:grid; grid-template-columns:1fr 340px; gap:40px;
-                               align-items:end; padding:30px 0 24px;">
+    <!-- header -->
+    <div class="settle" style="display:grid; grid-template-columns:1fr 300px; gap:40px;
+                               align-items:end; padding:26px 0 20px;">
       <div>
-        <div class="lb" style="padding-bottom:11px;">Track &middot; you have sequencing data</div>
-        <div style="font-size:38px; font-weight:600; letter-spacing:-.035em; line-height:1.05;">
+        <div class="lb" style="padding-bottom:10px;">Track &middot; you have sequencing data</div>
+        <div style="font-size:34px; font-weight:600; letter-spacing:-.035em; line-height:1.06;">
           Align your reads and get a counts matrix</div>
-        <div style="padding-top:13px; font-size:13px; color:#889699;">
-          <span style="color:#DFE6E6;">11 nodes on the spine</span> &middot; about 2h 10m &middot;
-          ends by running the pipeline on your own FASTQs
+        <div style="padding-top:11px; font-size:12.5px; color:#889699;">
+          <span style="color:#DFE6E6;">11 stops on the route</span> &middot; 52 ideas in the
+          region &middot; ends by running the pipeline on your own FASTQs
         </div>
       </div>
       <div>
-        <div class="lb" style="padding-bottom:10px;">What you know</div>
-        <div style="display:flex; gap:3px; height:9px;">
+        <div class="lb" style="padding-bottom:9px;">What you know</div>
+        <div style="display:flex; gap:3px; height:8px;">
           <div style="flex:0 0 27%; background:#10AA91;"></div>
           <div style="flex:0 0 9%; background:#C1B508;"></div>
           <div style="flex:1; background:#1E282C;"></div>
         </div>
-        <div style="display:flex; justify-content:space-between; padding-top:9px;
-                    font-size:11.5px; color:#889699;">
+        <div style="display:flex; justify-content:space-between; padding-top:8px;
+                    font-size:11px; color:#889699;">
           <span><span style="color:#10AA91;">3 solid</span> &middot;
-                <span style="color:#C1B508;">1 gone stale</span></span>
-          <span class="m" style="color:#67757A;">of 11</span>
+                <span style="color:#C1B508;">1 stale</span></span>
+          <span class="m" style="color:#67757A;">of 11 on route</span>
         </div>
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 300px; gap:34px; align-items:start;">
+    <div style="display:grid; grid-template-columns:1fr 264px; gap:26px; align-items:start;">
 
-      <!-- ── the map ───────────────────────────────────────────────────── -->
-      <div class="pl" style="padding:0;">
+      <!-- ── the constellation ─────────────────────────────────────────── -->
+      <div class="pl" style="padding:0; overflow:hidden;">
         <div style="display:flex; align-items:center; justify-content:space-between;
-                    padding:13px 18px; border-bottom:1px solid #121A1D;">
-          <div class="lb">The map</div>
+                    padding:12px 18px; border-bottom:1px solid #121A1D;">
+          <div style="display:flex; align-items:baseline; gap:14px;">
+            <div class="lb">The map</div>
+            <span style="font-size:11px; color:#67757A;">{{blurb}}</span>
+          </div>
           <div style="display:flex; border:1px solid #2A3438;">
             <sc-for list="{{segs}}" as="s" hint-placeholder-count="3">
               <button class="seg" style="{{s.style}}" onClick="{{s.pick}}">{{s.label}}</button>
@@ -130,226 +136,290 @@
           </div>
         </div>
 
-        <div style="padding:16px 18px 20px;">
-          <div style="font-size:11.5px; color:#67757A; padding-bottom:14px;">{{blurb}}</div>
+        <div style="position:relative; height:626px; background:
+                    radial-gradient(120% 80% at 30% 20%, rgba(18,32,41,.28), transparent 70%);">
 
-          <div style="position:relative; height:452px;">
-            <svg class="layer" viewBox="0 0 800 452" preserveAspectRatio="none" aria-hidden="true">
-              <sc-for list="{{wires}}" as="w" hint-placeholder-count="10">
-                <path d="{{w.d}}" fill="none" stroke="{{w.stroke}}" stroke-width="1" opacity="{{w.op}}"/>
-              </sc-for>
-            </svg>
-            <sc-for list="{{nodes}}" as="n" hint-placeholder-count="11">
-              <div class="nd" style="{{n.box}}">
-                <div style="{{n.titleStyle}}">{{n.t}}</div>
-                <sc-if value="{{n.showFoot}}" hint-placeholder-val="{{ true }}">
-                  <div style="display:flex; align-items:center; justify-content:space-between;
-                              padding-top:6px;">
-                    <span class="m" style="font-size:9px; letter-spacing:.1em;
-                          text-transform:uppercase; color:{{n.stateColor}};">{{n.stateLabel}}</span>
-                    <sc-if value="{{n.hasMore}}" hint-placeholder-val="{{ true }}">
-                      <span class="m" style="font-size:9.5px; color:#67757A;
-                            border:1px solid #253239; padding:1px 5px;">+{{n.more}}</span>
-                    </sc-if>
-                  </div>
-                </sc-if>
-              </div>
-            </sc-for>
-          </div>
+          <svg class="layer" viewBox="0 0 1090 626" preserveAspectRatio="none" aria-hidden="true">
+            <!-- regions: the suburbs -->
+            <g fill="none" stroke="#1A252A">
+              <ellipse cx="128" cy="452" rx="118" ry="132" opacity=".85"/>
+              <ellipse cx="372" cy="196" rx="132" ry="120" opacity=".85"/>
+              <ellipse cx="588" cy="452" rx="116" ry="126" opacity=".85"/>
+              <ellipse cx="838" cy="208" rx="146" ry="134" opacity=".85"/>
+              <ellipse cx="990" cy="466" rx="112" ry="122" opacity=".85"/>
+            </g>
+            <g fill="#10AA91" opacity=".03">
+              <ellipse cx="128" cy="452" rx="118" ry="132"/>
+              <ellipse cx="588" cy="452" rx="116" ry="126"/>
+              <ellipse cx="990" cy="466" rx="112" ry="122"/>
+            </g>
+            <g fill="#6CB7FF" opacity=".03">
+              <ellipse cx="372" cy="196" rx="132" ry="120"/>
+              <ellipse cx="838" cy="208" rx="146" ry="134"/>
+            </g>
+            <!-- roads -->
+            <path class="road" d="{{dimRoads}}" fill="none" stroke="#253239"
+                  stroke-width="1" opacity="{{dimOp}}"/>
+            <!-- the route -->
+            <path class="road" d="{{spineRoad}}" fill="none" stroke="#10AA91"
+                  stroke-width="2.5" opacity=".30" stroke-linecap="round"/>
+            <path class="road" d="{{spineRoad}}" fill="none" stroke="#10AA91"
+                  stroke-width="1.25" opacity=".95" stroke-linecap="round"/>
+          </svg>
 
-          <div style="display:flex; gap:22px; padding-top:16px; border-top:1px solid #121A1D;
-                      margin-top:4px; font-size:11px; color:#67757A;">
-            <span><span style="display:inline-block; width:8px; height:8px; background:#10AA91;
-                  margin-right:6px;"></span>solid</span>
-            <span><span style="display:inline-block; width:8px; height:8px; background:#C1B508;
-                  margin-right:6px;"></span>gone stale, worth a review</span>
-            <span><span style="display:inline-block; width:8px; height:8px; background:#6CB7FF;
-                  margin-right:6px;"></span>ready for you now</span>
-            <span><span style="display:inline-block; width:8px; height:8px;
-                  border:1px solid #2C3E45; margin-right:6px;"></span>not yet</span>
-            <span style="margin-left:auto;"><span style="color:#DFE6E6;">&#9670;</span>
-                  a threshold &mdash; it changes how the rest reads</span>
-          </div>
+          <!-- region names -->
+          <div class="lb" style="position:absolute; left:64px; top:596px;">The molecule</div>
+          <div class="lb" style="position:absolute; left:300px; top:56px;">Measuring it</div>
+          <div class="lb" style="position:absolute; left:530px; top:596px;">On disk</div>
+          <div class="lb" style="position:absolute; left:770px; top:44px;">Placing the reads</div>
+          <div class="lb" style="position:absolute; left:928px; top:608px;">Making a claim</div>
+
+          <!-- the points -->
+          <sc-for list="{{pts}}" as="p" hint-placeholder-count="52">
+            <div class="pt" style="{{p.wrap}}">
+              <div style="{{p.dot}}"></div>
+              <sc-if value="{{p.showLabel}}" hint-placeholder-val="{{ true }}">
+                <div style="{{p.lab}}">{{p.t}}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; gap:20px; padding:12px 18px; border-top:1px solid #121A1D;
+                    font-size:11px; color:#67757A; align-items:center; flex-wrap:wrap;">
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:50%;
+                background:#10AA91; margin-right:6px; vertical-align:-1px;"></span>solid</span>
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:50%;
+                background:#C1B508; margin-right:6px; vertical-align:-1px;"></span>stale</span>
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:50%;
+                border:1.5px solid #6CB7FF; margin-right:6px; vertical-align:-1px;"></span>ready</span>
+          <span><span style="display:inline-block; width:9px; height:9px; border-radius:50%;
+                border:1px solid #2C3E45; margin-right:6px; vertical-align:-1px;"></span>not yet</span>
+          <span style="margin-left:6px;"><span style="display:inline-block; width:9px; height:9px;
+                background:#6CB7FF; transform:rotate(45deg); margin-right:8px;
+                vertical-align:-1px;"></span>a threshold &mdash; the landmark of its region</span>
+          <span style="margin-left:auto;">
+            <span style="display:inline-block; width:22px; height:2px; background:#10AA91;
+                  margin-right:7px; vertical-align:3px;"></span>your route</span>
         </div>
       </div>
 
       <!-- ── rails ─────────────────────────────────────────────────────── -->
-      <div style="display:flex; flex-direction:column; gap:18px;">
+      <div style="display:flex; flex-direction:column; gap:16px;">
 
         <div class="pl">
-          <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Next</div>
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
+            <div class="lb">Next on the route</div>
           </div>
-          <div style="padding:6px 0;">
-            <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
-              <div style="font-size:13px; font-weight:500; padding-bottom:4px;">
+          <div>
+            <div style="padding:13px 15px; border-bottom:1px solid #121A1D;">
+              <div style="font-size:13px; font-weight:500; padding-bottom:4px; line-height:1.3;">
                 A read is a sample, not the molecule</div>
-              <div style="font-size:11.5px; color:#889699;">
+              <div style="font-size:11px; color:#889699; line-height:1.5;">
                 <span style="color:#6CB7FF;">&#9670; threshold</span> &middot; 14 min &middot;
-                everything after this depends on it</div>
+                1 problem</div>
             </div>
-            <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
-              <div style="font-size:13px; font-weight:500; padding-bottom:4px;">
+            <div style="padding:13px 15px; border-bottom:1px solid #121A1D;">
+              <div style="font-size:13px; font-weight:500; padding-bottom:4px; line-height:1.3;">
                 FASTQ: your reads on disk</div>
-              <div style="font-size:11.5px; color:#889699;">9 min &middot; you have one of these already</div>
+              <div style="font-size:11px; color:#889699;">9 min &middot; 2 problems</div>
             </div>
-            <div style="padding:13px 16px;">
-              <div style="font-size:13px; font-weight:500; padding-bottom:4px;">
+            <div style="padding:13px 15px;">
+              <div style="font-size:13px; font-weight:500; padding-bottom:4px; line-height:1.3;">
                 What a sequencer actually measures</div>
-              <div style="font-size:11.5px; color:#889699;">11 min</div>
+              <div style="font-size:11px; color:#889699;">11 min</div>
             </div>
           </div>
         </div>
 
         <div class="pl">
-          <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
             <div class="lb">Worth revisiting</div>
           </div>
-          <div style="padding:13px 16px;">
-            <div style="font-size:13px; font-weight:500; padding-bottom:5px;">
+          <div style="padding:13px 15px;">
+            <div style="font-size:13px; font-weight:500; padding-bottom:5px; line-height:1.3;">
               Genes, transcripts, and why RNA is not DNA</div>
-            <div style="font-size:11.5px; color:#889699;">
-              You read this 18 days ago. Four things below it lean on it.</div>
-            <div style="padding-top:11px; font-size:12px;">
+            <div style="font-size:11.5px; color:#889699; line-height:1.5;">
+              Read 18 days ago. Four things further along the route lean on it.</div>
+            <div style="padding-top:10px; font-size:12px;">
               <span style="color:#6CB7FF;">Two questions &rsaquo;</span>
-              <span style="color:#67757A;"> about 90 seconds</span>
-            </div>
+              <span style="color:#67757A;"> about 90 seconds</span></div>
           </div>
         </div>
 
         <div class="pl">
-          <div style="padding:13px 16px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Where this ends</div>
+          <div style="padding:12px 15px; border-bottom:1px solid #121A1D;">
+            <div class="lb">Off the route</div>
           </div>
-          <div style="padding:13px 16px;">
-            <div style="font-size:12.5px; color:#889699; line-height:1.55;">
-              A pipeline built in Comeni Labs, run on your own reads, with a counts matrix
-              at the end of it &mdash; and every setting in it explained by a node you have read.
+          <div style="padding:13px 15px;">
+            <div style="font-size:12.5px; color:#889699; line-height:1.6;">
+              <span style="color:#6CB7FF;">&#9670;</span>
+              <span style="color:#DFE6E6;">Multiple testing</span> is a landmark in
+              <span style="color:#DFE6E6;">Making a claim</span> that your route does not pass.
+              You will want it the day someone asks for a p-value.
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1060}}'>
 class Component extends DCLogic {
-  levels() {
+  // deterministic jitter, so the constellation is the same every render
+  rng(seed) {
+    let s = seed;
+    return () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+  }
+
+  regions() {
     return [
-      { label: 'Spine &middot; 11', blurb: 'The shortest complete path to a counts matrix. Everything else is still there, folded into the node it belongs to.' },
-      { label: '+ key ideas &middot; 23', blurb: 'Twelve elaborations unfolded &mdash; the ones most people need. The rest stay folded.' },
-      { label: 'Everything &middot; 58', blurb: 'Every node this track can reach, including the ones you will probably never need.' }
+      { id: 'mol',   cx: 128, cy: 452, rx: 118, ry: 132, n: 9 },
+      { id: 'meas',  cx: 372, cy: 196, rx: 132, ry: 120, n: 8 },
+      { id: 'disk',  cx: 588, cy: 452, rx: 116, ry: 126, n: 8 },
+      { id: 'place', cx: 838, cy: 208, rx: 146, ry: 134, n: 10 },
+      { id: 'claim', cx: 990, cy: 466, rx: 112, ry: 122, n: 8 }
     ];
   }
 
   spine() {
     return [
-      { t: 'What DNA is made of', s: 'known', more: 2 },
-      { t: 'Genes, transcripts, and why RNA is not DNA', s: 'stale', more: 3 },
-      { t: 'What a sequencer actually measures', s: 'known', more: 4 },
-      { t: 'A read is a sample, not the molecule', s: 'ready', more: 2, th: true },
-      { t: 'FASTQ: your reads on disk', s: 'ready', more: 1 },
-      { t: 'Quality scores, and what they do not tell you', s: 'locked', more: 3 },
-      { t: 'Why reads get trimmed', s: 'locked', more: 2 },
-      { t: 'What an aligner does', s: 'known', more: 5 },
-      { t: 'Splicing, and why RNA alignment is harder', s: 'locked', more: 4, th: true },
-      { t: 'STAR: what it needs, what it gives back', s: 'locked', more: 6 },
-      { t: 'From alignments to a counts matrix', s: 'locked', more: 3 }
+      { x: 92,  y: 512, t: 'What DNA is made of',            s: 'known' },
+      { x: 168, y: 396, t: 'Genes and transcripts',          s: 'stale' },
+      { x: 322, y: 264, t: 'What a sequencer measures',      s: 'known' },
+      { x: 424, y: 168, t: 'A read is a sample',             s: 'ready', th: true },
+      { x: 552, y: 372, t: 'FASTQ on disk',                  s: 'ready' },
+      { x: 600, y: 486, t: 'Quality scores',                 s: 'locked' },
+      { x: 668, y: 424, t: 'Why reads get trimmed',          s: 'locked' },
+      { x: 774, y: 288, t: 'What an aligner does',           s: 'known' },
+      { x: 862, y: 158, t: 'Splicing',                       s: 'locked', th: true },
+      { x: 946, y: 262, t: 'STAR',                           s: 'locked' },
+      { x: 1004, y: 418, t: 'A counts matrix',               s: 'locked' }
+    ];
+  }
+
+  // named landmarks that are NOT on the route — PoE's notables
+  offRoute() {
+    return [
+      { x: 236, y: 486, t: 'The central dogma', s: 'known', th: true, key: true },
+      { x: 1044, y: 540, t: 'Multiple testing', s: 'locked', th: true, key: true },
+      { x: 318, y: 128, t: 'Read length',   s: 'locked', key: true },
+      { x: 458, y: 262, t: 'Paired ends',   s: 'locked', key: true },
+      { x: 654, y: 528, t: 'Adapters',      s: 'locked', key: true },
+      { x: 508, y: 486, t: 'Phred scores',  s: 'locked', key: true },
+      { x: 900, y: 300, t: 'MAPQ',          s: 'locked', key: true },
+      { x: 786, y: 148, t: 'Multi-mapping', s: 'locked', key: true },
+      { x: 940, y: 402, t: 'Normalisation', s: 'locked', key: true },
+      { x: 62,  y: 402, t: 'Base pairing',  s: 'known', key: true }
     ];
   }
 
   colorFor(s) {
     return { known: '#10AA91', stale: '#C1B508', ready: '#6CB7FF', locked: '#2C3E45' }[s];
   }
-  labelFor(s) {
-    return { known: 'solid', stale: 'stale', ready: 'ready', locked: '' }[s];
-  }
 
   renderVals() {
     const level = this.state.level ?? 0;
-    const L = this.levels();
+    const L = [
+      { label: 'Route &middot; 11', blurb: 'the shortest way through' },
+      { label: '+ landmarks &middot; 21', blurb: 'the named ideas in each region' },
+      { label: 'Everything &middot; 52', blurb: 'every idea this region holds' }
+    ];
 
     const segs = L.map((l, i) => ({
       label: l.label,
-      style: i === level
-        ? 'background:#1E282C; color:#DFE6E6;'
-        : 'background:transparent;',
+      style: i === level ? 'background:#1E282C; color:#DFE6E6;' : 'background:transparent;',
       pick: () => this.setState({ level: i })
     }));
 
-    // serpentine spine: 4, 4, 3
-    const cols = [18, 212, 406, 600];
-    const rows = [16, 176, 336];
-    const W = 176, H = 82;
-
-    const nodes = [];
-    const wires = [];
     const sp = this.spine();
+    const off = this.offRoute();
+    const pts = [];
+    const dim = [];
 
-    sp.forEach((n, i) => {
-      const r = Math.floor(i / 4), c = i % 4;
-      const x = cols[c], y = rows[r];
-      const col = this.colorFor(n.s);
-      const dim = n.s === 'locked';
-      const bw = n.th ? 2 : 1;
-      nodes.push({
-        t: n.t,
-        box: `position:absolute; left:${x}px; top:${y}px; width:${W}px; height:${H}px;`
-           + `background:#0C1216; border:${bw}px solid ${col}; padding:10px 11px;`
-           + `box-sizing:border-box; display:flex; flex-direction:column;`
-           + `justify-content:space-between; opacity:${dim ? .5 : 1};`,
-        titleStyle: `font-size:12px; line-height:1.32; font-weight:500;`
-           + `color:${dim ? '#889699' : '#DFE6E6'};`,
-        showFoot: true,
-        hasMore: level === 0 && n.more > 0,
-        more: n.more,
-        stateColor: col,
-        stateLabel: n.th ? '◆ threshold' : this.labelFor(n.s)
+    const mk = (p, kind) => {
+      const col = this.colorFor(p.s);
+      const filled = p.s === 'known' || p.s === 'stale';
+      // how loud is this point at this zoom level
+      let op = 1;
+      if (kind === 'filler') op = level === 0 ? 0.15 : (level === 1 ? 0.34 : 0.9);
+      if (kind === 'off') op = level === 0 ? 0.30 : 1;
+      const size = p.th ? 15 : (kind === 'spine' ? 12 : (kind === 'off' ? 10 : 7));
+      const glow = p.s === 'ready'
+        ? `box-shadow:0 0 0 4px rgba(108,183,255,.14), 0 0 14px rgba(108,183,255,.4);` : '';
+      const shape = p.th
+        ? `transform:rotate(45deg); border-radius:2px;`
+        : `border-radius:50%;`;
+      const skin = filled
+        ? `background:${col}; border:1px solid ${col};`
+        : `background:#0B1013; border:${p.th ? 2 : 1.5}px solid ${col};`;
+
+      const showLabel = kind === 'spine'
+        || (p.th && level >= 0)
+        || (kind === 'off' && level >= 1)
+        || (kind === 'filler' && level >= 2 && p.t);
+
+      pts.push({
+        t: p.t || '',
+        wrap: `position:absolute; left:${p.x}px; top:${p.y}px;`
+            + `transform:translate(-50%,-50%); width:132px; margin-left:-66px;`
+            + `display:flex; flex-direction:column; align-items:center; gap:7px;`
+            + `opacity:${op};`,
+        dot: `width:${size}px; height:${size}px; ${shape} ${skin} ${glow}`,
+        showLabel: !!showLabel,
+        lab: `font-size:${p.th ? 10.5 : 10}px; line-height:1.25; text-align:center;`
+           + `color:${kind === 'spine' || p.th ? '#DFE6E6' : '#889699'};`
+           + `font-weight:${p.th ? 500 : 400}; letter-spacing:-.005em;`
+           + `text-shadow:0 1px 4px #080B0D;`
       });
+    };
 
-      // wire to the next spine node
-      if (i < sp.length - 1) {
-        const nr = Math.floor((i + 1) / 4), nc = (i + 1) % 4;
-        const nx = cols[nc], ny = rows[nr];
-        const d = nr === r
-          ? `M${x + W} ${y + H / 2} L${nx} ${ny + H / 2}`
-          : `M${x + W / 2} ${y + H} L${x + W / 2} ${y + H + 22}`
-            + ` L${nx + W / 2} ${ny - 22} L${nx + W / 2} ${ny}`;
-        wires.push({ d, stroke: '#253239', op: '1' });
+    sp.forEach((p) => mk(p, 'spine'));
+    off.forEach((p) => mk(p, 'off'));
+
+    // fillers: the unnamed body of each suburb
+    const names = ['', '', '', '', '', '', '', '', '', ''];
+    this.regions().forEach((r, ri) => {
+      const rand = this.rng(9973 + ri * 131);
+      for (let i = 0; i < r.n; i++) {
+        const a = rand() * Math.PI * 2;
+        const t = 0.42 + rand() * 0.52;
+        const x = Math.round(r.cx + Math.cos(a) * r.rx * t);
+        const y = Math.round(r.cy + Math.sin(a) * r.ry * t);
+        const s = rand() < 0.14 ? 'known' : 'locked';
+        mk({ x, y, t: names[i % names.length], s }, 'filler');
+        // road to the nearest route stop — the suburb's street
+        let best = sp[0], bd = 1e9;
+        sp.forEach((q) => {
+          const d = (q.x - x) * (q.x - x) + (q.y - y) * (q.y - y);
+          if (d < bd) { bd = d; best = q; }
+        });
+        dim.push(`M${x} ${y} L${best.x} ${best.y}`);
       }
     });
 
-    // elaborations unfold at levels 1 and 2
-    if (level >= 1) {
-      const elab = [
-        { i: 1, t: 'Introns' }, { i: 2, t: 'Read length' }, { i: 3, t: 'Duplicates' },
-        { i: 4, t: 'Phred' }, { i: 7, t: 'Adapters' }, { i: 8, t: 'MAPQ' },
-        { i: 9, t: 'Multi-mapping' }, { i: 10, t: 'Multiple testing' }
-      ];
-      const per = level === 2 ? 3 : 1;
-      elab.forEach((e, k) => {
-        for (let j = 0; j < per; j++) {
-          const r = Math.floor(e.i / 4), c = e.i % 4;
-          const x = cols[c] + 8 + (j * 56);
-          const y = rows[r] + H + 12 + (j % 2) * 26;
-          nodes.push({
-            t: j === 0 ? e.t : '',
-            box: `position:absolute; left:${x}px; top:${y}px; width:${j === 0 ? 74 : 46}px;`
-               + `height:22px; background:#0C1216; border:1px solid #1A252A;`
-               + `padding:0 7px; box-sizing:border-box; display:flex; align-items:center;`
-               + `opacity:.72;`,
-            titleStyle: 'font-size:9.5px; color:#889699; white-space:nowrap; overflow:hidden;',
-            showFoot: false, hasMore: false, more: 0,
-            stateColor: '#67757A', stateLabel: ''
-          });
-        }
+    // roads from the off-route landmarks too
+    off.forEach((p) => {
+      let best = sp[0], bd = 1e9;
+      sp.forEach((q) => {
+        const d = (q.x - p.x) * (q.x - p.x) + (q.y - p.y) * (q.y - p.y);
+        if (d < bd) { bd = d; best = q; }
       });
-    }
+      dim.push(`M${p.x} ${p.y} L${best.x} ${best.y}`);
+    });
 
-    return { segs, nodes, wires, blurb: L[level].blurb };
+    const spineRoad = sp.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
+
+    return {
+      segs,
+      pts,
+      dimRoads: dim.join(' '),
+      spineRoad,
+      dimOp: level === 0 ? '.30' : (level === 1 ? '.55' : '.85'),
+      blurb: L[level].blurb
+    };
   }
 }
 </script>
