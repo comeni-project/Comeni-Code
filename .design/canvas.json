@@ -1,10 +1,10 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "title": "B2 · The map — a trunk line, and what branches off it", "x": 0, "y": 0, "w": 1440, "h": 980, "is_interactive": true },
-    { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1560, "y": 0, "w": 1440, "h": 1000 },
-    { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1240, "w": 1000, "h": 1420 },
-    { "file": "Problem.dc.html", "title": "B3 · A problem, Rosalind-shaped", "x": 1080, "y": 1240, "w": 1100, "h": 1180 },
-    { "file": "LabsEntry.dc.html", "title": "C · Entering from a Labs decision", "x": 2260, "y": 1240, "w": 1440, "h": 900 }
+    { "file": "Main.dc.html", "title": "B2 · The map — a trunk line, and what branches off it", "x": 0, "y": 0, "w": 1440, "h": 890, "is_interactive": true },
+    { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1560, "y": 0, "w": 1440, "h": 880 },
+    { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1120, "w": 1000, "h": 1830 },
+    { "file": "Problem.dc.html", "title": "B3 · A problem, Rosalind-shaped", "x": 1080, "y": 1120, "w": 1100, "h": 1330 },
+    { "file": "LabsEntry.dc.html", "title": "C · Entering from a Labs decision", "x": 2260, "y": 1120, "w": 1440, "h": 830 }
   ],
   "annotations": [
     {
@@ -12,7 +12,7 @@
       "x": 0,
       "y": -196,
       "w": 460,
-      "text": "B2 — a transit map. Click the three-position control.\n\nThe trunk is DEAD STRAIGHT: eleven evenly spaced stops on one line, labels alternating above and below. A zigzagging core made the reader work to find the path, which was the whole point of having one. Everything else BRANCHES off it at a named stop, so a divergence is legible as a divergence.\n\nThe form is MetroSets, a published hypergraph visualisation method: hyperedges as lines running through their member nodes on a schematic map. A track is a LINE, a node is a STOP, a node more than one track needs is an INTERCHANGE — so the reusable-node claim is something you see rather than a paragraph you read.\n\nZones across the top are the regions. Level 1 shows where each branch leaves; level 2 hangs the elaborations off their stops as stubs, and marks the minor stops nobody names.\n\nSettled spends no colour. That is Labs' own law, and the constellation draft broke it."
+      "text": "B2 — a transit map. Click the three-position control.\n\nThe trunk is DEAD STRAIGHT: eleven evenly spaced stops on one line, labels alternating above and below. Everything else BRANCHES off it at a named stop, so a divergence is legible as a divergence.\n\nThe form is MetroSets, a published hypergraph visualisation method: hyperedges as lines running through their member nodes on a schematic map. A track is a LINE, a node is a STOP, a node more than one track needs is an INTERCHANGE — so the reusable-node claim is something you see rather than a paragraph you read.\n\nZones across the top are the regions. Level 1 shows where each branch leaves; level 2 hangs the elaborations off their stops as stubs.\n\nSettled spends no colour. That is Labs' own law, and the constellation draft broke it."
     },
     {
       "id": "note-review",
@@ -24,21 +24,21 @@
     {
       "id": "note-read",
       "x": 0,
-      "y": 1064,
+      "y": 944,
       "w": 440,
       "text": "B — one node, all its holes rendered.\n\nGreen band = the per-track FRAMING hole, the escape from the reusability paradox. Red band = the misconception. Then two different things: a CHECK (90 seconds, comes back on a spacing schedule) and a PROBLEM (the actual gate — solving it is what marks the node solid)."
     },
     {
       "id": "note-problem",
       "x": 1080,
-      "y": 1064,
+      "y": 944,
       "w": 440,
       "text": "B3 — Rosalind's shape, which is the thing that made Rosalind last 14 years: statement, Given/Return, sample dataset, sample output, YOUR dataset, one auto-graded answer.\n\nTwo additions. A rung ladder, because a wet-lab biologist did not sign up to program and rung 1 must be solvable in a text editor. And the wrong-answer nudge is generated from the node's own recorded misconception — not from a model reading your answer."
     },
     {
       "id": "note-labs",
       "x": 2260,
-      "y": 1064,
+      "y": 944,
       "w": 440,
       "text": "C — the forcing function no competitor has.\n\nLeft is Mendel's tier-3 decision with its rule, premise and citation. Right is Code, entered FROM it.\n\nThe drawer leads with what you need to judge the decision yourself. The short answer is present but last, and framed as the rule's reasoning — that is the cognitive-surrender guard the MIT report argues for."
     }

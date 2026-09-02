@@ -37,29 +37,26 @@
            transition:background-color 140ms cubic-bezier(.32,.72,0,1), color 140ms cubic-bezier(.32,.72,0,1); }
     .seg:hover { color:#DFE6E6; }
     .seg:focus-visible { outline:2px solid #6CB7FF; outline-offset:2px; }
-    .st { transition:opacity 220ms cubic-bezier(.32,.72,0,1); }
     .st:hover .mk { border-color:#DFE6E6; }
     .mk { transition:border-color 140ms cubic-bezier(.32,.72,0,1); }
-    .ln { transition:stroke 220ms cubic-bezier(.32,.72,0,1),
-                     opacity 220ms cubic-bezier(.32,.72,0,1); }
     @media (prefers-reduced-motion: reduce) {
       .breathe,.slowA,.settle { animation:none !important; }
-      .st,.mk,.ln { transition:none; }
+      .mk { transition:none; }
     }
   </style>
 </helmet>
 
-<div style="position:relative; min-height:980px; overflow:hidden; background:#080B0D;">
+<div style="position:relative; min-height:890px; overflow:hidden; background:#080B0D;">
 
-  <svg class="layer" viewBox="0 0 1440 980" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <svg class="layer" viewBox="0 0 1440 890" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <g class="breathe" fill="none">
       <g class="slowA" stroke="#6CB7FF" stroke-width="1">
-        <circle cx="140" cy="900" r="600" opacity=".07"/>
-        <circle cx="140" cy="900" r="880" opacity=".045"/>
-        <circle cx="140" cy="900" r="1220" opacity=".028"/>
+        <circle cx="140" cy="820" r="560" opacity=".07"/>
+        <circle cx="140" cy="820" r="840" opacity=".045"/>
+        <circle cx="140" cy="820" r="1160" opacity=".028"/>
       </g>
       <g stroke="#10AA91">
-        <circle cx="1380" cy="40" r="460" opacity=".045" stroke-width="1"/>
+        <circle cx="1380" cy="40" r="440" opacity=".045" stroke-width="1"/>
       </g>
     </g>
   </svg>
@@ -131,77 +128,68 @@
           </div>
         </div>
 
-        <div style="position:relative; height:568px;">
+        <!-- ONE coordinate space: the svg is 1060x470 unscaled, and every stop is
+             positioned in the same pixels. Nothing here stretches. -->
+        <div style="position:relative; height:470px; width:1060px;">
 
-          <svg class="layer" viewBox="0 0 1094 568" preserveAspectRatio="none" aria-hidden="true">
-            <!-- zone rules -->
+          <svg width="1060" height="470" style="position:absolute; left:0; top:0;"
+               aria-hidden="true">
             <g stroke="#141C20" stroke-width="1" stroke-dasharray="2 5">
-              <line x1="197" y1="44" x2="197" y2="534"/>
-              <line x1="377" y1="44" x2="377" y2="534"/>
-              <line x1="647" y1="44" x2="647" y2="534"/>
-              <line x1="917" y1="44" x2="917" y2="534"/>
+              <line x1="188" y1="42" x2="188" y2="428"/>
+              <line x1="364" y1="42" x2="364" y2="428"/>
+              <line x1="628" y1="42" x2="628" y2="428"/>
+              <line x1="892" y1="42" x2="892" y2="428"/>
             </g>
-            <!-- frame rules and registration marks -->
             <g stroke="#1A252A" stroke-width="1">
-              <line x1="24" y1="38" x2="1070" y2="38"/>
-              <line x1="24" y1="540" x2="1070" y2="540"/>
+              <line x1="20" y1="36" x2="1040" y2="36"/>
+              <line x1="20" y1="434" x2="1040" y2="434"/>
             </g>
             <g stroke="#28353C" stroke-width="1">
-              <line x1="24" y1="32" x2="24" y2="44"/><line x1="1070" y1="32" x2="1070" y2="44"/>
-              <line x1="24" y1="534" x2="24" y2="546"/><line x1="1070" y1="534" x2="1070" y2="546"/>
+              <line x1="20" y1="30" x2="20" y2="42"/><line x1="1040" y1="30" x2="1040" y2="42"/>
+              <line x1="20" y1="428" x2="20" y2="440"/><line x1="1040" y1="428" x2="1040" y2="440"/>
             </g>
 
-            <!-- elaboration stubs -->
             <path d="{{stubs}}" fill="none" stroke="#253239" stroke-width="1.25"
-                  stroke-linecap="round" opacity="{{stubOp}}"/>
-            <!-- branch lines -->
-            <path class="ln" d="{{lineB}}" fill="none" stroke="{{otherStroke}}"
-                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <path class="ln" d="{{lineC}}" fill="none" stroke="{{otherStroke}}"
-                  stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <!-- the trunk -->
-            <path d="M62 286 L962 286" fill="none" stroke="#10AA91" stroke-width="2"
                   stroke-linecap="round"/>
-            <!-- minor stops -->
-            <path d="{{minor}}" fill="none" stroke="#2A3438" stroke-width="1"
-                  opacity="{{minorOp}}"/>
+            <path d="{{lineB}}" fill="none" stroke="{{otherStroke}}" stroke-width="1.5"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="{{lineC}}" fill="none" stroke="{{otherStroke}}" stroke-width="1.5"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M56 250 L936 250" fill="none" stroke="#10AA91" stroke-width="2"
+                  stroke-linecap="round"/>
+            <path d="{{minor}}" fill="none" stroke="#2A3438" stroke-width="1"/>
           </svg>
 
-          <!-- zone names, in the top gutter -->
-          <div class="lb" style="position:absolute; left:24px; top:16px; font-size:9px;">
+          <!-- zone names -->
+          <div class="lb" style="position:absolute; left:20px; top:14px; font-size:9px;">
             &#8212;&ensp;The molecule</div>
-          <div class="lb" style="position:absolute; left:205px; top:16px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:196px; top:14px; font-size:9px;">
             &#8212;&ensp;Measuring it</div>
-          <div class="lb" style="position:absolute; left:385px; top:16px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:372px; top:14px; font-size:9px;">
             &#8212;&ensp;On disk</div>
-          <div class="lb" style="position:absolute; left:655px; top:16px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:636px; top:14px; font-size:9px;">
             &#8212;&ensp;Placing the reads</div>
-          <div class="lb" style="position:absolute; left:925px; top:16px; font-size:9px;">
+          <div class="lb" style="position:absolute; left:900px; top:14px; font-size:9px;">
             &#8212;&ensp;Making a claim</div>
 
-          <!-- line names, at the terminus, metro-style -->
-          <div class="m" style="position:absolute; left:978px; top:279px; font-size:9.5px;
+          <!-- line names at the terminus -->
+          <div class="m" style="position:absolute; left:952px; top:243px; font-size:9.5px;
                       letter-spacing:.1em; text-transform:uppercase; color:#10AA91;">
             &#9656; yours</div>
           <sc-if value="{{showBranchTags}}" hint-placeholder-val="{{ true }}">
-            <div class="m" style="position:absolute; left:1000px; top:396px; font-size:9.5px;
-                        letter-spacing:.1em; text-transform:uppercase; color:#455257;
-                        width:90px; line-height:1.4;">&#9656; call<br>variants</div>
-            <div class="m" style="position:absolute; left:820px; top:150px; font-size:9.5px;
-                        letter-spacing:.1em; text-transform:uppercase; color:#455257;
-                        width:90px; line-height:1.4;">&#9656; assemble<br>a genome</div>
+            <div class="m" style="position:absolute; left:816px; top:386px; width:240px;
+                        font-size:9px; letter-spacing:.11em; text-transform:uppercase;
+                        color:#455257; text-align:center;">&#9656; call variants</div>
+            <div class="m" style="position:absolute; left:640px; top:117px; width:240px;
+                        font-size:9px; letter-spacing:.11em; text-transform:uppercase;
+                        color:#455257; text-align:center;">&#9656; assemble a genome</div>
           </sc-if>
 
-          <!-- stations -->
+          <!-- stops: a zero-size point at (x,y), mark centred on it, label above or below -->
           <sc-for list="{{stops}}" as="p" hint-placeholder-count="24">
             <div class="st" style="{{p.wrap}}">
-              <sc-if value="{{p.above}}" hint-placeholder-val="{{ true }}">
-                <div style="{{p.lab}}">{{p.t}}</div>
-              </sc-if>
               <div class="mk" style="{{p.mark}}"></div>
-              <sc-if value="{{p.below}}" hint-placeholder-val="{{ true }}">
-                <div style="{{p.lab}}">{{p.t}}</div>
-              </sc-if>
+              <div style="{{p.lab}}">{{p.t}}</div>
             </div>
           </sc-for>
         </div>
@@ -297,10 +285,10 @@
 </div>
 </x-dc>
 
-<script data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":890}}'>
 class Component extends DCLogic {
-  // one straight trunk. everything else branches off it.
-  geom() { return { y: 286, x0: 62, dx: 90, up: 196, dn: 376 }; }
+  // one straight trunk; branches leave it at 45 degrees, so dx === dy.
+  geom() { return { y: 250, x0: 56, dx: 88, up: 162, dn: 338, stub: 62 }; }
   tx(i) { const g = this.geom(); return g.x0 + i * g.dx; }
 
   trunk() {
@@ -319,25 +307,22 @@ class Component extends DCLogic {
     ];
   }
 
-  // branch B leaves the trunk after stop 7; branch C after stop 4
-  branchB() {
+  branchB() { // call variants — leaves after stop 7
     const g = this.geom();
-    return { from: this.tx(7), pts: [[this.tx(7), g.y], [this.tx(8), g.dn],
-      [this.tx(9), g.dn], [this.tx(10), g.dn], [this.tx(11), g.dn]] };
+    return [[this.tx(7), g.y], [this.tx(8), g.dn], [this.tx(9), g.dn], [this.tx(10), g.dn]];
   }
-  branchC() {
+  branchC() { // assemble a genome — leaves after stop 4
     const g = this.geom();
-    return { pts: [[this.tx(4), g.y], [this.tx(5), g.up],
-      [this.tx(6), g.up], [this.tx(7), g.up], [this.tx(8), g.up]] };
+    return [[this.tx(4), g.y], [this.tx(5), g.up], [this.tx(6), g.up],
+            [this.tx(7), g.up], [this.tx(8), g.up]];
   }
 
   branchStops() {
     const g = this.geom();
     return [
       { t: 'BWA',              x: this.tx(8),  y: g.dn, up: false },
-      { t: 'Duplicate marking', x: this.tx(9),  y: g.dn, up: false },
+      { t: 'Duplicates',       x: this.tx(9),  y: g.dn, up: false },
       { t: 'Variant calling',  x: this.tx(10), y: g.dn, up: false, th: true },
-      { t: 'A VCF',            x: this.tx(11), y: g.dn, up: false },
       { t: 'k-mers',           x: this.tx(5),  y: g.up, up: true },
       { t: 'de Bruijn graphs', x: this.tx(6),  y: g.up, up: true, th: true },
       { t: 'Contigs',          x: this.tx(7),  y: g.up, up: true },
@@ -345,15 +330,15 @@ class Component extends DCLogic {
     ];
   }
 
-  // short stubs hanging off the trunk — the elaborations
+  // a stub always hangs on the OPPOSITE side from its stop's own label, and never
+  // at an x where a branch row runs.
   elaborations() {
     return [
-      { t: 'Introns',       i: 1,  dir: 1 },
-      { t: 'PCR duplicates', i: 3, dir: -1 },
-      { t: 'Phred scores',  i: 5,  dir: 1 },
-      { t: 'Adapters',      i: 6,  dir: -1 },
-      { t: 'Genome index',  i: 9,  dir: 1 },
-      { t: 'Normalisation', i: 10, dir: -1 }
+      { t: 'Base pairing',   i: 0,  dir: 1 },
+      { t: 'Introns',        i: 1,  dir: -1 },
+      { t: 'Read length',    i: 2,  dir: 1 },
+      { t: 'PCR duplicates', i: 3,  dir: -1 },
+      { t: 'Adapters',       i: 6,  dir: 1 }
     ];
   }
 
@@ -361,9 +346,9 @@ class Component extends DCLogic {
     const level = this.state.level ?? 0;
     const g = this.geom();
     const L = [
-      { label: 'Your line',     blurb: 'eleven stops, one line' },
-      { label: '+ branches',    blurb: 'the tracks that leave your line, and where' },
-      { label: 'Every stop',    blurb: 'including the elaborations hanging off each stop' }
+      { label: 'Your line',  blurb: 'eleven stops, one line' },
+      { label: '+ branches', blurb: 'the tracks that leave your line, and where' },
+      { label: 'Every stop', blurb: 'including the elaborations hanging off each stop' }
     ];
 
     const segs = L.map((l, i) => ({
@@ -374,33 +359,31 @@ class Component extends DCLogic {
 
     const d = (pts) => pts.map((p, k) => `${k ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ');
 
-    const mark = (p) => {
-      const big = p.ix || p.th;
-      const size = big ? 13 : 9;
+    const stops = [];
+    const push = (p, strong, small) => {
+      const big = !!(p.ix || p.th);
+      const size = small ? 7 : (big ? 13 : 9);
       const col = p.s === 'known' ? '#889699'
                 : p.s === 'stale' ? '#C1B508'
                 : p.s === 'ready' ? '#6CB7FF' : '#2C3E45';
       let border = `${p.s === 'locked' ? 1 : 1.5}px solid ${col}`;
-      let bg = '#0B1013', extra = '';
+      let bg = '#0B1013', ring = '';
       if (p.s === 'known' && !big) { bg = '#67757A'; border = '1px solid #67757A'; }
-      if (p.s === 'known' && big) { extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 6px #67757A;'; }
-      if (p.s === 'ready') { extra = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 5px #6CB7FF;'; }
-      return `width:${size}px; height:${size}px; border-radius:50%; box-sizing:border-box;`
-           + `border:${border}; background:${bg}; ${extra}`;
-    };
+      if (p.s === 'known' && big) { ring = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 6px #67757A;'; }
+      if (p.s === 'ready') { ring = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 5px #6CB7FF;'; }
+      const off = (big ? 13 : 10) + (small ? -2 : 0);
 
-    const stops = [];
-    const push = (p, strong, small) => {
       stops.push({
         t: p.t,
-        wrap: `position:absolute; left:${p.x}px; top:${p.y}px;`
-            + `transform:translate(-50%,-50%); width:96px; margin-left:-48px;`
-            + `display:flex; flex-direction:column; align-items:center; gap:7px;`,
-        mark: mark(p),
-        above: !!p.up,
-        below: !p.up,
-        lab: `font-size:${small ? 9.5 : (p.th ? 10.5 : 10)}px; line-height:1.3;`
-           + `text-align:center; color:${strong ? '#DFE6E6' : (small ? '#67757A' : '#889699')};`
+        // a POINT. no width, no margin, nothing to shift it off its own line.
+        wrap: `position:absolute; left:${p.x}px; top:${p.y}px; width:0; height:0;`,
+        mark: `position:absolute; left:0; top:0; transform:translate(-50%,-50%);`
+            + `width:${size}px; height:${size}px; border-radius:50%; box-sizing:border-box;`
+            + `border:${border}; background:${bg}; ${ring}`,
+        lab: `position:absolute; left:-50px; width:100px; text-align:center;`
+           + `${p.up ? `bottom:${off}px;` : `top:${off}px;`}`
+           + `font-size:${small ? 9.5 : (p.th ? 10.5 : 10)}px; line-height:1.3;`
+           + `color:${strong ? '#DFE6E6' : (small ? '#67757A' : '#889699')};`
            + `font-weight:${p.th ? 500 : 400}; letter-spacing:-.005em;`
            + `text-shadow:0 0 5px #080B0D, 0 0 3px #080B0D;`
       });
@@ -409,25 +392,23 @@ class Component extends DCLogic {
     this.trunk().forEach((p) => push({ ...p, x: this.tx(p.i), y: g.y }, true, false));
     if (level >= 1) this.branchStops().forEach((p) => push({ ...p, s: 'locked' }, false, false));
 
-    // elaboration stubs
     const stubs = [];
     if (level >= 2) {
       this.elaborations().forEach((e) => {
-        const x = this.tx(e.i);
-        const y = g.y + e.dir * 66;
+        const x = this.tx(e.i), y = g.y + e.dir * g.stub;
         stubs.push(`M${x} ${g.y} L${x} ${y}`);
         push({ ...e, x, y, s: 'locked', up: e.dir < 0 }, false, true);
       });
     }
 
-    // minor stops: hairline ticks mid-segment, the stops nobody names
+    // the minor stops nobody names: a hairline tick across the line, mid-segment
     const minor = [];
     if (level >= 2) {
       for (let i = 0; i < 10; i++) {
         const mx = this.tx(i) + g.dx / 2;
         minor.push(`M${mx} ${g.y - 4.5} L${mx} ${g.y + 4.5}`);
       }
-      [this.branchB().pts, this.branchC().pts].forEach((pts) => {
+      [this.branchB(), this.branchC()].forEach((pts) => {
         for (let i = 1; i < pts.length - 1; i++) {
           const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = pts[i][1];
           minor.push(`M${mx} ${my - 4.5} L${mx} ${my + 4.5}`);
@@ -438,12 +419,10 @@ class Component extends DCLogic {
     return {
       segs,
       stops,
-      lineB: d(this.branchB().pts),
-      lineC: d(this.branchC().pts),
+      lineB: d(this.branchB()),
+      lineC: d(this.branchC()),
       stubs: stubs.join(' '),
-      stubOp: level >= 2 ? '1' : '0',
       minor: minor.join(' '),
-      minorOp: level >= 2 ? '1' : '0',
       otherStroke: level === 0 ? '#1A252A' : '#455257',
       showBranchTags: level >= 1,
       blurb: L[level].blurb
