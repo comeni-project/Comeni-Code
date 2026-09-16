@@ -1,0 +1,46 @@
+# Design
+
+The screens are specified in W6–W7 of the
+[2026-09-16 spec](../superpowers/specs/2026-09-16-comeni-code-weaving-and-pages-design.md), and the
+visual identity in its W10. This page says how the drawings are made.
+
+## The canvas is generated
+
+Every board is written by a script, so a change to a token or a shared piece reaches every page at
+once and nothing drifts:
+
+| File | Holds |
+|---|---|
+| [`.design/_identity.mjs`](../../.design/_identity.mjs) | the hybrid identity: light and dark tokens, shared pieces, the identity boards for Code and Labs |
+| [`.design/build_pages.mjs`](../../.design/build_pages.mjs) | every page, the network and route maps, figure components, and the canvas layout |
+| `.design/*.dc.html`, `.design/canvas.json` | generated output — committed, never edited by hand |
+
+```bash
+node .design/build_pages.mjs     # rebuilds every board and canvas.json
+```
+
+The boards are Design Components, one HTML file per artboard, laid out by `canvas.json` on three
+pages: **Learn**, **Studio** and **Identity**. They are published as a design canvas with the Claude
+Design preview in Claude Code; published copies are views, and the generator is the source.
+
+## What every screen follows
+
+- **The colour law.** One meaning per colour, in both products: teal-green is your route or
+  *valid*, blue is next or selected, amber is measured or stale (or *not yet reviewed*), red is
+  needs-you or wrong, and **settled spends no colour**.
+- **States are words as well as colours.** Nothing is shown by colour alone.
+- **Data is set in Geist Mono**; everything else in Lexend. Text is 11 px or larger — except the
+  small mono annotations on the maps (10–10.5 px), which do not yet meet the spec's rule and need
+  revisiting.
+- **Learners only ever see metro maps.** Box-and-arrow and neighbourhood drawings are Studio
+  editing tools.
+- **Sample numbers are samples.** Names in brackets are placeholders.
+
+## What is drawn
+
+| Learn | Studio |
+|---|---|
+| L1 Start · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S7 Requests · S8 Implementing · S9 Weave review · S15 Assistant · S16–S17 AI |
+
+Not yet drawn: L2 Placement, L6 Problem (its full block is inside L5), L7 Review, L8 Weekly,
+L11 From Labs, S1 Inbox, S6 Review, S11 Quality and the smaller settings pages.

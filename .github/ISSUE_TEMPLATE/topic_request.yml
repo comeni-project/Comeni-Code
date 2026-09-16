@@ -1,0 +1,66 @@
+name: Topic request
+description: Something you would want to learn, or a page a route is missing
+labels: [request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Until the app's request queue exists, these issues are that queue. As in the app, a
+        maintainer looks at every request before anything is written — it may be accepted,
+        merged into an existing topic, or declined with a reason.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of request
+      options:
+        - A goal — something I want to be able to understand or do
+        - A missing topic — a page that other topics need
+    validations:
+      required: true
+
+  - type: input
+    id: goal
+    attributes:
+      label: In your own words
+      description: The way you would type it into a search box.
+      placeholder: "e.g. learn Salmon · why do my reads not map · what is TPM"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why you need it
+      description: What you are working on, and what you would do once you understand it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: needs
+    attributes:
+      label: What it would need first
+      description: |
+        Optional. Topics you think someone must understand before this one, and why. Each
+        becomes a proposed "needs" link, and each is reviewed on its own.
+      placeholder: |
+        - k-mers — the index is built from them
+        - Expectation–maximisation — how reads shared by transcripts are split
+
+  - type: textarea
+    id: sources
+    attributes:
+      label: Good sources
+      description: Optional. Papers, documentation or textbooks a page should be written from.
+
+  - type: dropdown
+    id: background
+    attributes:
+      label: Your background
+      description: Optional. It helps us pitch the page.
+      options:
+        - Wet-lab biology
+        - Bioinformatics or computational biology
+        - Software or data science
+        - Teaching
+        - Other

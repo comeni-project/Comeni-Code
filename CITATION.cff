@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use Comeni Code, please cite it using the metadata from this file."
+title: "Comeni Code"
+type: software
+authors:
+  - name: "The comeni-project contributors"
+repository-code: "https://github.com/comeni-project/Comeni-Code"
+url: "https://github.com/comeni-project/Comeni-Code"
+license: Apache-2.0
+abstract: >-
+  A learning platform for bioinformatics. Standalone, human-reviewed topic pages are woven into
+  routes toward a learner's goal by walking their declared prerequisites, with AI drafting pages
+  and connecting text under review. Part of the comeni-project, beside Comeni Labs.
+keywords:
+  - bioinformatics
+  - education
+  - knowledge graph
+  - learning paths
+  - open educational resources
