@@ -7,428 +7,65 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
   <style>
-    body { margin:0; background:#080B0D; color:#DFE6E6; font-variant-numeric:tabular-nums;
-           font-family:"Geist","Geist Variable",system-ui,sans-serif; }
-    a { color:#6CB7FF; text-decoration:none; } a:hover { color:#fff; }
-    .m  { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace; }
-    .lb { font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
-          font-size:9.5px; letter-spacing:.15em; text-transform:uppercase; color:#67757A; }
-    .layer { position:absolute; inset:0; pointer-events:none; }
-    .breathe { animation:breathe 46s ease-in-out infinite alternate; }
-    @keyframes breathe { to { opacity:1.85; } }
-    .slowA { transform-box:view-box; transform-origin:140px 900px; animation:spin 680s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    .rule { background-image:
-              linear-gradient(rgba(108,183,255,.026) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(108,183,255,.026) 1px, transparent 1px);
-            background-size:36px 36px;
-            mask-image:radial-gradient(105% 62% at 16% 0%, #000 0%, transparent 66%); }
-    .scan { background-image:repeating-linear-gradient(180deg, rgba(255,255,255,.010) 0 1px, transparent 1px 3px); }
-    .vig  { background:radial-gradient(130% 92% at 50% 3%, transparent 44%, rgba(8,11,13,.9) 100%); }
-    .pl { background:rgba(12,18,22,.62); border:1px solid #172025; }
-    .settle { animation:settle 200ms cubic-bezier(.32,.72,0,1) backwards; }
-    @keyframes settle { from { opacity:0; transform:translateY(4px); } }
-    .seg { border:0; cursor:pointer; background:transparent;
-           font-family:"Geist Mono","Geist Mono Variable",ui-monospace,monospace;
-           font-size:10px; letter-spacing:.08em; text-transform:uppercase;
-           padding:7px 14px; color:#67757A;
-           transition:background-color 140ms cubic-bezier(.32,.72,0,1), color 140ms cubic-bezier(.32,.72,0,1); }
-    .seg:hover { color:#DFE6E6; }
-    .seg:focus-visible { outline:2px solid #6CB7FF; outline-offset:2px; }
-    .st:hover .mk { border-color:#DFE6E6; }
-    .mk { transition:border-color 140ms cubic-bezier(.32,.72,0,1); }
-    @media (prefers-reduced-motion: reduce) {
-      .breathe,.slowA,.settle { animation:none !important; }
-      .mk { transition:none; }
-    }
+    body { margin: 0; background: #F4F5F8; }
+    a { color: #2F6FEB; text-decoration: none; } a:hover { color: #171A26; }
   </style>
 </helmet>
-
-<div style="position:relative; min-height:890px; overflow:hidden; background:#080B0D;">
-
-  <svg class="layer" viewBox="0 0 1440 890" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <g class="breathe" fill="none">
-      <g class="slowA" stroke="#6CB7FF" stroke-width="1">
-        <circle cx="140" cy="820" r="560" opacity=".07"/>
-        <circle cx="140" cy="820" r="840" opacity=".045"/>
-        <circle cx="140" cy="820" r="1160" opacity=".028"/>
-      </g>
-      <g stroke="#10AA91">
-        <circle cx="1380" cy="40" r="440" opacity=".045" stroke-width="1"/>
-      </g>
-    </g>
-  </svg>
-  <div class="layer rule"></div>
-  <div class="layer scan"></div>
-  <div class="layer vig"></div>
-
-  <div style="position:relative; padding:26px 40px 38px;">
-
-    <!-- shell -->
-    <div style="display:flex; align-items:center; justify-content:space-between;
-                padding-bottom:18px; border-bottom:1px solid #172025;">
-      <div style="display:flex; align-items:baseline; gap:26px;">
-        <span style="font-size:14px; font-weight:700; letter-spacing:-.02em;">Comeni</span>
-        <span style="font-size:12.5px; color:#DFE6E6;">Code</span>
-        <span style="font-size:12.5px; color:#67757A;">Tracks</span>
-        <span style="font-size:12.5px; color:#67757A;">Problems</span>
-        <span style="font-size:12.5px; color:#67757A;">Review</span>
+<div style="width:1440px;height:1120px;display:flex;flex-direction:column;background:#F4F5F8;color:#171A26;font-family:'Lexend', system-ui, sans-serif;overflow:hidden">
+<header style="height:60px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 28px;border-bottom:1px solid #E1E4EC;background:#F4F5F8">
+  <div style="display:flex;align-items:center;gap:10px">
+  <svg width="30" height="16" viewBox="0 0 30 16"><line x1="3" y1="8" x2="27" y2="8" style="stroke:#0F9D7A;stroke-width:4;stroke-linecap:round"></line><circle cx="4" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle><circle cx="15" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle><circle cx="26" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle></svg>
+  <span style="font-size:17px;font-weight:700;letter-spacing:-.01em">Comeni Code</span></div>
+  <div style="display:flex;align-items:center;gap:10px;width:460px;height:38px;padding:0 14px;border-radius:10px;border:1px solid #C9CEDB;background:#FFFFFF;color:#666C84;font-size:14px">
+    <svg width="15" height="15" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M11 11l3.5 3.5" style="stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg><span>Search topics, tools and goals</span><span style="margin-left:auto;font-family:'Geist Mono', ui-monospace, monospace;font-size:11px;padding:1px 6px;border:1px solid #E1E4EC;border-radius:5px">/</span></div>
+  <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;border-radius:999px;border:1px solid #E1E4EC;background:#FFFFFF;color:#474D63">
+  <span style="width:26px;height:26px;border-radius:50%;background:#E6EEFD;color:#2F6FEB;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="6" r="3" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M2.5 14c.8-2.6 3-4 5.5-4s4.7 1.4 5.5 4" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg></span><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>
+</header>
+  <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 28px 28px;min-height:0">
+    <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;padding:20px 26px;display:flex;align-items:center;gap:28px">
+      <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+        <span style="font-size:12px;font-weight:500;color:#666C84">Continue where you left off</span>
+        <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance">Reference transcriptome</h1>
+        <span style="font-size:13.5px;color:#474D63">Learn Salmon · 2 of 5 questions answered on this page · about 6 min left</span>
       </div>
-      <div style="display:flex; align-items:center; gap:20px;">
-        <span class="m" style="font-size:11px; color:#455257;">
-          <span style="color:#6CB7FF;">&rsaquo;</span> search the map
-          <span style="color:#2A3438;">&#8984;K</span></span>
-        <span class="m" style="font-size:11px; color:#67757A;">Ferreira lab</span>
-      </div>
+      <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 26px;border-radius:10px;background:#0B7F63;color:#FFFFFF;font-size:14.5px;font-weight:600;box-shadow:0 3px 0 #075C48"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"></path></svg>Continue</span>
     </div>
 
-    <!-- header -->
-    <div class="settle" style="display:grid; grid-template-columns:1fr 292px; gap:40px;
-                               align-items:end; padding:24px 0 18px;">
-      <div>
-        <div class="lb" style="padding-bottom:10px;">Track &middot; you have sequencing data</div>
-        <div style="font-size:32px; font-weight:600; letter-spacing:-.035em; line-height:1.06;">
-          Align your reads and get a counts matrix</div>
-        <div style="padding-top:10px; font-size:12.5px; color:#889699;">
-          <span style="color:#DFE6E6;">11 stops, in a line</span> &middot;
-          two other tracks branch off it &middot; ends by running the pipeline on your own FASTQs
-        </div>
+    <section style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid #E1E4EC">
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:17px;font-weight:600">Learn Salmon</span><span style="font-size:13px;color:#474D63">5 of 12 settled · 4 ready now · about 2 h 20 min left</span></div>
+        <div style="display:flex;align-items:center;gap:14px"><a style="font-size:13px;font-weight:500">Switch route ▾</a><span style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;background:#FFFFFF;border:1px solid #C9CEDB;color:#171A26;font-size:13px;font-weight:500">Open route</span></div>
       </div>
-      <div>
-        <div class="lb" style="padding-bottom:9px;">What you know</div>
-        <div style="display:flex; gap:3px; height:7px;">
-          <div style="flex:0 0 27%; background:#67757A;"></div>
-          <div style="flex:0 0 9%; background:#C1B508;"></div>
-          <div style="flex:1; background:#1A252A;"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; padding-top:8px;
-                    font-size:11px; color:#889699;">
-          <span>3 solid &middot; <span style="color:#C1B508;">1 stale</span></span>
-          <span class="m" style="color:#67757A;">of 11</span>
-        </div>
-      </div>
+      <div style="padding:10px 22px 4px"><svg viewBox="0 0 1320 530" width="100%" style="display:block"><path d="M60 290 H1160" style="fill:none;stroke:#0F9D7A;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path><path d="M940 290 H1160" style="fill:none;stroke:#FFFFFF;stroke-width:3;stroke-dasharray:6 6"></path><path d="M60 290 H140 L280 150 H720 H1020 L1160 290" style="fill:none;stroke:#0F9D7A;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path><path d="M560 150 L630 80 H950 L1020 150" style="fill:none;stroke:#0F9D7A;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path><path d="M60 290 H140 L280 430 H1020 L1160 290" style="fill:none;stroke:#0F9D7A;stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path><path d="M280 290 H360 L500 150" style="fill:none;stroke:#FFFFFF;stroke-width:7;stroke-linejoin:round"></path><path d="M280 290 H360 L500 150" style="fill:none;stroke:#0F9D7A;stroke-width:2.5;stroke-linejoin:round;"></path><path d="M360 290 L500 430" style="fill:none;stroke:#FFFFFF;stroke-width:7;stroke-linejoin:round"></path><path d="M360 290 L500 430" style="fill:none;stroke:#0F9D7A;stroke-width:2.5;stroke-linejoin:round;"></path><path d="M280 430 H340 L410 500 H730 L940 290" style="fill:none;stroke:#FFFFFF;stroke-width:7;stroke-linejoin:round"></path><path d="M280 430 H340 L410 500 H730 L940 290" style="fill:none;stroke:#0F9D7A;stroke-width:2.5;stroke-linejoin:round;stroke-dasharray:6 5;"></path><circle cx="60" cy="290" r="9" style="fill:#474D63;stroke:#171A26;stroke-width:2.5;"></circle><text x="60" y="256" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">DNA and genes</text><text x="60" y="271" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">settled</text><circle cx="280" cy="150" r="7" style="fill:#FBF0DC;stroke:#D08A10;stroke-width:2;"></circle><text x="280" y="116" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">Gene expression</text><text x="280" y="131" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#9A5B00">review due</text><circle cx="280" cy="290" r="9" style="fill:#474D63;stroke:#171A26;stroke-width:2.5;"></circle><text x="280" y="256" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">Sequencing reads</text><text x="280" y="271" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">settled</text><circle cx="280" cy="430" r="9" style="fill:#E6EEFD;stroke:#2F6FEB;stroke-width:2.5;"></circle><circle cx="280" cy="430" r="3" style="fill:#2F6FEB"></circle><text x="280" y="460" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">k-mers</text><text x="280" y="475" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#2F6FEB">ready · 10 min</text><circle cx="500" cy="150" r="9" style="fill:#474D63;stroke:#171A26;stroke-width:2.5;"></circle><text x="500" y="116" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">RNA-seq experiments</text><text x="500" y="131" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">settled</text><circle cx="500" cy="290" r="7" style="fill:#474D63;stroke:#474D63;stroke-width:2;"></circle><text x="500" y="256" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">FASTQ on disk</text><text x="500" y="271" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">settled</text><circle cx="500" cy="430" r="9" style="fill:#FFFFFF;stroke:#171A26;stroke-width:3.5;"></circle><circle cx="500" cy="430" r="3" style="fill:#171A26"></circle><text x="500" y="460" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:700;fill:#171A26">de Bruijn graphs</text><text x="500" y="475" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">12 min</text><circle cx="720" cy="80" r="18" style="fill:none;stroke:#2F6FEB;stroke-width:1.5;stroke-dasharray:3 3"></circle><circle cx="720" cy="80" r="10" style="fill:#E6EEFD;stroke:#2F6FEB;stroke-width:3;"></circle><circle cx="720" cy="80" r="3" style="fill:#2F6FEB"></circle><text x="720" y="46" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:700;fill:#171A26">Reference transcriptome</text><text x="720" y="61" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#2F6FEB">in progress · 2 of 5</text><circle cx="720" cy="150" r="7" style="fill:#E6EEFD;stroke:#2F6FEB;stroke-width:2;"></circle><circle cx="720" cy="150" r="3" style="fill:#2F6FEB"></circle><text x="720" y="116" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">Expectation–maximisation</text><text x="720" y="131" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#2F6FEB">ready · 20 min</text><circle cx="720" cy="290" r="7" style="fill:#E6EEFD;stroke:#2F6FEB;stroke-width:2;"></circle><circle cx="720" cy="290" r="3" style="fill:#2F6FEB"></circle><text x="720" y="256" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#171A26">Sequence alignment</text><text x="720" y="271" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#2F6FEB">ready · 15 min</text><circle cx="940" cy="290" r="9" style="fill:#FFFFFF;stroke:#666C84;stroke-width:2.5;stroke-dasharray:3 3"></circle><text x="940" y="256" text-anchor="middle" style="font-family:'Lexend', system-ui, sans-serif;font-size:12px;font-weight:500;fill:#666C84">Selective alignment</text><text x="940" y="271" text-anchor="middle" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px;font-weight:500;fill:#666C84">not written yet</text><circle cx="1160" cy="290" r="13" style="fill:#FFFFFF;stroke:#171A26;stroke-width:3.5;"></circle><rect x="1155.5" y="285.5" width="9" height="9" style="fill:#0F9D7A"></rect><text x="1184" y="288" text-anchor="start" style="font-family:'Geist Mono', ui-monospace, monospace;font-size:17px;font-weight:700;fill:#171A26">Salmon</text><text x="1184" y="306" text-anchor="start" style="font-family:'Lexend', system-ui, sans-serif;font-size:11px;font-weight:500;fill:#0B7F63">your goal</text></svg></div>
+      <div style="padding:6px 22px 14px"><div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;font-size:12px;color:#474D63">
+  <span>Every line ends at your goal. Thin lines are extra needs. Stops at the same distance can be done in any order.</span>
+  <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#474D63;border:2px solid #474D63"></span>Settled</span><span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#FBF0DC;border:2px solid #D08A10"></span>Review due</span>
+  <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#E6EEFD;border:2px solid #2F6FEB"></span>Ready</span><span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#FFFFFF;border:2px dashed #666C84"></span>Not written yet</span>
+  <span style="display:flex;align-items:center;gap:6px"><svg width="20" height="20"><circle cx="10" cy="10" r="7" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2.5"></circle></svg>Where lines meet</span></div></div>
+    </section>
+
+    <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:18px">
+      <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;"><span style="font-size:15px;font-weight:600">Ready for you</span><div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid #E1E4EC"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#E6EEFD;border:2px solid #2F6FEB"></span><div style="display:flex;flex-direction:column;flex:1"><span style="font-size:14px;font-weight:500">k-mers</span><span style="font-size:12px;color:#2F6FEB">10 min · Learn Salmon</span></div></div><div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid #E1E4EC"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#E6EEFD;border:2px solid #2F6FEB"></span><div style="display:flex;flex-direction:column;flex:1"><span style="font-size:14px;font-weight:500">Sequence alignment</span><span style="font-size:12px;color:#2F6FEB">15 min · Learn Salmon</span></div></div><div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid #E1E4EC"><span style="width:11px;height:11px;border-radius:50%;flex:none;background:#FBF0DC;border:2px solid #D08A10"></span><div style="display:flex;flex-direction:column;flex:1"><span style="font-size:14px;font-weight:500">Gene expression</span><span style="font-size:12px;color:#9A5B00">Quick review due</span></div></div></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Review</span><span style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;background:#FFFFFF;border:1px solid #C9CEDB;color:#171A26;font-size:13px;font-weight:500">Start</span></div>
+        <span style="font-size:13.5px;color:#474D63;line-height:1.5">8 questions from pages you’ve read · about 6 min. Tomorrow’s set is picked for you; nothing piles up.</span></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:500;color:#666C84">Weekly problem · 16 Sep</span><span style="font-size:12px;color:#666C84">solved by 38%</span></div>
+        <span style="font-size:15.5px;font-weight:600">Count the reads on one gene</span>
+        <span style="font-size:13px;color:#474D63">Needs 3 nodes · you hold 2. Open forever, nobody is ranked.</span></div>
+      <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;"><span style="font-size:15px;font-weight:600">Your routes</span>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:9px 0;border-top:1px solid #E1E4EC">
+      <div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">Learn Salmon</span><span style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;border:1px solid #C9CEDB;color:#474D63;font-size:11.5px;font-weight:500;white-space:nowrap">Shown above</span></div>
+      <div style="display:flex;gap:3px"><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span></div>
+      <span style="font-size:12px;color:#666C84">5 of 12 · last opened today</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:9px 0;border-top:1px solid #E1E4EC">
+      <div style="display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:600">Learn STAR</span><a style="font-size:13px;font-weight:500">Show</a></div>
+      <div style="display:flex;gap:3px"><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#0F9D7A"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span><span style="flex:1;height:5px;border-radius:2px;background:#C9CEDB"></span></div>
+      <span style="font-size:12px;color:#666C84">You already hold 5 of 11</span></div>
+        <div style="display:flex;justify-content:space-between;padding-top:4px"><a style="font-size:13px;font-weight:500">Learn something new</a><a style="font-size:13px;font-weight:500">Your whole network</a></div></div>
     </div>
-
-    <div style="display:grid; grid-template-columns:1fr 250px; gap:24px; align-items:start;">
-
-      <!-- ── the map ───────────────────────────────────────────────────── -->
-      <div class="pl" style="padding:0; overflow:hidden;">
-        <div style="display:flex; align-items:center; justify-content:space-between;
-                    padding:11px 16px; border-bottom:1px solid #121A1D;">
-          <div style="display:flex; align-items:baseline; gap:13px;">
-            <div class="lb">The map</div>
-            <span style="font-size:11px; color:#67757A;">{{blurb}}</span>
-          </div>
-          <div style="display:flex; border:1px solid #2A3438;">
-            <sc-for list="{{segs}}" as="s" hint-placeholder-count="3">
-              <button class="seg" style="{{s.style}}" onClick="{{s.pick}}">{{s.label}}</button>
-            </sc-for>
-          </div>
-        </div>
-
-        <!-- ONE coordinate space: the svg is 1060x470 unscaled, and every stop is
-             positioned in the same pixels. Nothing here stretches. -->
-        <div style="position:relative; height:470px; width:1060px;">
-
-          <svg width="1060" height="470" style="position:absolute; left:0; top:0;"
-               aria-hidden="true">
-            <g stroke="#141C20" stroke-width="1" stroke-dasharray="2 5">
-              <line x1="188" y1="42" x2="188" y2="428"/>
-              <line x1="364" y1="42" x2="364" y2="428"/>
-              <line x1="628" y1="42" x2="628" y2="428"/>
-              <line x1="892" y1="42" x2="892" y2="428"/>
-            </g>
-            <g stroke="#1A252A" stroke-width="1">
-              <line x1="20" y1="36" x2="1040" y2="36"/>
-              <line x1="20" y1="434" x2="1040" y2="434"/>
-            </g>
-            <g stroke="#28353C" stroke-width="1">
-              <line x1="20" y1="30" x2="20" y2="42"/><line x1="1040" y1="30" x2="1040" y2="42"/>
-              <line x1="20" y1="428" x2="20" y2="440"/><line x1="1040" y1="428" x2="1040" y2="440"/>
-            </g>
-
-            <path d="{{stubs}}" fill="none" stroke="#253239" stroke-width="1.25"
-                  stroke-linecap="round"/>
-            <path d="{{lineB}}" fill="none" stroke="{{otherStroke}}" stroke-width="1.5"
-                  stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="{{lineC}}" fill="none" stroke="{{otherStroke}}" stroke-width="1.5"
-                  stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="M56 250 L936 250" fill="none" stroke="#10AA91" stroke-width="2"
-                  stroke-linecap="round"/>
-            <path d="{{minor}}" fill="none" stroke="#2A3438" stroke-width="1"/>
-          </svg>
-
-          <!-- zone names -->
-          <div class="lb" style="position:absolute; left:20px; top:14px; font-size:9px;">
-            &#8212;&ensp;The molecule</div>
-          <div class="lb" style="position:absolute; left:196px; top:14px; font-size:9px;">
-            &#8212;&ensp;Measuring it</div>
-          <div class="lb" style="position:absolute; left:372px; top:14px; font-size:9px;">
-            &#8212;&ensp;On disk</div>
-          <div class="lb" style="position:absolute; left:636px; top:14px; font-size:9px;">
-            &#8212;&ensp;Placing the reads</div>
-          <div class="lb" style="position:absolute; left:900px; top:14px; font-size:9px;">
-            &#8212;&ensp;Making a claim</div>
-
-          <!-- line names at the terminus -->
-          <div class="m" style="position:absolute; left:952px; top:243px; font-size:9.5px;
-                      letter-spacing:.1em; text-transform:uppercase; color:#10AA91;">
-            &#9656; yours</div>
-          <sc-if value="{{showBranchTags}}" hint-placeholder-val="{{ true }}">
-            <div class="m" style="position:absolute; left:816px; top:386px; width:240px;
-                        font-size:9px; letter-spacing:.11em; text-transform:uppercase;
-                        color:#455257; text-align:center;">&#9656; call variants</div>
-            <div class="m" style="position:absolute; left:640px; top:117px; width:240px;
-                        font-size:9px; letter-spacing:.11em; text-transform:uppercase;
-                        color:#455257; text-align:center;">&#9656; assemble a genome</div>
-          </sc-if>
-
-          <!-- stops: a zero-size point at (x,y), mark centred on it, label above or below -->
-          <sc-for list="{{stops}}" as="p" hint-placeholder-count="24">
-            <div class="st" style="{{p.wrap}}">
-              <div class="mk" style="{{p.mark}}"></div>
-              <div style="{{p.lab}}">{{p.t}}</div>
-            </div>
-          </sc-for>
-        </div>
-
-        <!-- key -->
-        <div style="display:flex; gap:22px; padding:11px 16px; border-top:1px solid #121A1D;
-                    font-size:10.5px; color:#67757A; align-items:center; flex-wrap:wrap;">
-          <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%;
-                background:#67757A; margin-right:6px; vertical-align:-1px;"></span>solid</span>
-          <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%;
-                border:1.5px solid #C1B508; box-sizing:border-box; margin-right:6px;
-                vertical-align:-1px;"></span>stale</span>
-          <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%;
-                border:1.5px solid #6CB7FF; box-sizing:border-box; margin-right:6px;
-                vertical-align:-1px;"></span>next</span>
-          <span><span style="display:inline-block; width:8px; height:8px; border-radius:50%;
-                border:1px solid #2C3E45; box-sizing:border-box; margin-right:6px;
-                vertical-align:-1px;"></span>not yet</span>
-          <span><span style="display:inline-block; width:12px; height:12px; border-radius:50%;
-                border:1.5px solid #889699; box-sizing:border-box; margin-right:7px;
-                vertical-align:-2px;"></span>interchange &mdash; more than one track needs it</span>
-          <span style="margin-left:auto; display:flex; align-items:center; gap:18px;">
-            <span><span style="display:inline-block; width:20px; height:2px; background:#10AA91;
-                  margin-right:7px; vertical-align:4px;"></span>your line</span>
-            <span><span style="display:inline-block; width:20px; height:2px; background:#455257;
-                  margin-right:7px; vertical-align:4px;"></span>branches</span>
-          </span>
-        </div>
-      </div>
-
-      <!-- ── rails ─────────────────────────────────────────────────────── -->
-      <div style="display:flex; flex-direction:column; gap:15px;">
-
-        <div class="pl">
-          <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Next stop</div>
-          </div>
-          <div style="padding:13px 14px;">
-            <div style="font-size:13px; font-weight:500; padding-bottom:5px; line-height:1.3;">
-              A read is a sample, not the molecule</div>
-            <div style="font-size:11px; color:#889699; line-height:1.55;">
-              An interchange &mdash; alignment, variant calling and assembly all pass through
-              it. 14 min, one problem.</div>
-          </div>
-        </div>
-
-        <div class="pl">
-          <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Worth revisiting</div>
-          </div>
-          <div style="padding:13px 14px;">
-            <div style="font-size:13px; font-weight:500; padding-bottom:5px; line-height:1.3;">
-              Genes, transcripts, and why RNA is not DNA</div>
-            <div style="font-size:11px; color:#889699; line-height:1.55;">
-              Read 18 days ago. Four later stops lean on it.</div>
-            <div style="padding-top:9px; font-size:11.5px;">
-              <span style="color:#6CB7FF;">Two questions &rsaquo;</span>
-              <span style="color:#67757A;"> 90 seconds</span></div>
-          </div>
-        </div>
-
-        <div class="pl">
-          <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
-            <div class="lb">Branches from your line</div>
-          </div>
-          <div>
-            <div style="padding:11px 14px; border-bottom:1px solid #121A1D;">
-              <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                <span style="font-size:12.5px; color:#889699;">Call variants</span>
-                <span class="m" style="font-size:10px; color:#67757A;">8 shared</span>
-              </div>
-              <div style="font-size:11px; color:#455257; padding-top:3px;">
-                leaves after &ldquo;what an aligner does&rdquo;</div>
-            </div>
-            <div style="padding:11px 14px;">
-              <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                <span style="font-size:12.5px; color:#889699;">Assemble a genome</span>
-                <span class="m" style="font-size:10px; color:#67757A;">5 shared</span>
-              </div>
-              <div style="font-size:11px; color:#455257; padding-top:3px;">
-                leaves after &ldquo;FASTQ on disk&rdquo;</div>
-            </div>
-          </div>
-          <div style="padding:11px 14px; border-top:1px solid #172025;">
-            <div style="font-size:11px; color:#67757A; line-height:1.55;">
-              A stop is one node. Learning it once counts on every line through it.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </main>
 </div>
 </x-dc>
-
-<script data-dc-script data-props='{"$preview":{"width":1440,"height":890}}'>
-class Component extends DCLogic {
-  // one straight trunk; branches leave it at 45 degrees, so dx === dy.
-  geom() { return { y: 250, x0: 56, dx: 88, up: 162, dn: 338, stub: 62 }; }
-  tx(i) { const g = this.geom(); return g.x0 + i * g.dx; }
-
-  trunk() {
-    return [
-      { t: 'What DNA is made of',       s: 'known',  i: 0,  up: true },
-      { t: 'Genes and transcripts',     s: 'stale',  i: 1,  up: false },
-      { t: 'What a sequencer measures', s: 'known',  i: 2,  up: true },
-      { t: 'A read is a sample',        s: 'ready',  i: 3,  up: false, ix: true, th: true },
-      { t: 'FASTQ on disk',             s: 'ready',  i: 4,  up: true,  ix: true },
-      { t: 'Quality scores',            s: 'locked', i: 5,  up: false },
-      { t: 'Why reads get trimmed',     s: 'locked', i: 6,  up: true },
-      { t: 'What an aligner does',      s: 'known',  i: 7,  up: false, ix: true, th: true },
-      { t: 'Splicing',                  s: 'locked', i: 8,  up: true,  th: true },
-      { t: 'STAR',                      s: 'locked', i: 9,  up: false },
-      { t: 'A counts matrix',           s: 'locked', i: 10, up: true }
-    ];
-  }
-
-  branchB() { // call variants — leaves after stop 7
-    const g = this.geom();
-    return [[this.tx(7), g.y], [this.tx(8), g.dn], [this.tx(9), g.dn], [this.tx(10), g.dn]];
-  }
-  branchC() { // assemble a genome — leaves after stop 4
-    const g = this.geom();
-    return [[this.tx(4), g.y], [this.tx(5), g.up], [this.tx(6), g.up],
-            [this.tx(7), g.up], [this.tx(8), g.up]];
-  }
-
-  branchStops() {
-    const g = this.geom();
-    return [
-      { t: 'BWA',              x: this.tx(8),  y: g.dn, up: false },
-      { t: 'Duplicates',       x: this.tx(9),  y: g.dn, up: false },
-      { t: 'Variant calling',  x: this.tx(10), y: g.dn, up: false, th: true },
-      { t: 'k-mers',           x: this.tx(5),  y: g.up, up: true },
-      { t: 'de Bruijn graphs', x: this.tx(6),  y: g.up, up: true, th: true },
-      { t: 'Contigs',          x: this.tx(7),  y: g.up, up: true },
-      { t: 'Scaffolding',      x: this.tx(8),  y: g.up, up: true }
-    ];
-  }
-
-  // a stub always hangs on the OPPOSITE side from its stop's own label, and never
-  // at an x where a branch row runs.
-  elaborations() {
-    return [
-      { t: 'Base pairing',   i: 0,  dir: 1 },
-      { t: 'Introns',        i: 1,  dir: -1 },
-      { t: 'Read length',    i: 2,  dir: 1 },
-      { t: 'PCR duplicates', i: 3,  dir: -1 },
-      { t: 'Adapters',       i: 6,  dir: 1 }
-    ];
-  }
-
-  renderVals() {
-    const level = this.state.level ?? 0;
-    const g = this.geom();
-    const L = [
-      { label: 'Your line',  blurb: 'eleven stops, one line' },
-      { label: '+ branches', blurb: 'the tracks that leave your line, and where' },
-      { label: 'Every stop', blurb: 'including the elaborations hanging off each stop' }
-    ];
-
-    const segs = L.map((l, i) => ({
-      label: l.label,
-      style: i === level ? 'background:#1E282C; color:#DFE6E6;' : 'background:transparent;',
-      pick: () => this.setState({ level: i })
-    }));
-
-    const d = (pts) => pts.map((p, k) => `${k ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ');
-
-    const stops = [];
-    const push = (p, strong, small) => {
-      const big = !!(p.ix || p.th);
-      const size = small ? 7 : (big ? 13 : 9);
-      const col = p.s === 'known' ? '#889699'
-                : p.s === 'stale' ? '#C1B508'
-                : p.s === 'ready' ? '#6CB7FF' : '#2C3E45';
-      let border = `${p.s === 'locked' ? 1 : 1.5}px solid ${col}`;
-      let bg = '#0B1013', ring = '';
-      if (p.s === 'known' && !big) { bg = '#67757A'; border = '1px solid #67757A'; }
-      if (p.s === 'known' && big) { ring = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 6px #67757A;'; }
-      if (p.s === 'ready') { ring = 'box-shadow:inset 0 0 0 2px #0B1013, inset 0 0 0 5px #6CB7FF;'; }
-      const off = (big ? 13 : 10) + (small ? -2 : 0);
-
-      stops.push({
-        t: p.t,
-        // a POINT. no width, no margin, nothing to shift it off its own line.
-        wrap: `position:absolute; left:${p.x}px; top:${p.y}px; width:0; height:0;`,
-        mark: `position:absolute; left:0; top:0; transform:translate(-50%,-50%);`
-            + `width:${size}px; height:${size}px; border-radius:50%; box-sizing:border-box;`
-            + `border:${border}; background:${bg}; ${ring}`,
-        lab: `position:absolute; left:-50px; width:100px; text-align:center;`
-           + `${p.up ? `bottom:${off}px;` : `top:${off}px;`}`
-           + `font-size:${small ? 9.5 : (p.th ? 10.5 : 10)}px; line-height:1.3;`
-           + `color:${strong ? '#DFE6E6' : (small ? '#67757A' : '#889699')};`
-           + `font-weight:${p.th ? 500 : 400}; letter-spacing:-.005em;`
-           + `text-shadow:0 0 5px #080B0D, 0 0 3px #080B0D;`
-      });
-    };
-
-    this.trunk().forEach((p) => push({ ...p, x: this.tx(p.i), y: g.y }, true, false));
-    if (level >= 1) this.branchStops().forEach((p) => push({ ...p, s: 'locked' }, false, false));
-
-    const stubs = [];
-    if (level >= 2) {
-      this.elaborations().forEach((e) => {
-        const x = this.tx(e.i), y = g.y + e.dir * g.stub;
-        stubs.push(`M${x} ${g.y} L${x} ${y}`);
-        push({ ...e, x, y, s: 'locked', up: e.dir < 0 }, false, true);
-      });
-    }
-
-    // the minor stops nobody names: a hairline tick across the line, mid-segment
-    const minor = [];
-    if (level >= 2) {
-      for (let i = 0; i < 10; i++) {
-        const mx = this.tx(i) + g.dx / 2;
-        minor.push(`M${mx} ${g.y - 4.5} L${mx} ${g.y + 4.5}`);
-      }
-      [this.branchB(), this.branchC()].forEach((pts) => {
-        for (let i = 1; i < pts.length - 1; i++) {
-          const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = pts[i][1];
-          minor.push(`M${mx} ${my - 4.5} L${mx} ${my + 4.5}`);
-        }
-      });
-    }
-
-    return {
-      segs,
-      stops,
-      lineB: d(this.branchB()),
-      lineC: d(this.branchC()),
-      stubs: stubs.join(' '),
-      minor: minor.join(' '),
-      otherStroke: level === 0 ? '#1A252A' : '#455257',
-      showBranchTags: level >= 1,
-      blurb: L[level].blurb
-    };
-  }
-}
-</script>
 </body>
 </html>

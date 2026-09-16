@@ -1,47 +1,341 @@
 {
+  "pages": [
+    {
+      "id": "learn",
+      "name": "Learn"
+    },
+    {
+      "id": "studio",
+      "name": "Studio"
+    },
+    {
+      "id": "identity",
+      "name": "Identity"
+    }
+  ],
   "artboards": [
-    { "file": "Main.dc.html", "title": "B2 · The map — a trunk line, and what branches off it", "x": 0, "y": 0, "w": 1440, "h": 890, "is_interactive": true },
-    { "file": "NodeReview.dc.html", "title": "A · Hole-by-hole review", "x": 1560, "y": 0, "w": 1440, "h": 880 },
-    { "file": "NodeRead.dc.html", "title": "B · A node as the learner reads it", "x": 0, "y": 1120, "w": 1000, "h": 1830 },
-    { "file": "Problem.dc.html", "title": "B3 · A problem, Rosalind-shaped", "x": 1080, "y": 1120, "w": 1100, "h": 1330 },
-    { "file": "LabsEntry.dc.html", "title": "C · Entering from a Labs decision", "x": 2260, "y": 1120, "w": 1440, "h": 830 }
+    {
+      "file": "Main.dc.html",
+      "title": "L3 · Home — the overview",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1120,
+      "page": "learn"
+    },
+    {
+      "file": "Start.dc.html",
+      "title": "L1 · Start — what do you want to learn?",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1300,
+      "page": "learn"
+    },
+    {
+      "file": "Route.dc.html",
+      "title": "L4 · Route — map, selected stop, next up, milestones",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1400,
+      "page": "learn"
+    },
+    {
+      "file": "Node.dc.html",
+      "title": "L5 · Node — blocks, figures, inline questions, the problem",
+      "x": 0,
+      "y": 1760,
+      "w": 1440,
+      "h": 4700,
+      "page": "learn"
+    },
+    {
+      "file": "Explore.dc.html",
+      "title": "L12 · Explore — search and filter at scale",
+      "x": 1560,
+      "y": 1760,
+      "w": 1440,
+      "h": 1120,
+      "page": "learn"
+    },
+    {
+      "file": "Knowledge.dc.html",
+      "title": "L9 · Your knowledge — areas that may not connect",
+      "x": 3120,
+      "y": 1760,
+      "w": 1440,
+      "h": 1480,
+      "page": "learn"
+    },
+    {
+      "file": "AccountMenu.dc.html",
+      "title": "Account menu",
+      "x": 0,
+      "y": 6820,
+      "w": 320,
+      "h": 420,
+      "page": "learn"
+    },
+    {
+      "file": "Requests.dc.html",
+      "title": "S7 · Requests — a triage queue for dozens",
+      "x": 0,
+      "y": 0,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "Implementing.dc.html",
+      "title": "S8 · Implementing — grouped by stage",
+      "x": 1800,
+      "y": 0,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "WeaveReview.dc.html",
+      "title": "S9 · Weave review — texts pinned where learners read them",
+      "x": 3600,
+      "y": 0,
+      "w": 1680,
+      "h": 1040,
+      "page": "studio"
+    },
+    {
+      "file": "Workbench.dc.html",
+      "title": "S3 · Node workbench — outline · blocks · live preview",
+      "x": 0,
+      "y": 1400,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "FigureComposer.dc.html",
+      "title": "S4 · Figure composer — choose · data · interaction · describe",
+      "x": 1800,
+      "y": 1400,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "Graph.dc.html",
+      "title": "S2 · Graph — search, neighbourhood, impact",
+      "x": 3600,
+      "y": 1400,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio",
+      "is_interactive": true
+    },
+    {
+      "file": "Assistant.dc.html",
+      "title": "S15 · Assistant — chat that acts through the content API",
+      "x": 0,
+      "y": 2820,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "AIUsage.dc.html",
+      "title": "S16 · AI — usage",
+      "x": 1800,
+      "y": 2820,
+      "w": 1680,
+      "h": 1180,
+      "page": "studio"
+    },
+    {
+      "file": "AIModels.dc.html",
+      "title": "S17 · AI — models and budgets",
+      "x": 3600,
+      "y": 2820,
+      "w": 1440,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "IdentityCodeLight.dc.html",
+      "title": "Identity · Code light",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 860,
+      "page": "identity"
+    },
+    {
+      "file": "IdentityCodeDark.dc.html",
+      "title": "Identity · Code dark",
+      "x": 1400,
+      "y": 0,
+      "w": 1280,
+      "h": 860,
+      "page": "identity"
+    },
+    {
+      "file": "IdentityLabsLight.dc.html",
+      "title": "Identity · Labs light",
+      "x": 0,
+      "y": 1220,
+      "w": 1400,
+      "h": 880,
+      "page": "identity"
+    },
+    {
+      "file": "IdentityLabsDark.dc.html",
+      "title": "Identity · Labs dark",
+      "x": 1520,
+      "y": 1220,
+      "w": 1400,
+      "h": 880,
+      "page": "identity"
+    }
   ],
   "annotations": [
     {
-      "id": "note-map",
+      "id": "note-main",
       "x": 0,
-      "y": -196,
-      "w": 460,
-      "text": "B2 — a transit map. Click the three-position control.\n\nThe trunk is DEAD STRAIGHT: eleven evenly spaced stops on one line, labels alternating above and below. Everything else BRANCHES off it at a named stop, so a divergence is legible as a divergence.\n\nThe form is MetroSets, a published hypergraph visualisation method: hyperedges as lines running through their member nodes on a schematic map. A track is a LINE, a node is a STOP, a node more than one track needs is an INTERCHANGE — so the reusable-node claim is something you see rather than a paragraph you read.\n\nZones across the top are the regions. Level 1 shows where each branch leaves; level 2 hangs the elaborations off their stops as stubs.\n\nSettled spends no colour. That is Labs' own law, and the constellation draft broke it."
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.",
+      "page": "learn"
     },
     {
-      "id": "note-review",
+      "id": "note-start",
       "x": 1560,
-      "y": -196,
-      "w": 440,
-      "text": "A — the highest-risk screen in the project.\n\nMeasured finding: teacher-revised AI items carry MORE flaws than teacher-only ones. Automation bias, visible as low interaction density.\n\nSo Approve is inert with its three unmet conditions listed above it: mark every unsourced assertion, then answer the node's own checks. The claim is already locked — it gates everything else."
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: first visit, “Learn something new”, “Ask for a goal”, a search with no match.\nLeads to: placement, or the route.\nTargets are suggested and confirmed by the learner; the route is computed from what each page needs.",
+      "page": "learn"
     },
     {
-      "id": "note-read",
+      "id": "note-route",
+      "x": 3120,
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4) and milestones — a problem per line, the Labs pipeline at the end.",
+      "page": "learn"
+    },
+    {
+      "id": "note-node",
       "x": 0,
-      "y": 944,
-      "w": 440,
-      "text": "B — one node, all its holes rendered.\n\nGreen band = the per-track FRAMING hole, the escape from the reusability paradox. Red band = the misconception. Then two different things: a CHECK (90 seconds, comes back on a spacing schedule) and a PROBLEM (the actual gate — solving it is what marks the node solid)."
+      "y": 1510,
+      "w": 620,
+      "text": "Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.",
+      "page": "learn"
     },
     {
-      "id": "note-problem",
-      "x": 1080,
-      "y": 944,
-      "w": 440,
-      "text": "B3 — Rosalind's shape, which is the thing that made Rosalind last 14 years: statement, Given/Return, sample dataset, sample output, YOUR dataset, one auto-graded answer.\n\nTwo additions. A rung ladder, because a wet-lab biologist did not sign up to program and rung 1 must be solvable in a text editor. And the wrong-answer nudge is generated from the node's own recorded misconception — not from a model reading your answer."
+      "id": "note-explore",
+      "x": 1560,
+      "y": 1510,
+      "w": 620,
+      "text": "Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.",
+      "page": "learn"
     },
     {
-      "id": "note-labs",
-      "x": 2260,
-      "y": 944,
-      "w": 440,
-      "text": "C — the forcing function no competitor has.\n\nLeft is Mendel's tier-3 decision with its rule, premise and citation. Right is Code, entered FROM it.\n\nThe drawer leads with what you need to judge the decision yourself. The short answer is present but last, and framed as the rule's reasoning — that is the cognitive-surrender guard the MIT report argues for."
+      "id": "note-knowledge",
+      "x": 3120,
+      "y": 1510,
+      "w": 620,
+      "text": "Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.",
+      "page": "learn"
+    },
+    {
+      "id": "note-accountmenu",
+      "x": 0,
+      "y": 6570,
+      "w": 320,
+      "text": "Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.",
+      "page": "learn"
+    },
+    {
+      "id": "note-requests",
+      "x": 0,
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: Inbox, the rail.\nLeads to: Implementing (accept), an existing node (merge), or a declined note the learner sees.\nSaved views, filters with counts, a dense table with duplicates collapsed, a detail pane, a bulk bar and one-key decisions (Linear’s triage pattern). The model proposes and groups; only a person moves a request, and each decision is logged.",
+      "page": "studio"
+    },
+    {
+      "id": "note-implementing",
+      "x": 1800,
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: accepting a request.\nLeads to: the node workbench (open), review, land.\nSaved views, filters, rows grouped by stage and collapsible, bulk assign, a stalled flag instead of due dates, and team load to help assign.",
+      "page": "studio"
+    },
+    {
+      "id": "note-weavereview",
+      "x": 3600,
+      "y": -250,
+      "w": 620,
+      "text": "Reached from: Tracks in the rail, Inbox.\nLeads to: a published named track in Explore.\nEach number on the map is a text the AI wrote. Pick one (or J/K through them): it sits beside the two claims it may use and its automatic checks; approve, suggest an edit, or ask for a rewrite (GitHub-review style). The strip below tracks every text by kind.",
+      "page": "studio"
+    },
+    {
+      "id": "note-workbench",
+      "x": 0,
+      "y": 1150,
+      "w": 620,
+      "text": "Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.",
+      "page": "studio"
+    },
+    {
+      "id": "note-figurecomposer",
+      "x": 1800,
+      "y": 1150,
+      "w": 620,
+      "text": "Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.",
+      "page": "studio"
+    },
+    {
+      "id": "note-graph",
+      "x": 3600,
+      "y": 1150,
+      "w": 620,
+      "text": "Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.",
+      "page": "studio"
+    },
+    {
+      "id": "note-assistant",
+      "x": 0,
+      "y": 2570,
+      "w": 620,
+      "text": "Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.",
+      "page": "studio"
+    },
+    {
+      "id": "note-aiusage",
+      "x": 1800,
+      "y": 2570,
+      "w": 620,
+      "text": "Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.",
+      "page": "studio"
+    },
+    {
+      "id": "note-aimodels",
+      "x": 3600,
+      "y": 2570,
+      "w": 620,
+      "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each, and budgets.",
+      "page": "studio"
+    },
+    {
+      "id": "note-brief",
+      "x": -760,
+      "y": -250,
+      "w": 620,
+      "page": "learn",
+      "text": "Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: nodes are standalone pages; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas",
+    "page": "learn"
+  }
 }
