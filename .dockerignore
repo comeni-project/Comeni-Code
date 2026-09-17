@@ -1,0 +1,12 @@
+# Nothing secret and nothing built on the host goes into an image (M0 part 8 spec, P8.2).
+.env
+.git
+.venv
+**/__pycache__
+**/node_modules
+**/dist
+staticfiles
+.mypy_cache
+.pytest_cache
+.ruff_cache
+celerybeat-schedule*
