@@ -1,0 +1,391 @@
+<title>Code as Tutor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F4F5F8; --surface:#FFFFFF; --border:#E1E4EC; --border2:#C9CEDB;
+  --ink:#171A26; --ink2:#474D63; --ink3:#666C84; --rail:#B3B9CA;
+  --line:#0F9D7A; --lineSoft:#DDF3EC; --sel:#2F6FEB; --selSoft:#E6EEFD;
+  --meas:#9A5B00; --measSoft:#FBF0DC; --open:#C92F36; --openSoft:#FCE5E6;
+  --ui:'Lexend',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'Geist Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12141B; --surface:#1A1D27; --border:#282C3A; --border2:#3A3F52;
+    --ink:#E8EAF2; --ink2:#B0B5C8; --ink3:#8C92A8; --rail:#4A5068;
+    --line:#2FC79B; --lineSoft:#113529; --sel:#6EA2FF; --selSoft:#172642;
+    --meas:#F0B840; --measSoft:#35290F; --open:#FF6E73; --openSoft:#3A1B20;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12141B; --surface:#1A1D27; --border:#282C3A; --border2:#3A3F52;
+  --ink:#E8EAF2; --ink2:#B0B5C8; --ink3:#8C92A8; --rail:#4A5068;
+  --line:#2FC79B; --lineSoft:#113529; --sel:#6EA2FF; --selSoft:#172642;
+  --meas:#F0B840; --measSoft:#35290F; --open:#FF6E73; --openSoft:#3A1B20;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15.5px;line-height:1.62;padding-inline:20px;padding-block:0 72px}
+a{color:var(--sel);text-underline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--sel);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;padding-top:40px;font-size:13px}
+nav.toc p{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 10px}
+nav.toc ol{list-style:none;margin:0;padding:0 0 0 14px;border-left:3px solid var(--line);display:grid;gap:9px}
+nav.toc li{position:relative}
+nav.toc li::before{content:"";position:absolute;left:-21px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:2px solid var(--ink)}
+nav.toc a{color:var(--ink2);text-decoration:none}
+nav.toc a:hover{color:var(--ink)}
+main{min-width:0;padding-top:40px}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0}
+h1{font-size:clamp(30px,4.2vw,44px);line-height:1.1;letter-spacing:-.02em;margin:10px 0 14px;text-wrap:balance;font-weight:700}
+h2{font-size:24px;letter-spacing:-.01em;margin:64px 0 6px;text-wrap:balance}
+h3{font-size:17px;margin:28px 0 6px}
+p,li{max-width:70ch}
+.lede{font-size:18px;color:var(--ink2);max-width:62ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink3);margin-top:18px}
+.thesis{margin:32px 0 0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 28px}
+.thesis blockquote{margin:0;font-size:21px;line-height:1.4;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.thesis p{color:var(--ink2);margin:12px 0 0}
+.sub{color:var(--ink2);margin:0 0 18px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.take{background:var(--lineSoft);color:var(--line)}
+.weak{background:var(--openSoft);color:var(--open)}
+.ours{background:var(--selSoft);color:var(--sel)}
+.ev{background:var(--measSoft);color:var(--meas)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:18px}
+.fact{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.fact b{display:block;font-size:14px;margin-bottom:4px}
+.fact span{font-size:13.5px;color:var(--ink2)}
+.list{display:grid;gap:0;margin-top:14px;border-top:1px solid var(--border)}
+.item{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:6px 28px;padding:16px 0;border-bottom:1px solid var(--border)}
+.item h4{margin:0 0 4px;font-size:15px}
+.item p{margin:0;font-size:14px;color:var(--ink2)}
+.item .fix{border-left:3px solid var(--sel);padding-left:14px}
+.item .fix b{font-size:12px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--sel);display:block;margin-bottom:2px}
+.src{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.src a{color:var(--ink3)}
+.tablewrap{overflow-x:auto;margin-top:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:11px 14px;border-bottom:1px solid var(--border)}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+tr:last-child td{border-bottom:0}
+td code,p code,li code{font-family:var(--mono);font-size:.88em;background:var(--bg);padding:1px 5px;border-radius:5px}
+.loop{margin-top:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 18px 8px;overflow-x:auto}
+.loop svg{display:block;min-width:760px;width:100%;height:auto}
+.loop text{font-family:var(--ui);fill:var(--ink)}
+.loop .small{font-size:11.5px;fill:var(--ink3)}
+.loop .ttl{font-size:13.5px;font-weight:600}
+.proposal{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 16px;padding:18px 0;border-bottom:1px solid var(--border)}
+.proposal:first-of-type{border-top:1px solid var(--border)}
+.pid{font-family:var(--mono);font-size:13px;color:var(--sel);font-weight:500;padding-top:2px}
+.proposal h4{margin:0 0 4px;font-size:16px}
+.proposal p{margin:4px 0;font-size:14.5px;color:var(--ink2)}
+.proposal .where{font-family:var(--mono);font-size:11.5px;color:var(--ink3)}
+.bound{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:14px}
+.bound div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.bound h4{margin:0 0 8px;font-size:14px;display:flex;gap:8px;align-items:center}
+.bound ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink2);display:grid;gap:5px}
+.goal{margin-top:18px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:22px 24px}
+.goal p{margin:6px 0}
+.goal ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;color:var(--ink2)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12.5px;width:26px;height:26px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;background:var(--surface)}
+.note{margin-top:16px;padding:12px 16px;border-radius:10px;background:var(--measSoft);color:var(--ink);font-size:13.5px}
+.sources{columns:2 300px;column-gap:32px;font-size:13px;padding-left:18px;color:var(--ink2)}
+.sources li{margin-bottom:6px;break-inside:avoid}
+@media (max-width:860px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.toc{display:none}
+  .item{grid-template-columns:minmax(0,1fr)}
+  .thesis{padding:20px}
+  .thesis blockquote{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Route</p>
+  <ol>
+    <li><a href="#goal">The new goal</a></li>
+    <li><a href="#ka">Khan Academy, briefly</a></li>
+    <li><a href="#best">What to take</a></li>
+    <li><a href="#weak">Where it is weak</a></li>
+    <li><a href="#self">Our design, judged</a></li>
+    <li><a href="#tutor">The tutor loop</a></li>
+    <li><a href="#change">What changes</a></li>
+    <li><a href="#bounds">Using others' work</a></li>
+    <li><a href="#roadmap">Effect on the roadmap</a></li>
+    <li><a href="#open">Open questions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<p class="eyebrow">Comeni Code · research report · 17 September 2026</p>
+<h1>Be the tutor Khan Academy never could be</h1>
+<p class="lede">Khan Academy is the largest body of organised, free learning material in one place.
+We can't out-write it, and we shouldn't try. This report sets out what it does best, where it is
+weak, and how Comeni Code can sit on top of it and similar sources: it finds the order,
+diagnoses the gaps and explains why each step is there.</p>
+<div class="meta"><span>Prepared for the operator</span><span>Status: research report; decisions are in the spec</span><span>M0 paused after part 2</span></div>
+<div class="note" style="margin-top:18px"><b>Decided the same day</b> (spec <code>2026-09-17-code-as-tutor-design.md</code>):
+C1–C3 and C5–C8 adopted. C4 (mastery states) was replaced for v1 by <i>known</i> plus stored evidence.
+A ninth proposal was added: AI block scores, with automatic redrafts and triage, and automatic deployment deferred.
+Skeletons are drafted only from public or CC BY outlines; Khan Academy is used by people, and embedded and linked.
+Learner chat and exams are deferred past v1. AP-level prose is accepted.</div>
+
+<section class="thesis" id="goal" aria-labelledby="goal-h">
+  <p class="eyebrow" id="goal-h">The new goal</p>
+  <blockquote>Comeni Code organises the best existing explanations (Khan Academy, OpenStax, Galaxy Training, the Carpentries and our own nodes) into the right order for your goal. It checks what you already know, takes you back a step when you stumble, and ends at something you can run.</blockquote>
+  <p>Google didn't write the web; it organised it and won on how it presented the result. Code's
+  equivalent is the prerequisite graph, the woven route, and the checks and reviews along it.
+  That's the tutor's job, done by a system anyone can inspect rather than by a chatbot.</p>
+</section>
+
+<h2 id="ka">Khan Academy, briefly</h2>
+<p class="sub">Only facts that matter for our design. Its course pages are rendered by JavaScript
+and its help centre blocks automated readers, so page structure below comes from its help
+articles, blog and search results rather than from reading the pages directly.</p>
+<div class="facts">
+  <div class="fact"><b>Philosophy: mastery learning</b><span>Move on only once a concept is understood, with as many tries as needed to reach 90%+. The idea comes from Bloom's 2-sigma study; the book is <i>The One World Schoolhouse</i> (2012).</span></div>
+  <div class="fact"><b>Anatomy: course → unit → lesson</b><span>Lessons mix videos, articles and practice exercises, followed by quizzes, a unit test and a course challenge. AP Biology follows the College Board's 8 units, from Chemistry of Life to Ecology.</span></div>
+  <div class="fact"><b>Mastery levels</b><span>Attempted → Familiar → Proficient → Mastered, worth 100 points per skill. Levels can drop. Mastery Challenges (6 questions from 3 skills, at most every 12 h) provide spaced, mixed review.</span></div>
+  <div class="fact"><b>Help inside practice</b><span>A hint for each step, a rationale after answering, and hand-picked related videos on exercises.</span></div>
+  <div class="fact"><b>Prerequisites, packaged by hand</b><span>"Get ready for …" courses: a course challenge finds the gaps, and a review course fills them. The graph-shaped Knowledge Map was removed in 2013.</span></div>
+  <div class="fact"><b>Khanmigo, the AI tutor</b><span>Socratic and grounded in the learner's record. Free for teachers; $4 a month for learners and parents.</span></div>
+  <div class="fact"><b>Motivation layer</b><span>Energy points, badges, avatars, and, since 2025, streaks and levels.</span></div>
+  <div class="fact"><b>Production</b><span>A content team of about 20, AI-assisted drafting with human review, atomic publishing, locale-pinned versions and the Wonder Blocks design system.</span></div>
+</div>
+
+<h2 id="best">What to take</h2>
+<p class="sub"><span class="chip take">take</span> These work, and each has a place in Code.</p>
+<div class="list">
+  <div class="item"><div><h4>Mastery as visible, decaying levels</h4><p>A learner sees how solid each skill is, not just whether it was done. Levels drop when answers slip.</p><p class="src">KA Help: mastery levels; Mastery Challenges</p></div>
+    <div class="fix"><b>In Code</b><p>Replace the binary "settled" with a small set of states that review can lower, with no points attached (proposal C4).</p></div></div>
+  <div class="item"><div><h4>Short, informal worked-example videos</h4><p>Videos under 6 minutes keep attention, and Khan-style tablet drawing engaged viewers more than polished studio lectures (6.9 M edX sessions).</p><p class="src">Guo, Kim &amp; Rubin, L@S 2014</p></div>
+    <div class="fix"><b>In Code</b><p>Video becomes a first-class way to learn on a node: the best existing video, linked or embedded with its timestamp, and later our own short screencasts with transcripts (C5).</p></div></div>
+  <div class="item"><div><h4>Hints for each step, rationale afterwards</h4><p>Help arrives in two layers: while the learner is stuck, and after they answer.</p><p class="src">KA blog: How should people practice</p></div>
+    <div class="fix"><b>In Code</b><p><code>try</code> and <code>problem</code> blocks gain ordered hints and a rationale, reviewed like any other block (C6).</p></div></div>
+  <div class="item"><div><h4>Spaced, mixed review</h4><p>Mastery Challenges mix skills and return on a schedule.</p><p class="src">KA Help: Mastery Challenges</p></div>
+    <div class="fix"><b>In Code</b><p>Already in L7 Review. Keep KA's rhythm limit (at most one session per interval) and our no-backlog rule.</p></div></div>
+  <div class="item"><div><h4>Test out, then skip</h4><p>A course challenge lets someone who already knows the material move ahead quickly.</p><p class="src">KA Help: Course and Unit Mastery</p></div>
+    <div class="fix"><b>In Code</b><p>Already L2 Placement. It becomes the first step of the tutor loop.</p></div></div>
+  <div class="item"><div><h4>One consistent anatomy for every course</h4><p>Every course looks the same, so a learner knows where they are in any of them.</p></div>
+    <div class="fix"><b>In Code</b><p>The node's fixed blocks already do this. Add a fixed <i>Learn it</i> section: our explanation first, then the best outside resources.</p></div></div>
+  <div class="item"><div><h4>It measures learning, not activity</h4><p>Khanmigo is tuned on next-item correctness. Surfacing unmastered prerequisites raised it by 2.7%, and adding recent history by 3.4%.</p><p class="src">KA blog: building a better AI tutor</p></div>
+    <div class="fix"><b>In Code</b><p>This is outside evidence that pointing at prerequisites helps, which is our core idea. Adopt next-item correctness after a step back as our main measure (C8).</p></div></div>
+  <div class="item"><div><h4>Publishing discipline</h4><p>Content is immutable once published and the site switches versions atomically; translations are pinned to a version.</p><p class="src">KA blog: evolving our content infrastructure</p></div>
+    <div class="fix"><b>In Code</b><p>We already have this through git: landed files, an index rebuilt from a commit, and tagged snapshots.</p></div></div>
+</div>
+
+<h2 id="weak">Where it is weak</h2>
+<p class="sub"><span class="chip weak">weak spot</span> Each comes with its evidence and how Code turns it into an advantage.</p>
+<div class="list">
+  <div class="item"><div><h4>No way to ask "what do I need first?"</h4><p>Courses are linear. Prerequisites exist only as hand-built "Get ready for" courses, mostly for maths, and the knowledge map was removed in 2013.</p><p class="src">KA Help Center community; KA blog: Get ready for</p></div>
+    <div class="fix"><b>Code's answer</b><p>The needs graph and the weaver: any goal becomes a route, with the reason each stop is there. This is our core.</p></div></div>
+  <div class="item"><div><h4>Slow, hand-curated, small team</h4><p>About 20 content staff, who say they can't reply to error reports. High-school biology was deprecated, and college-level work gets less priority than K-12.</p><p class="src">KA Help: content principles; reporting mistakes</p></div>
+    <div class="fix"><b>Code's answer</b><p>Code doesn't write everything: nodes link to the best existing material. AI drafts skeletons and people review them (C1, C2).</p></div></div>
+  <div class="item"><div><h4>Stops at AP and intro college, never reaches doing</h4><p>No bioinformatics or computational biology; a 2018 learner request for it went nowhere. Nothing connects the knowledge to real tools or data.</p><p class="src">KA Help Center request (2018)</p></div>
+    <div class="fix"><b>Code's answer</b><p>Routes from AP-level biology down to a pipeline you can run in Labs. Nobody covers that bridge (C7).</p></div></div>
+  <div class="item"><div><h4>Self-directed learners drift</h4><p>Only about 9% of students reach the recommended 30 minutes a week. Partner-district students are 6× more likely to, because teachers carry the structure.</p><p class="src">KA efficacy results, Nov 2024; KA Districts</p></div>
+    <div class="fix"><b>Code's answer</b><p>The route, <i>next up</i> and <i>why this is here</i> do the structuring a teacher would. We keep refusing streaks as a substitute.</p></div></div>
+  <div class="item"><div><h4>Tutoring is limited and sits behind a paywall or a teacher</h4><p>Khanmigo costs individual learners money. A two-year randomised trial found +1.26 percentile ranks per term, and an undergraduate physics study found no difference from using Google.</p><p class="src">J-PAL; JTL 2025; WINS summary</p></div>
+    <div class="fix"><b>Code's answer</b><p>A free, deterministic tutor: diagnose, sequence, explain, check, step back, review. No chat needed.</p></div></div>
+  <div class="item"><div><h4>No sources behind claims</h4><p>Videos and articles don't cite where their statements come from. Physics-education critics point to examples likely to introduce misconceptions.</p><p class="src">Noschese 2011; Bates 2012</p></div>
+    <div class="fix"><b>Code's answer</b><p>Every sentence says where it came from (our claim), and misconception callouts are required.</p></div></div>
+  <div class="item"><div><h4>Gamification creep</h4><p>Energy points and badges, then streaks and levels in 2025.</p><p class="src">KA blog: streaks and levels</p></div>
+    <div class="fix"><b>Code's answer</b><p>Keep invariant 10. Levels that describe what you know are fine; levels you earn as a prize are not.</p></div></div>
+  <div class="item"><div><h4>Closed to builders</h4><p>The public API was shut in 2020. The terms forbid scraping and using content to build AI, and videos are no longer openly licensed.</p><p class="src">KA Help: API removal; terms summary</p></div>
+    <div class="fix"><b>Code's answer</b><p>We link, never copy. Our content is CC BY and open, which is itself something to offer (see the boundaries section).</p></div></div>
+</div>
+
+<h2 id="self">Our design, judged against this</h2>
+<p class="sub"><span class="chip ours">self-critique</span> Where the research shows our current specs are wrong or incomplete.</p>
+<div class="tablewrap"><table>
+  <thead><tr><th>Finding</th><th>What our specs say now</th><th>Verdict</th></tr></thead>
+  <tbody>
+    <tr><td>KA removed its map because most learners did better with a linear path</td><td>Metro maps on Route and Your knowledge; Home leads with <i>Continue</i></td><td><span class="chip ev">keep, but watch</span> The map orients, and <i>Continue</i> and <i>next up</i> drive. Test whether learners actually use the map.</td></tr>
+    <tr><td>Video is KA's strongest way to learn</td><td>Node blocks are text, figures and questions only (W5.1). No video</td><td><span class="chip weak">gap</span> Add it (C5).</td></tr>
+    <tr><td>Hand-writing everything is KA's bottleneck</td><td>Every node is authored in Studio. The Salmon slice is 40–60 hand-written nodes (W12)</td><td><span class="chip weak">same trap</span> Point outward and start from skeletons (C1, C2).</td></tr>
+    <tr><td>A tutor diagnoses and remediates, not only sequences</td><td>Placement exists. Wrong answers only get a misconception callout</td><td><span class="chip weak">half done</span> A wrong answer should also offer <i>step back to X</i> (C3).</td></tr>
+    <tr><td>Mastery is graded and decays</td><td>A node is either settled or not</td><td><span class="chip weak">too coarse</span> Use states (C4).</td></tr>
+    <tr><td>Surfacing prerequisites measurably helps</td><td>The weaver shows needs</td><td><span class="chip take">confirmed</span> Measure it (C8).</td></tr>
+    <tr><td>Streaks raised KA's engagement numbers</td><td>Streaks are refused (§9)</td><td><span class="chip ev">hold the line</span> Engagement is not learning, and the evidence KA reports is engagement.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tutor">The tutor loop</h2>
+<p class="sub">What a good human tutor does, done by the system. Each station already exists in the specs, or is added by one of the proposals below.</p>
+<div class="loop" role="img" aria-label="Tutor loop: diagnose, sequence, explain, check, then either continue or step back to a prerequisite, then review, returning to sequence.">
+<svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg">
+  <path d="M60 110 H820" style="fill:none;stroke:var(--line);stroke-width:6;stroke-linecap:round"/>
+  <path d="M650 110 C650 190 560 200 470 200 H330 C290 200 280 150 280 110" style="fill:none;stroke:var(--open);stroke-width:4;stroke-dasharray:2 7;stroke-linecap:round"/>
+  <path d="M820 110 C860 110 870 60 820 40 H330 C290 40 280 80 280 110" style="fill:none;stroke:var(--sel);stroke-width:3;stroke-linecap:round;opacity:.75"/>
+  <g>
+    <circle cx="80" cy="110" r="11" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+    <text class="ttl" x="80" y="145" text-anchor="middle">Diagnose</text>
+    <text class="small" x="80" y="162" text-anchor="middle">placement (L2)</text>
+  </g>
+  <g>
+    <circle cx="280" cy="110" r="11" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+    <text class="ttl" x="280" y="145" text-anchor="middle">Sequence</text>
+    <text class="small" x="280" y="162" text-anchor="middle">the weaver (W3.3)</text>
+  </g>
+  <g>
+    <circle cx="470" cy="110" r="11" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+    <text class="ttl" x="470" y="145" text-anchor="middle">Explain</text>
+    <text class="small" x="470" y="162" text-anchor="middle">node + best resource (C1, C5)</text>
+  </g>
+  <g>
+    <circle cx="650" cy="110" r="11" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+    <text class="ttl" x="650" y="145" text-anchor="middle">Check</text>
+    <text class="small" x="650" y="162" text-anchor="middle">try, problem, hints (C6)</text>
+  </g>
+  <g>
+    <circle cx="820" cy="110" r="11" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+    <text class="ttl" x="820" y="145" text-anchor="middle">Review</text>
+    <text class="small" x="820" y="162" text-anchor="middle">spaced, mixed (L7)</text>
+  </g>
+  <text class="small" x="470" y="222" text-anchor="middle" style="fill:var(--open)">wrong answer → step back to the prerequisite it points at (C3)</text>
+  <text class="small" x="560" y="30" text-anchor="middle" style="fill:var(--sel)">mastery states change (C4) → the route re-weaves</text>
+</svg>
+</div>
+
+<h2 id="change">What needs to change</h2>
+<p class="sub"><span class="chip ours">proposal</span> Each becomes spec text once you agree; <i>where</i> names the section it edits.</p>
+
+<div class="proposal"><div class="pid">C1</div><div>
+  <h4>Nodes point outward: a <code>resource</code> block</h4>
+  <p>A node carries our claim, explanation and checks, plus a curated <b>Learn it elsewhere</b> list. Each entry records its kind (video, reading, tutorial, exercise), provider, URL, the part it covers (a timestamp range or section), its licence, what it's good for, and who reviewed it. Content CI checks that the links resolve. A person picks the entry; a model may suggest one, labelled <i>not yet reviewed</i>.</p>
+  <p class="where">where: W5.1 block table · L5 Node · S3 workbench gains a Resources tab</p></div></div>
+
+<div class="proposal"><div class="pid">C2</div><div>
+  <h4>Tracks start from skeletons, not blank pages</h4>
+  <p>A <b>skeleton</b> is a set of node stubs (a claim and a title) plus draft <i>needs</i> links, taken from a public framework's organisation: the College Board AP Biology course description, the OpenStax Biology 2e contents (CC BY), Galaxy Training topics (CC BY) and Carpentries lessons (CC BY). A person may read Khan Academy's course layout as a reference and cite it; nothing is extracted from it automatically. The AI drafts the stubs, the request queue receives them, and people accept them (invariant 4 holds).</p>
+  <p class="where">where: new spec section on skeletons · W3.6 requests · R4 M1 fixtures and M7</p></div></div>
+
+<div class="proposal"><div class="pid">C3</div><div>
+  <h4>Step back, don't just correct</h4>
+  <p>A wrong answer that matches a misconception shows its callout and, where the misconception points at a <i>needs</i> link, offers "<i>Revisit X first</i>" as a detour the route shows. Returning brings the learner back to the same question.</p>
+  <p class="where">where: W5.1 <code>callout</code> gains an optional link to what it needs · L4 Route shows detours · L5</p></div></div>
+
+<div class="proposal"><div class="pid">C4</div><div>
+  <h4>Mastery states instead of "settled"</h4>
+  <p>Four states: <i>new · seen · checked · solid</i>. Review can move a node down, and the weaver treats <i>solid</i> as known. No points, and no state is shown as a prize.</p>
+  <p class="where">where: W3.3 learner state · L9 Your knowledge · L7 Review · W13 question 2 answered</p></div></div>
+
+<div class="proposal"><div class="pid">C5</div><div>
+  <h4>Video is a first-class way to learn</h4>
+  <p>A node can lead with a video: an external one through C1 (Khan Academy's YouTube embed, used non-commercially and with attribution), or later our own screencasts under 6 minutes with required transcripts. A learner can switch between reading and watching.</p>
+  <p class="where">where: W5.1 · L5 · W10 identity for the player frame</p></div></div>
+
+<div class="proposal"><div class="pid">C6</div><div>
+  <h4>Hints and rationales in every check</h4>
+  <p><code>try</code> and <code>problem</code> gain ordered hints (optional, one step at a time) and a rationale shown after answering. They're reviewed like prose.</p>
+  <p class="where">where: W5.1 · §5.1.1 · S5 Problem builder</p></div></div>
+
+<div class="proposal"><div class="pid">C7</div><div>
+  <h4>Aim the slice at the bridge</h4>
+  <p>The v1 demo stays <i>learn Salmon</i>, but the route now starts at AP-level biology nodes built from skeletons and ends at a runnable Labs pipeline. The claim to test is that someone who knows AP Biology, or less, gets there.</p>
+  <p class="where">where: W12 slice · R4 M9 done-when</p></div></div>
+
+<div class="proposal"><div class="pid">C8</div><div>
+  <h4>Measure the tutor</h4>
+  <p>The main measure is correctness on the next attempt after a step back. Secondary measures: route completion, time to a solid state, and resources marked unhelpful. These are aggregates only (invariant 9), and none is shown to learners as a score.</p>
+  <p class="where">where: S11 Quality · W9 usage pages</p></div></div>
+
+<h2 id="bounds">Using others' work: the boundaries</h2>
+<div class="bound">
+  <div><h4><span class="chip take">allowed</span></h4><ul>
+    <li>Linking to any Khan Academy page, video or exercise.</li>
+    <li>Embedding Khan Academy's YouTube videos non-commercially, with attribution.</li>
+    <li>A person reading Khan Academy's course layout as a reference, and citing it.</li>
+    <li>Adapting and quoting OpenStax, Galaxy Training and Carpentries text (CC BY 4.0), with attribution. This is compatible with our CC BY 4.0.</li>
+    <li>Using the College Board's public AP unit and topic list as a checklist of what to cover.</li>
+    <li>Reading Perseus and Wonder Blocks (MIT) for ideas. No code is copied (our rule mirrors the one with Labs).</li>
+  </ul></div>
+  <div><h4><span class="chip weak">not allowed</span></h4><ul>
+    <li>Scraping or bulk-downloading Khan Academy; its terms forbid it, and the API has been gone since 2020.</li>
+    <li>Feeding Khan Academy content to a model to draft ours; the terms forbid using it to build AI.</li>
+    <li>Copying Khan Academy text or exercises into our CC BY repository. Theirs is non-commercial share-alike, which is incompatible, and the videos aren't openly licensed at all.</li>
+    <li>Using Khan Academy's name or logo in a way that implies a partnership.</li>
+  </ul></div>
+</div>
+<p class="note">Consequence: in C2, a model may draft skeletons only from the CC BY and public frameworks. Khan Academy's organisation enters through a person, as a cited reference. The terms page itself couldn't be fetched (it blocks automated readers), so read it once before C1 and C2 become a spec.</p>
+
+<h2 id="roadmap">Effect on the roadmap</h2>
+<ol class="steps">
+  <li><div><b>M0 continues unchanged.</b> Parts 3–9 are infrastructure, and nothing here touches them.</div></li>
+  <li><div><b>A new spec, "Code as tutor",</b> records C1–C8 with the rejected alternatives (compete head-on; copy content; a chat tutor). The weaving and architecture specs are edited only to point at it.</div></li>
+  <li><div><b>M1 grows.</b> The node schema gains <code>resource</code>, hints, rationales and mastery states, and the fixtures come from a small skeleton.</div></li>
+  <li><div><b>A skeleton part</b> (in M1 or M7): framework outline → node stubs → request queue → people accept.</div></li>
+  <li><div><b>M3 and M9 done-when</b> gain the video and resources on the Node page, and the AP-level start of the Salmon route.</div></li>
+</ol>
+
+<div class="goal" id="goalpost">
+  <p class="eyebrow">The new finish line (M9)</p>
+  <p><b>A learner who knows AP Biology, or less, types <i>learn Salmon</i>.</b> Code:</p>
+  <ol>
+    <li>places them and weaves a route from their gaps;</li>
+    <li>at each stop, gives our checked explanation and the best existing video or reading, with sources;</li>
+    <li>takes them back a step when an answer shows a gap;</li>
+    <li>brings nodes back for spaced review until they're solid;</li>
+    <li>ends at a Labs pipeline they can run.</li>
+  </ol>
+  <p style="color:var(--ink2)">Built from skeletons plus review, not 60 pages written from scratch.</p>
+</div>
+
+<h2 id="open">Open questions</h2>
+<ul>
+  <li><b>Learner chat (invariant 8).</b> Khanmigo's measured effects are modest, and our tutor needs no chat. Keep the ban, or allow a narrow "explain this step" call, cached and reviewed?</li>
+  <li><b>Embed or link only?</b> Embedding keeps learners on the page but ties us to YouTube. Linking is simpler and never breaks licence terms.</li>
+  <li><b>Which frameworks seed skeletons first?</b> Proposed: OpenStax Biology 2e and the AP Biology course description for the biology base, and Galaxy Training for the bioinformatics end.</li>
+  <li><b>Names for the mastery states,</b> and whether <i>seen</i> counts toward the route at all.</li>
+  <li><b>Audience.</b> The specs say university students and researchers. Starting routes at AP level widens that; is AP-level prose at the start of a route acceptable?</li>
+</ul>
+
+<h2 id="sources">Sources</h2>
+<ol class="sources">
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/5548760867853--How-do-Khan-Academy-s-Mastery-levels-work">KA Help: How do mastery levels work?</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/360037494231-What-are-Mastery-Challenges">KA Help: What are Mastery Challenges?</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/115002552631-What-are-Course-and-Unit-Mastery">KA Help: Course and Unit Mastery</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/community/posts/360027982751-What-happened-to-the-knowledge-map">KA Help Center: What happened to the knowledge map?</a></li>
+  <li><a href="https://khanacademy.fandom.com/wiki/Knowledge_Map">Khan Academy Wiki: Knowledge Map</a></li>
+  <li><a href="https://blog.khanacademy.org/new-math-courses-to-help-students-get-ready-for/">KA blog: Get ready for courses</a></li>
+  <li><a href="https://www.cultofpedagogy.com/khan-mastery-learning/">Cult of Pedagogy: Khan and mastery learning</a></li>
+  <li><a href="https://www.educationnext.org/two-sigma-tutoring-separating-science-fiction-from-science-fact/">Education Next: Two-sigma tutoring</a></li>
+  <li><a href="https://blog.khanacademy.org/khan-academy-efficacy-results-november-2024/">KA efficacy results, November 2024</a></li>
+  <li><a href="https://www.khanacademy.org/schools">KA Districts</a></li>
+  <li><a href="https://blog.khanacademy.org/how-khan-academy-is-building-a-better-ai-tutor-our-most-recent-learnings/">KA blog: Building a better AI tutor</a></li>
+  <li><a href="https://www.povertyactionlab.org/initiative-project/ai-powered-tutoring-unleashing-full-potential-personalized-learning-khanmigo">J-PAL: Khanmigo tutoring study</a></li>
+  <li><a href="https://jtl.uwindsor.ca/index.php/jtl/article/view/10052">JTL 2025: Khanmigo in undergraduate physics</a></li>
+  <li><a href="https://www.winssolutions.org/khanmigo-ai-tutoring-two-year-trial/">Khanmigo two-year trial summary</a></li>
+  <li><a href="https://www.khanmigo.ai/pricing">Khanmigo pricing</a></li>
+  <li><a href="https://blog.khanacademy.org/get-motivated-to-learn-with-khan-academys-new-streaks-and-levels-features/">KA blog: Streaks and levels</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/202487710-What-are-energy-points-badges-and-avatars">KA Help: Energy points, badges, avatars</a></li>
+  <li><a href="https://blog.khanacademy.org/how-should-people-practice-on-khan-academy/">KA blog: How should people practice?</a></li>
+  <li><a href="https://blog.khanacademy.org/video-tasks-on-the-learning-dashboard/">KA blog: Video tasks on the dashboard</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/20349258135181-How-does-Khan-Academy-use-AI-in-our-content-development-process">KA Help: AI in content development</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/226459348-How-do-I-report-a-mistake-that-I-found">KA Help: Reporting a mistake</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/community/posts/28344467639693-High-school-biology-deprecated">KA Help Center: High school biology deprecated</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/community/posts/360027812772-Can-you-please-add-some-videos-and-content-about-bioinformatics-and-computational-biology">KA Help Center: Bioinformatics request</a></li>
+  <li><a href="https://blog.khanacademy.org/evolving-our-content-infrastructure/">KA blog: Evolving our content infrastructure</a></li>
+  <li><a href="https://www.designsystems.com/about-wonder-blocks-khan-academys-design-system-and-the-story-behind-it/">Wonder Blocks story</a></li>
+  <li><a href="https://github.com/Khan/perseus">Khan/perseus (MIT)</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/community/posts/360055082872-API-removal-notice">KA Help Center: API removal notice</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/202262954-Can-I-use-Khan-Academy-s-videos-name-materials-links-in-my-project">KA Help: Using our videos and materials</a></li>
+  <li><a href="https://support.khanacademy.org/hc/en-us/articles/42929097425037-What-s-allowed-and-not-allowed-under-Khan-Academy-s-Terms-of-Service">KA Help: What the terms allow</a></li>
+  <li><a href="https://dl.acm.org/doi/10.1145/2556325.2566239">Guo, Kim &amp; Rubin 2014: Video production and engagement</a></li>
+  <li><a href="https://fnoschese.wordpress.com/2011/05/10/khan-academy-my-final-remarks/">Noschese 2011: Khan Academy critique</a></li>
+  <li><a href="https://www.tonybates.ca/2012/03/14/a-short-critique-of-the-khan-academy/">Bates 2012: A short critique</a></li>
+  <li><a href="https://apcentral.collegeboard.org/courses/ap-biology">College Board: AP Biology</a></li>
+  <li><a href="https://openstax.org/details/books/biology-2e">OpenStax Biology 2e (CC BY 4.0)</a></li>
+  <li><a href="https://training.galaxyproject.org/training-material/faqs/gtn/gtn_license.html">Galaxy Training: content licence (CC BY 4.0)</a></li>
+  <li><a href="https://github.com/swcarpentry/shell-novice/blob/main/LICENSE.md">Software Carpentry licence (CC BY 4.0)</a></li>
+</ol>
+</main>
+</div>

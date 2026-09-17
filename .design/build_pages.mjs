@@ -1,5 +1,6 @@
 // Builds the Comeni Code page artboards (hybrid identity) into this folder.
-// Spec: docs/superpowers/specs/2026-09-16-comeni-code-weaving-and-pages-design.md
+// Specs: docs/superpowers/specs/2026-09-16-comeni-code-weaving-and-pages-design.md (pages)
+//        docs/superpowers/specs/2026-09-17-code-as-tutor-design.md (resources, step back, scores, skeletons)
 //   node .design/build_pages.mjs
 import { writeFileSync } from 'node:fs';
 import { T, head, foot, logo, chip, primary, secondary, panel, label, seg, gridBg, labs, code, MONO, UI } from './_identity.mjs';
@@ -310,12 +311,13 @@ function route() {
   const milestone = (kind, title, sub, state) => `<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid ${c.border}">
     <span style="width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;font-weight:600;${state === 'blocked' ? `border:1.5px dashed ${c.ink3};color:${c.ink3}` : state === 'end' ? `background:${c.ink};color:${c.bg}` : `background:${c.selSoft};color:${c.sel}`}">${kind}</span>
     <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14px;font-weight:600;color:${state === 'blocked' ? c.ink3 : c.ink}">${title}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div></div>`;
-  return page(1440, 1400, `${learnBar()}
+  return page(1440, 1480, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 36px 32px;min-height:0">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-size:13px;color:${c.ink3}">Home › Your routes</span>
         ${h1('Learn Salmon', 36)}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${greyTag('Starts at AP Biology level')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
         <span style="font-size:16px;color:${c.ink};max-width:70ch;line-height:1.5"><b style="font-weight:600">At the end you can</b> estimate transcript expression from your own RNA-seq reads with Salmon, and explain each step it takes.</span>
       </div>
       <div style="display:flex;gap:10px;align-items:center;padding-top:26px">${seg(c, ['Map', 'List'], 0)}${secondary(c, 'Change goal')}</div>
@@ -363,7 +365,10 @@ function route() {
           ${next('Expectation–maximisation', '20 min', 'Data line · how reads are shared')}
           ${next('Sequence alignment', '15 min', 'Reads line')}
           ${next('k-mers', '10 min', 'Index line · unlocks 2 stops')}
-        </div>`)}
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;border:1.5px dashed ${c.sel};background:${c.selSoft}">
+          <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:13.5px;font-weight:600">Step back suggested · k-mers</span><span style="font-size:12.5px;color:${c.ink2}">After your answer on de Bruijn graphs. A 10-minute detour; the route order doesn’t change.</span></div>
+          ${secondary(c, 'Take the detour')}</div>`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Milestones</span><span style="font-size:12px;color:${c.ink3}">a problem proves each line</span></div>
         ${milestone('P', 'Split reads between two isoforms', 'Data line · rung 2 · after Expectation–maximisation', 'open')}
         ${milestone('P', 'Rebuild a sequence from its k-mers', 'Index line · rung 3 · after de Bruijn graphs', 'open')}
@@ -446,7 +451,7 @@ function node() {
     <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14.5px;font-weight:500">${q}</span><span style="font-size:12px;color:${c.ink3}">${meta}</span></div>
     ${done ? `<span style="font-size:12.5px;color:${c.ink3}">Answered · back in review in 3 days</span>` : `<span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:${c.sel}">Try it ${ic.chevron}</span>`}</div></div>`;
   const choice = (s, st) => `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-family:${MONO};font-size:14.5px;${st === 'right' ? `border:2px solid ${c.btn};background:${c.lineSoft}` : `border:1px solid ${c.border2};background:${c.surface};color:${c.ink3}`}">${st === 'right' ? ic.check(c.btn) : ''}${s}</div>`;
-  const toc = ['The problem it solves', 'From reads to k-mers', 'Building the graph', 'Formal definition', 'Two conventions', 'Errors and repeats', 'Worked example', 'Cost and choosing k', 'Problem', 'About this page'];
+  const toc = ['Learn it', 'The problem it solves', 'From reads to k-mers', 'Building the graph', 'Formal definition', 'Two conventions', 'Errors and repeats', 'Worked example', 'Cost and choosing k', 'Problem', 'About this page'];
   const dataBox = (t, body) => `<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">${t}</span><pre style="margin:0;padding:12px 14px;border-radius:9px;background:${c.bg};border:1px solid ${c.border};font-family:${MONO};font-size:13px;line-height:1.7;color:${c.ink};overflow-x:auto">${body}</pre></div>`;
   const body = `${learnBar()}
   <div style="height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 36px;border-bottom:1px solid ${c.border};background:${c.surface};font-size:13px;color:${c.ink2}">
@@ -457,7 +462,7 @@ function node() {
   <main style="flex:1;display:grid;grid-template-columns:200px minmax(0, 1fr) 290px;gap:40px;padding:30px 36px;min-height:0">
     <nav style="display:flex;flex-direction:column;gap:1px;padding-top:4px">
       <span style="${label(c)};padding-bottom:8px">On this page</span>
-      ${toc.map((t, i) => `<span style="padding:5px 10px;border-left:2px solid ${i === 2 ? c.line : c.border};font-size:13px;color:${i === 2 ? c.ink : c.ink2};font-weight:${i === 2 ? 600 : 400}">${t}</span>`).join('')}
+      ${toc.map((t, i) => `<span style="padding:5px 10px;border-left:2px solid ${i === 3 ? c.line : c.border};font-size:13px;color:${i === 3 ? c.ink : c.ink2};font-weight:${i === 3 ? 600 : 400}">${t}</span>`).join('')}
     </nav>
     <article style="display:flex;flex-direction:column;gap:20px;min-width:0;max-width:800px">
       <div style="display:flex;flex-direction:column;gap:8px">
@@ -474,6 +479,37 @@ function node() {
         ${['k-mers', 'Sequencing reads'].map(n => `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;border:1px solid ${c.border2};background:${c.surface};font-size:13px">${ic.check(c.ink2)}${n}</span>`).join('')}</div>
       <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;background:${c.lineSoft}">
         <span style="font-size:14px;line-height:1.55;flex:1"><b style="font-weight:600">On your route to Salmon:</b> Salmon’s index stores every k-mer of the transcriptome in a compacted version of this graph, so a read’s k-mers can be looked up in one step.</span>${amberTag()}
+      </div>
+
+      ${H2('Learn it')}
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          ${p('Read our explanation below, or watch first. Each outside resource was picked by a reviewer for the part of this page it covers.', 'max-width:52ch')}
+          ${seg(c, ['Read', 'Watch'], 1)}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">${blockTag('{% resource kind="video" display="embed" %}')}
+        <div style="display:grid;grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr);gap:0;border-radius:14px;overflow:hidden;border:1px solid ${c.border};background:${c.surface}">
+          <div style="position:relative;aspect-ratio:16/9;background:${c.ink};display:flex;align-items:center;justify-content:center">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 14px, transparent 14px 28px)"></div>
+            <span style="position:relative;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" style="fill:#FFFFFF"></path></svg></span>
+            <span style="position:absolute;left:14px;bottom:12px;font-family:${MONO};font-size:11.5px;color:rgba(255,255,255,.8)">plays 2:10–7:45 of 11:02</span>
+            <span style="position:absolute;right:14px;bottom:12px;font-size:11.5px;color:rgba(255,255,255,.8)">[embedded player]</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${greyTag('Video')}${greyTag('AP → intro university')}</div>
+            <span style="font-size:16px;font-weight:600;line-height:1.3">[Khan Academy video on genome assembly]</span>
+            <span style="font-size:13px;line-height:1.5;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Covers:</b> why overlapping reads are assembled through their k-mers, drawn step by step. Stop at 7:45 — the rest is about sequencing chemistry.</span>
+            <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3}">
+              <span>Khan Academy · via YouTube embed · non-commercial use, attributed</span>
+              <span>Chosen by [Reviewer A] · <a>Open on Khan Academy</a> · <a>Didn’t help</a></span>
+            </div>
+          </div>
+        </div></div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+          ${[['Reading', 'OpenStax Biology 2e · §17.1', 'The genome-sequencing section that sets up assembly', 'CC BY 4.0 · shown here'], ['Tutorial', 'Galaxy Training · De Bruijn graph assembly', 'Assemble a small genome yourself, in Galaxy', 'CC BY 4.0 · link']].map(([k, t, cov, lic]) => `<div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid ${c.border};background:${c.surface}">
+            <div style="display:flex;justify-content:space-between;gap:8px">${greyTag(k)}<span style="font-size:11.5px;color:${c.ink3}">${lic}</span></div>
+            <span style="font-size:14px;font-weight:600">${t}</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.45">${cov}</span></div>`).join('')}
+        </div>
       </div>
 
       ${H2('The problem it solves')}
@@ -496,8 +532,12 @@ function node() {
         </div>
         <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:10px 16px">${kmerFigure()}</div>
         <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px">${choice('ACGTTAG', 'right')}${choice('ACGTCAG')}${choice('ACGGTTAG')}</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:${c.ink2}">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:8px;border:1px solid ${c.border2};background:${c.surface}">Hint 1 of 2 used</span>
+          <span style="color:${c.ink3}">“Each step to the next k-mer adds exactly one letter.”</span>
+        </div>
         <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.lineSoft}">
-          <span style="font-size:14px;font-weight:600;color:${c.btn}">Right — ACGTTAG.</span>
+          <span style="font-size:14px;font-weight:600;color:${c.btn}">Right — ACGTTAG. <span style="font-weight:500;color:${c.ink2}">Why:</span></span>
           <span style="font-size:13.5px;line-height:1.55">Start with the first k-mer, then add the last letter of each next one: ACG + T + T + A + G. The branch to GTC belongs to another read.</span>
           <span style="font-size:12px;color:${c.ink3}">This question comes back in your review in 3 days.</span>
         </div>
@@ -567,6 +607,13 @@ spells    ACGTTAG</pre></div>
             <span style="font-size:12px;font-weight:600;color:${c.open};flex:none">Not quite · attempt 1</span>
             <span>Your list has 1,946 lines; the answer has 1,803. Duplicate reads produce the same edge more than once — each edge should appear once.</span>
           </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:10px;border:1.5px dashed ${c.sel};background:${c.selSoft}">
+            <div style="display:flex;flex-direction:column;gap:2px;flex:1">
+              <span style="font-size:13.5px;font-weight:600">This mistake usually means a gap in <span style="font-family:${MONO}">k-mers</span></span>
+              <span style="font-size:12.5px;color:${c.ink2};line-height:1.45">A read of length L has L − k + 1 k-mers, and the same k-mer can come from many reads. A 10-minute step back, then you return to this problem.</span>
+            </div>
+            ${secondary(c, 'Show a hint')}${primary(c, 'Revisit k-mers first', '')}
+          </div>
           <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12.5px;color:${c.ink3}">Upload a file or paste. Only your final answer is sent — your code never leaves your computer.</span>${primary(c, 'Submit answer', '')}</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid ${c.border};font-size:13px;color:${c.ink2}">${ic.lock}<span><b style="color:${c.ink};font-weight:600">Solutions</b> · 214 posts from people who solved it · open after you solve it</span></div>
@@ -574,10 +621,13 @@ spells    ACGTTAG</pre></div>
 
       <div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:10px;border:1px solid ${c.border};background:${c.surface};font-size:13px;line-height:1.6;color:${c.ink2}">
         <span style="font-size:13.5px;font-weight:600;color:${c.ink}">About this page</span>
-        <span>Text drafted by AI from the cited sources, reviewed and approved by [Reviewer name] on [date]. Figures 1–4 are drawn by library components from the data shown; their counts and answers are computed. Figure 5 is a licensed image. The worked example and the problem’s answers are checked by computation. The green route text is AI-written and not yet reviewed.</span>
+        <span>Text drafted by AI from the cited sources, reviewed and approved by [Reviewer name] on [date]. Figures 1–4 are drawn by library components from the data shown; their counts and answers are computed. Figure 5 is a licensed image. The worked example and the problem’s answers are checked by computation. Outside resources were chosen by a reviewer and are linked or embedded under their own licences. The green route text is AI-written and not yet reviewed.</span>
       </div>
     </article>
     <aside style="display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Learn it elsewhere</span>
+        ${[['Video', '[Khan Academy] Genome assembly', '2:10–7:45'], ['Reading', 'OpenStax Biology 2e §17.1', 'CC BY'], ['Tutorial', 'Galaxy Training · DBG assembly', 'CC BY']].map(([k, n, m]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface}"><span style="font-size:11px;color:${c.ink3}">${k} · ${m}</span><span style="font-size:13px">${n}</span></div>`).join('')}
+        <span style="font-size:11.5px;color:${c.ink3};line-height:1.45">Picked by reviewers. We link or embed; nothing is copied.</span></div>
       ${[['Goes deeper', [['Compacted de Bruijn graphs', '15 min'], ['Eulerian paths', '20 min'], ['Choosing k', '10 min']]], ['Related', [['Overlap graphs', '15 min'], ['Minimizers', '15 min']]], ['Needed by', [['Salmon', 'your goal'], ['Assemble a genome', 'track'], ['Contigs', '10 min']]]].map(([t, items]) => `<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">${t}</span>${items.map(([n, m]) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};font-size:13px"><span>${n}</span><span style="color:${c.ink3};font-size:12px">${m}</span></div>`).join('')}</div>`).join('')}
       <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Sources</span>
         <div style="font-size:12.5px;line-height:1.5;color:${c.ink2};display:flex;flex-direction:column;gap:10px">
@@ -588,7 +638,7 @@ spells    ACGTTAG</pre></div>
     </aside>
   </main>`;
   return `${head(c)}
-<div style="width:1440px;height:4700px;display:flex;flex-direction:column;background:${c.bg};color:${c.ink};font-family:${UI};overflow:hidden">
+<div style="width:1440px;height:5420px;display:flex;flex-direction:column;background:${c.bg};color:${c.ink};font-family:${UI};overflow:hidden">
 ${body}
 </div>
 </x-dc>
@@ -721,6 +771,7 @@ const NAV_ICON = {
   Graph: 'M4 4.5a1.5 1.5 0 1 0 0-.01M12 4.5a1.5 1.5 0 1 0 0-.01M8 12.5a1.5 1.5 0 1 0 0-.01M5.3 4h5.4M4.8 5.3l2.4 5.4M11.2 5.3l-2.4 5.4',
   Tracks: 'M2 8h12M4 8a1.8 1.8 0 1 0 0-.01M12 8a1.8 1.8 0 1 0 0-.01M8 8a1.8 1.8 0 1 0 0-.01',
   Weekly: 'M2.5 4h11v9.5h-11zM2.5 7h11M5.5 2.5v3M10.5 2.5v3',
+  Skeletons: 'M3 2.5h10M3 6h6M3 9.5h8M3 13h5M12.5 9l1.5 1.5-3 3H9.5V12z',
   Quality: 'M3 13.5V9M8 13.5V4M13 13.5V7M2 13.5h12',
   Assistant: 'M2.5 3h11v7.5h-6l-3.2 2.7v-2.7H2.5zM5.5 6.8h5',
   AI: 'M2.5 11.5a5.5 5.5 0 1 1 11 0M8 11.5l2.8-3.2M2.5 11.5h1.5M12 11.5h1.5',
@@ -729,7 +780,7 @@ const NAV_ICON = {
 };
 const navIcon = (n, col) => `<svg width="18" height="18" viewBox="0 0 16 16"><path d="${NAV_ICON[n]}" style="fill:none;stroke:${col};stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"></path></svg>`;
 function studio(active, inner, w = 1440, h = 900, { collapsed = false } = {}) {
-  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Graph'], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
+  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
   const it = (n, count) => `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:14px;${n === active ? `background:${c.surface};border:1px solid ${c.border};font-weight:600` : `border:1px solid transparent;color:${c.ink2}`}">${navIcon(n, n === active ? c.ink : c.ink3)}<span style="flex:1">${n}</span>${count ? `<span style="font-size:11.5px;padding:0 7px;border-radius:999px;background:${n === active ? c.selSoft : c.bg};color:${n === active ? c.sel : c.ink3}">${count}</span>` : ''}</div>`;
   const icn = (n, count) => `<div title="${n}" style="position:relative;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;${n === active ? `background:${c.surface};border:1px solid ${c.border}` : 'border:1px solid transparent'}">${navIcon(n, n === active ? c.ink : c.ink3)}${count ? `<span style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:${c.sel};border:2px solid ${c.bg}"></span>` : ''}</div>`;
   const toggle = (dir) => `<span title="${dir === 'in' ? 'Collapse' : 'Expand'} the menu · [" style="width:28px;height:28px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};display:flex;align-items:center;justify-content:center;color:${c.ink2}"><svg width="14" height="14" viewBox="0 0 16 16"><path d="${dir === 'in' ? 'M10 3.5L5.5 8 10 12.5' : 'M6 3.5L10.5 8 6 12.5'}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>`;
@@ -1019,7 +1070,8 @@ function weaveReview() {
 
 // ── S3 Node workbench — CMS editing: outline · blocks · side panels ─
 function workbench() {
-  const outline = [['claim', 'What you’ll be able to do', 'ok'], ['text', 'The problem it solves', 'ok'], ['figure', 'read-tiling', 'ok'], ['text', 'From reads to k-mers', 'warn', 1], ['figure', 'kmer-window', 'bad'], ['try', 'How many 5-mers…', 'draft'], ['text', 'Building the graph', 'ok'], ['try', 'Follow the green path', 'ok'], ['math', 'Formal definition', 'ok'], ['text', 'Two conventions', 'ok'], ['figure', 'compare-graphs', 'ok'], ['image', 'Assembly graph (Bandage)', 'warn'], ['example', 'Worked example', 'ok'], ['callout', 'Common mix-up', 'ok'], ['problem', 'Construct a de Bruijn graph', 'draft']];
+  const outline = [['claim', 'What you’ll be able to do', 'ok', 0, '4.6'], ['resource', 'Video · genome assembly', 'draft', 0, '4.1'], ['text', 'The problem it solves', 'ok', 0, '4.4'], ['figure', 'read-tiling', 'ok', 0, '4.8'], ['text', 'From reads to k-mers', 'warn', 1, '2.9'], ['figure', 'kmer-window', 'bad', 0, '—'], ['try', 'How many 5-mers…', 'draft', 0, '3.8'], ['text', 'Building the graph', 'ok', 0, '4.3'], ['try', 'Follow the green path', 'ok', 0, '4.5'], ['math', 'Formal definition', 'ok', 0, '4.7'], ['text', 'Two conventions', 'ok', 0, '4.2'], ['figure', 'compare-graphs', 'ok', 0, '4.6'], ['image', 'Assembly graph (Bandage)', 'warn', 0, '—'], ['example', 'Worked example', 'ok', 0, '4.9'], ['callout', 'Common mix-up', 'ok', 0, '4.0'], ['problem', 'Construct a de Bruijn graph', 'draft', 0, '3.4']];
+  const scoreCol = (v) => v === '—' ? c.ink3 : parseFloat(v) < 3 ? c.open : parseFloat(v) < 4 ? c.meas : c.ink2;
   const stDot = (s) => `<span style="width:8px;height:8px;border-radius:50%;flex:none;${s === 'ok' ? `background:${c.ink3}` : s === 'warn' ? `background:${c.measBar}` : s === 'bad' ? `background:${c.open}` : `border:1.5px solid ${c.ink3}`}"></span>`;
   const blockHead = (type, title, state, open) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;${open ? `border-bottom:1px solid ${c.border}` : ''}">
     <span style="color:${c.ink3};font-size:13px;letter-spacing:-2px">⋮⋮</span>
@@ -1071,14 +1123,15 @@ function workbench() {
         </div>
       </div>
     </div>
-    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content', 1], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content', 1], ['Resources'], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
     <div style="flex:1;display:grid;grid-template-columns:230px minmax(0, 1fr) 520px;gap:18px;min-height:0">
       <aside style="display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px"><span style="font-size:13px;font-weight:600">Outline</span><span style="font-size:11.5px;color:${c.ink3}">15 blocks</span></div>
-        ${outline.map(([t, n, s, on]) => `<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;${on ? `background:${c.selSoft}` : ''}">${stDot(s)}<span style="font-family:${MONO};font-size:10.5px;color:${c.ink3};width:46px;flex:none">${t}</span><span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${on ? 600 : 400}">${n}</span></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px"><span style="font-size:13px;font-weight:600">Outline</span><span style="font-size:11.5px;color:${c.ink3}">16 blocks · score</span></div>
+        ${outline.map(([t, n, s, on, sc]) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;${on ? `background:${c.selSoft}` : ''}">${stDot(s)}<span style="font-family:${MONO};font-size:10.5px;color:${c.ink3};width:52px;flex:none">${t}</span><span style="font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${on ? 600 : 400}">${n}</span><span style="font-family:${MONO};font-size:11px;color:${scoreCol(sc)};font-variant-numeric:tabular-nums">${sc}</span></div>`).join('')}
         <div style="display:flex;flex-direction:column;gap:4px;padding-top:10px;margin-top:6px;border-top:1px solid ${c.border};font-size:11.5px;color:${c.ink2}">
           <span style="display:flex;align-items:center;gap:6px">${stDot('ok')}checked</span><span style="display:flex;align-items:center;gap:6px">${stDot('draft')}draft</span>
-          <span style="display:flex;align-items:center;gap:6px">${stDot('warn')}needs attention</span><span style="display:flex;align-items:center;gap:6px">${stDot('bad')}check failed</span></div>
+          <span style="display:flex;align-items:center;gap:6px">${stDot('warn')}needs attention</span><span style="display:flex;align-items:center;gap:6px">${stDot('bad')}check failed</span>
+          <span style="color:${c.ink3};line-height:1.4;padding-top:4px">Score: the judge model’s 1–5 rating, Studio only. — means a check failed, so it wasn’t scored.</span></div>
       </aside>
 
       <section style="display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0;overflow:hidden">
@@ -1087,7 +1140,7 @@ function workbench() {
         ${collapsed('figure', 'read-tiling · Figure 1', stDot('ok'))}
         ${adder}
         <div style="border-radius:10px;border:2px solid ${c.sel};background:${c.surface};box-shadow:0 0 0 4px ${c.selSoft}">
-          ${blockHead('text', 'From reads to k-mers', amberTag('1 unsourced sentence'), true)}
+          ${blockHead('text', 'From reads to k-mers', `<span style="display:flex;gap:6px">${amberTag('1 unsourced sentence')}${redTag('Score 2.9 · redrafted once')}</span>`, true)}
           <div style="display:flex;align-items:center;gap:2px;padding:6px 10px;border-bottom:1px solid ${c.border}">
             ${tb('<b>B</b>')}${tb('<i>I</i>')}${tb('Link')}${tb('Cite')}${tb('Math')}${tb('Term')}
             <span style="margin-left:auto;display:flex;align-items:center;gap:8px"><span style="font-family:${MONO};font-size:11px;color:${c.ink3}">node.explanation@v3</span>${secondary(c, 'Redraft with AI')}</span>
@@ -1099,7 +1152,11 @@ function workbench() {
           <div style="display:flex;gap:10px;align-items:center;padding:8px 14px;border-top:1px solid ${c.border};background:${c.openSoft};font-size:12.5px">
             <span style="color:${c.open};font-weight:600">No source for the highlighted sentence.</span><a>Add a citation</a><a>Cut it</a>
           </div>
+          <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px;padding:10px 14px;border-top:1px solid ${c.border};background:${c.bg}">
+            ${[['Accurate to sources', '2 / 5', 'The last sentence has no source and overstates: not every assembler is k-mer based.', c.open], ['Clear at this level', '4 / 5', 'Defines k-mers before using them.', c.ink2], ['Serves the claim', '3 / 5', 'Doesn’t yet say why lookups beat alignment.', c.meas]].map(([k, v, why, col]) => `<div style="display:flex;flex-direction:column;gap:3px"><div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="font-weight:600">${k}</span><span style="font-family:${MONO};color:${col}">${v}</span></div><span style="font-size:11.5px;line-height:1.4;color:${c.ink2}">${why}</span></div>`).join('')}
+          </div>
           <div style="display:flex;gap:14px;padding:8px 14px;border-top:1px solid ${c.border};font-size:11.5px;color:${c.ink3}">
+            <span>Judge: [model, another family] · rubric text@v2</span>
             <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.selSoft};border:1px solid ${c.sel}"></span> your edits · 4</span>
             <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c.bg};border:1px solid ${c.border2}"></span> model text · 2 passages</span>
             <span style="margin-left:auto">Redrafting replays your 4 edits</span>
@@ -1108,7 +1165,7 @@ function workbench() {
         ${adder.replace(`<span style="width:20px`, `<span style="position:relative;width:20px`)}
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px dashed ${c.border2};background:${c.surface}">
           <span style="font-size:12px;color:${c.ink3};padding:4px 4px 4px 0">Add a block</span>
-          ${['text', 'figure', 'image', 'math', 'example', 'try', 'callout', 'problem'].map(t => `<span style="font-family:${MONO};font-size:11.5px;padding:3px 9px;border-radius:6px;border:1px solid ${c.border2};${t === 'figure' ? `background:${c.selSoft};color:${c.sel};border-color:${c.sel}` : ''}">${t}</span>`).join('')}
+          ${['text', 'figure', 'image', 'resource', 'math', 'example', 'try', 'callout', 'problem'].map(t => `<span style="font-family:${MONO};font-size:11.5px;padding:3px 9px;border-radius:6px;border:1px solid ${c.border2};${t === 'figure' ? `background:${c.selSoft};color:${c.sel};border-color:${c.sel}` : ''}">${t}</span>`).join('')}
         </div>
         ${collapsed('figure', 'kmer-window · Figure 2', redTag('1 check failed'))}
         ${adder}
@@ -1118,7 +1175,7 @@ function workbench() {
       </section>
 
       <aside style="${panel(c)};display:flex;flex-direction:column;min-height:0;overflow:hidden">
-        <div style="display:flex;border-bottom:1px solid ${c.border}">${[['Preview', 0, 1], ['Checks', 3], ['Sources', 2], ['History'], ['Comments', 1]].map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
+        <div style="display:flex;border-bottom:1px solid ${c.border}">${[['Preview', 0, 1], ['Checks', 3], ['Score', 0], ['Sources', 2], ['History'], ['Comments', 1]].map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
           ${seg(c, ['Desktop', 'Phone'], 0)}
           <span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:${c.ink2}"><span style="width:30px;height:18px;border-radius:9px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF"></span></span>Click to edit</span>
@@ -1498,7 +1555,7 @@ function models() {
       ${lane('Hosted keys', 'Provider keys held by the gateway — never by the browser or a learner.', greenTag('2 providers'), true,
         `<div style="display:flex;gap:6px;flex-wrap:wrap">${['Anthropic · key …7f2a', '[provider] · key …19c0'].map(k => `<span style="font-size:12px;padding:3px 9px;border-radius:6px;background:${c.bg};border:1px solid ${c.border};font-family:${MONO}">${k}</span>`).join('')}${secondary(c, '+ Add key')}</div>`)}
     </div>
-    <div style="${panel(c)};overflow:hidden">
+    <div style="${panel(c)};overflow:hidden;flex:none">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid ${c.border}">
         <span style="font-size:15px;font-weight:600">Where Code calls a model</span>
         <span style="font-size:12.5px;color:${c.ink3}">This list is fixed. Adding a place is a reviewed code change, as in Labs.</span>
@@ -1510,23 +1567,242 @@ function models() {
       ${row('Connecting text', 'weaving', 'claude-haiku-4-5', '[local model]', '$2 a route')}
       ${row('Request grouping', 'new requests', '[local model]', 'leave ungrouped', 'none')}
       ${row('Assistant chats', 'team', 'claude-sonnet-5', 'claude-haiku-4-5', 'per-person budget')}
+      ${row('Skeleton drafting', 'authors', 'claude-sonnet-5', '[local model]', '$10 an outline')}
+      ${row('Resource suggestion', 'authors', 'claude-haiku-4-5', 'none — search by hand', 'per-person budget')}
+      ${row('Block evaluation (judge)', 'every draft', '[model, another family]', 'leave unscored', '$3 a node')}
     </div>
-    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px">
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:16px">
       ${card(`<span style="font-size:15px;font-weight:600">Budgets</span>
         ${[['Team, per month', '$300'], ['Each person, per month', '$40'], ['Learner goal suggestions, per day', '$5']].map(([k, v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid ${c.border};font-size:13.5px"><span>${k}</span><span style="padding:4px 12px;border-radius:8px;border:1px solid ${c.border2};font-family:${MONO};font-size:12.5px">${v}</span></div>`).join('')}
         <span style="font-size:12.5px;color:${c.ink2}">When a cap is reached: ${seg(c, ['Use the fallback', 'Stop', 'Ask an operator'], 0)}</span>`)}
+      ${card(`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Scoring</span>${greyTag('tutor spec T8')}</div>
+        ${[['Redraft automatically below', '3.0'], ['Most redrafts per block', '2'], ['Judge model family', 'must differ from the drafter']].map(([k, v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid ${c.border};font-size:13.5px"><span>${k}</span><span style="padding:4px 12px;border-radius:8px;border:1px solid ${c.border2};font-family:${MONO};font-size:12.5px">${v}</span></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:${c.bg};font-size:13px"><span style="display:flex;align-items:center;gap:8px">${ic.lock}<span><b style="font-weight:600">Deploy automatically above</b> — locked until judge–human agreement is measured (see Quality)</span></span></div>`)}
       ${card(`<span style="font-size:15px;font-weight:600">What’s recorded for every call</span>
         <span style="font-size:13px;color:${c.ink2};line-height:1.55">Task, person, model, prompt id, tokens in and out, cost, and whether it fell back — kept by the gateway, and attached to the draft it produced as provenance (§5.4). Learner calls record no identity beyond an anonymous session.</span>`)}
     </div>`;
-  return studio('AI', inner, 1440, 1000);
+  return studio('AI', inner, 1440, 1260);
+}
+
+// ── L2 Placement — the first station of the tutor loop ─────────
+function placement() {
+  const cand = [['DNA and genes', 'known'], ['Gene expression', 'known'], ['Sequencing reads', 'now'], ['FASTQ on disk', 'wait'], ['RNA-seq experiments', 'wait'], ['k-mers', 'wait'], ['Reference transcriptome', 'wait'], ['Sequence alignment', 'wait'], ['Expectation–maximisation', 'learn']];
+  const candRow = ([n, st]) => {
+    const tag = st === 'known' ? `<span style="font-size:12px;color:${c.ink2}">you know this · dropped</span>` : st === 'learn' ? `<span style="font-size:12px;color:${c.sel}">stays on your route</span>` : st === 'now' ? blueTag('asking now') : `<span style="font-size:12px;color:${c.ink3}">not asked yet</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid ${c.border}">${dot(st === 'known' ? 'settled' : st === 'now' || st === 'learn' ? 'next' : 'open')}<span style="font-size:13.5px;flex:1;${st === 'known' ? `text-decoration:line-through;color:${c.ink3}` : ''}">${n}</span>${tag}</div>`;
+  };
+  const opt = (s, on) => `<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;font-size:15px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}"><span style="width:18px;height:18px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>${s}</div>`;
+  return page(1440, 800, `${focusBar('Placement · Learn Salmon', progress(2, 2, 9), `<span style="font-size:13px;color:${c.ink2}">about 3 min left</span>`)}
+  <main style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:36px;padding:40px 56px;min-height:0">
+    <section style="display:flex;flex-direction:column;gap:20px;max-width:760px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="${label(c)}">Checking: Sequencing reads</span>
+        ${h1('A sequencer returns 20 million reads of 150 bases from one RNA sample. What is each read?', 28)}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${opt('A copy of one whole transcript')}
+        ${opt('A short piece copied from a random position of some transcript', true)}
+        ${opt('The expression level of one gene')}
+        ${opt('A k-mer from the reference transcriptome')}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:6px">
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px dashed ${c.border2};font-size:14px;color:${c.ink2}">I don’t know this yet</span>
+        ${primary(c, 'Check', '')}
+      </div>
+      <div style="display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:${c.bg};font-size:13px;line-height:1.55;color:${c.ink2}">
+        <span style="flex:1">One question per stop, no hints, no score. A right answer drops the stop and everything only it needed; “I don’t know this yet” keeps it on your route. You can always come back and test out later.</span>
+      </div>
+    </section>
+    <aside style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:10px;align-self:start">
+      <span style="${label(c)}">Your route so far</span>
+      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.02em">10 stops</span><span style="font-size:14px;color:${c.ink3};text-decoration:line-through">12</span></div>
+      <span style="font-size:13px;color:${c.ink2}">about 2 h 40 min · shorter as you answer</span>
+      <div style="display:flex;flex-direction:column;margin-top:6px">${cand.map(candRow).join('')}</div>
+      <span style="font-size:12px;color:${c.ink3};line-height:1.45;padding-top:6px">Starts at AP Biology level. Salmon, Selective alignment and de Bruijn graphs aren’t asked: nobody tests out of the goal itself.</span>
+    </aside>
+  </main>`);
+}
+
+// ── S6 Review — approve blocks, sorted by the judge's score ────
+function reviewStudio() {
+  const cols = '26px minmax(0, 1.2fr) 82px 60px 70px';
+  const sc = (v) => `<span style="font-family:${MONO};font-size:12.5px;font-weight:600;color:${v < 3 ? c.open : v < 4 ? c.meas : c.ink2};font-variant-numeric:tabular-nums">${v.toFixed(1)}</span>`;
+  const rows = [
+    ['From reads to k-mers', 'de Bruijn graphs', 'text', 2.9, 'disagree?', { focus: 1 }],
+    ['Construct a de Bruijn graph', 'de Bruijn graphs', 'problem', 3.4, ''],
+    ['Isoform switching', 'Alternative splicing', 'callout', 3.5, ''],
+    ['How many 5-mers…', 'de Bruijn graphs', 'try', 3.8, ''],
+    ['Video · genome assembly', 'de Bruijn graphs', 'resource', 4.1, ''],
+    ['Why TPM, not counts', 'Expression units', 'text', 4.2, ''],
+    ['Bridge: k-mers → graphs', 'Learn Salmon', 'connecting', 4.4, ''],
+    ['Transcription start', 'Gene expression', 'text', 4.6, ''],
+    ['codon-table data', 'The genetic code', 'figure', 4.8, ''],
+  ];
+  const row = ([t, n, k, v, note, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 12px;height:48px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : ''}">
+    ${qBox(false)}<div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</span><span style="font-size:11.5px;color:${c.ink3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span></div>
+    <span style="font-family:${MONO};font-size:11.5px;color:${c.ink2}">${k}</span>${sc(v)}<span style="font-size:11.5px;color:${c.ink3}">${note}</span></div>`;
+  const part = (k, v, why, col) => `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:9px;background:${c.bg}"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="font-weight:600">${k}</span><span style="font-family:${MONO};color:${col}">${v}</span></div><span style="font-size:12.5px;line-height:1.45;color:${c.ink2}">${why}</span></div>`;
+  const cond = (ok, t) => `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><span style="color:${ok ? c.ink2 : c.ink};font-weight:${ok ? 400 : 600}">${t}</span></div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('Review', 26)}<span style="font-size:13px;color:${c.ink2}">Lowest scores first. The score helps you choose where to look; only you approve.</span></div>
+      ${qSearch('Search blocks, nodes')}
+    </div>
+    ${qViews([['Assigned to me', 9, 1], ['Low score (under 3.5)', 3], ['Judge unsure', 2], ['Stuck after redrafts', 1], ['Approved this week', 26]])}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12.5px;color:${c.ink3}">Filter</span>${qChip('Score under 4')}<span style="font-size:12.5px;color:${c.sel}">+ Block type</span><span style="font-size:12.5px;color:${c.sel}">+ Redrafted</span><span style="font-size:12.5px;color:${c.sel}">+ Region</span><span style="margin-left:auto">${qSort('score, lowest first')}</span></div>
+    <div style="flex:1;display:grid;grid-template-columns:400px minmax(0, 1fr) 290px;gap:16px;min-height:0">
+      <section style="${panel(c)};overflow:hidden;display:flex;flex-direction:column;min-height:0">
+        <div style="display:grid;grid-template-columns:${cols};gap:10px;padding:9px 12px;font-size:11.5px;color:${c.ink3}">${qBox(false)}<span>Block · node</span><span>Type</span><span>Score</span><span></span></div>
+        ${rows.map(row).join('')}
+        <div style="margin-top:auto;padding:10px 12px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3}">9 blocks · 5 more at 4.0 and above hidden by the filter</div>
+      </section>
+      <section style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:${c.ink3}">de Bruijn graphs · text block · drafted by AI, edited by [Author A]</span><span style="font-size:19px;font-weight:600">From reads to k-mers</span></div>
+          ${seg(c, ['Standalone', 'With sources', 'Changes'], 1)}
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:14px">
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.65">
+            <p style="margin:0">The trick is to stop treating reads as units. Slide a window of width <i>k</i> along each read and record every substring it covers: these are the read’s <b>k-mers</b>.<sup style="font-family:${MONO};font-size:10px;color:${c.sel}">[1]</sup></p>
+            <p style="margin:0">Two reads that overlap share k-mers, so overlaps can be found by looking k-mers up in a table.<sup style="font-family:${MONO};font-size:10px;color:${c.sel}">[1]</sup> <span style="background:${c.openSoft};border-bottom:2px dotted ${c.open}">Every assembler since 2008 works this way.</span></p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:${c.bg};font-size:12.5px;line-height:1.5;color:${c.ink2}">
+            <span style="font-weight:600;color:${c.ink}">[1] Compeau, Pevzner &amp; Tesler (2011)</span>
+            <span>“…breaking reads into k-mers and forming a de Bruijn graph…” — p. 987</span>
+            <span style="padding-top:6px;border-top:1px solid ${c.border};color:${c.open}">No source for the highlighted sentence.</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Judge’s score · 2.9</span><span style="font-size:12px;color:${c.ink3}">[model, another family] · rubric text@v2 · redrafted once</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:10px">
+            ${part('Accurate to sources', '2 / 5', 'Last sentence is unsourced and too strong: overlap-graph assemblers exist.', c.open)}
+            ${part('Clear at this level', '4 / 5', 'Defines k-mers before using them; one idea per sentence.', c.ink2)}
+            ${part('Serves the claim', '3 / 5', 'Says what k-mers are, not yet why lookups beat alignment.', c.meas)}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;border:1px solid ${c.border};font-size:12.5px;color:${c.ink2}"><span style="font-weight:600;color:${c.ink}">Redraft history</span><span>v1 · 2.3 (no citation) → v2 · 2.9 (cited, one sentence left)</span></div>
+        </div>
+      </section>
+      <aside style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:14px;font-weight:600">Your decision</span>
+        <div style="display:flex;flex-direction:column;gap:7px">${cond(true, 'Read standalone')}${cond(true, 'Sources opened')}${cond(false, 'Every unsourced sentence marked (1 left)')}${cond(true, 'You didn’t draft or edit it')}</div>
+        <span style="padding:9px 12px;border-radius:9px;background:${c.border};color:${c.ink3};font-size:13px;font-weight:600;text-align:center">Approve · mark 1 sentence first</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${secondary(c, 'Request changes')}${secondary(c, 'Ask AI to redraft')}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid ${c.border}">
+          <span style="font-size:13px;font-weight:600">Was the score right?</span>
+          <span style="font-size:12px;color:${c.ink2};line-height:1.45">Your answer is how Quality measures the judge. It is needed before any block type could ever deploy without a person.</span>
+          ${seg(c, ['Too high', 'About right', 'Too low'], 1)}
+        </div>
+        <div style="margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:${c.ink3}"><span>${kbd('A')} approve</span><span>${kbd('R')} request</span><span>${kbd('J')} ${kbd('K')} next / previous</span></div>
+      </aside>
+    </div>`;
+  return studio('Review', inner, 1680, 1000);
+}
+
+// ── S18 Skeletons — draft nodes from a public outline ──────────
+function skeletons() {
+  const cols = '26px minmax(0, 1fr) minmax(0, 1.25fr) 128px 58px';
+  const map = (m) => m === 'existing' ? greyTag('matches existing') : m === 'merge' ? amberTag('merge?') : blueTag('new node');
+  const sc = (v) => `<span style="font-family:${MONO};font-size:12.5px;font-weight:600;color:${v < 3 ? c.open : v < 4 ? c.meas : c.ink2}">${v.toFixed(1)}</span>`;
+  const rows = [
+    ['6.1 DNA and RNA structure', 'DNA and genes', 'existing', 4.7, {}],
+    ['6.2 Replication', 'DNA replication', 'new', 4.2, { sel: 1, needs: 'DNA and genes' }],
+    ['6.3 Transcription and RNA processing', 'Transcription and splicing', 'new', 4.4, { sel: 1, focus: 1, needs: 'DNA and genes · Gene expression' }],
+    ['6.4 Translation', 'Translation', 'new', 4.5, { sel: 1, needs: 'Transcription and splicing' }],
+    ['6.5 Regulation of gene expression', 'Gene expression', 'merge', 3.6, { needs: '' }],
+    ['6.6 Gene expression and specialization', 'Cell-type expression', 'new', 3.1, { needs: 'Gene expression' }],
+    ['6.7 Mutations', 'Mutations and variants', 'new', 4.0, { needs: 'DNA replication' }],
+    ['6.8 Biotechnology', 'Sequencing reads', 'existing', 3.9, {}],
+  ];
+  const row = ([item, stub, m, v, o]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 14px;height:50px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : o.sel ? `background:${c.bg}` : ''}">
+    ${qBox(o.sel)}<span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item}</span>
+    <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${stub}</span>${o.needs ? `<span style="font-size:11.5px;color:${c.ink3};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">needs ${o.needs}</span>` : ''}</div>
+    <span>${map(m)}</span>${sc(v)}</div>`;
+  const step = (n, t, st) => `<div style="display:flex;align-items:center;gap:8px;font-size:13px;${st === 'on' ? 'font-weight:600' : `color:${c.ink2}`}"><span style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;${st === 'done' ? `background:${c.lineSoft};color:${c.btn}` : st === 'on' ? `background:${c.ink};color:${c.bg}` : `border:1.5px solid ${c.border2}`}">${st === 'done' ? '✓' : n}</span>${t}</div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('Skeletons', 26)}<span style="font-size:13px;color:${c.ink2}">Draft nodes and needs links from a public outline. A skeleton is never a track — accepted stubs go to Requests.</span></div>
+      ${secondary(c, '+ Import an outline')}
+    </div>
+    <div style="${panel(c)};padding:14px 18px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:300px"><span style="${label(c)}">Outline</span><span style="font-size:15px;font-weight:600">AP Biology · Unit 6: Gene expression and regulation</span><span style="font-size:12px;color:${c.ink3}">College Board course description · public framework · imported 17 Sep</span></div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap">${step(1, 'Import', 'done')}${step(2, 'AI proposes stubs and needs', 'done')}${step(3, 'Map to the graph', 'on')}${step(4, 'Send to Requests', '')}${step(5, 'Check coverage', '')}</div>
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:18px;min-height:0">
+      <section style="position:relative;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:13.5px;font-weight:600">8 topics → 6 new nodes, 2 existing, 1 merge</span></div>
+          <div style="display:flex;gap:8px;align-items:center">${qSort('Outline order')}${seg(c, ['Table', 'Graph preview'], 0)}</div>
+        </div>
+        <div style="${panel(c)};overflow:hidden;flex:1;min-height:0">
+          <div style="display:grid;grid-template-columns:${cols};gap:10px;padding:9px 14px;font-size:11.5px;color:${c.ink3}">${qBox(false)}<span>Outline topic</span><span>Proposed node · needs</span><span>In the graph</span><span>Score</span></div>
+          ${rows.map(row).join('')}
+        </div>
+        ${bulkBar(3, [['Send to Requests', 'S'], ['Redraft', ''], ['Discard', '']])}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px;min-height:0">
+        ${card(`<div style="display:flex;justify-content:space-between;align-items:center">${blueTag('New node')}<span style="font-size:12px;color:${c.ink3}">score 4.4</span></div>
+          <span style="font-size:18px;font-weight:600">Transcription and splicing</span>
+          <span style="font-size:13px;line-height:1.5;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Claim:</b> explain how a gene is copied into RNA and how introns are removed, so that one gene can give several transcripts.</span>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:12.5px;font-weight:600">Needs, all of — with reasons</span>
+            ${[['DNA and genes', 'transcription copies a gene’s sequence'], ['Gene expression', 'splicing changes what is expressed']].map(([n, r]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;background:${c.bg}"><span style="font-family:${MONO};font-size:12.5px">${n}</span><span style="font-size:12px;color:${c.ink2}">${r}</span></div>`).join('')}
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${greyTag('level: AP')}${greyTag('region: Biology')}${greyTag('on the Salmon route')}</div>
+          <span style="font-size:12px;color:${c.ink3};line-height:1.45">Also needed by: Reference transcriptome (existing) — the proposed link is shown for review.</span>`)}
+        ${card(`<span style="font-size:14.5px;font-weight:600">Coverage check · by a person</span>
+          <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">Compare these nodes with reference courses and record gaps as requests. Khan Academy is read here by people, never fed to the model.</span>
+          ${[['Khan Academy · AP Biology, gene expression unit', 'checked by [Reviewer A] · 2 gaps recorded'], ['OpenStax Biology 2e · ch. 15–16', 'not checked yet']].map(([t, st]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border}"><span style="font-size:13px">${t}</span><span style="font-size:11.5px;color:${c.ink3}">${st}</span></div>`).join('')}`)}
+        ${card(`<span style="font-size:14.5px;font-weight:600">Sources the model may use</span>
+          <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">College Board course descriptions · OpenStax (CC BY) · Galaxy Training (CC BY) · the Carpentries (CC BY). Sites whose terms forbid it are not on this list.</span>`)}
+      </aside>
+    </div>`;
+  return studio('Skeletons', inner, 1680, 1060);
+}
+
+// ── S11 Quality — is the tutor teaching? is the judge right? ───
+function quality() {
+  const kpi = (v, t, sub) => `<div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:14px 16px;${panel(c)}"><span style="font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums">${v}</span><span style="font-size:13px;font-weight:600">${t}</span><span style="font-size:12px;color:${c.ink2};line-height:1.4">${sub}</span></div>`;
+  const agree = [['resource description', 91, 412, 'could be considered'], ['connecting text', 84, 236, 'more reviews needed'], ['text', 72, 518, 'no'], ['try · hints', 69, 190, 'no'], ['problem', 58, 64, 'never first'], ['figure data', 81, 88, 'never first']];
+  const bar = ([t, v, n, st]) => `<div style="display:grid;grid-template-columns:150px minmax(0, 1fr) 44px 60px 150px;align-items:center;gap:12px;padding:8px 0;border-top:1px solid ${c.border};font-size:13px">
+    <span style="font-family:${MONO};font-size:12px">${t}</span>
+    <div style="position:relative;height:10px;border-radius:5px;background:${c.bg}"><div style="position:absolute;left:0;top:0;bottom:0;width:${v}%;border-radius:5px;background:${c.sel}"></div><div style="position:absolute;left:90%;top:-4px;bottom:-4px;width:2px;background:${c.ink}"></div></div>
+    <span style="font-family:${MONO};font-variant-numeric:tabular-nums;text-align:right">${v}%</span>
+    <span style="font-size:12px;color:${c.ink3};font-variant-numeric:tabular-nums">${n} rev.</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:${st === 'could be considered' ? c.ink : c.ink3}">${ic.lock}${st === 'could be considered' ? 'eligible for a spec' : st}</span></div>`;
+  const fix = (kind, t, sub, action) => `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid ${c.border}">${kind}<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="font-size:13.5px;font-weight:600">${t}</span><span style="font-size:12px;color:${c.ink2}">${sub}</span></div>${secondary(c, action)}</div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('Quality', 26)}<span style="font-size:13px;color:${c.ink2}">Is the tutor teaching, and is the judge right? Aggregates only — never one learner.</span></div>
+      ${seg(c, ['7 days', '30 days', 'All'], 1)}
+    </div>
+    <div style="display:flex;gap:14px">
+      ${kpi('71%', 'Right on the next try after a step back', 'up from 48% on the first try · 1,204 step backs')}
+      ${kpi('63%', 'Right after one hint', 'hints used on 22% of checks')}
+      ${kpi('38%', 'Routes finished', 'of routes started 30+ days ago')}
+      ${kpi('4', 'Resources marked “didn’t help”', 'by 5+ learners each · 1 link broken')}
+    </div>
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1.1fr) minmax(0, 1fr);gap:18px;min-height:0">
+      ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Does the judge agree with reviewers?</span><span style="font-size:12px;color:${c.ink3}">line = 90%, the bar a spec would ask for</span></div>
+        <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">From every “Was the score right?” answer in Review. Automatic deployment stays locked for every type; a type above the line with enough reviews only becomes eligible for its own spec.</span>
+        ${agree.map(bar).join('')}
+        <span style="font-size:12px;color:${c.ink3}">Rubric versions: text@v2, try@v1, resource@v1, connecting@v3 · judge: [model, another family]</span>`, 'min-height:0')}
+      ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Fix these</span><span style="font-size:12px;color:${c.ink3}">each row opens the place to act</span></div>
+        ${fix(redTag('step back'), 'Selective alignment → k-mers', 'Most step backs lead here, but only 52% get the next try right. The k-mers page may not cover what this question needs.', 'Open node')}
+        ${fix(amberTag('resource'), '[Khan Academy] Genome assembly · 2:10–7:45', 'Marked “didn’t help” by 9 learners on the Salmon route — the part may be too long.', 'Edit resource')}
+        ${fix(redTag('broken link'), 'Galaxy Training · Mapping tutorial', 'Hidden from learners since 15 Sep; the page moved.', 'Replace link')}
+        ${fix(greyTag('check'), 'How many 5-mers…', 'Everyone answers right without reading — it may not test anything.', 'Open check')}
+        ${fix(greyTag('route'), 'Learn Salmon · Expectation–maximisation', 'Where most learners stop. Time on page is 3× the estimate.', 'Open node')}`, 'min-height:0')}
+    </div>`;
+  return studio('Quality', inner, 1680, 880);
 }
 
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
   ['Start', 'L1 · Start — what do you want to learn?', start(), 1440, 1300, 'Reached from: first visit, “Learn something new”, “Ask for a goal”, a search with no match.\nLeads to: placement, or the route.\nTargets are suggested and confirmed by the learner; the route is computed from what each page needs.'],
-  ['Route', 'L4 · Route — map, selected stop, next up, milestones', route(), 1440, 1400, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4) and milestones — a problem per line, the Labs pipeline at the end.'],
-  ['Node', 'L5 · Node — blocks, figures, inline questions, the problem', node(), 1440, 4700, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
+  ['Placement', 'L2 · Placement — the first station of the tutor loop', placement(), 1440, 800, 'Reached from: Start (“Place me first”), Route, Home.\nLeads to: the shortened route.\nOne question per candidate stop, no hints, no score (tutor spec T3). A right answer drops the stop and what only it needed; “I don’t know this yet” keeps it. The side panel shows the route shortening as you go. The goal itself is never tested out of.'],
+  ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1480, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route says where it starts: AP Biology level (T10).'],
+  ['Node', 'L5 · Node — learn it, blocks, questions with hints, a step back', node(), 1440, 5420, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],
   ['Knowledge', 'L9 · Your knowledge — areas that may not connect', knowledge(), 1440, 1480, 'Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.'],
   ['AccountMenu', 'Account menu', account(), 320, 420, 'Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.'],
@@ -1535,12 +1811,15 @@ const STUDIO = [
   ['Requests', 'S7 · Requests — a triage queue for dozens', requests(), 1680, 1000, 'Reached from: Inbox, the rail.\nLeads to: Implementing (accept), an existing node (merge), or a declined note the learner sees.\nSaved views, filters with counts, a dense table with duplicates collapsed, a detail pane, a bulk bar and one-key decisions (Linear’s triage pattern). The model proposes and groups; only a person moves a request, and each decision is logged.'],
   ['Implementing', 'S8 · Implementing — grouped by stage', implementing(), 1680, 1000, 'Reached from: accepting a request.\nLeads to: the node workbench (open), review, land.\nSaved views, filters, rows grouped by stage and collapsible, bulk assign, a stalled flag instead of due dates, and team load to help assign.'],
   ['WeaveReview', 'S9 · Weave review — texts pinned where learners read them', weaveReview(), 1680, 1040, 'Reached from: Tracks in the rail, Inbox.\nLeads to: a published named track in Explore.\nEach number on the map is a text the AI wrote. Pick one (or J/K through them): it sits beside the two claims it may use and its automatic checks; approve, suggest an edit, or ask for a rewrite (GitHub-review style). The strip below tracks every text by kind.'],
-  ['Workbench', 'S3 · Node workbench — outline · blocks · live preview', workbench(), 1680, 1060, 'Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.'],
+  ['Workbench', 'S3 · Node workbench — outline · blocks · live preview', workbench(), 1680, 1060, 'Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nTutor spec additions: a Resources tab (outside videos and readings with provider, part and licence); every drafted block carries a judge score with named parts and reasons, a redraft count, and the judge model (never the drafter’s family); a block that fails a check is not scored.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.'],
   ['FigureComposer', 'S4 · Figure composer — choose · data · interaction · describe', composer(), 1680, 1060, 'Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.'],
+  ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
+  ['Skeletons', 'S18 · Skeletons — nodes drafted from a public outline', skeletons(), 1680, 1060, 'Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.'],
+  ['Quality', 'S11 · Quality — is the tutor teaching? is the judge right?', quality(), 1680, 880, 'Reached from: the rail (Insight).\nTutor spec T9 and T8.3: aggregates only. Right-on-next-try after a step back and after a hint; routes finished; resources marked unhelpful or broken. Judge–human agreement per block type against a 90% line — automatic deployment is locked for every type, and crossing the line only makes a type eligible for its own spec. Every “fix these” row opens the place to act.'],
   ['Graph', 'S2 · Graph — search, neighbourhood, impact', graph(), 1680, 1060, 'Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.'],
   ['Assistant', 'S15 · Assistant — chat that acts through the content API', assistant(), 1680, 1060, 'Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.'],
   ['AIUsage', 'S16 · AI — usage', usage(), 1680, 1180, 'Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.'],
-  ['AIModels', 'S17 · AI — models and budgets', models(), 1440, 1000, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each, and budgets.'],
+  ['AIModels', 'S17 · AI — models, budgets and scoring', models(), 1440, 1260, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.'],
 ];
 const IDENTITY = [
   ['IdentityCodeLight', 'Identity · Code light', code(T.light), 1280, 860],
@@ -1564,7 +1843,7 @@ function layout(list, pageId, cols) {
 layout(LEARN, 'learn', 3);
 layout(STUDIO, 'studio', 3);
 layout(IDENTITY, 'identity', 2);
-annotations.push({ id: 'note-brief', x: -760, y: -250, w: 620, page: 'learn', text: 'Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: nodes are standalone pages; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar.' });
+annotations.push({ id: 'note-brief', x: -760, y: -250, w: 620, page: 'learn', text: 'Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: Code is the tutor on top of existing material (tutor spec). Nodes are standalone pages that also point to the best existing videos and readings; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar.' });
 writeFileSync(`${D}canvas.json`, JSON.stringify({
   pages: [{ id: 'learn', name: 'Learn' }, { id: 'studio', name: 'Studio' }, { id: 'identity', name: 'Identity' }],
   artboards, annotations, launch: { view: 'canvas', page: 'learn' },

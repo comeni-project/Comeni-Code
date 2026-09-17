@@ -8,6 +8,10 @@ short spec and plan (R5). Section numbers like W3 refer to
 [`2026-09-16-comeni-code-weaving-and-pages-design.md`](2026-09-16-comeni-code-weaving-and-pages-design.md);
 numbers like R4 refer to this one.
 
+**Revised the same day:** [`2026-09-17-code-as-tutor-design.md`](2026-09-17-code-as-tutor-design.md)
+is now the current statement of the product. The stack and phases here stand. The phases below
+say where that spec adds work.
+
 ---
 
 ## R1. Decisions
@@ -32,6 +36,10 @@ All decided by the operator on 2026-09-17.
 | Sharing code with Labs | **None.** Share philosophy, repository shape and the visual identity; not packages | shared packages would couple two release cycles and make each harder to maintain |
 
 This closes first-spec open question 6 (*where the content lives*).
+
+*Added 2026-09-17 (tutor spec T2): Code complements Khan Academy rather than competing with it.
+Nodes point to outside resources, the first nodes are drafted from public outlines, and drafted
+blocks are scored by a judge model.*
 
 ---
 
@@ -102,6 +110,9 @@ decided part by part (R5).
 - A handful of Salmon-route fixture nodes exist, and an index can be rebuilt from files.
 - **Done when** the validator accepts the fixtures and rejects a broken node with a message naming
   the file and field; the index rebuilds from files alone. *Against W3.1–3.2, W5.1.*
+- *2026-09-17 (tutor spec T4, T6, T7): the schema also holds `resource` blocks, hints,
+  rationales and `step_back_to`, and learner answers are stored as evidence. A small skeleton
+  seeds the fixtures.*
 
 ### M2 — Weaver
 - Goal targets become a route by a pure function (W3.3), reachable from a CLI and the API.
@@ -113,6 +124,8 @@ decided part by part (R5).
 - A learner can find a target without AI, see its route as a metro map, and read a node.
 - **Done when** the Start, Route and Node pages sit convincingly beside the L1, L4 and L5 boards.
   *Against W6, W10.*
+- *2026-09-17: the Node page includes its **Learn it** section with at least one embedded and one
+  linked resource (tutor spec T4).*
 
 ### M4 — Studio core
 - The team signs in with roles; an author drafts a node, checks run, a reviewer approves, and it
@@ -126,6 +139,10 @@ decided part by part (R5).
   through the content API.
 - **Done when** a drafted block carries its provenance, and the AI pages show real usage.
   *Against W9; S15–S17.*
+- *2026-09-17 (tutor spec T8): block evaluation, with a judge from a different model family,
+  automatic redrafts below x, and review sorted by score. Also skeleton drafting and resource
+  suggestion as declared call sites. **Done when** also includes: a drafted block shows its score
+  and reasons, and a low score triggers a bounded redraft.*
 
 ### M6 — Figures and problems
 - The first figure components, the figure composer, and problems with seeded datasets and checkers.
@@ -136,6 +153,8 @@ decided part by part (R5).
   reviewed; routes become named tracks.
 - **Done when** a missing node goes from request to landed, and a route becomes a named track.
   *Against W3.4–3.6; S7–S9.*
+- *2026-09-17 (tutor spec T5): skeletons (S18). An outline becomes scored stubs and *needs*
+  links that reach Requests.*
 
 ### M8 — The learner loop
 - Knowledge state, review scheduling, Home, Explore, Your knowledge and placement.
@@ -144,6 +163,9 @@ decided part by part (R5).
 ### M9 — The Salmon demo
 - The whole Salmon route authored, reviewed and landed, ending in a Labs pipeline.
 - **Done when** a new learner goes from *learn Salmon* to a pipeline they can run. *Against W12.*
+- *2026-09-17 (tutor spec T10): the learner may start at AP-biology level. The route takes them
+  back a step when an answer shows a gap, and gives the best existing video or reading at each
+  stop.*
 
 **Why this order.** The schema and the weaver carry the product's central claim and need no UI, so
 they are built and proved first. Screens come at M3 rather than last because the design was drawn
@@ -186,6 +208,13 @@ Hosting and deployment beyond Compose; learner accounts beyond what M8 needs; th
 solutions threads; S11 Quality (it needs traffic); the Labs *arriving from a decision* page (L11)
 until Labs exposes a link to Code.
 
+*Added 2026-09-17 (tutor spec T12):*
+- *learner chat;*
+- *exams;*
+- *mastery levels and decay;*
+- *automatic deployment of high-scoring blocks;*
+- *our own screencasts.*
+
 ---
 
 ## R7. What this document does not decide
@@ -204,3 +233,9 @@ and how the content repository is mounted.
 2. **One web app or two** — learner and Studio together (R2) or split later.
 3. **Institutional sign-in** — which federations, and when.
 4. **Content releases** — how often a citable snapshot is tagged, and whether it gets a DOI.
+5. **A sign-in shared with Labs** — OIDC with Code as the provider, or a separate identity
+   service. Raised in Labs' journal on 2026-09-17
+   (`Comeni-Labs/docs/notes/journal/2026-09-17-labs-in-the-hybrid-identity.md`). It does not
+   block M0.
+6. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
+   far down the AP-level start goes.

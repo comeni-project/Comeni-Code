@@ -11,6 +11,9 @@ to know how and in what order it was reached, it is here.
 **[`journal/`](journal/)** — one entry per working session: what changed, what was decided and
 rejected, what is next, and what a fresh reader would get wrong. Newest first.
 
+**[`research/`](research/)** — studies that decisions were built on, kept whole so specs can cite
+them.
+
 ## The one rule
 
 **Entries are append-only.** A correction goes in a later entry, never by editing an earlier one.
