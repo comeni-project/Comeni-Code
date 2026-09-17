@@ -6,6 +6,9 @@ Nothing here has been built. The implementation plan does not exist yet.
 visual identity are specified in
 [`2026-09-16-comeni-code-weaving-and-pages-design.md`](2026-09-16-comeni-code-weaving-and-pages-design.md),
 which wins where the two disagree.
+**Code is the tutor on top of existing material** — outside resources, skeletons, checks that
+teach, and block scores are specified in [`2026-09-17-code-as-tutor-design.md`](2026-09-17-code-as-tutor-design.md),
+the current statement of the product, which wins over both.
 
 Comeni Code is the third repository under the `comeni-project` umbrella, beside
 [Comeni Labs](https://github.com/comeni-project/Comeni-Labs) (Mendel, Wiener) and
@@ -207,6 +210,8 @@ Consequences, stated because they were the argument against this choice:
   Network, Bioconductor's training committee) agree that basic computational skills are rarely
   taught in life-science degrees, producing researchers tasked with analysing data they cannot
   analyse.
+- *Widened 2026-09-17 (T10 of the [tutor spec](2026-09-17-code-as-tutor-design.md)): routes may
+  start at AP-biology level, so this learner is met where school biology left them.*
 
 ---
 
@@ -569,6 +574,11 @@ moderately interactive. At 15 minutes a node that is roughly 8–20 hours each b
 
 **The first thing to find out is whether the authoring loop produces nodes a human learns from.**
 Everything else is downstream of that answer.
+
+*Revised 2026-09-17 ([tutor spec](2026-09-17-code-as-tutor-design.md), T4–T5): the writing bill
+shrinks because nodes point to the best existing teaching (Khan Academy, OpenStax, Galaxy
+Training, the Carpentries), and the first nodes are drafted from public course outlines rather
+than blank pages. The question above stands.*
 
 ### 8.3 Record the events from day one
 

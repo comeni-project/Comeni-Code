@@ -11,6 +11,11 @@ like W3 refer to this one.
 
 Nothing here has been built.
 
+**Revised 2026-09-17:** [`2026-09-17-code-as-tutor-design.md`](2026-09-17-code-as-tutor-design.md)
+is now the current statement of the product. Code is the tutor on top of existing material. That
+spec adds outside resources and video, skeletons, step backs, hints, stored evidence and block
+scores, and wins where the two disagree. The sections it changes say so below.
+
 ---
 
 ## W1. The idea, in one paragraph
@@ -25,6 +30,9 @@ makes every goal that reaches it possible. The only per-route writing is short *
 text**, which AI drafts and a human reviews. Pages grow with the number of *topics*, never with
 the number of *courses* — that is the scaling argument, and §8.2's "the writing is the product"
 is why it matters.
+
+*2026-09-17: nodes now also point outward to the best existing teaching, and the first nodes are
+drafted from public course outlines (tutor spec T1, T4, T5). Weaving is unchanged.*
 
 The Salmon example is a real one: since version 1.0 Salmon's default index is pufferfish, which is
 built on a compacted coloured de Bruijn graph, so *de Bruijn graphs* genuinely belongs on the route
@@ -95,7 +103,8 @@ Given a goal, in order:
 3. **Resolve *any of* groups.** Prefer a member the learner already holds, otherwise the
    member with the shortest remaining route, otherwise the group's declared default.
 4. **Remove what is held.** Nodes the learner has settled (§9.1) or tested out of (L2) drop out,
-   and so does everything *only* they needed.
+   and so does everything *only* they needed. *(2026-09-17: "settled" is **known**, backed by
+   stored evidence — tutor spec T7.)*
 5. **Order.** Topologically; ties broken by region, then by the order the author declared.
 6. **Explain.** Every node on the route carries **why it is there**: the chain of *needs* reasons
    back to a target ("*k-mers* — needed by *de Bruijn graphs*, needed by *Salmon*'s index").
@@ -279,6 +288,11 @@ or a model writes can inject markup, script or one-off styling.
 | `callout` | misconception, caveat, convention | misconception callouts also answer wrong submissions (§5.1.1) |
 | `problem` | the Rosalind/Euler-shaped problem (§5.1.1) | seeded generator and checker self-test |
 
+*Extended 2026-09-17 (tutor spec T4, T6): a **`resource`** block (outside video, reading,
+tutorial or exercise, embedded or linked, with licence); **`hints`** and a **`rationale`** on
+`try` and `problem`; **`step_back_to`** on misconception callouts. Drafted blocks carry scores
+(T8).*
+
 ### W5.2 The AI writes through a content API, not a file
 
 Studio exposes a **CMS-style API** — the same one its own editor uses, and available to models as
@@ -365,6 +379,13 @@ question; an image carries its own.
 | L11 | **From Labs** | A Mendel decision → the node that explains it | The decision with rule, premise, citation; the node opened at the relevant part; **judge it yourself before the short answer** | Labs' output as the answer (§2.2) |
 | L12 | **Explore** | Browse 50+ tracks | **Search first**; facets with counts (how much you hold, ends in Labs, region, goal type, time left); **applied filters as removable chips**; dense rows with *you hold N of M* and time left for you; sort by most already held; a **Network** view limited to the filtered tracks | cards that stop scaling; a network of everything by default |
 
+*Revised 2026-09-17 (tutor spec T3, T13.3):*
+- *L2 is the first station of the tutor loop.*
+- *L4 shows detours.*
+- *L5 gains a **Learn it** section (Read / Watch, outside resources), hints, and a step back in
+  feedback.*
+- *L7 applies hints and step backs in review.*
+
 The weekly problem (L8) never closes, ranks nobody and counts nothing but solves; "solved by N%"
 is a measurement of difficulty, as on Project Euler (§9.2).
 
@@ -409,7 +430,14 @@ content.
 | S14 | **Team** | Who does what | Invites, roles, expertise, audit log (§5.6) | — |
 | S15 | **Assistant** | Working with the AI | Chats **tied to a node, request or route**; the assistant acts only through the content API (W5.2), and each action appears as a card the author **keeps or discards**; kept changes become drafts that still need checks and review; a list of what it can and cannot do; tokens and budget for the chat; model chosen per chat within what S17 allows | approving, publishing, landing or moving requests from a chat |
 | S16 | **AI · Usage** | See what the AI costs | Tokens, cost and calls for a period; budget meter; tokens per day **by task**; tables by task, person and model (the chart's accessible view); alerts that say what happens when a cap is reached | per-learner tracking |
+| S18 | **Skeletons** *(added 2026-09-17, tutor spec T5)* | Draft nodes from a public outline | Import an outline (College Board, OpenStax, Galaxy Training, Carpentries); proposed stubs and *needs* links **with scores**; each mapped to *existing / new / merge*; send to Requests | extracting outlines from sites whose terms forbid it; creating tracks directly |
 | S17 | **AI · Models** | Decide where models come from | The three lanes (W9); the **fixed list of places Code calls a model**, each with its model, fallback and cap; budgets and what happens at a cap; what is recorded per call | adding a call site from the UI |
+
+*Revised 2026-09-17 (tutor spec T8, T13.3):*
+- *S3 gains a Resources tab and block scores.*
+- *S6 sorts and filters by score, with the judge's reasons.*
+- *S11 shows tutor measures and judge–human agreement.*
+- *S17 lists the new call sites.*
 
 ---
 
@@ -418,7 +446,9 @@ content.
 - Streaks, XP, badges, leagues, leaderboards, hearts, loss-framed notifications — §9.
 - A backlog or overdue count — W4.1.
 - A chatbot as the main way to learn — §2.2. Wrong answers are answered from the misconception
-  hole (§5.1.1).
+  hole (§5.1.1). *(2026-09-17: learner chat is deferred past v1, not refused — tutor spec T12.)*
+- Block scores shown to learners — tutor spec T8.
+- Content copied or scraped from sites whose terms forbid it — tutor spec T5.3.
 - A model choosing the route — W3.3.
 - Anything leaving the request queue without a person — W3.6.
 - In-browser code execution in v1 — W2.
@@ -440,8 +470,11 @@ Code follows Labs' rules for models rather than inventing its own.
 - **Declared call sites only**, as Labs' invariant 3: goal suggestions (learners, W3.3 step 1),
   page drafting, figure data and problems, connecting text, request grouping, and assistant
   chats. Each has a model, a fallback and a cap (S17). Adding a site is a reviewed code change.
-- **Learners never chat.** The only learner-facing call is goal suggestion, capped per day, and
-  it falls back to plain search (§2.2).
+  *(2026-09-17: plus **skeleton drafting**, **resource suggestion** and **block evaluation** —
+  tutor spec T8, T13.1.)*
+- **Learners never chat** in v1. The only learner-facing call is goal suggestion, capped per day,
+  and it falls back to plain search (§2.2). *(2026-09-17: a learner chat after v1 is possible as
+  a reviewed change — tutor spec T12.)*
 - **The assistant (S15) is the content API with a conversation around it.** It proposes; the
   author keeps or discards each change; kept changes are drafts under the normal checks and
   review. It cannot approve, publish, land, or move a request.
@@ -519,13 +552,17 @@ k-mers, de Bruijn graphs, selective alignment and expectation–maximisation. Th
 hole, all three link kinds, *any of* groups, reuse between two routes, a missing-node request,
 and the Labs ending — at perhaps 40–60 nodes.
 
+*Revised 2026-09-17 (tutor spec T10): the Salmon route starts at AP-biology level, its lower
+nodes drafted from skeletons, and ends at a runnable Labs pipeline.*
+
 ---
 
 ## W13. Open questions
 
 1. **Placement's shape** — adaptive, or one question per threshold on the route?
-2. **Which inline questions count toward settling a node** — all of them, or only the problem
-   (§5.1.1 says only the problem)?
+2. ~~**Which inline questions count toward settling a node**~~ — *answered 2026-09-17 for v1
+   (tutor spec T7): a node is known when its `try` checks are answered and its problem is
+   solved.*
 3. **Solutions moderation** — the smallest rule set an invited team can sustain.
 4. **Weekly problem data** — a curated list of public datasets, licence recorded?
 5. **Component versions** — pinned per node and replayed like human edits?
