@@ -6,9 +6,9 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-16-the-design-before-the-code.md`](2026-09-16-the-design-before-the-code.md)** — the
-> session that turned authored tracks into woven routes, drew every key page twice, settled the
-> visual identity with Labs, and seeded this repository. Read its *What is next* before starting.
+> [`2026-09-17-m0-in-parts.md`](2026-09-17-m0-in-parts.md)**: phase M0 begins. The design PRs are
+> merged, and M0 is split into nine parts, listed in its *What is next*. Read it before starting a
+> part.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -46,4 +46,5 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-m0-in-parts.md) | **M0 in parts.** The design PRs are merged; CLAUDE.md now covers the build phase; M0 is split into nine parts. No code |
 | [2026-09-16](2026-09-16-the-design-before-the-code.md) | **Tracks become woven routes.** The second spec; every key page drawn and redrawn against research; the hybrid identity; the AI pages; the repository seeded. No code |
