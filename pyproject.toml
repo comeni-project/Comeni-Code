@@ -1,12 +1,18 @@
 # A virtual workspace: the root is not a package. `uv sync --all-packages` installs every member.
 [tool.uv.workspace]
-members = ["packages/*"]
+members = ["packages/*", "apps/api"]
 
 [dependency-groups]
-dev = ["pytest>=9.1", "ruff>=0.16", "mypy>=2.3"]
+dev = [
+    "pytest>=9.1",
+    "pytest-django>=4.14",
+    "ruff>=0.16",
+    "mypy>=2.3,<2.4",
+    "django-stubs[compatible-mypy]>=6.1,<6.2",
+]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "apps/api/tests"]
 # `tests/` is on the path so `guards.purity` imports without making `tests` a package.
 pythonpath = ["tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
@@ -21,11 +27,14 @@ extend-exclude = ["tests/guards/fixtures"]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["code_schema", "code_weaver", "guards"]
+known-first-party = ["code_api", "code_schema", "code_weaver", "guards"]
 
 [tool.mypy]
 strict = true
-files = ["packages", "tests"]
+files = ["packages", "apps/api", "tests"]
+# pydantic's plugin knows that settings fields come from the environment, not from arguments.
+plugins = ["pydantic.mypy"]
 exclude = ['^tests/guards/fixtures/']
-mypy_path = "tests"
+# apps/api/src is listed so each file there has exactly one module name.
+mypy_path = ["tests", "apps/api/src"]
 explicit_package_bases = true
