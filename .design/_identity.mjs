@@ -1,21 +1,11 @@
 // Comeni hybrid identity: Friendly's legibility + Observatory's precision + the shared family core.
-import { writeFileSync } from 'node:fs';
-const D = new URL('.', import.meta.url).pathname;
-const MONO = "'Geist Mono', ui-monospace, monospace";
-const UI = "'Lexend', system-ui, sans-serif";
+// The tokens themselves live in tokens.json, the one source the web app also generates its theme from
+// (M0 part 6 spec, P6.2). This module draws the identity boards from them.
+import tokens from './tokens.json' with { type: 'json' };
 
-const T = {
-  light: { name: 'light', bg: '#F4F5F8', surface: '#FFFFFF', canvas: '#F8F9FB', grid: 'rgba(40,60,110,.055)', grid2: 'rgba(40,60,110,.028)',
-    border: '#E1E4EC', border2: '#C9CEDB', ink: '#171A26', ink2: '#474D63', ink3: '#666C84', rail: '#B3B9CA',
-    line: '#0F9D7A', lineSoft: '#DDF3EC', sel: '#2F6FEB', selSoft: '#E6EEFD', meas: '#9A5B00', measBar: '#D08A10', measSoft: '#FBF0DC',
-    open: '#C92F36', openSoft: '#FCE5E6', settled: '#474D63', exon: '#ECEFF5',
-    btn: '#0B7F63', btnInk: '#FFFFFF', btnSh: '#075C48', float: '0 6px 18px -10px rgba(23,26,38,.25)' },
-  dark: { name: 'dark', bg: '#12141B', surface: '#1A1D27', canvas: '#161820', grid: 'rgba(140,170,255,.06)', grid2: 'rgba(140,170,255,.03)',
-    border: '#282C3A', border2: '#3A3F52', ink: '#E8EAF2', ink2: '#B0B5C8', ink3: '#8C92A8', rail: '#4A5068',
-    line: '#2FC79B', lineSoft: '#113529', sel: '#6EA2FF', selSoft: '#172642', meas: '#F0B840', measBar: '#F0B840', measSoft: '#35290F',
-    open: '#FF6E73', openSoft: '#3A1B20', settled: '#B0B5C8', exon: '#232736',
-    btn: '#2FC79B', btnInk: '#06201A', btnSh: '#1E8C6C', float: '0 8px 22px -12px rgba(0,0,0,.7)' },
-};
+const MONO = tokens.fonts.mono;
+const UI = tokens.fonts.ui;
+const T = { light: tokens.light, dark: tokens.dark };
 
 const head = (c) => `<!doctype html>
 <html>
