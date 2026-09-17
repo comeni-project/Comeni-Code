@@ -17,11 +17,16 @@ All decided by the operator on 2026-09-17.
 |---|---|---|
 | Backend framework | **Django, with Django Ninja for the JSON API** | **FastAPI (as Labs)** — Code is mostly a content system and would have to build accounts, roles, permissions, admin, sessions and migrations by hand. **Django + Wagtail** — its revisions, moderation and media library are attractive, but its page tree and admin fight the graph model and the custom Studio screens (W7). **Hono** — a TypeScript backend would leave Python, where problem generators, checkers and figure validation belong, and away from what the team knows from Labs |
 | Frontend | **React + Vite + TypeScript + TanStack Query + Tailwind**, as in Labs, with the W10 tokens | — |
-| Data and queues | **Postgres**; **Redis** with a background worker | the worker library is open (R8) |
+| Data and queues | **Postgres**; **Redis**; **Celery** as the background worker, with celery beat for scheduled jobs | **RQ** — schedules need an add-on and rate limits are manual. **Dramatiq** — leaner, but scheduling is separate. **Django 6's Tasks framework** — an interface with no production worker, schedules or retries. **arq (as Labs)** — built for async code; Django is mostly synchronous. Code's jobs need retries (git, models), per-queue rate limits (models) and schedules (daily caps, review, stalled flags) |
 | Models | **One LiteLLM gateway** (W9) | — |
 | Running it | **Docker Compose** for now | hosting is later |
 | Where content lives | **Drafts, reviews and history in Postgres; approved content as files in git**, landed by Studio (§5.4, W7 S10). The app serves learners from an index built from the landed files | **Database only** — loses diff, blame and review for content. **Git only** — every save a commit makes drafts, locking and review awkward |
 | Where the content repository lives | **A separate repository**, like comeni-registry for Labs, CC BY 4.0, mounted into Code | **Inside Comeni-Code** — mixes content and code histories and licences |
+| Accounts | **django-allauth**: sign in with **ORCID** or **GitHub** (OAuth / OpenID Connect) **or email and password**; a session cookie between the web app and the API; learners can start without an account and sign in to keep their progress; the team must sign in. Institutional sign-in can be added later with the same library | **OAuth only** — no passwords to store, but not everyone has ORCID or GitHub. **A lower-level OAuth library** (Authlib, social-auth) — account linking, email checks and two-factor are ours to build. **An external identity provider** — another service to run before it is needed. allauth is not an alternative to OAuth; it is the library that implements it |
+| How content is landed | **Studio opens one pull request per batch** on the content repository, with provenance in its description; the repository's CI validates it and it **merges automatically when green**, behind branch protection. Pull requests from outside Studio need a maintainer's review and are recorded as *reviewed on GitHub* | **A direct commit** — the app's token could rewrite everything and a Studio bug would land unchecked. **A maintainer-merged pull request** — a second human review that duplicates Studio's and invites rubber-stamping (§5.5). **Direct commits plus tagged releases** — a person reviews batches too late to matter |
+| The node on disk | **A folder per node**: `node.yaml` (claim, needs groups with reasons, related links, region, provenance), `body.md` in **MyST Markdown** accepting **only our directives and roles**, and YAML data files for figures and problems. The schema package converts the folder to and from the JSON blocks the app uses, with a round-trip test | **Markdoc-style tags** — the parser is JavaScript-only. **One YAML/JSON file** — prose reads and diffs poorly for reviewers. **Plain Markdown** — questions, problems and callouts would need an invented syntax. MyST has Python and JavaScript parsers, and scientific authors may know it from Jupyter Book |
+| How the app gets content | **A worker keeps a checkout of the content repository's main branch**, pulls on each merge (webhook, with polling as a fallback) and rebuilds the index, recording the commit each entry came from. **Tagged releases** are cut as citable snapshots. **Tests use a small fixture set inside Comeni-Code** | **A git submodule** (as Labs mounts the registry) — new content would wait for someone to bump the pin and redeploy. **Following releases only** — slower, and landing already has its checks |
+| The content repository | **`comeni-project/comeni-content`**, CC BY 4.0, **created at M0** so its CI and branch protection exist before any node lands | `comeni-nodes`, `comeni-library` |
 | The v1 demo | **Salmon, end to end** | STAR (more linear); a smaller tool first |
 | Sharing code with Labs | **None.** Share philosophy, repository shape and the visual identity; not packages | shared packages would couple two release cycles and make each harder to maintain |
 
@@ -43,7 +48,7 @@ packages/
 apps/
   api/             Django project: accounts, content, studio, learn, requests, ai
   web/             React app: learner pages and Studio
-content/           the content repository, mounted (git submodule or checkout)
+tests/fixtures/    a small, fixed node set — tests never read the real content repository
 compose.yaml       postgres, redis, api, worker, web; litellm when AI arrives
 .design/  docs/
 ```
@@ -65,10 +70,11 @@ renderer and the metro maps (W2). Whether it later splits is open (R8).
  learners ◄── API ◄── index in Postgres ◄──────── rebuilt from files ◄──┘
 ```
 
-- **A node on disk** is a block document (W5.1) plus its links, in a format the schema package
-  defines and validates. Its exact serialisation is decided in the M1 plan.
-- **Landing** writes the approved node to the content repository with its provenance (W9).
-  Whether landing is a direct commit or a pull request on the content repository is open (R8).
+- **A node on disk** is a folder: `node.yaml`, a MyST `body.md` and YAML data files (R1). The
+  schema package defines and validates it; the exact fields are decided in the M1 plan.
+- **Landing** opens a pull request per batch on `comeni-content`, with provenance (W9); its CI
+  validates and it merges automatically when green (R1).
+- **A worker follows the content repository**: on each merge it pulls and rebuilds the index.
 - **The index** is derived data: rebuildable from the files at any time, never edited.
 - **The weaver reads the index**, never a draft, so learners only walk approved links.
 
@@ -82,7 +88,7 @@ checked while there is still time to change it.
 
 | # | Milestone | Done when | Checked against |
 |---|---|---|---|
-| **M0** | **Skeleton** — repository layout, compose (postgres, redis, api, worker, web), health endpoints, CI, the purity guard | `docker compose up` shows a health page; CI is green; the purity guard fails when a pure package imports Django | R2 |
+| **M0** | **Skeleton** — repository layout, compose (postgres, redis, api, Celery worker and beat, web), health endpoints, CI, the purity guard; **`comeni-content` created** with its licence, CI stub and branch protection | `docker compose up` shows a health page; CI is green; the purity guard fails when a pure package imports Django; the content repository refuses a direct push to main | R2 |
 | **M1** | **Content core** — the node schema (blocks, needs groups, goes deeper, related), validation, the content repository with a handful of Salmon-route fixture nodes, the index | a command validates the fixtures and rejects broken ones with a message naming the file and field; the index rebuilds from files | W3.1–3.2, W5.1 |
 | **M2** | **Weaver** — goal targets → route as a pure function, then a CLI and an API endpoint | the Salmon route matches the one drawn on the Route board; repeated runs are byte-identical; cycles are refused | W3.3 |
 | **M3** | **Thin learner path** — Node page (blocks rendered), Route page (metro map from the weave), Start without AI (search for targets) | the pages beside the L5, L4 and L1 boards | W6, W10 |
@@ -128,14 +134,10 @@ choices inside each milestone. Each belongs to that milestone's plan.
 
 ## R8. Open questions
 
-1. **The worker library** — Celery or RQ on Redis. Decide in the M0 plan.
-2. **Landing** — a direct commit to the content repository, or a pull request there that a
-   maintainer merges.
-3. **Accounts** — email and password, institutional sign-in, ORCID, GitHub; and whether learners
-   need an account before M8.
-4. **The node file format** — Markdown with typed tags (Markdoc-like) or structured JSON/YAML
-   blocks (Portable Text-like). Decide in the M1 plan, with an author reading the result.
-5. **Search** — Postgres full-text search first; whether anything more is ever needed.
-6. **One web app or two** — learner and Studio together (R2) or split later.
-7. **How the content repository is mounted** — a submodule, as Labs mounts the registry, or a
-   checkout the worker keeps current.
+Settled on 2026-09-17 and moved into R1: the worker library, landing, accounts, the node format,
+and how the content repository is mounted.
+
+1. **Search** — Postgres full-text search first; whether anything more is ever needed.
+2. **One web app or two** — learner and Studio together (R2) or split later.
+3. **Institutional sign-in** — which federations, and when.
+4. **Content releases** — how often a citable snapshot is tagged, and whether it gets a DOI.
