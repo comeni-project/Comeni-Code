@@ -16,7 +16,7 @@ members = [
 [manifest.dependency-groups]
 dev = [
     { name = "celery-types", specifier = ">=0.26,<0.27" },
-    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=6.1,<6.2" },
+    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=6.1.1,<6.2" },
     { name = "mypy", specifier = ">=2.3,<2.4" },
     { name = "pytest", specifier = ">=9.1" },
     { name = "pytest-django", specifier = ">=4.14" },

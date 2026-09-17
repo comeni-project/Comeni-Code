@@ -9,7 +9,7 @@ dev = [
     "ruff>=0.16",
     "mypy>=2.3,<2.4",
     "celery-types>=0.26,<0.27",
-    "django-stubs[compatible-mypy]>=6.1,<6.2",
+    "django-stubs[compatible-mypy]>=6.1.1,<6.2",
 ]
 
 [tool.pytest.ini_options]
