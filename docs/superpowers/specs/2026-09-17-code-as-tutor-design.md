@@ -65,7 +65,7 @@ All decided by the operator on 2026-09-17, after the research report.
 | Learner chat | **Planned, not in v1** (T12). Invariant 8 holds for v1 | **Chat in v1** — Khan Academy's measured tutoring gains are modest (T11), and the structured tutor does not need it |
 | Scoring drafted work | **An AI judge scores every drafted block with reasons; low scores are redrafted automatically; reviewers filter and sort by score** (T8) | **No scoring** — reviewers would face skeleton-scale drafting unaided |
 | Automatic deployment of high scores | **Deferred until judge–human agreement is measured**, and then only for low-risk block types (T8.4) | **Auto-deploy now** — breaks invariant 5 without evidence |
-| Audience | **University students and researchers** (operator, restated the same day). **Khan Academy serves children and teenagers up to college entry; Code serves the people after that.** Routes may start at AP-biology level only as **catch-up prerequisites for that audience**, and nodes further along are written at university level | **A school audience** — Khan Academy's ground, and the wrong register for researchers. **University level only, with no catch-up** — a biologist missing a school topic would have nowhere to start |
+| Audience | **Self-directed learners at every level** (operator, revised the same day), with **five content levels** on nodes: *First steps · Foundations · Introductory · Intermediate · Advanced* (T10.1). A level describes a node, never a learner. Learning needs no account at any age; accounts are 13+ until a consent spec (T10.2) | **University students and researchers only** (the earlier answer the same day) — leaves out learners before university. **Stage-of-education labels for learners** — they label adults by school age and differ by country |
 
 ---
 
@@ -111,7 +111,7 @@ A new block type (it extends W5.1):
 | `covers` | one sentence: what this resource teaches that the node needs | present |
 | `licence` | the resource's licence or terms, e.g. `CC BY 4.0`, `CC BY-NC-SA`, `YouTube embed` | known value |
 | `display` | `embed` or `link` | `embed` allowed only where the licence and provider allow it (T4.2) |
-| `level` | `AP` · `intro university` · `advanced` | enum |
+| `level` | `first-steps` · `foundations` · `introductory` · `intermediate` · `advanced` (T10.1) | enum; flagged in review if two or more levels from the node's |
 | `reviewed_by` | who accepted it | set by review, never by a model |
 
 A model may **suggest** resources. A suggestion is a draft block, and it is scored (T8) and
@@ -262,7 +262,7 @@ It is not a plain text form.
 | **Stem** | `text`, `math`, `figure` (a library component filled with data), `image` (with author and licence), `table`, `code` or sequence block | the same checks as on a page (W5.1, W5.3); alt text required on figures and images |
 | **Answer** | one of: **choice** (each option may itself hold text, a figure or an image), **number** (with tolerance and unit), **sequence or string** (exact, or a normalisation rule), **figure interaction** (the component computes the answer, e.g. click the bubble in a graph), **order** (put steps in order) | exactly one correct answer; distractors distinct; a figure-interaction answer computed, never typed |
 | **Variants** | an optional **seed**: the component or generator draws numbers, sequences or graphs per learner | a self-test over 20 seeds: every variant has one correct answer and renders |
-| **Metadata** | the node it tests, the claim it checks, difficulty estimate, the misconception each distractor targets (links to a `callout`, so a wrong answer can step back, T6.1) | every distractor names a misconception or is marked plain |
+| **Metadata** | the node it tests, the claim it checks, its **level** (T10.1), difficulty estimate, the misconception each distractor targets (links to a `callout`, so a wrong answer can step back, T6.1) | every distractor names a misconception or is marked plain |
 | **Rationale** | shown only in the results, never during the test | present |
 
 - **Hints are not allowed in exam questions.** A test has none (T7.1).
@@ -379,26 +379,89 @@ These appear in Quality (S11).
 
 ---
 
-## T10. The slice and the audience
+## T10. The slice, the audience and levels
 
-**Who Code is for: university students and researchers.** Khan Academy is built mainly for
-children and teenagers, from primary school to getting into college, with teachers and
-districts around them. Code starts where that ends: undergraduates, graduate students, and
-researchers who need to analyse data. **This shapes page content, not the overall design:**
-depth, tone, examples and what a node assumes. Nothing is simplified for a younger reader, and a
-page assumes a self-directed adult. The product and interface design (the tutor loop, routes,
-maps, Studio) stand as specified. AP-level nodes exist only to fill gaps this audience turns out
-to have.
+**Who Code is for: self-directed learners at every level, from their first steps in a science to
+research.** *(Revised later the same day. An earlier version said university students and
+researchers only; the operator widened it to learners before university too.)* Khan Academy
+serves school-age learners inside a school system, with teachers and districts around them. Code
+serves anyone building toward real understanding and real analyses, with the tutor doing the
+structuring a teacher would (T3). The tool and pipeline goals mean many learners will be
+university students and researchers, but a route reaches as far down as the learner needs.
+**The audience shapes page content, not the overall design:** depth, tone, examples and what a
+node assumes are set by the node's **level** (T10.1). The product and interface design (the tutor
+loop, routes, maps, Studio) stand as specified, with the exception noted for First steps.
+
+### T10.1 Levels
+
+Every node has one **level**. It describes **the node's content**: what it assumes and how deep
+it goes. **It never describes the learner.** Nobody "is" a level, and a level is never a prize or
+a rank (invariant 10).
+
+| Level | Content that… | Roughly matches (authors only) | Salmon-route examples |
+|---|---|---|---|
+| **First steps** | assumes nothing beyond everyday knowledge | primary to lower secondary school | what a cell is; living things carry instructions |
+| **Foundations** | builds the school science the rest needs | upper secondary to pre-university (GCSE, AP, A-level, IB) | DNA and genes; gene expression; transcription |
+| **Introductory** | starts a field at university depth | first-year undergraduate, or a researcher new to the field | sequencing reads; FASTQ; k-mers |
+| **Intermediate** | applies it: analyses, code, methods sections | upper undergraduate or practitioner | de Bruijn graphs; alignment; expectation–maximisation |
+| **Advanced** | reads and builds on primary research | graduate and research | selective alignment; pufferfish's index; bias correction |
+
+**Learners see the names; authors see the stages.** The names do not label people by age, they
+work in every country, and they describe content. The stage mapping gives authors a concrete
+target.
+
+What a level does:
+
+- **Writing.** Each level has a short **writing guide**: vocabulary, reading age, how much maths,
+  what may be assumed, and the stage it roughly matches. Authors write to it, drafting prompts
+  receive it, and the judge's *clear at this level* part (T8.2) scores against it.
+- **Resources and exam questions carry a level too** (T4.1, T7.1). A node links resources and
+  holds exam questions at or near its own level. A resource two or more levels away is flagged
+  in review.
+- **Routes are unchanged.** Routes come only from *needs* links (invariant 1). A level never adds
+  or removes a stop; placement and the learner's evidence do. A route **shows its span**, for
+  example *Foundations → Advanced · starts at Introductory for you*.
+- **Placement can take a hint.** A learner may say what they have studied ("a biology degree").
+  Placement then asks about lower-level nodes first, expecting to drop them, but it still asks:
+  a hint never marks a node known.
+- **Explore and search** filter by level.
+- **Graph health (S2)** warns when a node *needs* a node two or more levels above it. That
+  usually means a wrong link or a mis-levelled node.
+- **Skeletons** propose a level for each stub from the outline's stage (T5).
+
+**Rejected:**
+
+| Alternative | Why not |
+|---|---|
+| **Stages of education as the learner-facing labels** ("Lower secondary", "GCSE", "AP") | they label adults by school age, and they mean different things in different countries. Kept for authors only |
+| **Four levels, starting at Foundations** | "Foundations" would stretch from primary school to AP, too wide to write for |
+| **Six levels, one per stage** | more boundaries to argue in review, for little gain; undergraduate can split later if nodes cluster there |
+| **Numbered levels (1–5)** | read as a ranking |
+| **A level on the learner** | turns content depth into a rank; the learner's state is evidence per node (T7) |
+
+### T10.2 Young learners
+
+Levels below university bring learners under 18, and some under 13.
+
+- **Learning needs no account at any age.** A learner can already start without one (R1).
+  Anonymous use asks no age.
+- **Accounts are for 13 and over** (or the local age of digital consent, 13–16 across the EU
+  under the GDPR) **until a consent spec exists.** That spec covers parental consent (COPPA in
+  the US) and how long a minor's stored evidence (T7) is kept, and how it is deleted.
+- **Learner chat stays off for under-18s even after v1** (T12), until its own safety review.
+- **First steps pages may need interface changes** (larger type, shorter pages, less density).
+  This is the one place the audience may reach the design. First steps content and those changes
+  come together, in their own design round.
 
 - **The v1 demo stays *learn Salmon*** (R1, W12), but the route **starts at AP-biology level**,
   with its lower nodes drafted from skeletons (T5), and ends at a runnable Labs pipeline. The
   claim under test is: *someone who knows AP Biology, or less, gets from "learn Salmon" to a
   pipeline they can run.*
-- Nodes near the start may cover AP-level material, **written for an adult who missed it**, not
-  for a school student. Nodes further along stay at university level. Each node records its
-  `level`.
-- The first spec's §4 learner, a wet-lab biologist handed sequencing data, is unchanged. Routes
-  starting at AP level serve them better.
+- The Salmon route's nodes span **Foundations → Advanced**. First steps nodes are not needed for
+  the v1 demo (see T14).
+- The first spec's §4 learner, a wet-lab biologist handed sequencing data, is still the v1
+  learner the slice is tested with. Levels let the same route serve a school student who wants
+  to learn Salmon too.
 
 ---
 
@@ -440,6 +503,7 @@ The findings that drive this document:
 | **Learner chat** | the structured tutor comes first; the evidence for chat tutoring is modest | a new declared call site (invariant 7), in its own spec |
 | **Mastery levels and decay** | need more questions per node | derived from stored evidence and self-test results (T7, T7.1) |
 | **Certified or supervised exams** | self-tests prove nothing to anyone else | its own spec |
+| **Accounts for under-13s** (or under the local age of digital consent) | need parental consent and rules for minors' evidence | a consent spec (T10.2) |
 | **Automatic deployment** | needs measured judge–human agreement | T8.4, its own spec |
 | **Our own screencasts** | outside videos cover v1 | `resource` with `provider: Comeni` |
 
@@ -472,12 +536,15 @@ The findings that drive this document:
 | Page | Change |
 |---|---|
 | **L2 Placement** | drawn for the first time; the first station of the loop |
-| **L4 Route** | shows a detour loop; says where the route starts (level) |
+| **L4 Route** | shows a detour loop; shows the route's **level span** and where it starts for this learner |
+| **L5 Node** | shows the node's **level** beside its time |
+| **L12 Explore** | a **level** filter; each track's span |
+| **S2 Graph** | a health warning when a node needs one two or more levels above it |
 | **L5 Node** | a **Learn it** section with **Read / Watch** and outside resources; hints in checks; a step back in the problem's feedback; resources in the side column |
 | **L7 Review** | hints and step back apply in review too (not redrawn this round) |
 | **L13 Exam** | new: set up (scope, length), in progress (mixed, no hints), results per node on the map (T7.1) |
 | **L3 Home, L4 Route** | a **Test yourself** action |
-| **S3 Node workbench** | a **Resources** tab and an **Exam pool** tab; `resource` and hints in the block list; **scores** in the outline and a **Score** panel |
+| **S3 Node workbench** | the node's **level** in Settings, with its writing guide linked; a **Resources** tab and an **Exam pool** tab; `resource` and hints in the block list; **scores** in the outline and a **Score** panel |
 | **S3 Exam pool (question builder)** | new board: the pool's questions with state and score; a question as blocks (stem with figure or image; answer type; options that hold figures); variants across seeds; distractors mapped to misconceptions; live preview as in a test; checks (T7.1) |
 | **S6 Review** | drawn for the first time: blocks sorted and filtered by score, with the judge's reasons, redraft history, and *agree / disagree* |
 | **S11 Quality** | drawn for the first time: tutor measures (T9), judge–human agreement, broken or unhelpful resources, automatic deployment shown as locked |
@@ -492,7 +559,7 @@ The findings that drive this document:
 2. **Which providers are on the embed allow-list** after the terms are read (T5.3).
 3. **Whether *didn't help* on a resource should reorder resources automatically,** or only flag
    them for a person.
-4. **How far down the AP-level start goes** for the Salmon route: whole AP units, or only the
+4. **How far down the Foundations start goes** for the Salmon route: whole AP units, or only the
    topics Salmon's route actually needs.
 5. **Whether a detour (T6.1) should shorten** when the learner answers the prerequisite's check
    correctly on sight.
@@ -500,6 +567,10 @@ The findings that drive this document:
    it depend on the node's size?
 7. **Whether a *not yet* result from a self-test should return a node to the route
    automatically,** or ask the learner first.
+8. **First steps in the MVP, or deferred?** Recommended: deferred. It is not needed for the
+   Salmon demo, and it brings interface changes and under-13 accounts (T10.2).
+9. **Where the level boundaries fall in practice.** The first skeleton review (S18) will show
+   whether Introductory and Intermediate need clearer writing guides.
 
 ---
 

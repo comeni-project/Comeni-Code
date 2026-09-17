@@ -67,9 +67,10 @@ describe it as deterministic. The *route* is deterministic; the words are not.
 
 ## The model, in one paragraph
 
-**Code is the tutor on top of material that already exists, for university students and
-researchers.** Khan Academy serves children and teenagers up to college entry; Code starts where
-that ends. The audience shapes page content (depth, tone, examples), not the product design. It does not try to out-write Khan
+**Code is the tutor on top of material that already exists, for self-directed learners at every
+level**, from first steps in a science to research. Each node has a content **level**, which
+shapes depth, tone and examples, not the product design. Khan Academy serves school-age learners
+inside a school system; Code builds the route and does the structuring a teacher would. It does not try to out-write Khan
 Academy; it organises the best existing teaching into the right order for one learner's goal.
 Nodes are standalone topic pages, reviewed by a person and reused everywhere, and each points
 outward to the best existing video or reading. A learner's goal resolves to one to three target
@@ -126,7 +127,9 @@ node); **skeleton** (draft node stubs and needs links from a public outline — 
 **known** (a learner's state for a node, backed by stored evidence); **score** (a judge model's
 rating of a drafted block, Studio only); **step back** (a detour to a prerequisite after a wrong
 answer); **self-test** (an exam a learner generates from node exam pools, graded automatically,
-with results per node — never a grade or a certificate).
+with results per node — never a grade or a certificate); **level** (a node's content depth:
+*First steps · Foundations · Introductory · Intermediate · Advanced* — it describes the node,
+never the learner; stages of education such as "AP" are for authors' writing guides only).
 
 ## Decided, do not reopen (architecture spec R1)
 
