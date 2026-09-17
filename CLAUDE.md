@@ -11,7 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
 workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist, and the web app (`apps/web`) shows the identity specimen in light and dark.
+`/api/docs`) exist, and the web app (`apps/web`) shows the health page at `/` and the identity specimen at
+`/identity`.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -42,7 +43,7 @@ cd apps/web && npm ci && cd ../..
 uv sync --locked --all-packages     # install the workspace (Python 3.14)
 uv run python apps/api/manage.py check                              # Django's checks
 uv run python apps/api/manage.py makemigrations --check --dry-run   # models match migrations
-uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json   # after any API change
+uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json   # after any API change, then npm run api-types in apps/web
 uv run python apps/api/manage.py collectstatic --noinput            # fills CODE_STATIC_ROOT
 uv run celery -A code_api worker -l info                            # background worker
 uv run celery -A code_api beat -l info                              # scheduler (separate process)
@@ -62,7 +63,11 @@ npm test            # vitest
 npm run build       # vite build
 npm run dev         # http://127.0.0.1:5173
 npm run tokens      # regenerate src/styles/tokens.css after changing .design/tokens.json
+npm run api-types   # regenerate src/api/schema.ts from apps/api/openapi.json
 ```
+
+**`npm run dev` proxies `/api` to `CODE_WEB_API_ORIGIN`** (default `http://127.0.0.1:8000`, where
+`runserver` listens). Run the API, worker and beat too, or the health page says what is down.
 
 **Adding a pure package** means declaring its allowlist in `tests/guards/purity.py`. An
 undeclared directory under `packages/` fails the guard. The guards are two partial checks
