@@ -61,7 +61,7 @@ All decided by the operator on 2026-09-17, after the research report.
 | What does a wrong answer do? | **Explains the misconception and offers a step back** to the prerequisite it reveals (T6.1) | Correction only — a tutor diagnoses, not only marks |
 | Hints | **Ordered hints while answering and a rationale afterwards** in every check (T6.2) | Feedback only after submitting |
 | Learner state | **Evidence, not levels**: a node is *known* or not, and every answer is stored so levels can be derived later (T7) | **Mastery levels now** (Khan Academy's four) — the weaver only needs *known*, and decaying levels need more questions per node than v1 will have |
-| Exams | **Deferred past v1** (T12) | — |
+| Exams | **Self-tests in v1** (T7.1, added later the same day): each node holds a pool of auto-graded exam questions; a learner generates an exam at any point from the nodes done so far or the whole route, and results confirm or question what they know | **Deferred past v1** (the first answer the same day) — the pieces already exist (evidence, review engine, scored drafting), and exams give *known* a real check. **Certified exams** — unsupervised self-tests prove nothing to anyone else |
 | Learner chat | **Planned, not in v1** (T12). Invariant 8 holds for v1 | **Chat in v1** — Khan Academy's measured tutoring gains are modest (T11), and the structured tutor does not need it |
 | Scoring drafted work | **An AI judge scores every drafted block with reasons; low scores are redrafted automatically; reviewers filter and sort by score** (T8) | **No scoring** — reviewers would face skeleton-scale drafting unaided |
 | Automatic deployment of high scores | **Deferred until judge–human agreement is measured**, and then only for low-risk block types (T8.4) | **Auto-deploy now** — breaks invariant 5 without evidence |
@@ -229,9 +229,70 @@ only if the learner says so ("I've forgotten this").
 - which misconception matched;
 - whether a step back was taken.
 
-The first spec's §8.3 already requires this. Mastery levels, decay and exams can then be derived
-later from stored evidence, with no migration. This answers W13 question 2 for v1: a node becomes
+The first spec's §8.3 already requires this. Mastery levels and decay can then be derived later
+from stored evidence, with no migration; self-tests (T7.1) are built on it in v1. This answers W13 question 2 for v1: a node becomes
 known when its `try` checks are answered and its problem is solved.
+
+### T7.1 Self-tests
+
+*Added 2026-09-17, after the operator asked for an exam system before freezing the design.*
+
+**Any time, a learner can test themselves.** Code builds an exam from the nodes in a chosen
+scope, grades it automatically, and shows the result on the route's map. It is how *known*
+gets checked: **self-tests are the mastery system for v1**, without levels.
+
+**The question pool.**
+
+- Each node holds an **exam pool** of about **4–6 questions**, separate from its inline `try`
+  checks, so an exam never replays what the learner just read.
+- Pool questions are auto-gradable only: choice, number, sequence or string, and figure
+  interactions with computed answers.
+- A question may be **seeded**, drawing its numbers or sequence from a generator (as problems
+  do, §5.1.1), so retakes differ and answers can't be memorised.
+- Pool questions are drafted, scored (T8) and reviewed like any other block. A node without a
+  reviewed pool of at least 4 is left out of exams, and the setup page says so.
+
+**Building an exam.**
+
+| Choice | Options |
+|---|---|
+| Scope | **what I've done so far** on a route · **the whole route** · **one line** · a region |
+| Length | about 15, 30 or 60 minutes |
+
+- Questions are **sampled across the nodes in scope and mixed**, weighted toward nodes tested
+  least recently and nodes marked *shaky*. There are at least 2 questions per node when length
+  allows; otherwise nodes rotate across exams.
+- Assembly is **deterministic given the scope, the learner's evidence and a seed**, so an exam
+  can be reproduced for checking.
+- **No hints and no feedback until the end.** The topic of each question is not announced
+  (W4.1). The learner can stop and resume.
+
+**Results.** Per node, never as one pass or fail:
+
+| Result | Means | What happens |
+|---|---|---|
+| **confirmed** | answered right, with evidence from at least 2 questions | the node stays *known* |
+| **shaky** | mixed | offered for review; a step back to the prerequisite the wrong answers point at |
+| **not yet** | mostly wrong | the node returns to the route as not known |
+
+- Results are drawn on the route's **metro map** (invariant 12), with a list view.
+- There is no overall score, no grade and nothing to share or rank (invariant 10). A share of
+  questions answered may be shown as a measurement.
+- A whole-route exam taken before starting is **test out of everything**. It is placement
+  (L2) at depth.
+- Every answer is stored as evidence (T7).
+
+**What it is not.** Not a certificate: self-tests are unsupervised and prove nothing to anyone
+else. Not timed pressure: a length is a guide, not a clock. Not a backlog: nothing prompts a
+learner to take one.
+
+**Where it lands.**
+
+- **L13 Exam:** set up, in progress and results.
+- A **Test yourself** action on Route (L4) and Home (L3).
+- An **Exam pool** tab in the Workbench (S3).
+- Pool question statistics in Quality (S11): questions everyone gets right or wrong, and
+  questions that don't separate learners who know a node from those who don't.
 
 ---
 
@@ -348,8 +409,8 @@ The findings that drive this document:
 | Deferred | Why | Where it would go |
 |---|---|---|
 | **Learner chat** | the structured tutor comes first; the evidence for chat tutoring is modest | a new declared call site (invariant 7), in its own spec |
-| **Exams** | need enough checks per region | built on stored evidence (T7) |
-| **Mastery levels and decay** | need more questions per node | derived from stored evidence (T7) |
+| **Mastery levels and decay** | need more questions per node | derived from stored evidence and self-test results (T7, T7.1) |
+| **Certified or supervised exams** | self-tests prove nothing to anyone else | its own spec |
 | **Automatic deployment** | needs measured judge–human agreement | T8.4, its own spec |
 | **Our own screencasts** | outside videos cover v1 | `resource` with `provider: Comeni` |
 
@@ -385,7 +446,9 @@ The findings that drive this document:
 | **L4 Route** | shows a detour loop; says where the route starts (level) |
 | **L5 Node** | a **Learn it** section with **Read / Watch** and outside resources; hints in checks; a step back in the problem's feedback; resources in the side column |
 | **L7 Review** | hints and step back apply in review too (not redrawn this round) |
-| **S3 Node workbench** | a **Resources** tab; `resource` and hints in the block list; **scores** in the outline and a **Score** panel |
+| **L13 Exam** | new: set up (scope, length), in progress (mixed, no hints), results per node on the map (T7.1) |
+| **L3 Home, L4 Route** | a **Test yourself** action |
+| **S3 Node workbench** | a **Resources** tab and an **Exam pool** tab; `resource` and hints in the block list; **scores** in the outline and a **Score** panel |
 | **S6 Review** | drawn for the first time: blocks sorted and filtered by score, with the judge's reasons, redraft history, and *agree / disagree* |
 | **S11 Quality** | drawn for the first time: tutor measures (T9), judge–human agreement, broken or unhelpful resources, automatic deployment shown as locked |
 | **S17 AI · Models** | the three new call sites, the judge's model family rule, and the x / N settings |
@@ -403,6 +466,10 @@ The findings that drive this document:
    topics Salmon's route actually needs.
 5. **Whether a detour (T6.1) should shorten** when the learner answers the prerequisite's check
    correctly on sight.
+6. **Pool size and the confirmed rule** (T7.1): are 4–6 questions and "2 right" enough, or should
+   it depend on the node's size?
+7. **Whether a *not yet* result from a self-test should return a node to the route
+   automatically,** or ask the learner first.
 
 ---
 

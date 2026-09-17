@@ -385,6 +385,8 @@ question; an image carries its own.
 - *L5 gains a **Learn it** section (Read / Watch, outside resources), hints, and a step back in
   feedback.*
 - *L7 applies hints and step backs in review.*
+- *L13 **Exam** is new: self-tests built from node exam pools, with per-node results on the map
+  (tutor spec T7.1).*
 
 The weekly problem (L8) never closes, ranks nobody and counts nothing but solves; "solved by N%"
 is a measurement of difficulty, as on Project Euler (§9.2).

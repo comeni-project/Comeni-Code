@@ -73,7 +73,8 @@ Nodes are standalone topic pages, reviewed by a person and reused everywhere, an
 outward to the best existing video or reading. A learner's goal resolves to one to three target
 nodes; the route is a pure walk over the nodes' directed *needs* links, so courses build
 themselves. The loop is diagnose (placement), sequence (weaver), explain (node and resources),
-check (with hints), step back when an answer reveals a gap, and review. AI proposes targets,
+check (with hints), step back when an answer reveals a gap, review, and self-tests whose
+per-node results confirm what the learner knows. AI proposes targets,
 links, skeletons from public course outlines, page drafts, figure data and short connecting text,
 and a judge model scores every drafted block; AI never chooses the route. Missing nodes and
 unknown goals go to a request queue, and only a person moves them on.
@@ -122,7 +123,8 @@ Use the vocabulary in §3 of the first spec and W3.2 of the second. In particula
 node); **skeleton** (draft node stubs and needs links from a public outline — never a track);
 **known** (a learner's state for a node, backed by stored evidence); **score** (a judge model's
 rating of a drafted block, Studio only); **step back** (a detour to a prerequisite after a wrong
-answer).
+answer); **self-test** (an exam a learner generates from node exam pools, graded automatically,
+with results per node — never a grade or a certificate).
 
 ## Decided, do not reopen (architecture spec R1)
 

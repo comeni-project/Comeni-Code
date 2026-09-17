@@ -112,7 +112,8 @@ decided part by part (R5).
   the file and field; the index rebuilds from files alone. *Against W3.1–3.2, W5.1.*
 - *2026-09-17 (tutor spec T4, T6, T7): the schema also holds `resource` blocks, hints,
   rationales and `step_back_to`, and learner answers are stored as evidence. A small skeleton
-  seeds the fixtures.*
+  seeds the fixtures. Nodes also hold an exam pool (T7.1), so adding it later needs no content
+  migration.*
 
 ### M2 — Weaver
 - Goal targets become a route by a pure function (W3.3), reachable from a CLI and the API.
@@ -159,6 +160,9 @@ decided part by part (R5).
 ### M8 — The learner loop
 - Knowledge state, review scheduling, Home, Explore, Your knowledge and placement.
 - **Done when** a returning learner's Home is right, and review never shows a backlog. *Against W6.*
+- *2026-09-17 (tutor spec T7.1): self-tests (L13) on the same engine as review. **Done when** also
+  includes: an exam over "what I've done so far" is built from exam pools, graded automatically,
+  and its per-node results change what the route shows.*
 
 ### M9 — The Salmon demo
 - The whole Salmon route authored, reviewed and landed, ending in a Labs pipeline.
@@ -210,7 +214,6 @@ until Labs exposes a link to Code.
 
 *Added 2026-09-17 (tutor spec T12):*
 - *learner chat;*
-- *exams;*
 - *mastery levels and decay;*
 - *automatic deployment of high-scoring blocks;*
 - *our own screencasts.*
