@@ -271,3 +271,7 @@ and how the content repository is mounted.
    The tutor measures (T9) need traffic and may wait. Decide when M5 is split into parts.
 8. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
    far down the AP-level start goes.
+9. **Review of content pull requests that don't come from Studio** (M0 part 9 spec, P9.2). The
+   content README promises a maintainer's review; with one maintainer a required approval blocks
+   their own pull requests, and Studio has no GitHub identity yet to exempt. Decide with landing
+   (M4).
