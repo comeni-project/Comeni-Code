@@ -10,7 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
-workspace and the Django project (`apps/api`, no API routes yet) exist; the web app does not.
+workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
+`/api/docs`) exist; the web app does not.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -27,6 +28,8 @@ uv run python apps/api/manage.py migrate
 uv sync --locked --all-packages     # install the workspace (Python 3.14)
 uv run python apps/api/manage.py check                              # Django's checks
 uv run python apps/api/manage.py makemigrations --check --dry-run   # models match migrations
+uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json   # after any API change
+uv run python apps/api/manage.py collectstatic --noinput            # fills CODE_STATIC_ROOT
 uv run ruff check .                 # lint
 uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
 uv run mypy                         # strict types over packages/, apps/api/ and tests/
@@ -218,7 +221,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .env.example              local values for every CODE_* variable
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/), and its tests
+apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py), openapi.json, tests
 compose.yaml              the local stack: postgres now, the rest from part 8
 docs/index.md             documentation map
 docs/design/              how screens are made

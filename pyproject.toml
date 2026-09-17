@@ -17,6 +17,10 @@ DJANGO_SETTINGS_MODULE = "code_api.config.settings"
 # `tests/` is on the path so `guards.purity` imports without making `tests` a package.
 pythonpath = ["tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
+filterwarnings = [
+    # WhiteNoise notes a missing STATIC_ROOT; tests run without collectstatic except where they call it.
+    "ignore:No directory at:UserWarning",
+]
 
 [tool.ruff]
 line-length = 100

@@ -4,6 +4,7 @@ This is the only module that reads environment variables. Every name starts with
 developer's shell cannot leak another project's `DATABASE_URL` into Code.
 """
 
+from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import unquote, urlsplit
 
@@ -26,6 +27,8 @@ class Env(BaseSettings):
     database_url: SecretStr
     debug: bool = False
     allowed_hosts: Annotated[list[str], NoDecode] = []
+    # Where collectstatic writes; relative paths are from the working directory (the repo root).
+    static_root: Path = Path("staticfiles")
 
     @field_validator("database_url")
     @classmethod
@@ -56,4 +59,6 @@ def database_from_url(url: str) -> dict[str, Any]:
         "PASSWORD": unquote(parts.password or ""),
         "HOST": parts.hostname or "",
         "PORT": str(parts.port or ""),
+        # A dead database must fail fast, so /api/health answers 503 instead of hanging.
+        "OPTIONS": {"connect_timeout": 3},
     }

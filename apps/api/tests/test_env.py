@@ -81,6 +81,7 @@ def test_database_from_url() -> None:
         "PASSWORD": "p@ss/word",
         "HOST": "db.internal",
         "PORT": "6543",
+        "OPTIONS": {"connect_timeout": 3},
     }
 
 
