@@ -57,7 +57,7 @@ apps/web/
 |---|---|
 | Runtime | react and react-dom 19.3.0, @tanstack/react-query 5.103.1 |
 | Build | vite 8.3.0, @vitejs/plugin-react 6.1.1, typescript 7.0.2, @types/react and @types/react-dom 19.3.0, @types/node 24 |
-| Test | vitest 5.0.1, jsdom 30.1.0, @testing-library/react 16.3.3, @testing-library/jest-dom 7.0.1 |
+| Test | vitest 5.0.1, **jsdom 29.1.1** (see below), @testing-library/react 16.3.3, @testing-library/jest-dom 7.0.1 |
 | Lint and format | @biomejs/biome 2.5.14 |
 
 **Scripts**, identical locally and in CI:
@@ -81,6 +81,17 @@ apps/web/
   `engines` and CI. On this machine it comes from Fedora's `nodejs24` package, which the operator
   installs with `sudo dnf install nodejs24`.
 - **TanStack Query's provider is mounted now,** so part 7 only adds queries.
+- **jsdom 29.1.1, not 30** *(changed during the build, operator's decision)*. jsdom 30 declares
+  Node `^24.15.0`, and Fedora 43's `nodejs24` is 24.14.1, with no newer build even in
+  updates-testing. With `engine-strict`, `npm install` refused. The scratch build had used
+  nodejs.org's 24.21, so it couldn't show this. jsdom 29.1.1 (April 2026) accepts `>=24.0.0`.
+  Every other dependency accepts 24.14. **Bump to jsdom 30 once Fedora ships Node 24.15 or
+  later.** **Rejected:** official Node 24.21 in user space (not updated by dnf); happy-dom (less
+  faithful); turning `engine-strict` off (runs a package outside what it supports).
+- **On Fedora, `node` stays Node 22 after installing `nodejs24`,** which installs `node-24`,
+  `npm-24` and `npx-24`. `npm-24` starts with `#!/usr/bin/env node`, so run as-is it executes under
+  Node 22. Put a directory whose `node`, `npm` and `npx` link to the `-24` binaries first on
+  `PATH` (CLAUDE.md shows how).
 
 **Rejected:**
 
