@@ -9,8 +9,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: design finished; building starts at phase M0 (Skeleton).** No application code yet, so
-there are no build, lint or test commands yet. Add them here when the first M0 part lands.
+**Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
+workspace exists; the Django project and the web app do not yet.
+
+**Commands** (CI runs exactly these):
+
+```
+uv sync --locked --all-packages     # install the workspace (Python 3.14)
+uv run ruff check .                 # lint
+uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
+uv run mypy                         # strict types over packages/ and tests/
+uv run pytest                       # all tests
+uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
+```
+
+**Adding a pure package** means declaring its allowlist in `tests/guards/purity.py`. An
+undeclared directory under `packages/` fails the guard. The guards are two partial checks
+(static imports and a runtime audit hook), and the honest claim is their union.
 
 **Read first, in this order:**
 
@@ -154,13 +169,19 @@ Python lacks PyYAML, use `/home/gibli/Documents/GitHub/Comeni-Labs/.venv/bin/pyt
 ## Layout
 
 Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React),
-`tests/fixtures/`, `compose.yaml`. Today only the following exists:
+`tests/fixtures/`, `compose.yaml`. Today the following exists:
 
 ```
 .design/                  design canvas generator and its output
 .github/                  contributing, security, templates
+.github/workflows/ci.yml  the CI job
 docs/index.md             documentation map
 docs/design/              how screens are made
 docs/notes/journal/       session records, append-only
 docs/superpowers/specs/   design documents
+docs/superpowers/plans/   one plan per part
+packages/code-schema/     pure, empty until M1
+packages/code-weaver/     pure, empty until M2
+tests/guards/             purity guards, their helpers and planted fixtures
+tests/repo/               repository checks (relative links)
 ```

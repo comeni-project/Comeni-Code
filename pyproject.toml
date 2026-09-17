@@ -1,0 +1,31 @@
+# A virtual workspace: the root is not a package. `uv sync --all-packages` installs every member.
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[dependency-groups]
+dev = ["pytest>=9.1", "ruff>=0.16", "mypy>=2.3"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `tests/` is on the path so `guards.purity` imports without making `tests` a package.
+pythonpath = ["tests"]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+# The planted packages break the rules on purpose (spec P1.4).
+extend-exclude = ["tests/guards/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["code_schema", "code_weaver", "guards"]
+
+[tool.mypy]
+strict = true
+files = ["packages", "tests"]
+exclude = ['^tests/guards/fixtures/']
+mypy_path = "tests"
+explicit_package_bases = true

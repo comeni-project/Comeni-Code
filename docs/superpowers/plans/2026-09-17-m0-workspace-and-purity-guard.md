@@ -580,11 +580,9 @@ from dataclasses import dataclass
 from pathlib import Path
 ```
 
-- [ ] **Step 4: Append the runtime section to `tests/guards/purity.py`**
+- [ ] **Step 4: Append the runtime section to `tests/guards/purity.py`**, after two blank lines
 
 ```python
-
-
 # Audit events a pure package must never raise: network, process execution, foreign calls.
 WATCHED = frozenset(
     {
