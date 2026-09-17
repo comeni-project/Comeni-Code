@@ -6,10 +6,10 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-17-levels.md`](2026-09-17-levels.md)**: five content levels on nodes, and learners
-> before university. It supersedes the audience in the entry before it. Then read
+> [`2026-09-17-first-steps-in-mvp.md`](2026-09-17-first-steps-in-mvp.md)**: First steps is in
+> the MVP. Read it with [`2026-09-17-levels.md`](2026-09-17-levels.md), then
 > [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) for the direction change and
-> [part 2's entry](2026-09-17-m0-part-2-django-project.md) for where M0 stands. Seven entries
+> [part 2's entry](2026-09-17-m0-part-2-django-project.md) for where M0 stands. Eight entries
 > share this date.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
@@ -48,6 +48,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-first-steps-in-mvp.md) | **First steps in the MVP.** A design round before M3; a few First steps nodes under the Salmon route |
 | [2026-09-17](2026-09-17-levels.md) | **Levels.** Five content levels (First steps → Advanced); learners at every level; accounts 13+ until a consent spec |
 | [2026-09-17](2026-09-17-questions-and-audience.md) | **Questions and audience.** Exam questions as block documents (question builder drawn); Code is for university students and researchers |
 | [2026-09-17](2026-09-17-self-tests.md) | **Self-tests.** Exams from node pools join v1 as the mastery system (tutor spec T7.1); L13 Exam drawn |
