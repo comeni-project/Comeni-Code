@@ -40,7 +40,19 @@ Design preview in Claude Code; published copies are views, and the generator is 
 
 | Learn | Studio |
 |---|---|
-| L1 Start · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S7 Requests · S8 Implementing · S9 Weave review · S15 Assistant · S16–S17 AI |
+| L1 Start · L2 Placement · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S6 Review · S7 Requests · S8 Implementing · S9 Weave review · S11 Quality · S15 Assistant · S16–S17 AI · S18 Skeletons |
 
-Not yet drawn: L2 Placement, L6 Problem (its full block is inside L5), L7 Review, L8 Weekly,
-L11 From Labs, S1 Inbox, S6 Review, S11 Quality and the smaller settings pages.
+**Revised 2026-09-17 for the [tutor spec](../superpowers/specs/2026-09-17-code-as-tutor-design.md):**
+- **L5 Node:** a *Learn it* section with Read / Watch and outside resources, hints in checks, and a
+  step back in feedback.
+- **L4 Route:** a suggested step back and the level the route starts at.
+- **S3 Workbench:** a Resources tab and block scores.
+- **S17 AI:** the new call sites and the scoring settings.
+- **New boards:** L2, S6, S11 and S18.
+
+Not yet drawn: L6 Problem (its full block is inside L5), L7 Review, L8 Weekly, L11 From Labs,
+S1 Inbox and the smaller settings pages.
+
+**Where the canvas is published.** The first canvas was published as a private artifact on the
+operator's earlier account. Publishing the regenerated canvas is started by the operator
+(`/design`), because that skill cannot be run on an agent's own initiative.

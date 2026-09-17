@@ -33,28 +33,37 @@
       "page": "learn"
     },
     {
-      "file": "Route.dc.html",
-      "title": "L4 · Route — map, selected stop, next up, milestones",
+      "file": "Placement.dc.html",
+      "title": "L2 · Placement — the first station of the tutor loop",
       "x": 3120,
       "y": 0,
       "w": 1440,
-      "h": 1400,
+      "h": 800,
+      "page": "learn"
+    },
+    {
+      "file": "Route.dc.html",
+      "title": "L4 · Route — map, selected stop, next up, detours, milestones",
+      "x": 0,
+      "y": 1660,
+      "w": 1440,
+      "h": 1480,
       "page": "learn"
     },
     {
       "file": "Node.dc.html",
-      "title": "L5 · Node — blocks, figures, inline questions, the problem",
-      "x": 0,
-      "y": 1760,
+      "title": "L5 · Node — learn it, blocks, questions with hints, a step back",
+      "x": 1560,
+      "y": 1660,
       "w": 1440,
-      "h": 4700,
+      "h": 5420,
       "page": "learn"
     },
     {
       "file": "Explore.dc.html",
       "title": "L12 · Explore — search and filter at scale",
-      "x": 1560,
-      "y": 1760,
+      "x": 3120,
+      "y": 1660,
       "w": 1440,
       "h": 1120,
       "page": "learn"
@@ -62,8 +71,8 @@
     {
       "file": "Knowledge.dc.html",
       "title": "L9 · Your knowledge — areas that may not connect",
-      "x": 3120,
-      "y": 1760,
+      "x": 0,
+      "y": 7440,
       "w": 1440,
       "h": 1480,
       "page": "learn"
@@ -71,8 +80,8 @@
     {
       "file": "AccountMenu.dc.html",
       "title": "Account menu",
-      "x": 0,
-      "y": 6820,
+      "x": 1560,
+      "y": 7440,
       "w": 320,
       "h": 420,
       "page": "learn"
@@ -123,10 +132,37 @@
       "page": "studio"
     },
     {
+      "file": "Review.dc.html",
+      "title": "S6 · Review — approve blocks, lowest score first",
+      "x": 3600,
+      "y": 1400,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "Skeletons.dc.html",
+      "title": "S18 · Skeletons — nodes drafted from a public outline",
+      "x": 0,
+      "y": 2820,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "Quality.dc.html",
+      "title": "S11 · Quality — is the tutor teaching? is the judge right?",
+      "x": 1800,
+      "y": 2820,
+      "w": 1680,
+      "h": 880,
+      "page": "studio"
+    },
+    {
       "file": "Graph.dc.html",
       "title": "S2 · Graph — search, neighbourhood, impact",
       "x": 3600,
-      "y": 1400,
+      "y": 2820,
       "w": 1680,
       "h": 1060,
       "page": "studio",
@@ -136,7 +172,7 @@
       "file": "Assistant.dc.html",
       "title": "S15 · Assistant — chat that acts through the content API",
       "x": 0,
-      "y": 2820,
+      "y": 4240,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -145,18 +181,18 @@
       "file": "AIUsage.dc.html",
       "title": "S16 · AI — usage",
       "x": 1800,
-      "y": 2820,
+      "y": 4240,
       "w": 1680,
       "h": 1180,
       "page": "studio"
     },
     {
       "file": "AIModels.dc.html",
-      "title": "S17 · AI — models and budgets",
+      "title": "S17 · AI — models, budgets and scoring",
       "x": 3600,
-      "y": 2820,
+      "y": 4240,
       "w": 1440,
-      "h": 1000,
+      "h": 1260,
       "page": "studio"
     },
     {
@@ -214,41 +250,49 @@
       "page": "learn"
     },
     {
-      "id": "note-route",
+      "id": "note-placement",
       "x": 3120,
       "y": -250,
       "w": 620,
-      "text": "Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4) and milestones — a problem per line, the Labs pipeline at the end.",
+      "text": "Reached from: Start (“Place me first”), Route, Home.\nLeads to: the shortened route.\nOne question per candidate stop, no hints, no score (tutor spec T3). A right answer drops the stop and what only it needed; “I don’t know this yet” keeps it. The side panel shows the route shortening as you go. The goal itself is never tested out of.",
+      "page": "learn"
+    },
+    {
+      "id": "note-route",
+      "x": 0,
+      "y": 1410,
+      "w": 620,
+      "text": "Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route says where it starts: AP Biology level (T10).",
       "page": "learn"
     },
     {
       "id": "note-node",
-      "x": 0,
-      "y": 1510,
+      "x": 1560,
+      "y": 1410,
       "w": 620,
-      "text": "Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.",
+      "text": "Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.",
       "page": "learn"
     },
     {
       "id": "note-explore",
-      "x": 1560,
-      "y": 1510,
+      "x": 3120,
+      "y": 1410,
       "w": 620,
       "text": "Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.",
       "page": "learn"
     },
     {
       "id": "note-knowledge",
-      "x": 3120,
-      "y": 1510,
+      "x": 0,
+      "y": 7190,
       "w": 620,
       "text": "Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.",
       "page": "learn"
     },
     {
       "id": "note-accountmenu",
-      "x": 0,
-      "y": 6570,
+      "x": 1560,
+      "y": 7190,
       "w": 320,
       "text": "Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.",
       "page": "learn"
@@ -282,7 +326,7 @@
       "x": 0,
       "y": 1150,
       "w": 620,
-      "text": "Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.",
+      "text": "Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nTutor spec additions: a Resources tab (outside videos and readings with provider, part and licence); every drafted block carries a judge score with named parts and reasons, a redraft count, and the judge model (never the drafter’s family); a block that fails a check is not scored.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.",
       "page": "studio"
     },
     {
@@ -294,9 +338,33 @@
       "page": "studio"
     },
     {
-      "id": "note-graph",
+      "id": "note-review",
       "x": 3600,
       "y": 1150,
+      "w": 620,
+      "text": "Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.",
+      "page": "studio"
+    },
+    {
+      "id": "note-skeletons",
+      "x": 0,
+      "y": 2570,
+      "w": 620,
+      "text": "Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.",
+      "page": "studio"
+    },
+    {
+      "id": "note-quality",
+      "x": 1800,
+      "y": 2570,
+      "w": 620,
+      "text": "Reached from: the rail (Insight).\nTutor spec T9 and T8.3: aggregates only. Right-on-next-try after a step back and after a hint; routes finished; resources marked unhelpful or broken. Judge–human agreement per block type against a 90% line — automatic deployment is locked for every type, and crossing the line only makes a type eligible for its own spec. Every “fix these” row opens the place to act.",
+      "page": "studio"
+    },
+    {
+      "id": "note-graph",
+      "x": 3600,
+      "y": 2570,
       "w": 620,
       "text": "Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.",
       "page": "studio"
@@ -304,7 +372,7 @@
     {
       "id": "note-assistant",
       "x": 0,
-      "y": 2570,
+      "y": 3990,
       "w": 620,
       "text": "Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.",
       "page": "studio"
@@ -312,7 +380,7 @@
     {
       "id": "note-aiusage",
       "x": 1800,
-      "y": 2570,
+      "y": 3990,
       "w": 620,
       "text": "Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.",
       "page": "studio"
@@ -320,9 +388,9 @@
     {
       "id": "note-aimodels",
       "x": 3600,
-      "y": 2570,
+      "y": 3990,
       "w": 620,
-      "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each, and budgets.",
+      "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.",
       "page": "studio"
     },
     {
@@ -331,7 +399,7 @@
       "y": -250,
       "w": 620,
       "page": "learn",
-      "text": "Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: nodes are standalone pages; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar."
+      "text": "Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: Code is the tutor on top of existing material (tutor spec). Nodes are standalone pages that also point to the best existing videos and readings; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar."
     }
   ],
   "launch": {
