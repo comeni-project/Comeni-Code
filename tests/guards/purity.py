@@ -7,7 +7,10 @@ The honest claim is their union.
 """
 
 import ast
-from collections.abc import Mapping
+import os
+import subprocess
+import sys
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -78,3 +81,65 @@ def scan_packages(packages: Path, allowed: Mapping[str, frozenset[str]]) -> list
                 path, path.read_text(), import_name(package.name), allowed[package.name]
             )
     return found
+
+
+# Audit events a pure package must never raise: network, process execution, foreign calls.
+WATCHED = frozenset(
+    {
+        "urllib.Request",
+        "subprocess.Popen",
+        "os.system",
+        "os.exec",
+        "os.posix_spawn",
+        "os.fork",
+        "os.forkpty",
+        "ctypes.dlopen",
+        "ctypes.dlsym",
+        "ctypes.call_function",
+        "ctypes.cdata",
+    }
+)
+WATCHED_PREFIXES = ("socket.",)
+IMPURE_EXIT = 3
+
+# This runs in a fresh interpreter, because an audit hook cannot be removed once installed. It
+# exits with `os._exit` rather than raising, so guarded code cannot catch its way past the hook.
+_PROBE = """
+import os, sys
+exit_code = int(sys.argv[1])
+watched = frozenset(sys.argv[2].split(","))
+prefixes = tuple(sys.argv[3].split(","))
+current = "<start>"
+def hook(event, args):
+    if event in watched or event.startswith(prefixes):
+        sys.stderr.write(f"impure: {event} while importing {current}\\n")
+        sys.stderr.flush()
+        os._exit(exit_code)
+sys.addaudithook(hook)
+for current in sys.argv[4:]:
+    __import__(current)
+"""
+
+
+def import_under_hook(
+    modules: Sequence[str], search_path: Sequence[Path] = ()
+) -> subprocess.CompletedProcess[str]:
+    """The runtime guard: import `modules` in a subprocess that exits on any watched event."""
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(str(p) for p in search_path)
+    return subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            _PROBE,
+            str(IMPURE_EXIT),
+            ",".join(sorted(WATCHED)),
+            ",".join(WATCHED_PREFIXES),
+            *modules,
+        ],
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=60,
+        check=False,
+    )
