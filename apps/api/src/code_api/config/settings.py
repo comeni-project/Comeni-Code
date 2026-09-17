@@ -4,6 +4,7 @@ M0 part 2 spec, P2.3.
 """
 
 from code_api.config.env import Env, database_from_url
+from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
 ENV = Env()
 
@@ -68,3 +69,18 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = ENV.static_root
+
+# Celery (M0 part 4 spec, P4.2). No result backend: nothing reads task results yet.
+CELERY_BROKER_URL = ENV.redis_url.get_secret_value()
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TIMEZONE = TIME_ZONE
+# Autodiscovery searches INSTALLED_APPS only; task modules outside a Django app are named here, or a
+# worker rejects their tasks as unregistered (found by hand in the part 4 scratch build).
+CELERY_IMPORTS = ("code_api.health.tasks",)
+CELERY_BEAT_SCHEDULE = {
+    "health-heartbeat": {
+        "task": "code_api.health.tasks.heartbeat",
+        "schedule": HEARTBEAT_INTERVAL_SECONDS,
+    },
+}
