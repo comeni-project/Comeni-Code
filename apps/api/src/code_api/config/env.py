@@ -56,4 +56,6 @@ def database_from_url(url: str) -> dict[str, Any]:
         "PASSWORD": unquote(parts.password or ""),
         "HOST": parts.hostname or "",
         "PORT": str(parts.port or ""),
+        # A dead database must fail fast, so /api/health answers 503 instead of hanging.
+        "OPTIONS": {"connect_timeout": 3},
     }
