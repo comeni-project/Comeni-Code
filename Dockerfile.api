@@ -1,0 +1,34 @@
+# The API, the Celery worker and beat: one image, three commands (M0 part 8 spec, P8.2). They run
+# the same code with the same settings, so one image keeps one set of versions.
+# Build from the repository root: docker build -f Dockerfile.api .
+
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
+WORKDIR /app
+# Whole folders, never a list of packages: a new workspace member can't be forgotten here.
+COPY pyproject.toml uv.lock ./
+COPY packages/ packages/
+COPY apps/api/ apps/api/
+RUN uv sync --locked --no-dev --package code-api
+
+# The API docs page's files go into the image. Settings need every CODE_* value to load; these are
+# placeholders for this one command and never reach a running container.
+RUN CODE_SECRET_KEY=build-time-placeholder-only-never-used-at-run-time-0000000000 \
+    CODE_DATABASE_URL=postgresql://build@placeholder/build \
+    CODE_REDIS_URL=redis://placeholder:6379/0 \
+    CODE_STATIC_ROOT=/app/staticfiles \
+    .venv/bin/python apps/api/manage.py collectstatic --noinput
+
+FROM python:3.14-slim-trixie
+RUN useradd --system --uid 10001 --no-create-home code
+WORKDIR /app
+COPY --from=build /app /app
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    CODE_STATIC_ROOT=/app/staticfiles
+USER code
+EXPOSE 8000
+# No control socket: nothing uses gunicorn's control interface (Compose restarts the container), and
+# its default path is under a home directory this user doesn't have.
+CMD ["gunicorn", "code_api.config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", \
+     "--access-logfile", "-", "--no-control-socket"]

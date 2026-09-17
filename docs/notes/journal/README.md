@@ -6,13 +6,14 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-17-m0-part-7-health-page.md`](2026-09-17-m0-part-7-health-page.md)**: M0 part 7 is
-> built (the health page at `/`, API types from `openapi.json`). Read its *Traps* on fonts and
-> background processes. For tokens and CSS see [part 6's entry](2026-09-17-m0-part-6-identity-tokens.md);
-> for Fedora's two Node versions, [part 5's](2026-09-17-m0-part-5-web-toolchain.md); for process
-> handling, [part 4's](2026-09-17-m0-part-4-celery.md); for the product direction,
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) and the entries after it. Thirteen
-> entries share this date.
+> [`2026-09-17-m0-part-8-compose-stack.md`](2026-09-17-m0-part-8-compose-stack.md)**: M0 part 8 is
+> built (`docker compose up` runs the whole stack; CI starts it). Read its *Traps* before merging
+> anything or running `docker compose down`. For the health page see
+> [part 7's entry](2026-09-17-m0-part-7-health-page.md); for tokens and CSS,
+> [part 6's](2026-09-17-m0-part-6-identity-tokens.md); for Fedora's Node versions,
+> [part 5's](2026-09-17-m0-part-5-web-toolchain.md); for process handling,
+> [part 4's](2026-09-17-m0-part-4-celery.md); for the product direction,
+> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Fourteen entries share this date.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -50,6 +51,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-m0-part-8-compose-stack.md) | **M0 part 8 built.** Compose runs migrate, api (gunicorn), worker, beat and web (nginx) on 127.0.0.1:8090; a CI `stack` job; M0 done except part 9; a PR merged red, fixed |
 | [2026-09-17](2026-09-17-m0-part-7-health-page.md) | **M0 part 7 built.** The health page at `/` through Vite's proxy, five worded states, API types from `openapi.json` with json-schema-to-typescript; fonts start at load |
 | [2026-09-17](2026-09-17-m0-part-6-identity-tokens.md) | **M0 part 6 built.** `.design/tokens.json` feeds the boards and a generated Tailwind 4 theme; CSS-first dark mode; bundled fonts; the identity specimen at `/`; light chip contrast kept |
 | [2026-09-17](2026-09-17-m0-part-5-web-toolchain.md) | **M0 part 5 built.** `apps/web`: Vite 8, React 19, TypeScript 7 strict, Biome, vitest; a web CI job; jsdom 29 until Fedora ships Node 24.15 |

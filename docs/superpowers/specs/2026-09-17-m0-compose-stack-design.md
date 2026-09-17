@@ -1,6 +1,6 @@
 # M0 part 8 — the Compose stack
 
-**Status: agreed 2026-09-17.** This is part 8 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #28.** This is part 8 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). It builds on
 the API and settings of parts 2–4 and the web app of parts 5–7, and settles two things earlier
 parts left here: serving static files with `DEBUG` off in a container
