@@ -17,7 +17,7 @@ workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.
 
 ```
 cp .env.example .env                   # local values for every CODE_* variable
-docker compose up -d --wait postgres   # Postgres 18 on localhost:5433
+docker compose up -d --wait postgres redis   # Postgres 18 on :5433, Redis 8 on :6380
 uv sync --locked --all-packages
 uv run python apps/api/manage.py migrate
 ```
@@ -30,6 +30,8 @@ uv run python apps/api/manage.py check                              # Django's c
 uv run python apps/api/manage.py makemigrations --check --dry-run   # models match migrations
 uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json   # after any API change
 uv run python apps/api/manage.py collectstatic --noinput            # fills CODE_STATIC_ROOT
+uv run celery -A code_api worker -l info                            # background worker
+uv run celery -A code_api beat -l info                              # scheduler (separate process)
 uv run ruff check .                 # lint
 uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
 uv run mypy                         # strict types over packages/, apps/api/ and tests/
@@ -43,7 +45,7 @@ undeclared directory under `packages/` fails the guard. The guards are two parti
 
 **Settings come only from `CODE_*` variables**, read by `code_api/config/env.py`, and nothing
 else reads the environment. mypy and pytest load the settings too, so they need `.env` (or the
-variables). Tests marked `django_db` need Postgres running; the rest don't.
+variables). Tests marked `django_db` need Postgres running, and tests that use Redis need Compose's `redis`; the rest don't.
 
 **Read first, in this order:**
 
@@ -221,8 +223,8 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .env.example              local values for every CODE_* variable
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py), openapi.json, tests
-compose.yaml              the local stack: postgres now, the rest from part 8
+apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py, celery.py, redis.py), openapi.json, tests
+compose.yaml              the local stack: postgres and redis now, the rest from part 8
 docs/index.md             documentation map
 docs/design/              how screens are made
 docs/notes/journal/       session records, append-only
