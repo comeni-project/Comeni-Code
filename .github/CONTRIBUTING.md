@@ -6,7 +6,7 @@ its decisions.
 
 ## What helps most right now
 
-**Critique of the design.** Read the two specs in
+**Critique of the design.** Read the specs in
 [`docs/superpowers/specs/`](../docs/superpowers/specs/) and the screens in
 [`docs/design/`](../docs/design/). An issue that says *this will not work for a wet-lab
 biologist, because…* is worth more than a pull request that polishes wording.
@@ -30,8 +30,8 @@ you spend time on it.
 | A record of a working session | a new file in `docs/notes/journal/` | the journal's own rules (below) |
 | Everything else in `docs/` | the file itself | that it matches the specs, or says it doesn't |
 
-Code, content and the content API arrive with the first implementation plan; this table will
-grow then.
+Code arrives phase by phase (architecture spec R4). Each part of a phase gets a short spec and a
+specific plan before its code; there is no plan for a whole phase. This table will grow then.
 
 ## How the project records decisions
 

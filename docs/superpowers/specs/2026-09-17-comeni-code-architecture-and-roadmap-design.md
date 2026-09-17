@@ -2,8 +2,9 @@
 
 **Status: design, not agreed implementation.** Written 2026-09-17. The third design document. It
 settles the stack, where content lives, the shape of the repository, and the order in which the
-product is built, **at the level of a skeleton**: each milestone gets its own detailed plan in
-`docs/superpowers/plans/` before work on it starts. Section numbers like W3 refer to
+product is built, **at the level of objectives**. There is no plan for the whole product, and
+there will not be one: each phase is split into parts as it starts, and each part gets its own
+short spec and plan (R5). Section numbers like W3 refer to
 [`2026-09-16-comeni-code-weaving-and-pages-design.md`](2026-09-16-comeni-code-weaving-and-pages-design.md);
 numbers like R4 refer to this one.
 
@@ -26,7 +27,7 @@ All decided by the operator on 2026-09-17.
 | How content is landed | **Studio opens one pull request per batch** on the content repository, with provenance in its description; the repository's CI validates it and it **merges automatically when green**, behind branch protection. Pull requests from outside Studio need a maintainer's review and are recorded as *reviewed on GitHub* | **A direct commit** — the app's token could rewrite everything and a Studio bug would land unchecked. **A maintainer-merged pull request** — a second human review that duplicates Studio's and invites rubber-stamping (§5.5). **Direct commits plus tagged releases** — a person reviews batches too late to matter |
 | The node on disk | **A folder per node**: `node.yaml` (claim, needs groups with reasons, related links, region, provenance), `body.md` in **MyST Markdown** accepting **only our directives and roles**, and YAML data files for figures and problems. The schema package converts the folder to and from the JSON blocks the app uses, with a round-trip test | **Markdoc-style tags** — the parser is JavaScript-only. **One YAML/JSON file** — prose reads and diffs poorly for reviewers. **Plain Markdown** — questions, problems and callouts would need an invented syntax. MyST has Python and JavaScript parsers, and scientific authors may know it from Jupyter Book |
 | How the app gets content | **A worker keeps a checkout of the content repository's main branch**, pulls on each merge (webhook, with polling as a fallback) and rebuilds the index, recording the commit each entry came from. **Tagged releases** are cut as citable snapshots. **Tests use a small fixture set inside Comeni-Code** | **A git submodule** (as Labs mounts the registry) — new content would wait for someone to bump the pin and redeploy. **Following releases only** — slower, and landing already has its checks |
-| The content repository | **`comeni-project/comeni-content`**, CC BY 4.0, **created at M0** so its CI and branch protection exist before any node lands | `comeni-nodes`, `comeni-library` |
+| The content repository | **`comeni-project/comeni-code-content`**, CC BY 4.0, **created at M0** so its CI and branch protection exist before any node lands | `comeni-content` (renamed the same day: the name should say which product it belongs to), `comeni-nodes`, `comeni-library` |
 | The v1 demo | **Salmon, end to end** | STAR (more linear); a smaller tool first |
 | Sharing code with Labs | **None.** Share philosophy, repository shape and the visual identity; not packages | shared packages would couple two release cycles and make each harder to maintain |
 
@@ -72,7 +73,7 @@ renderer and the metro maps (W2). Whether it later splits is open (R8).
 
 - **A node on disk** is a folder: `node.yaml`, a MyST `body.md` and YAML data files (R1). The
   schema package defines and validates it; the exact fields are decided in the M1 plan.
-- **Landing** opens a pull request per batch on `comeni-content`, with provenance (W9); its CI
+- **Landing** opens a pull request per batch on `comeni-code-content`, with provenance (W9); its CI
   validates and it merges automatically when green (R1).
 - **A worker follows the content repository**: on each merge it pulls and rebuilds the index.
 - **The index** is derived data: rebuildable from the files at any time, never edited.
@@ -80,24 +81,69 @@ renderer and the metro maps (W2). Whether it later splits is open (R8).
 
 ---
 
-## R4. Build order
+## R4. The phases and their objectives
 
-Each milestone ends with something the operator can check against the design. Milestones 0–2 are
-the backend-heavy ground; milestone 3 is the first look at screens, early, so the design can be
-checked while there is still time to change it.
+Each phase ends with something the operator can check against the design. Phases 0–2 are the
+backend-heavy ground; phase 3 is the first look at screens, early, so the design can be checked
+while there is still time to change it. **These are objectives, not plans** — how each is met is
+decided part by part (R5).
 
-| # | Milestone | Done when | Checked against |
-|---|---|---|---|
-| **M0** | **Skeleton** — repository layout, compose (postgres, redis, api, Celery worker and beat, web), health endpoints, CI, the purity guard; **`comeni-content` created** with its licence, CI stub and branch protection | `docker compose up` shows a health page; CI is green; the purity guard fails when a pure package imports Django; the content repository refuses a direct push to main | R2 |
-| **M1** | **Content core** — the node schema (blocks, needs groups, goes deeper, related), validation, the content repository with a handful of Salmon-route fixture nodes, the index | a command validates the fixtures and rejects broken ones with a message naming the file and field; the index rebuilds from files | W3.1–3.2, W5.1 |
-| **M2** | **Weaver** — goal targets → route as a pure function, then a CLI and an API endpoint | the Salmon route matches the one drawn on the Route board; repeated runs are byte-identical; cycles are refused | W3.3 |
-| **M3** | **Thin learner path** — Node page (blocks rendered), Route page (metro map from the weave), Start without AI (search for targets) | the pages beside the L5, L4 and L1 boards | W6, W10 |
-| **M4** | **Studio core** — accounts and roles, workbench drafts, checks, review, land | one node goes draft → checked → approved → landed, and appears for learners | W7 S3, S6, S10; R3 |
-| **M5** | **AI gateway** — LiteLLM, the declared call sites, usage records, goal suggestions, the assistant over the content API | a drafted block with provenance; usage on the AI pages | W9; S15–S17 |
-| **M6** | **Figures and problems** — the first components, the figure composer, problem generators and checkers | the de Bruijn page works end to end, including its problem | W5.3; S4, S5 |
-| **M7** | **Requests and weave review** — the request queue, implementing, connecting text, named tracks | a missing node goes from request to landed; a route becomes a named track | W3.4–3.6; S7–S9 |
-| **M8** | **The learner loop** — knowledge state, review scheduler, Home, Explore, Your knowledge, placement | a returning learner's Home; review never shows a backlog | W6 |
-| **M9** | **The Salmon demo** — the whole route authored and reviewed, ending in Labs | a new learner goes from *learn Salmon* to a pipeline to run | W12 |
+### M0 — Skeleton
+- A repository shaped as R2, with the pure packages, the Django project and the web app in place.
+- Compose runs Postgres, Redis, the API, a Celery worker and beat, and the web app.
+- CI runs on every pull request, and the purity guard runs in it.
+- `comeni-code-content` has its licence, a CI stub and branch protection.
+- **Done when** `docker compose up` shows a health page; CI is green; the purity guard fails when
+  a pure package imports Django; the content repository refuses a direct push to main.
+
+### M1 — Content core
+- A node can be written as files (R1), validated, and read into the app.
+- Needs groups, goes-deeper and related links are part of the schema.
+- A handful of Salmon-route fixture nodes exist, and an index can be rebuilt from files.
+- **Done when** the validator accepts the fixtures and rejects a broken node with a message naming
+  the file and field; the index rebuilds from files alone. *Against W3.1–3.2, W5.1.*
+
+### M2 — Weaver
+- Goal targets become a route by a pure function (W3.3), reachable from a CLI and the API.
+- Every node on a route says why it is there.
+- **Done when** the Salmon route matches the Route board; repeated runs are byte-identical; a cycle
+  is refused. *Against W3.3.*
+
+### M3 — Thin learner path
+- A learner can find a target without AI, see its route as a metro map, and read a node.
+- **Done when** the Start, Route and Node pages sit convincingly beside the L1, L4 and L5 boards.
+  *Against W6, W10.*
+
+### M4 — Studio core
+- The team signs in with roles; an author drafts a node, checks run, a reviewer approves, and it
+  lands on `comeni-code-content` through a pull request.
+- **Done when** one node goes draft → checked → approved → landed, and learners see it after the
+  worker picks up the merge. *Against W7 S3, S6, S10; R3.*
+
+### M5 — AI gateway
+- Models are reachable only through LiteLLM at the declared call sites, and every call is recorded.
+- Goal suggestions work for learners with a search fallback; the assistant works for authors
+  through the content API.
+- **Done when** a drafted block carries its provenance, and the AI pages show real usage.
+  *Against W9; S15–S17.*
+
+### M6 — Figures and problems
+- The first figure components, the figure composer, and problems with seeded datasets and checkers.
+- **Done when** the de Bruijn page works end to end, including its problem. *Against W5.3; S4, S5.*
+
+### M7 — Requests and weave review
+- Missing nodes and unknown goals become requests that a person decides; connecting text is
+  reviewed; routes become named tracks.
+- **Done when** a missing node goes from request to landed, and a route becomes a named track.
+  *Against W3.4–3.6; S7–S9.*
+
+### M8 — The learner loop
+- Knowledge state, review scheduling, Home, Explore, Your knowledge and placement.
+- **Done when** a returning learner's Home is right, and review never shows a backlog. *Against W6.*
+
+### M9 — The Salmon demo
+- The whole Salmon route authored, reviewed and landed, ending in a Labs pipeline.
+- **Done when** a new learner goes from *learn Salmon* to a pipeline they can run. *Against W12.*
 
 **Why this order.** The schema and the weaver carry the product's central claim and need no UI, so
 they are built and proved first. Screens come at M3 rather than last because the design was drawn
@@ -107,13 +153,30 @@ something the product already does, not a fallback added later.
 
 ---
 
-## R5. What is checked, all the way through
+## R5. How a phase is built
 
-- **Tests first**, as in Labs: the failing test, then the code.
-- **Pure packages are tested on their own**, with determinism tests for the weaver.
-- **Screens are compared with their boards** at each milestone that adds one, and the journal
-  records the comparison.
-- **Each milestone ends with a journal entry** and, where a decision moved, a spec edit.
+**No mega plans.** A plan for a whole phase goes stale before its second week, and a plan for the
+whole product is the kind of document that turns into a second, contradictory account of the
+system — the lesson Labs recorded when it removed its old plans on 2026-09-02.
+
+Instead, when a phase starts:
+
+1. **Split it into parts** — each small enough to build, review and check in a few sessions. The
+   list of parts goes in the journal, not in a document of its own.
+2. **For each part, write a short spec** in `docs/superpowers/specs/`
+   (`YYYY-MM-DD-<part>-design.md`): what it does, the decisions it needs, and the alternatives
+   rejected. It may be a page.
+3. **Then a specific plan** in `docs/superpowers/plans/` (`YYYY-MM-DD-<part>.md`): ordered,
+   test-first steps for that part only.
+4. **Build it**, tests first.
+5. **Check it** against the phase's *done when* and, where it has a screen, against its board.
+6. **Write the journal entry**, and edit a spec only where a decision moved.
+
+Then the next part. A phase is finished when its *done when* holds.
+
+**What is checked all the way through.** Tests are written first, as in Labs. The pure packages
+are tested on their own, with determinism tests for the weaver. Screens are compared with their
+boards whenever a part adds one, and the journal records the comparison.
 
 ---
 
@@ -127,8 +190,8 @@ until Labs exposes a link to Code.
 
 ## R7. What this document does not decide
 
-Module and class names, the database schema, API routes, the node file format, and the library
-choices inside each milestone. Each belongs to that milestone's plan.
+Module and class names, the database schema, API routes, the node file's exact fields, and the
+library choices inside each phase. Each belongs to the spec of the part that needs it (R5).
 
 ---
 

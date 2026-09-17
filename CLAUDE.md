@@ -8,8 +8,7 @@
 **Status: design, nothing built.** No application code yet. Before doing anything, read the
 newest entry in [`docs/notes/journal/`](docs/notes/journal/), then the specs in
 [`docs/superpowers/specs/`](docs/superpowers/specs/) — the newest wins where they disagree. The
-stack and the build order (milestones M0–M9) are in the 2026-09-17 architecture spec; each
-milestone gets its own plan in `docs/superpowers/plans/` before work starts.
+stack and the phases (M0–M9, with objectives) are in the 2026-09-17 architecture spec.
 
 ## The claim
 
@@ -68,6 +67,8 @@ Use the vocabulary in §3 of the first spec and W3.2 of the second. In particula
 - **Sessions go in the journal**, append-only; update the box at the top of its README.
 - **Screens are generated.** Change `.design/build_pages.mjs` or `.design/_identity.mjs`, then run
   `node .design/build_pages.mjs`. Never hand-edit a `.dc.html`.
+- **No mega plans.** When a phase starts, split it into parts; each part gets a short spec, then a
+  specific plan, then test-first code, then a journal entry (architecture spec R5).
 - **Research is cited** in the spec that uses it.
 - **Commits** follow the house style: `docs(spec): …`, `design: …`, then `feat`/`fix`/… once there
   is code. One logical change per commit; the body says why.
