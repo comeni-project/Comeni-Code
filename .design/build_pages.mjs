@@ -35,6 +35,8 @@ const dot = (st) => {
   const m = { settled: [c.settled, c.settled], stale: [c.measBar, c.measSoft], next: [c.sel, c.selSoft], open: [c.ink3, c.surface], missing: [c.ink3, c.surface] }[st];
   return `<span style="width:11px;height:11px;border-radius:50%;flex:none;background:${m[1]};border:2px ${st === 'missing' ? 'dashed' : 'solid'} ${m[0]}"></span>`;
 };
+// A level describes a node's content, never the learner, and spends no colour (tutor spec T10.1).
+const levelTag = (s) => `<span style="display:inline-flex;align-self:flex-start;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;border:1px solid ${c.border2};color:${c.ink2};font-size:11.5px;font-weight:500;white-space:nowrap"><svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="6" width="2.4" height="4" rx="0.6" style="fill:currentColor"></rect><rect x="3.2" y="4" width="2.4" height="6" rx="0.6" style="fill:currentColor"></rect><rect x="6.4" y="2" width="2.4" height="8" rx="0.6" style="fill:currentColor;opacity:.35"></rect><rect x="9.6" y="0" width="2.4" height="10" rx="0.6" style="fill:currentColor;opacity:.35"></rect></svg>${s}</span>`;
 const card = (inner, extra = '') => `<div style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:10px;${extra}">${inner}</div>`;
 
 const avatar = `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;border-radius:999px;border:1px solid ${c.border};background:${c.surface};color:${c.ink2}">
@@ -118,7 +120,7 @@ function network({ sel = null, edit = false, showOthers = true, detail = 2 } = {
 // ── L1 Start ────────────────────────────────────────────────────
 function start() {
   const ex = ['Salmon', 'Why my reads don’t map', 'Differential expression', 'de Bruijn graphs', 'Call variants'];
-  return page(1440, 980, `${learnBar()}
+  return page(1440, 1300, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;align-items:center;gap:26px;padding:48px 28px">
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
       ${h1('What do you want to learn?', 40)}
@@ -148,8 +150,9 @@ function start() {
           <span style="font-size:12.5px;color:${c.ink3}">Built by following what each page needs, back from Salmon · columns can be done in any order</span>
         </div>
         <div style="display:flex;align-items:baseline;gap:22px">
-          <span style="font-size:26px;font-weight:600;letter-spacing:-.02em">12 nodes</span>
+          <span style="font-size:26px;font-weight:600;letter-spacing:-.02em">13 nodes</span>
           <span style="font-size:15px;color:${c.ink2}">about 3 h 10 min</span>
+          ${levelTag('First steps → Advanced')}
           ${greyTag('1 not written yet — requested, you can follow it')}
         </div>
         <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:8px 12px">${routeMetro({ sel: null, fresh: true })}</div>
@@ -193,6 +196,7 @@ function kmerFigure(scale = 1) {
 // ── the route as a metro map: lines split from the start and merge into the goal ──
 const MX = [60, 280, 500, 720, 940, 1160];
 const MS = {
+  cells: ['Living things carry instructions', -110, 290, 'settled', 10, 'mid'],
   dna: ['DNA and genes', MX[0], 290, 'settled', 15, 'mid', 'inter'],
   expr: ['Gene expression', MX[1], 150, 'stale', 10, 'top'],
   reads: ['Sequencing reads', MX[1], 290, 'settled', 12, 'mid', 'inter'],
@@ -208,7 +212,7 @@ const MS = {
 };
 const MLINES = [
   // main lines (thick)
-  ['M60 290 H1160', 0, 'M940 290 H1160'],
+  ['M-110 290 H1160', 0, 'M940 290 H1160'],
   ['M60 290 H140 L280 150 H720 H1020 L1160 290', 0],
   ['M560 150 L630 80 H950 L1020 150', 0],
   ['M60 290 H140 L280 430 H1020 L1160 290', 0],
@@ -221,7 +225,7 @@ const MLINKS = [
 ];
 function routeMetro({ sel = 'reftx', fresh = false, h = 530 } = {}) {
   const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 12}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
-  let s = `<svg viewBox="0 0 1320 ${h}" width="100%" style="display:block">`;
+  let s = `<svg viewBox="-240 0 1560 ${h}" width="100%" style="display:block">`;
   MLINES.forEach(([d, , dashed]) => {
     s += `<path d="${d}" style="fill:none;stroke:${c.line};stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path>`;
     if (dashed) s += `<path d="${dashed}" style="fill:none;stroke:${c.surface};stroke-width:3;stroke-dasharray:6 6"></path>`;
@@ -277,7 +281,7 @@ function home() {
 
     <section style="${panel(c)};display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid ${c.border}">
-        <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:17px;font-weight:600">Learn Salmon</span><span style="font-size:13px;color:${c.ink2}">5 of 12 settled · 4 ready now · about 2 h 20 min left</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:17px;font-weight:600">Learn Salmon</span><span style="font-size:13px;color:${c.ink2}">6 of 13 settled · 4 ready now · about 2 h 20 min left</span></div>
         <div style="display:flex;align-items:center;gap:14px"><a style="font-size:13px;font-weight:500">Switch route ▾</a>${secondary(c, 'Open route')}</div>
       </div>
       <div style="padding:10px 22px 4px">${routeMetro()}</div>
@@ -293,7 +297,7 @@ function home() {
         <span style="font-size:15.5px;font-weight:600">Count the reads on one gene</span>
         <span style="font-size:13px;color:${c.ink2}">Needs 3 nodes · you hold 2. Open forever, nobody is ranked.</span>`)}
       ${card(`<span style="font-size:15px;font-weight:600">Your routes</span>
-        ${routeRow('Learn Salmon', 5, 12, '5 of 12 · last opened today', true)}
+        ${routeRow('Learn Salmon', 6, 13, '6 of 13 · last opened today', true)}
         ${routeRow('Learn STAR', 5, 11, 'You already hold 5 of 11')}
         <div style="display:flex;justify-content:space-between;padding-top:4px"><a style="font-size:13px;font-weight:500">Learn something new</a><a style="font-size:13px;font-weight:500">Your whole network</a></div>`)}
     </div>
@@ -318,14 +322,14 @@ function route() {
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-size:13px;color:${c.ink3}">Home › Your routes</span>
         ${h1('Learn Salmon', 36)}
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${greyTag('Starts at AP Biology level')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${levelTag('First steps → Advanced · starts at Introductory for you')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
         <span style="font-size:16px;color:${c.ink};max-width:70ch;line-height:1.5"><b style="font-weight:600">At the end you can</b> estimate transcript expression from your own RNA-seq reads with Salmon, and explain each step it takes.</span>
       </div>
       <div style="display:flex;gap:10px;align-items:center;padding-top:26px">${seg(c, ['Map', 'List'], 0)}${secondary(c, 'Test yourself')}${secondary(c, 'Change goal')}</div>
     </div>
 
     <div style="${panel(c)};padding:14px 20px;display:flex;align-items:center;gap:28px">
-      <div style="display:flex;flex-direction:column;gap:2px;min-width:190px"><span style="font-size:22px;font-weight:600">7 stops to go</span><span style="font-size:13px;color:${c.ink2}">about 2 h 20 min · 5 of 12 settled</span></div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:190px"><span style="font-size:22px;font-weight:600">7 stops to go</span><span style="font-size:13px;color:${c.ink2}">about 2 h 20 min · 6 of 13 settled</span></div>
       <div style="display:flex;flex-direction:column;gap:2px;min-width:200px;padding-left:24px;border-left:1px solid ${c.border}"><span style="font-size:14px;font-weight:600">About 5 days</span><span style="font-size:12.5px;color:${c.ink2}">at your usual 30 min a day</span></div>
       <div style="display:flex;gap:20px;flex:1;padding-left:24px;border-left:1px solid ${c.border}">
         ${lineProg('Data line', 2, 4, '2 to go')}${lineProg('Reads line', 2, 4, 'blocked at 4', c.ink3)}${lineProg('Index line', 0, 2, '2 to go')}
@@ -345,7 +349,7 @@ function route() {
         <span style="font-size:20px;font-weight:600;line-height:1.2">Reference transcriptome</span>
         <span style="font-size:14px;line-height:1.5">Explain why Salmon compares reads with a list of transcripts rather than with a genome.</span>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px">
-          ${kv('Time', '10 min · 6 left')}${kv('Questions', '2 of 5 answered')}${kv('Needs', `RNA-seq experiments ${ic.check(c.ink2)}`)}${kv('Unlocks', 'Salmon')}${kv('Proved by', 'Build a transcript index · rung 2')}
+          ${kv('Level', 'Introductory')}${kv('Time', '10 min · 6 left')}${kv('Questions', '2 of 5 answered')}${kv('Needs', `RNA-seq experiments ${ic.check(c.ink2)}`)}${kv('Unlocks', 'Salmon')}${kv('Proved by', 'Build a transcript index · rung 2')}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:9px;background:${c.lineSoft}">
           <span style="font-size:12px;font-weight:600">Why it’s on this route</span>
@@ -472,7 +476,7 @@ function node() {
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-size:13px;color:${c.ink3}">Algorithms › de Bruijn graphs</span>
         ${h1('de Bruijn graphs', 42)}
-        <span style="font-size:13.5px;color:${c.ink2}">About 35 min with the questions · plus the problem</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">${levelTag('Intermediate')}<span style="font-size:13.5px;color:${c.ink2}">About 35 min with the questions · plus the problem</span></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">${blockTag('{% claim %}')}
         <div style="padding:16px 20px;border-radius:12px;border:1.5px solid ${c.ink};background:${c.surface}">
@@ -500,7 +504,7 @@ function node() {
             <span style="position:absolute;right:14px;bottom:12px;font-size:11.5px;color:rgba(255,255,255,.8)">[embedded player]</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px">
-            <div style="display:flex;gap:6px;flex-wrap:wrap">${greyTag('Video')}${greyTag('AP → intro university')}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${greyTag('Video')}${levelTag('Introductory')}</div>
             <span style="font-size:16px;font-weight:600;line-height:1.3">[Khan Academy video on genome assembly]</span>
             <span style="font-size:13px;line-height:1.5;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Covers:</b> why overlapping reads are assembled through their k-mers, drawn step by step. Stop at 7:45 — the rest is about sequencing chemistry.</span>
             <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px;padding-top:10px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3}">
@@ -510,8 +514,8 @@ function node() {
           </div>
         </div></div>
         <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
-          ${[['Reading', 'OpenStax Biology 2e · §17.1', 'The genome-sequencing section that sets up assembly', 'CC BY 4.0 · shown here'], ['Tutorial', 'Galaxy Training · De Bruijn graph assembly', 'Assemble a small genome yourself, in Galaxy', 'CC BY 4.0 · link']].map(([k, t, cov, lic]) => `<div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid ${c.border};background:${c.surface}">
-            <div style="display:flex;justify-content:space-between;gap:8px">${greyTag(k)}<span style="font-size:11.5px;color:${c.ink3}">${lic}</span></div>
+          ${[['Reading', 'OpenStax Biology 2e · §17.1', 'The genome-sequencing section that sets up assembly', 'CC BY 4.0 · shown here', 'Foundations'], ['Tutorial', 'Galaxy Training · De Bruijn graph assembly', 'Assemble a small genome yourself, in Galaxy', 'CC BY 4.0 · link', 'Intermediate']].map(([k, t, cov, lic, lv]) => `<div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;border:1px solid ${c.border};background:${c.surface}">
+            <div style="display:flex;justify-content:space-between;gap:8px"><span style="display:flex;gap:6px">${greyTag(k)}${levelTag(lv)}</span><span style="font-size:11.5px;color:${c.ink3}">${lic}</span></div>
             <span style="font-size:14px;font-weight:600">${t}</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.45">${cov}</span></div>`).join('')}
         </div>
       </div>
@@ -630,9 +634,9 @@ spells    ACGTTAG</pre></div>
     </article>
     <aside style="display:flex;flex-direction:column;gap:22px">
       <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Learn it elsewhere</span>
-        ${[['Video', '[Khan Academy] Genome assembly', '2:10–7:45'], ['Reading', 'OpenStax Biology 2e §17.1', 'CC BY'], ['Tutorial', 'Galaxy Training · DBG assembly', 'CC BY']].map(([k, n, m]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface}"><span style="font-size:11px;color:${c.ink3}">${k} · ${m}</span><span style="font-size:13px">${n}</span></div>`).join('')}
+        ${[['Video', '[Khan Academy] Genome assembly', '2:10–7:45 · Introductory'], ['Reading', 'OpenStax Biology 2e §17.1', 'CC BY · Foundations'], ['Tutorial', 'Galaxy Training · DBG assembly', 'CC BY · Intermediate']].map(([k, n, m]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface}"><span style="font-size:11px;color:${c.ink3}">${k} · ${m}</span><span style="font-size:13px">${n}</span></div>`).join('')}
         <span style="font-size:11.5px;color:${c.ink3};line-height:1.45">Picked by reviewers. We link or embed; nothing is copied.</span></div>
-      ${[['Goes deeper', [['Compacted de Bruijn graphs', '15 min'], ['Eulerian paths', '20 min'], ['Choosing k', '10 min']]], ['Related', [['Overlap graphs', '15 min'], ['Minimizers', '15 min']]], ['Needed by', [['Salmon', 'your goal'], ['Assemble a genome', 'track'], ['Contigs', '10 min']]]].map(([t, items]) => `<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">${t}</span>${items.map(([n, m]) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};font-size:13px"><span>${n}</span><span style="color:${c.ink3};font-size:12px">${m}</span></div>`).join('')}</div>`).join('')}
+      ${[['Goes deeper', [['Compacted de Bruijn graphs', 'Advanced · 15 min'], ['Eulerian paths', 'Intermediate · 20 min'], ['Choosing k', 'Intermediate · 10 min']]], ['Related', [['Overlap graphs', 'Intermediate · 15 min'], ['Minimizers', 'Advanced · 15 min']]], ['Needed by', [['Salmon', 'your goal'], ['Assemble a genome', 'track'], ['Contigs', 'Intermediate · 10 min']]]].map(([t, items]) => `<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">${t}</span>${items.map(([n, m]) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};font-size:13px"><span>${n}</span><span style="color:${c.ink3};font-size:12px">${m}</span></div>`).join('')}</div>`).join('')}
       <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Sources</span>
         <div style="font-size:12.5px;line-height:1.5;color:${c.ink2};display:flex;flex-direction:column;gap:10px">
           <span><b style="font-family:${MONO};color:${c.sel};font-weight:500">[1]</b> Compeau, Pevzner &amp; Tesler (2011). How to apply de Bruijn graphs to genome assembly. <i>Nature Biotechnology</i> 29, 987–991. <span style="font-family:${MONO};font-size:11px">doi:10.1038/nbt.2023</span></span>
@@ -680,6 +684,7 @@ function explore() {
         ${facet('How much you hold', [['Most of it (over half)', 3], ['At least a third', 7, 1], ['Less than a third', 57]])}
         ${facet('Ends with', [['A pipeline in Labs', 7, 1], ['A concept', 0]])}
         ${facet('Region', [['Sequencing', 2], ['Alignment', 1], ['Quantification', 2], ['Variants', 1], ['Assembly', 1], ['Single-cell', 1], ['Statistics', 1]])}
+        ${facet('Reaches down to', [['First steps', 2], ['Foundations', 4], ['Introductory', 1], ['Intermediate', 0]])}
         ${facet('Goal is a…', [['Tool', 5], ['Method', 2], ['Concept', 0]])}
         ${facet('Time left for you', [['Under 2 h', 3], ['2–5 h', 4], ['Over 5 h', 0]])}
       </aside>
@@ -690,13 +695,13 @@ function explore() {
         </div>
         <div style="${panel(c)};overflow:hidden">
           <div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 150px 190px 110px 100px;gap:16px;padding:9px 16px;font-size:12px;color:${c.ink3}"><span>Track</span><span>Your progress</span><span>Left for you</span><span>Learners</span><span></span></div>
-          ${row('Quality control of a sequencing run', 'Method', 'Sequencing', 5, 6, '1 node · about 15 min', '1,204')}
-          ${row('Learn Salmon', 'Tool', 'Quantification · Algorithms', 5, 12, '7 nodes · about 2 h 20 min', '412', true)}
-          ${row('Learn STAR', 'Tool', 'Alignment', 5, 11, '6 nodes · about 1 h 50 min', '318')}
-          ${row('Differential expression with DESeq2', 'Tool', 'Statistics · Quantification', 6, 14, '8 nodes · about 3 h', '287')}
-          ${row('Assemble a bacterial genome', 'Method', 'Assembly · Algorithms', 5, 13, '8 nodes · about 3 h 20 min', '96')}
-          ${row('Call variants with GATK', 'Tool', 'Variants · Alignment', 6, 16, '10 nodes · about 4 h', '203')}
-          ${row('Single-cell RNA-seq basics', 'Method', 'Single-cell · Quantification', 5, 15, '10 nodes · about 4 h 30 min', '151')}
+          ${row('Quality control of a sequencing run', 'Method', 'Sequencing · Foundations → Intermediate', 5, 6, '1 node · about 15 min', '1,204')}
+          ${row('Learn Salmon', 'Tool', 'Quantification · Algorithms · First steps → Advanced', 6, 13, '7 nodes · about 2 h 20 min', '412', true)}
+          ${row('Learn STAR', 'Tool', 'Alignment · First steps → Advanced', 5, 11, '6 nodes · about 1 h 50 min', '318')}
+          ${row('Differential expression with DESeq2', 'Tool', 'Statistics · Quantification · Foundations → Advanced', 6, 14, '8 nodes · about 3 h', '287')}
+          ${row('Assemble a bacterial genome', 'Method', 'Assembly · Algorithms · Foundations → Advanced', 5, 13, '8 nodes · about 3 h 20 min', '96')}
+          ${row('Call variants with GATK', 'Tool', 'Variants · Alignment · First steps → Advanced', 6, 16, '10 nodes · about 4 h', '203')}
+          ${row('Single-cell RNA-seq basics', 'Method', 'Single-cell · Quantification · Foundations → Advanced', 5, 15, '10 nodes · about 4 h 30 min', '151')}
         </div>
         <span style="font-size:12px;color:${c.ink3}">Sample numbers. The Network view shows only the tracks that match your filters.</span>
       </section>
@@ -1112,7 +1117,7 @@ function workbench() {
         <span style="font-size:12.5px;color:${c.ink3}">Graph › Algorithms › de Bruijn graphs</span>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="font-size:24px;font-weight:600">de Bruijn graphs</span>
-          ${blueTag('Draft')}
+          ${blueTag('Draft')}${levelTag('Intermediate')}<a style="font-size:12.5px">writing guide</a>
           <span style="font-size:12.5px;color:${c.ink3}">Saved 2 min ago · live version from 3 Sep</span>
           <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:${c.ink2}"><span style="width:22px;height:22px;border-radius:50%;background:${c.lineSoft};color:${c.btn};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">RB</span>[Reviewer B] is viewing</span>
         </div>
@@ -1303,7 +1308,7 @@ function graph() {
   const tree = [['Biology', 14], ['Sequencing', 22], ['Alignment', 18], ['Algorithms', 16, 1], ['Quantification', 11], ['Variants', 13], ['Statistics', 9], ['Single-cell', 7]];
   const inner = `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
-      <div style="display:flex;align-items:center;gap:14px">${h1('Graph', 24)}<span style="font-size:13px;color:${c.ink2}">110 nodes · 214 links</span>${greenTag('No cycles')}${redTag('2 orphans')}${amberTag('3 nodes no route reaches')}</div>
+      <div style="display:flex;align-items:center;gap:14px">${h1('Graph', 24)}<span style="font-size:13px;color:${c.ink2}">110 nodes · 214 links</span>${greenTag('No cycles')}${redTag('2 orphans')}${amberTag('3 nodes no route reaches')}${amberTag('1 level jump')}</div>
       <div style="display:flex;gap:8px">${secondary(c, '+ Node')}${secondary(c, 'Split')}${secondary(c, 'Merge')}${secondary(c, 'Preview a goal')}</div>
     </div>
     <div style="flex:1;display:grid;grid-template-columns:240px minmax(0, 1fr) 380px;gap:18px;min-height:0">
@@ -1350,6 +1355,8 @@ function graph() {
           <div style="display:flex;gap:8px">${primary(c, 'Propose this change')}${secondary(c, 'Cancel')}</div>
           <span style="font-size:11.5px;color:${c.ink3}">A “needs” change is reviewed on its own before it reaches any route.</span>
         </div>
+        ${card(`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Levels</span>${levelTag('this node · Intermediate')}</div>
+          <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">Its needs are Introductory — fine. Elsewhere: <b style="color:${c.ink};font-weight:600">Codons</b> (First steps) needs <b style="color:${c.ink};font-weight:600">Translation</b> (Intermediate), two levels up. Usually a wrong link or a mis-levelled page.</span>`)}
         ${card(`<span style="font-size:14px;font-weight:600">History of this node’s links</span>
           ${[['Needs group approved', '[Reviewer A] · 3 Sep'], ['“Minimizers” added as related', '[Author B] · 1 Sep'], ['Split from “Assembly graphs”', '[Author A] · 22 Aug']].map(([a, b]) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid ${c.border};font-size:12.5px"><span>${a}</span><span style="color:${c.ink3};white-space:nowrap">${b}</span></div>`).join('')}`)}
       </aside>
@@ -1590,13 +1597,13 @@ function models() {
 
 // ── L2 Placement — the first station of the tutor loop ─────────
 function placement() {
-  const cand = [['DNA and genes', 'known'], ['Gene expression', 'known'], ['Sequencing reads', 'now'], ['FASTQ on disk', 'wait'], ['RNA-seq experiments', 'wait'], ['k-mers', 'wait'], ['Reference transcriptome', 'wait'], ['Sequence alignment', 'wait'], ['Expectation–maximisation', 'learn']];
+  const cand = [['Living things carry instructions', 'known'], ['DNA and genes', 'known'], ['Gene expression', 'known'], ['Sequencing reads', 'now'], ['FASTQ on disk', 'wait'], ['RNA-seq experiments', 'wait'], ['k-mers', 'wait'], ['Reference transcriptome', 'wait'], ['Sequence alignment', 'wait'], ['Expectation–maximisation', 'learn']];
   const candRow = ([n, st]) => {
     const tag = st === 'known' ? `<span style="font-size:12px;color:${c.ink2}">you know this · dropped</span>` : st === 'learn' ? `<span style="font-size:12px;color:${c.sel}">stays on your route</span>` : st === 'now' ? blueTag('asking now') : `<span style="font-size:12px;color:${c.ink3}">not asked yet</span>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid ${c.border}">${dot(st === 'known' ? 'settled' : st === 'now' || st === 'learn' ? 'next' : 'open')}<span style="font-size:13.5px;flex:1;${st === 'known' ? `text-decoration:line-through;color:${c.ink3}` : ''}">${n}</span>${tag}</div>`;
   };
   const opt = (s, on) => `<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;font-size:15px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}"><span style="width:18px;height:18px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>${s}</div>`;
-  return page(1440, 800, `${focusBar('Placement · Learn Salmon', progress(2, 2, 9), `<span style="font-size:13px;color:${c.ink2}">about 3 min left</span>`)}
+  return page(1440, 800, `${focusBar('Placement · Learn Salmon', progress(3, 3, 10), `<span style="font-size:13px;color:${c.ink2}">about 3 min left</span>`)}
   <main style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:36px;padding:40px 56px;min-height:0">
     <section style="display:flex;flex-direction:column;gap:20px;max-width:760px">
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -1619,10 +1626,11 @@ function placement() {
     </section>
     <aside style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:10px;align-self:start">
       <span style="${label(c)}">Your route so far</span>
-      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.02em">10 stops</span><span style="font-size:14px;color:${c.ink3};text-decoration:line-through">12</span></div>
+      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:30px;font-weight:600;letter-spacing:-.02em">10 stops</span><span style="font-size:14px;color:${c.ink3};text-decoration:line-through">13</span></div>
       <span style="font-size:13px;color:${c.ink2}">about 2 h 40 min · shorter as you answer</span>
       <div style="display:flex;flex-direction:column;margin-top:6px">${cand.map(candRow).join('')}</div>
-      <span style="font-size:12px;color:${c.ink3};line-height:1.45;padding-top:6px">Starts at AP Biology level. Salmon, Selective alignment and de Bruijn graphs aren’t asked: nobody tests out of the goal itself.</span>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;margin-top:6px;border-radius:9px;background:${c.bg};font-size:12.5px;line-height:1.45;color:${c.ink2}"><span style="font-weight:600;color:${c.ink}">You told us: a biology degree</span><span>So we ask about First steps and Foundations pages first, expecting you to know them. A hint never marks a page known — you still answer.</span></div>
+      <span style="font-size:12px;color:${c.ink3};line-height:1.45;padding-top:6px">This route spans First steps → Advanced. Salmon, Selective alignment and de Bruijn graphs aren’t asked: nobody tests out of the goal itself.</span>
     </aside>
   </main>`);
 }
@@ -1751,7 +1759,7 @@ function skeletons() {
             <span style="font-size:12.5px;font-weight:600">Needs, all of — with reasons</span>
             ${[['DNA and genes', 'transcription copies a gene’s sequence'], ['Gene expression', 'splicing changes what is expressed']].map(([n, r]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;background:${c.bg}"><span style="font-family:${MONO};font-size:12.5px">${n}</span><span style="font-size:12px;color:${c.ink2}">${r}</span></div>`).join('')}
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">${greyTag('level: AP')}${greyTag('region: Biology')}${greyTag('on the Salmon route')}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${levelTag('Foundations · from the outline’s stage')}${greyTag('region: Biology')}${greyTag('on the Salmon route')}</div>
           <span style="font-size:12px;color:${c.ink3};line-height:1.45">Also needed by: Reference transcriptome (existing) — the proposed link is shown for review.</span>`)}
         ${card(`<span style="font-size:14.5px;font-weight:600">Coverage check · by a person</span>
           <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">Compare these nodes with reference courses and record gaps as requests. Khan Academy is read here by people, never fed to the model.</span>
@@ -1819,7 +1827,7 @@ function examSetup() {
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-size:13.5px;font-weight:600">What to cover</span>
         ${scope('What I’ve done so far', 'the 5 pages you know or started on this route', '5 pages', true)}
-        ${scope('The whole route', '11 of 12 pages — also a way to test out of everything', '11 pages')}
+        ${scope('The whole route', '12 of 13 pages — also a way to test out of everything', '12 pages')}
         ${scope('One line', 'Data · Reads · Index', '')}
       </div>
       <div style="display:flex;flex-direction:column;gap:8px">
@@ -1945,7 +1953,7 @@ function questionBuilder() {
       </aside>
 
       <section style="display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Q6 · Which mark does a mid-read error leave?</span><span style="font-size:12px;color:${c.ink3}">tests the claim: recognise the marks errors leave</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Q6 · Which mark does a mid-read error leave?</span><span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:${c.ink3}">tests the claim: recognise the marks errors leave</span>${levelTag('Intermediate')}</span></div>
         <div style="${panel(c)};display:flex;flex-direction:column">
           <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid ${c.border}"><span style="font-size:12.5px;font-weight:600">Stem</span><span style="font-size:12px;color:${c.ink3}">blocks, as on a page</span></div>
           <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
@@ -1991,13 +1999,91 @@ function questionBuilder() {
   return studio('Graph', inner, 1680, 1380, { collapsed: true });
 }
 
+// ── L5 Node at First steps — a design-round draft (tutor spec T10.2) ──
+function firstStepsNode() {
+  const cellFig = () => {
+    let s = `<svg viewBox="0 0 760 280" width="100%" style="display:block">`;
+    s += `<ellipse cx="170" cy="140" rx="140" ry="110" style="fill:${c.lineSoft};stroke:${c.line};stroke-width:3"></ellipse>`;
+    s += `<circle cx="190" cy="140" r="46" style="fill:${c.surface};stroke:${c.ink2};stroke-width:3"></circle>`;
+    s += `<path d="M168 128 C180 112 200 112 212 128 S236 150 214 158 S176 166 168 150" style="fill:none;stroke:${c.sel};stroke-width:3.5;stroke-linecap:round"></path>`;
+    s += `<text x="170" y="270" text-anchor="middle" style="font-family:${UI};font-size:17px;font-weight:600;fill:${c.ink}">a cell</text>`;
+    s += `<path d="M250 110 C320 60 380 60 430 80" style="fill:none;stroke:${c.ink3};stroke-width:2;stroke-dasharray:5 5"></path><path d="M422 72 L432 80 L420 86" style="fill:none;stroke:${c.ink3};stroke-width:2"></path>`;
+    s += `<rect x="440" y="40" width="300" height="200" rx="18" style="fill:${c.surface};stroke:${c.border2};stroke-width:2"></rect>`;
+    const bases = 'ATGCGTAC'; [...bases].forEach((b, i) => {
+      const x = 470 + i * 32;
+      s += `<rect x="${x}" y="100" width="26" height="36" rx="6" style="fill:${c.selSoft};stroke:${c.sel};stroke-width:2"></rect><text x="${x + 13}" y="124" text-anchor="middle" style="font-family:${MONO};font-size:17px;font-weight:500;fill:${c.ink}">${b}</text>`;
+    });
+    s += `<text x="590" y="80" text-anchor="middle" style="font-family:${UI};font-size:16px;font-weight:600;fill:${c.ink}">inside: instructions</text>`;
+    s += `<text x="590" y="176" text-anchor="middle" style="font-family:${UI};font-size:15px;fill:${c.ink2}">written with just 4 letters:</text>`;
+    s += `<text x="590" y="204" text-anchor="middle" style="font-family:${MONO};font-size:19px;font-weight:500;fill:${c.ink}">A · T · G · C</text>`;
+    return s + '</svg>';
+  };
+  const big = (t, st) => `<div style="display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:14px;font-size:19px;${st === 'right' ? `border:2.5px solid ${c.btn};background:${c.lineSoft}` : `border:1.5px solid ${c.border2};background:${c.surface}`}">${st === 'right' ? ic.check(c.btn) : `<span style="width:20px;height:20px;border-radius:50%;border:2px solid ${c.border2};flex:none"></span>`}${t}</div>`;
+  return page(1440, 2040, `${learnBar()}
+  <div style="height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 36px;border-bottom:1px solid ${c.border};background:${c.surface};font-size:15px;color:${c.ink2}">
+    <span>On your route <b style="color:${c.ink};font-weight:600">Learn Salmon</b> · the very first stop</span>
+    <span>1 of 2 questions</span>
+    <a style="font-weight:500">Back to the route</a>
+  </div>
+  <main style="flex:1;display:flex;justify-content:center;padding:44px 36px">
+    <article style="width:820px;display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">${levelTag('First steps')}<span style="font-size:16px;color:${c.ink2}">About 10 minutes</span></div>
+        ${h1('Living things carry instructions', 48)}
+        <p style="margin:0;font-size:21px;line-height:1.6;color:${c.ink}">Every living thing — you, a tree, a bacterium — is built from tiny cells. Each cell carries a set of instructions for how to grow and what to do.</p>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;background:${c.surface};border:1px solid ${c.border}">
+        <span style="font-size:16px;color:${c.ink2}">Prefer to watch? A short video explains the same idea.</span>${seg(c, ['Read', 'Watch · 4 min'], 0)}
+      </div>
+
+      <section style="display:flex;flex-direction:column;gap:16px">
+        <h2 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-.01em">1 · The instructions are inside each cell</h2>
+        <p style="margin:0;font-size:20px;line-height:1.65;color:${c.ink2}">Inside most cells there is a small space that holds the instructions. They are written in a chemical called <b style="color:${c.ink};font-weight:600">DNA</b>.</p>
+        <figure style="margin:0;display:flex;flex-direction:column;gap:10px">
+          <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:16px;padding:18px 22px">${cellFig()}</div>
+          <figcaption style="font-size:16px;color:${c.ink2};line-height:1.5">A cell, and the instructions inside it. Drawn from data; letters are real DNA letters.</figcaption>
+        </figure>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:14px;padding:26px 28px;border-radius:18px;border:2px solid ${c.sel};background:${c.surface}">
+        <span style="font-size:15px;font-weight:600;color:${c.sel}">Try it · question 1</span>
+        <span style="font-size:24px;font-weight:600;line-height:1.35">How many different letters does DNA use to write its instructions?</span>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px">${big('2')}${big('4', 'right')}${big('10')}${big('26, like our alphabet')}</div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:16px 18px;border-radius:14px;background:${c.lineSoft}">
+          <span style="font-size:19px;font-weight:600;color:${c.btn}">Right — 4 letters.</span>
+          <span style="font-size:17px;line-height:1.55">DNA uses only A, T, G and C. Long strings of these 4 letters are enough to write every instruction a living thing needs.</span>
+        </div>
+        <span style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:1.5px solid ${c.border2};font-size:16px;color:${c.ink2}">Show a hint</span>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:16px">
+        <h2 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-.01em">2 · Why this matters for your goal</h2>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:16px 20px;border-radius:14px;background:${c.lineSoft}">
+          <span style="font-size:18px;line-height:1.6;flex:1">Salmon, the tool you want to learn, reads the letters in these instructions — millions of them — to work out what each cell is doing.</span>${amberTag()}
+        </div>
+      </section>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 24px;border-radius:18px;background:${c.surface};border:1px solid ${c.border}">
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;color:${c.ink3}">Next on your route</span><span style="font-size:24px;font-weight:600">DNA and genes</span>${levelTag('Foundations')}</div>
+        <span style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:14px;background:${c.btn};color:${c.btnInk};font-size:18px;font-weight:600;box-shadow:0 3px 0 ${c.btnSh}">Continue ${ic.arrow}</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;padding:16px 18px;border-radius:14px;border:1px solid ${c.border};font-size:15px;line-height:1.6;color:${c.ink2}">
+        <span style="font-weight:600;color:${c.ink}">Where this comes from</span>
+        <span>OpenStax Biology 2e, §3.5 and §14.2 (CC BY 4.0). Reviewed by [Reviewer name]. The green text is AI-written and not yet reviewed.</span>
+      </div>
+    </article>
+  </main>`);
+}
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
   ['Start', 'L1 · Start — what do you want to learn?', start(), 1440, 1300, 'Reached from: first visit, “Learn something new”, “Ask for a goal”, a search with no match.\nLeads to: placement, or the route.\nTargets are suggested and confirmed by the learner; the route is computed from what each page needs.'],
   ['Placement', 'L2 · Placement — the first station of the tutor loop', placement(), 1440, 800, 'Reached from: Start (“Place me first”), Route, Home.\nLeads to: the shortened route.\nOne question per candidate stop, no hints, no score (tutor spec T3). A right answer drops the stop and what only it needed; “I don’t know this yet” keeps it. The side panel shows the route shortening as you go. The goal itself is never tested out of.'],
-  ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1480, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route says where it starts: AP Biology level (T10).'],
+  ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1480, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route shows its level span and where it starts for you (T10.1) — levels describe pages, never you, and never change the route.'],
   ['Node', 'L5 · Node — learn it, blocks, questions with hints, a step back', node(), 1440, 5420, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
+  ['NodeFirstSteps', 'L5 · Node at First steps — design-round draft', firstStepsNode(), 1440, 2040, 'Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.'],
   ['ExamSetup', 'L13 · Exam — set up, and a test in progress', examSetup(), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
   ['ExamResults', 'L13 · Exam — results per page, on the route', examResults(), 1440, 1320, 'Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.'],
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],

@@ -60,10 +60,19 @@
       "page": "learn"
     },
     {
-      "file": "ExamSetup.dc.html",
-      "title": "L13 · Exam — set up, and a test in progress",
+      "file": "NodeFirstSteps.dc.html",
+      "title": "L5 · Node at First steps — design-round draft",
       "x": 3120,
       "y": 1660,
+      "w": 1440,
+      "h": 2040,
+      "page": "learn"
+    },
+    {
+      "file": "ExamSetup.dc.html",
+      "title": "L13 · Exam — set up, and a test in progress",
+      "x": 0,
+      "y": 7440,
       "w": 1440,
       "h": 860,
       "page": "learn"
@@ -71,7 +80,7 @@
     {
       "file": "ExamResults.dc.html",
       "title": "L13 · Exam — results per page, on the route",
-      "x": 0,
+      "x": 1560,
       "y": 7440,
       "w": 1440,
       "h": 1320,
@@ -80,7 +89,7 @@
     {
       "file": "Explore.dc.html",
       "title": "L12 · Explore — search and filter at scale",
-      "x": 1560,
+      "x": 3120,
       "y": 7440,
       "w": 1440,
       "h": 1120,
@@ -89,8 +98,8 @@
     {
       "file": "Knowledge.dc.html",
       "title": "L9 · Your knowledge — areas that may not connect",
-      "x": 3120,
-      "y": 7440,
+      "x": 0,
+      "y": 9120,
       "w": 1440,
       "h": 1480,
       "page": "learn"
@@ -98,8 +107,8 @@
     {
       "file": "AccountMenu.dc.html",
       "title": "Account menu",
-      "x": 0,
-      "y": 9280,
+      "x": 1560,
+      "y": 9120,
       "w": 320,
       "h": 420,
       "page": "learn"
@@ -289,7 +298,7 @@
       "x": 0,
       "y": 1410,
       "w": 620,
-      "text": "Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route says where it starts: AP Biology level (T10).",
+      "text": "Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route shows its level span and where it starts for you (T10.1) — levels describe pages, never you, and never change the route.",
       "page": "learn"
     },
     {
@@ -301,16 +310,24 @@
       "page": "learn"
     },
     {
-      "id": "note-examsetup",
+      "id": "note-nodefirststeps",
       "x": 3120,
       "y": 1410,
+      "w": 620,
+      "text": "Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.",
+      "page": "learn"
+    },
+    {
+      "id": "note-examsetup",
+      "x": 0,
+      "y": 7190,
       "w": 620,
       "text": "Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.",
       "page": "learn"
     },
     {
       "id": "note-examresults",
-      "x": 0,
+      "x": 1560,
       "y": 7190,
       "w": 620,
       "text": "Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.",
@@ -318,7 +335,7 @@
     },
     {
       "id": "note-explore",
-      "x": 1560,
+      "x": 3120,
       "y": 7190,
       "w": 620,
       "text": "Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.",
@@ -326,16 +343,16 @@
     },
     {
       "id": "note-knowledge",
-      "x": 3120,
-      "y": 7190,
+      "x": 0,
+      "y": 8870,
       "w": 620,
       "text": "Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.",
       "page": "learn"
     },
     {
       "id": "note-accountmenu",
-      "x": 0,
-      "y": 9030,
+      "x": 1560,
+      "y": 8870,
       "w": 320,
       "text": "Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.",
       "page": "learn"

@@ -40,7 +40,7 @@ Design preview in Claude Code; published copies are views, and the generator is 
 
 | Learn | Studio |
 |---|---|
-| L1 Start · L2 Placement · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · L13 Exam (set up, results) · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S6 Review · S7 Requests · S8 Implementing · S9 Weave review · S11 Quality · S15 Assistant · S16–S17 AI · S18 Skeletons |
+| L1 Start · L2 Placement · L3 Home · L4 Route · L5 Node · L5 Node at First steps (design-round draft) · L9 Your knowledge · L12 Explore · L13 Exam (set up, results) · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S6 Review · S7 Requests · S8 Implementing · S9 Weave review · S11 Quality · S15 Assistant · S16–S17 AI · S18 Skeletons |
 
 **Revised 2026-09-17 for the [tutor spec](../superpowers/specs/2026-09-17-code-as-tutor-design.md):**
 - **L5 Node:** a *Learn it* section with Read / Watch and outside resources, hints in checks, and a
@@ -49,6 +49,14 @@ Design preview in Claude Code; published copies are views, and the generator is 
 - **S3 Workbench:** a Resources tab and block scores.
 - **S17 AI:** the new call sites and the scoring settings.
 - **New boards:** L2, S6, S11 and S18; then **L13 Exam** in two boards (set up and in progress; results per page on the map), with **Test yourself** on Route and Home, an **Exam pool** tab in the Workbench, and a pool-question row in Quality (T7.1).
+- **Levels (T10.1):** a level tag (no colour, since a level describes the page, not the learner) on
+  Node, Route (span, and where it starts for you), Start, Placement (a "you told us" hint), Explore
+  (a *Reaches down to* filter and each track's span), Graph (a level-jump warning), Workbench (level
+  and writing guide), Skeletons and the question builder. The Salmon route gains its First steps
+  stop, so it has 13 stops everywhere.
+- **L5 Node at First steps:** a first draft for that level's design round (T10.2). One column,
+  19–21 px body text, short numbered sections, big answer buttons, Read / Watch, and the next stop
+  with its level. Same identity and rules: no points, streaks or mascots.
 - **S3 Exam pool (question builder):** a question is a block document built like a page: a stem with text, figures, images, math, tables or sequences; an answer that is a choice (options holding figures), a number, a sequence, a figure interaction or an order; seeded variants, distractors mapped to misconceptions, and a preview as in a test.
 
 Not yet drawn: L6 Problem (its full block is inside L5), L7 Review, L8 Weekly, L11 From Labs,
