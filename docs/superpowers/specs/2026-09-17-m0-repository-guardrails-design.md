@@ -1,6 +1,6 @@
 # M0 part 9 — repository guardrails
 
-**Status: agreed 2026-09-17.** This is part 9, the last part of phase M0 (architecture spec R4).
+**Status: agreed 2026-09-17; built in comeni-code-content #1–#4 and Comeni-Code #30–#31.** This is part 9, the last part of phase M0 (architecture spec R4).
 The parts list is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md),
 which already decided that the content repository's protection has **no bypass**, the operator
 included. This spec decides what R7 leaves to this part:
