@@ -154,8 +154,8 @@ apps/web/src/styles/tokens.test.ts  drift, validation and Tailwind resolution
 
 - **Contrast of soft fills:** in light, three chip pairings measure under 4.5 : 1 (*next* on its
   fill 3.92, *needs you* on its fill 4.44, the button green on the route fill 4.28). W10 promises
-  AA. This part records the numbers and reports them; changing a token is a design decision for
-  the operator, made on the boards first.
+  AA. **The operator kept the current tokens (2026-09-17);** they change later, on the boards
+  first, if the chips prove hard to read. This part records the numbers.
 - **Tailwind 4 minor versions change CSS details.** The resolution test pins what we rely on
   (`var(--surface)`, the shadow, the radius, the mono family).
 - **Two places draw the identity:** the boards (HTML strings) and the app (Tailwind). They share

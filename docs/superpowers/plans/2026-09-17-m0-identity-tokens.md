@@ -862,7 +862,7 @@ and one Geist Mono `woff2`. Compare each screenshot with the `IdentityCodeLight`
   `meas`/`measSoft`, `btn`/`lineSoft`). Record them in the journal. The scratch build measured,
   in light: `sel` on `selSoft` 3.92, `btn` on `lineSoft` 4.28, `open` on `openSoft` 4.44, `line`
   on `surface` 3.43 (used for marks, not text); every dark pair was 5.4 or higher.
-  **Report pairs under 4.5 to the operator; do not change tokens in this part.**
+  **The operator kept these tokens (spec P6.6); do not change them in this part.**
 
 - [ ] **Step 3: Docs**
 - `CLAUDE.md`: in *Decided*, the tokens come from `.design/tokens.json`; in *Working here*,
