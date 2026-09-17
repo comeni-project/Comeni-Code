@@ -141,9 +141,18 @@
       "page": "studio"
     },
     {
+      "file": "QuestionBuilder.dc.html",
+      "title": "S3 · Exam pool — a question built from blocks",
+      "x": 1800,
+      "y": 1400,
+      "w": 1680,
+      "h": 1380,
+      "page": "studio"
+    },
+    {
       "file": "FigureComposer.dc.html",
       "title": "S4 · Figure composer — choose · data · interaction · describe",
-      "x": 1800,
+      "x": 3600,
       "y": 1400,
       "w": 1680,
       "h": 1060,
@@ -152,8 +161,8 @@
     {
       "file": "Review.dc.html",
       "title": "S6 · Review — approve blocks, lowest score first",
-      "x": 3600,
-      "y": 1400,
+      "x": 0,
+      "y": 3140,
       "w": 1680,
       "h": 1000,
       "page": "studio"
@@ -161,8 +170,8 @@
     {
       "file": "Skeletons.dc.html",
       "title": "S18 · Skeletons — nodes drafted from a public outline",
-      "x": 0,
-      "y": 2820,
+      "x": 1800,
+      "y": 3140,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -170,8 +179,8 @@
     {
       "file": "Quality.dc.html",
       "title": "S11 · Quality — is the tutor teaching? is the judge right?",
-      "x": 1800,
-      "y": 2820,
+      "x": 3600,
+      "y": 3140,
       "w": 1680,
       "h": 880,
       "page": "studio"
@@ -179,8 +188,8 @@
     {
       "file": "Graph.dc.html",
       "title": "S2 · Graph — search, neighbourhood, impact",
-      "x": 3600,
-      "y": 2820,
+      "x": 0,
+      "y": 4560,
       "w": 1680,
       "h": 1060,
       "page": "studio",
@@ -189,8 +198,8 @@
     {
       "file": "Assistant.dc.html",
       "title": "S15 · Assistant — chat that acts through the content API",
-      "x": 0,
-      "y": 4240,
+      "x": 1800,
+      "y": 4560,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -198,8 +207,8 @@
     {
       "file": "AIUsage.dc.html",
       "title": "S16 · AI — usage",
-      "x": 1800,
-      "y": 4240,
+      "x": 3600,
+      "y": 4560,
       "w": 1680,
       "h": 1180,
       "page": "studio"
@@ -207,8 +216,8 @@
     {
       "file": "AIModels.dc.html",
       "title": "S17 · AI — models, budgets and scoring",
-      "x": 3600,
-      "y": 4240,
+      "x": 0,
+      "y": 6100,
       "w": 1440,
       "h": 1260,
       "page": "studio"
@@ -364,8 +373,16 @@
       "page": "studio"
     },
     {
-      "id": "note-figurecomposer",
+      "id": "note-questionbuilder",
       "x": 1800,
+      "y": 1150,
+      "w": 620,
+      "text": "Reached from: the Exam pool tab of a node’s workbench.\nTutor spec T7.1, authoring questions: a question is a small block document built with the same editor as a page. The stem holds text, figures (library components filled with data), images with licence, math, tables, code or sequences; the answer is choice (options that hold figures or images), number, sequence, figure interaction or order. Seeded variants are checked across 20 seeds; each distractor names a misconception; the rationale shows only in results; no hints. Preview shows it exactly as in a test.",
+      "page": "studio"
+    },
+    {
+      "id": "note-figurecomposer",
+      "x": 3600,
       "y": 1150,
       "w": 620,
       "text": "Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.",
@@ -373,56 +390,56 @@
     },
     {
       "id": "note-review",
-      "x": 3600,
-      "y": 1150,
+      "x": 0,
+      "y": 2890,
       "w": 620,
       "text": "Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.",
       "page": "studio"
     },
     {
       "id": "note-skeletons",
-      "x": 0,
-      "y": 2570,
+      "x": 1800,
+      "y": 2890,
       "w": 620,
       "text": "Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.",
       "page": "studio"
     },
     {
       "id": "note-quality",
-      "x": 1800,
-      "y": 2570,
+      "x": 3600,
+      "y": 2890,
       "w": 620,
       "text": "Reached from: the rail (Insight).\nTutor spec T9 and T8.3: aggregates only. Right-on-next-try after a step back and after a hint; routes finished; resources marked unhelpful or broken. Judge–human agreement per block type against a 90% line — automatic deployment is locked for every type, and crossing the line only makes a type eligible for its own spec. Every “fix these” row opens the place to act.",
       "page": "studio"
     },
     {
       "id": "note-graph",
-      "x": 3600,
-      "y": 2570,
+      "x": 0,
+      "y": 4310,
       "w": 620,
       "text": "Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.",
       "page": "studio"
     },
     {
       "id": "note-assistant",
-      "x": 0,
-      "y": 3990,
+      "x": 1800,
+      "y": 4310,
       "w": 620,
       "text": "Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.",
       "page": "studio"
     },
     {
       "id": "note-aiusage",
-      "x": 1800,
-      "y": 3990,
+      "x": 3600,
+      "y": 4310,
       "w": 620,
       "text": "Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.",
       "page": "studio"
     },
     {
       "id": "note-aimodels",
-      "x": 3600,
-      "y": 3990,
+      "x": 0,
+      "y": 5850,
       "w": 620,
       "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.",
       "page": "studio"

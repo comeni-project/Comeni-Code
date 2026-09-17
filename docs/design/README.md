@@ -49,6 +49,7 @@ Design preview in Claude Code; published copies are views, and the generator is 
 - **S3 Workbench:** a Resources tab and block scores.
 - **S17 AI:** the new call sites and the scoring settings.
 - **New boards:** L2, S6, S11 and S18; then **L13 Exam** in two boards (set up and in progress; results per page on the map), with **Test yourself** on Route and Home, an **Exam pool** tab in the Workbench, and a pool-question row in Quality (T7.1).
+- **S3 Exam pool (question builder):** a question is a block document built like a page: a stem with text, figures, images, math, tables or sequences; an answer that is a choice (options holding figures), a number, a sequence, a figure interaction or an order; seeded variants, distractors mapped to misconceptions, and a preview as in a test.
 
 Not yet drawn: L6 Problem (its full block is inside L5), L7 Review, L8 Weekly, L11 From Labs,
 S1 Inbox and the smaller settings pages.

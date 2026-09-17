@@ -423,17 +423,20 @@ const F = {
     s += `<text x="0" y="140" style="font-family:${UI};font-size:12.5px;fill:${c.ink2}">Same reads, same information.</text><text x="395" y="140" style="font-family:${UI};font-size:12.5px;fill:${c.ink2}">A spelled sequence is a path through the edges.</text>`;
     return s + '</svg>';
   },
-  bubble() {
+  bubble(labels = true) {
+    const errA = labels ? c.open : c.ink2, errASoft = labels ? c.openSoft : c.surface, errB = labels ? c.measBar : c.ink2, errBSoft = labels ? c.measSoft : c.surface;
     const n = (x, y, t, o = {}) => `<rect x="${x}" y="${y}" width="56" height="28" rx="7" style="fill:${o.f || c.surface};stroke:${o.s || c.ink2};stroke-width:1.5;${o.d ? 'stroke-dasharray:4 3' : ''}"></rect><text x="${x + 28}" y="${y + 19}" text-anchor="middle" style="font-family:${MONO};font-size:13px;fill:${c.ink}">${t}</text>`;
     const l = (d, col, dash) => `<path d="${d}" style="fill:none;stroke:${col};stroke-width:2;${dash ? 'stroke-dasharray:5 4;' : ''}stroke-linejoin:round"></path>`;
     let s = `<svg viewBox="0 0 740 200" width="100%" style="display:block">`;
     s += l('M66 84 H110', c.line) + l('M166 84 H210', c.line) + l('M266 84 H330', c.line) + l('M386 84 H450', c.line) + l('M506 84 H550', c.line);
-    s += l('M266 84 H290 V140 H330', c.open, 1) + l('M386 140 H410 V84 H450', c.open, 1);
-    s += l('M166 84 H180 V30 H210', c.measBar, 1);
+    s += l('M266 84 H290 V140 H330', errA, 1) + l('M386 140 H410 V84 H450', errA, 1);
+    s += l('M166 84 H180 V30 H210', errB, 1);
     ['ACG', 'CGT', 'GTT', 'TTA', 'TAG', 'AGC'].forEach((t, i) => { s += n(10 + i * 110 + (i > 2 ? 10 : 0) + (i > 3 ? 10 : 0), 70, t); });
-    s += n(330, 126, 'TCA', { s: c.open, f: c.openSoft, d: 1 }) + n(210, 16, 'GTA', { s: c.measBar, f: c.measSoft, d: 1 });
-    s += `<text x="400" y="178" text-anchor="middle" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.open}">bubble: a read with one wrong base rejoins the path</text>`;
-    s += `<text x="270" y="22" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.meas}">tip: an error near a read’s end dead-ends</text>`;
+    s += n(330, 126, 'TCA', { s: errA, f: errASoft, d: 1 }) + n(210, 16, 'GTA', { s: errB, f: errBSoft, d: 1 });
+    if (labels) {
+      s += `<text x="400" y="178" text-anchor="middle" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.open}">bubble: a read with one wrong base rejoins the path</text>`;
+      s += `<text x="270" y="22" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.meas}">tip: an error near a read’s end dead-ends</text>`;
+    }
     return s + '</svg>';
   },
 };
@@ -1898,6 +1901,96 @@ function examResults() {
   </main>`);
 }
 
+// ── S3 Exam pool — a question built from blocks, like a page (tutor spec T7.1) ──
+function questionBuilder() {
+  const mini = (kind) => {
+    const n = (x, y, f = c.surface, s = c.ink2, d = 0) => `<circle cx="${x}" cy="${y}" r="6" style="fill:${f};stroke:${s};stroke-width:1.8;${d ? 'stroke-dasharray:3 2' : ''}"></circle>`;
+    const l = (d, col = c.line, dash = 0) => `<path d="${d}" style="fill:none;stroke:${col};stroke-width:2;${dash ? 'stroke-dasharray:4 3;' : ''}stroke-linejoin:round"></path>`;
+    let s = `<svg viewBox="0 0 160 60" width="160" height="60" style="display:block">`;
+    if (kind === 'bubble') s += l('M14 36 H146') + l('M58 36 Q80 8 102 36', c.open, 1) + [14, 58, 102, 146].map(x => n(x, 36)).join('') + n(80, 16, c.openSoft, c.open, 1);
+    if (kind === 'tip') s += l('M14 36 H146') + l('M102 36 L132 12', c.measBar, 1) + [14, 58, 102, 146].map(x => n(x, 36)).join('') + n(132, 12, c.measSoft, c.measBar, 1);
+    if (kind === 'repeat') s += l('M14 16 L80 36 L14 56') + l('M80 36 L146 16 M80 36 L146 56') + [[14, 16], [14, 56], [146, 16], [146, 56]].map(([x, y]) => n(x, y)).join('') + n(80, 36, c.surface, c.ink, 0);
+    if (kind === 'clean') s += l('M14 36 H146') + [14, 50, 86, 122, 146].map(x => n(x, 36)).join('');
+    return s + '</svg>';
+  };
+  const qRow = (n, t, type, st, sc, on) => `<div style="display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-radius:9px;${on ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : `border:1px solid ${c.border};background:${c.surface}`}">
+    <div style="display:flex;justify-content:space-between;gap:6px"><span style="font-family:${MONO};font-size:11px;color:${c.ink3}">Q${n} · ${type}</span><span style="font-family:${MONO};font-size:11px;color:${sc === '—' ? c.ink3 : parseFloat(sc) < 4 ? c.meas : c.ink2}">${sc}</span></div>
+    <span style="font-size:12.5px;font-weight:${on ? 600 : 500};line-height:1.35">${t}</span>
+    <span style="font-size:11px;color:${st === 'approved' ? c.ink3 : st === 'draft' ? c.sel : c.meas}">${st}</span></div>`;
+  const opt = (letter, kind, label, mis, right) => `<div style="display:grid;grid-template-columns:26px 170px minmax(0, 1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;${right ? `border:2px solid ${c.btn};background:${c.lineSoft}` : `border:1px solid ${c.border};background:${c.surface}`}">
+    <span style="width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:12px;font-weight:600;${right ? `background:${c.btn};color:#FFFFFF` : `border:1.5px solid ${c.border2};color:${c.ink2}`}">${letter}</span>
+    <div style="border-radius:8px;border:1px solid ${c.border};background:${c.bg};padding:2px 4px">${mini(kind)}</div>
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-family:${MONO};font-size:10.5px;color:${c.ink3}">figure="graph-artifacts" · alt text set</span><span style="font-size:13px;font-weight:500">${label}</span><span style="font-size:12px;color:${right ? c.btn : c.ink2}">${right ? 'Correct answer' : `Misconception: ${mis}`}</span></div>
+    <span style="font-size:12px;color:${c.sel}">Edit</span></div>`;
+  const check = (ok, t) => `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><span style="color:${ok ? c.ink2 : c.ink};font-weight:${ok ? 400 : 600}">${t}</span></div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:12.5px;color:${c.ink3}">Graph › Algorithms › de Bruijn graphs</span>
+        <div style="display:flex;align-items:center;gap:12px"><span style="font-size:24px;font-weight:600">de Bruijn graphs</span>${blueTag('Exam pool · 5 of 6 approved')}</div>
+      </div>
+      <div style="display:flex;gap:8px">${secondary(c, 'Draft a question with AI')}${primary(c, 'Submit Q6 for review', '')}</div>
+    </div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content'], ['Resources'], ['Exam pool', 1], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
+    <div style="flex:1;display:grid;grid-template-columns:230px minmax(0, 1fr) 460px;gap:18px;min-height:0">
+      <aside style="display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">Questions</span><span style="font-size:12px;color:${c.sel}">+ New</span></div>
+        ${qRow(1, 'Count the edges from 4 reads, k = 3', 'number · seeded', 'approved', '4.6')}
+        ${qRow(2, 'Spell the sequence along a path', 'sequence · seeded', 'approved', '4.4')}
+        ${qRow(3, 'Is a k-mer a node or an edge here?', 'choice', 'approved', '4.2')}
+        ${qRow(4, 'Put the assembly steps in order', 'order', 'approved', '4.0')}
+        ${qRow(5, 'Click the tip in this graph', 'figure interaction', 'approved', '4.5')}
+        ${qRow(6, 'Which mark does a mid-read error leave?', 'choice with figures', 'draft', '3.8', true)}
+        <span style="font-size:11.5px;color:${c.ink3};line-height:1.45;padding-top:4px">A node needs at least 4 approved questions to be included in tests. No hints in exam questions.</span>
+      </aside>
+
+      <section style="display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Q6 · Which mark does a mid-read error leave?</span><span style="font-size:12px;color:${c.ink3}">tests the claim: recognise the marks errors leave</span></div>
+        <div style="${panel(c)};display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid ${c.border}"><span style="font-size:12.5px;font-weight:600">Stem</span><span style="font-size:12px;color:${c.ink3}">blocks, as on a page</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;border:1px solid ${c.border}"><span style="font-family:${MONO};font-size:11px;padding:1px 7px;border-radius:5px;background:${c.bg};border:1px solid ${c.border};color:${c.ink2}">text</span><span style="font-size:13.5px">This graph was built from reads with k = 3. One read has a single wrong base in its middle. Which kind of mark did that read leave?</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:9px;border:2px solid ${c.sel};background:${c.surface}">
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-family:${MONO};font-size:11px;padding:1px 7px;border-radius:5px;background:${c.selSoft};border:1px solid ${c.sel};color:${c.sel}">figure</span><span style="font-size:13px;font-weight:600">graph-artifacts</span><span style="font-size:12px;color:${c.ink3}">data from seed · labels off, so it doesn’t give the answer · alt text set</span><span style="margin-left:auto;font-size:12px;color:${c.sel}">Open in figure composer</span></div>
+              <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:8px;padding:6px 10px">${F.bubble(false)}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;padding:6px 8px;border-radius:9px;border:1px dashed ${c.border2}"><span style="font-size:12px;color:${c.ink3};padding:3px 4px 3px 0">Add to stem</span>${['text', 'figure', 'image', 'math', 'table', 'code', 'sequence'].map(t => `<span style="font-family:${MONO};font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid ${c.border2}">${t}</span>`).join('')}</div>
+          </div>
+        </div>
+        <div style="${panel(c)};display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid ${c.border}"><span style="font-size:12.5px;font-weight:600">Answer</span>${seg(c, ['Choice', 'Number', 'Sequence', 'Figure interaction', 'Order'], 0)}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            ${opt('A', 'bubble', 'A bubble: the path splits and rejoins', '', true)}
+            ${opt('B', 'tip', 'A tip: a short dead end', 'confuses an error mid-read with one near the end')}
+            ${opt('C', 'repeat', 'Paths merging at a shared node', 'reads a repeat as an error')}
+            ${opt('D', 'clean', 'A single unbranched path', 'thinks errors leave no mark')}
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:${c.ink2}"><span>Options are shuffled per learner. Each option is its own block and can hold text, a figure or an image.</span><span style="color:${c.sel}">+ Option</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+          ${card(`<span style="font-size:12.5px;font-weight:600">Variants</span><span style="font-size:12px;color:${c.ink2};line-height:1.45">Seeded: the component draws a new graph and error position per learner.</span><div style="display:flex;gap:5px">${['#1', '#2', '#3', '#4', '… 20'].map((s, i) => `<span style="font-family:${MONO};font-size:11.5px;padding:3px 8px;border-radius:6px;${i === 0 ? `background:${c.ink};color:${c.bg}` : `border:1px solid ${c.border2};color:${c.ink2}`}">${s}</span>`).join('')}</div>`)}
+          ${card(`<span style="font-size:12.5px;font-weight:600">Rationale · shown only in results</span><span style="font-size:12px;color:${c.ink2};line-height:1.45">A wrong base in the middle creates k-mers found in one read only; the path leaves and rejoins the true path — a bubble.</span>`)}
+        </div>
+      </section>
+
+      <aside style="${panel(c)};display:flex;flex-direction:column;min-height:0;overflow:hidden">
+        <div style="display:flex;border-bottom:1px solid ${c.border}">${[['Preview as in a test', 1], ['Checks', 0, 1], ['Score'], ['History']].map(([t, on, n]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 12px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${c.openSoft};color:${c.open}">${n}</span>` : ''}</span>`).join('')}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">${seg(c, ['Desktop', 'Phone', 'Dark'], 0)}<span style="font-family:${MONO};font-size:11.5px;color:${c.ink3}">seed #1</span></div>
+        <div style="margin:0 14px;border-radius:10px;border:1px solid ${c.border};background:${c.bg};padding:14px;display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;color:${c.ink3}">Question 7 of 12 · no hints in a test</span>
+          <span style="font-size:15px;font-weight:600;line-height:1.35">This graph was built from reads with k = 3. One read has a single wrong base in its middle. Which kind of mark did that read leave?</span>
+          <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:8px;padding:4px 8px">${F.bubble(false)}</div>
+          <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:6px">${['tip', 'clean', 'bubble', 'repeat'].map((k, i) => `<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:8px;border:1px solid ${c.border2};background:${c.surface}"><span style="font-family:${MONO};font-size:11px;color:${c.ink3}">${'ABCD'[i]}</span><div style="transform:scale(.8);transform-origin:left center;height:48px">${mini(k)}</div></div>`).join('')}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;padding:14px">
+          <span style="font-size:13px;font-weight:600">Checks</span>
+          ${check(true, 'One correct answer on all 20 seeds')}${check(true, 'Every figure and image has alt text')}${check(true, 'Each distractor names a misconception')}${check(true, 'No hint in an exam question')}${check(false, 'Seed #14: options B and C draw the same graph')}
+        </div>
+      </aside>
+    </div>`;
+  return studio('Graph', inner, 1680, 1380, { collapsed: true });
+}
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -1916,6 +2009,7 @@ const STUDIO = [
   ['Implementing', 'S8 · Implementing — grouped by stage', implementing(), 1680, 1000, 'Reached from: accepting a request.\nLeads to: the node workbench (open), review, land.\nSaved views, filters, rows grouped by stage and collapsible, bulk assign, a stalled flag instead of due dates, and team load to help assign.'],
   ['WeaveReview', 'S9 · Weave review — texts pinned where learners read them', weaveReview(), 1680, 1040, 'Reached from: Tracks in the rail, Inbox.\nLeads to: a published named track in Explore.\nEach number on the map is a text the AI wrote. Pick one (or J/K through them): it sits beside the two claims it may use and its automatic checks; approve, suggest an edit, or ask for a rewrite (GitHub-review style). The strip below tracks every text by kind.'],
   ['Workbench', 'S3 · Node workbench — outline · blocks · live preview', workbench(), 1680, 1060, 'Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nTutor spec additions: a Resources tab (outside videos and readings with provider, part and licence); every drafted block carries a judge score with named parts and reasons, a redraft count, and the judge model (never the drafter’s family); a block that fails a check is not scored.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.'],
+  ['QuestionBuilder', 'S3 · Exam pool — a question built from blocks', questionBuilder(), 1680, 1380, 'Reached from: the Exam pool tab of a node’s workbench.\nTutor spec T7.1, authoring questions: a question is a small block document built with the same editor as a page. The stem holds text, figures (library components filled with data), images with licence, math, tables, code or sequences; the answer is choice (options that hold figures or images), number, sequence, figure interaction or order. Seeded variants are checked across 20 seeds; each distractor names a misconception; the rationale shows only in results; no hints. Preview shows it exactly as in a test.'],
   ['FigureComposer', 'S4 · Figure composer — choose · data · interaction · describe', composer(), 1680, 1060, 'Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.'],
   ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
   ['Skeletons', 'S18 · Skeletons — nodes drafted from a public outline', skeletons(), 1680, 1060, 'Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.'],
