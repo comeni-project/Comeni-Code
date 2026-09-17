@@ -17,11 +17,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     # Part 3 serves the API docs page from Ninja's bundled files, which needs staticfiles.
     "django.contrib.staticfiles",
+    # Ninja in INSTALLED_APPS serves the docs page from its bundled files, not a CDN (part 2, P2.5).
+    "ninja",
     "code_api.accounts",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves /static/ with DEBUG off, so the API docs page loads in every environment.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,3 +67,4 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = ENV.static_root

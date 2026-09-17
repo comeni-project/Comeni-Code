@@ -9,6 +9,7 @@ dependencies = [
     "psycopg[binary]>=3.3,<3.4",
     "pydantic-settings>=2.15,<3",
     "django-ninja>=1.7,<1.8",
+    "whitenoise>=6.12,<7",
 ]
 
 [build-system]
