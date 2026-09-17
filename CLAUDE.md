@@ -47,12 +47,16 @@ variables). Tests marked `django_db` need Postgres running; the rest don't.
 1. This file.
 2. [`docs/notes/journal/`](docs/notes/journal/): its README (the rules and the box naming the
    entry to read), then the newest entry.
-3. The architecture spec, `docs/superpowers/specs/2026-09-17-…-architecture-and-roadmap-design.md`,
-   which you work from: R1 stack, R2 repository shape, R3 content flow, R4 phases M0–M9 with
+3. **The tutor spec, `docs/superpowers/specs/2026-09-17-code-as-tutor-design.md`: the current
+   statement of the product** (T-sections): Code as the tutor on top of existing material,
+   outside resources, skeletons, step backs, evidence, block scores, and what is deferred.
+4. The architecture spec, `docs/superpowers/specs/2026-09-17-…-architecture-and-roadmap-design.md`,
+   which you build from: R1 stack, R2 repository shape, R3 content flow, R4 phases M0–M9 with
    *done when*, R5 how a phase is built, R7 what part specs decide, R8 open questions.
-4. As needed: the 2026-09-16 spec (W-sections: weaving, pages, AI, identity) and the 2026-09-02
-   spec. **The newest spec wins** where they disagree.
-5. [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) for commit and pull-request style.
+5. As needed: the 2026-09-16 spec (W-sections: weaving, pages, AI, identity) and the 2026-09-02
+   spec. **The newest spec wins** where they disagree. The research behind the tutor spec is in
+   `docs/notes/research/`.
+6. [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) for commit and pull-request style.
 
 ## The claim
 
@@ -63,11 +67,16 @@ describe it as deterministic. The *route* is deterministic; the words are not.
 
 ## The model, in one paragraph
 
-Nodes are standalone topic pages, reviewed by a person and reused everywhere. A learner's goal
-resolves to one to three target nodes; the route is a pure walk over the nodes' directed *needs*
-links. AI proposes targets, links, page drafts, figure data and short connecting text — it never
-chooses the route. Missing nodes and unknown goals go to a request queue, and only a person moves
-them on.
+**Code is the tutor on top of material that already exists.** It does not try to out-write Khan
+Academy; it organises the best existing teaching into the right order for one learner's goal.
+Nodes are standalone topic pages, reviewed by a person and reused everywhere, and each points
+outward to the best existing video or reading. A learner's goal resolves to one to three target
+nodes; the route is a pure walk over the nodes' directed *needs* links, so courses build
+themselves. The loop is diagnose (placement), sequence (weaver), explain (node and resources),
+check (with hints), step back when an answer reveals a gap, and review. AI proposes targets,
+links, skeletons from public course outlines, page drafts, figure data and short connecting text,
+and a judge model scores every drafted block; AI never chooses the route. Missing nodes and
+unknown goals go to a request queue, and only a person moves them on.
 
 ## Invariants
 
@@ -83,26 +92,37 @@ spec, not in code.
 4. **Nothing leaves the request queue without a person.** Models may propose and group requests;
    they may not accept, merge or decline them.
 5. **AI drafts, people approve.** Model-written text that reaches a learner unreviewed carries a
-   *not yet reviewed* label. Nobody approves what they drafted.
+   *not yet reviewed* label. Nobody approves what they drafted, and a judge model is never from
+   the drafter's model family. Automatic deployment of high-scoring blocks is deferred until
+   judge–human agreement is measured (tutor spec T8.4).
 6. **Content is validated blocks.** No free HTML, script or styling from an author or a model;
    figures are library components filled with data; images carry author and licence or are
-   refused.
-7. **Models are called only at declared sites** (spec W9): goal suggestions, page drafting, figure
-   data and problems, connecting text, request grouping, assistant chats. Adding one is a reviewed
-   change. All calls go through one LiteLLM gateway.
-8. **Learners never chat.** The only learner-facing model call is goal suggestion, capped, with
-   plain search as its fallback.
+   refused; outside resources are `resource` blocks with a recorded licence, embedded only from
+   allowed providers.
+7. **Models are called only at declared sites** (spec W9, tutor spec T13.1): goal suggestions,
+   page drafting, figure data and problems, connecting text, request grouping, assistant chats,
+   skeleton drafting, resource suggestion, block evaluation. Adding one is a reviewed change. All
+   calls go through one LiteLLM gateway.
+8. **Learners never chat in v1.** The only learner-facing model call is goal suggestion, capped,
+   with plain search as its fallback. A learner chat later is a reviewed change with its own spec.
 9. **Authors see aggregates, never an individual learner.**
 10. **No streaks, XP, badges, leaderboards, hearts or backlog counts** (first spec, §9). A number
-    may be a measurement, never a prize.
+    may be a measurement, never a prize. Block scores are never shown to learners.
 11. **Settled spends no colour.** One meaning per colour across Code and Labs (spec W10).
 12. **Learners only ever see metro maps.** Neighbourhood and box drawings are Studio tools.
+13. **Code organises; it does not copy.** Others' material is linked, or embedded where its
+    licence allows. Nothing is scraped, and no model is fed content whose terms forbid it; Khan
+    Academy is used by people, as a reference and as linked resources (tutor spec T5.3).
 
 ## Words
 
 Use the vocabulary in §3 of the first spec and W3.2 of the second. In particular: **node**, never
 "module" (a module is an nf-core process in Labs); **track** is a reviewed woven route; **goal**,
-**needs**, **goes deeper**, **related**.
+**needs**, **goes deeper**, **related**; **resource** (an outside video or reading attached to a
+node); **skeleton** (draft node stubs and needs links from a public outline — never a track);
+**known** (a learner's state for a node, backed by stored evidence); **score** (a judge model's
+rating of a drafted block, Studio only); **step back** (a detour to a prerequisite after a wrong
+answer).
 
 ## Decided, do not reopen (architecture spec R1)
 
@@ -196,6 +216,7 @@ compose.yaml              the local stack: postgres now, the rest from part 8
 docs/index.md             documentation map
 docs/design/              how screens are made
 docs/notes/journal/       session records, append-only
+docs/notes/research/      studies decisions were built on (the Khan Academy report)
 docs/superpowers/specs/   design documents
 docs/superpowers/plans/   one plan per part
 packages/code-schema/     pure, empty until M1
