@@ -287,7 +287,8 @@ function home() {
     <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:18px">
       ${card(`<span style="font-size:15px;font-weight:600">Ready for you</span>${ready('k-mers', '10 min · Learn Salmon')}${ready('Sequence alignment', '15 min · Learn Salmon')}${ready('Gene expression', 'Quick review due', 'stale')}`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Review</span>${secondary(c, 'Start')}</div>
-        <span style="font-size:13.5px;color:${c.ink2};line-height:1.5">8 questions from pages you’ve read · about 6 min. Tomorrow’s set is picked for you; nothing piles up.</span>`)}
+        <span style="font-size:13.5px;color:${c.ink2};line-height:1.5">8 questions from pages you’ve read · about 6 min. Tomorrow’s set is picked for you; nothing piles up.</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid ${c.border}"><span style="font-size:13px;color:${c.ink2}">Or test yourself on a route</span><a style="font-size:13px;font-weight:600">Test yourself</a></div>`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:center"><span style="${label(c)}">Weekly problem · 16 Sep</span><span style="font-size:12px;color:${c.ink3}">solved by 38%</span></div>
         <span style="font-size:15.5px;font-weight:600">Count the reads on one gene</span>
         <span style="font-size:13px;color:${c.ink2}">Needs 3 nodes · you hold 2. Open forever, nobody is ranked.</span>`)}
@@ -320,7 +321,7 @@ function route() {
         <div style="display:flex;gap:8px;flex-wrap:wrap">${greyTag('Starts at AP Biology level')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
         <span style="font-size:16px;color:${c.ink};max-width:70ch;line-height:1.5"><b style="font-weight:600">At the end you can</b> estimate transcript expression from your own RNA-seq reads with Salmon, and explain each step it takes.</span>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;padding-top:26px">${seg(c, ['Map', 'List'], 0)}${secondary(c, 'Change goal')}</div>
+      <div style="display:flex;gap:10px;align-items:center;padding-top:26px">${seg(c, ['Map', 'List'], 0)}${secondary(c, 'Test yourself')}${secondary(c, 'Change goal')}</div>
     </div>
 
     <div style="${panel(c)};padding:14px 20px;display:flex;align-items:center;gap:28px">
@@ -1123,7 +1124,7 @@ function workbench() {
         </div>
       </div>
     </div>
-    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content', 1], ['Resources'], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content', 1], ['Resources'], ['Exam pool'], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
     <div style="flex:1;display:grid;grid-template-columns:230px minmax(0, 1fr) 520px;gap:18px;min-height:0">
       <aside style="display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px"><span style="font-size:13px;font-weight:600">Outline</span><span style="font-size:11.5px;color:${c.ink3}">16 blocks · score</span></div>
@@ -1791,9 +1792,110 @@ function quality() {
         ${fix(amberTag('resource'), '[Khan Academy] Genome assembly · 2:10–7:45', 'Marked “didn’t help” by 9 learners on the Salmon route — the part may be too long.', 'Edit resource')}
         ${fix(redTag('broken link'), 'Galaxy Training · Mapping tutorial', 'Hidden from learners since 15 Sep; the page moved.', 'Replace link')}
         ${fix(greyTag('check'), 'How many 5-mers…', 'Everyone answers right without reading — it may not test anything.', 'Open check')}
+        ${fix(greyTag('exam pool'), 'FASTQ on disk · question 3', 'Learners who know the page get it wrong as often as those who don’t — it doesn’t separate them.', 'Open pool')}
         ${fix(greyTag('route'), 'Learn Salmon · Expectation–maximisation', 'Where most learners stop. Time on page is 3× the estimate.', 'Open node')}`, 'min-height:0')}
     </div>`;
   return studio('Quality', inner, 1680, 880);
+}
+
+// ── L13 Exam — self-tests from node exam pools (tutor spec T7.1) ──
+function examSetup() {
+  const scope = (t, sub, n, on) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}">
+    <span style="width:18px;height:18px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>
+    <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14.5px;font-weight:600">${t}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div>
+    <span style="font-family:${MONO};font-size:12px;color:${c.ink3}">${n}</span></div>`;
+  const opt = (s, st) => `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;font-size:15px;${st ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}"><span style="width:18px;height:18px;border-radius:50%;flex:none;${st ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>${s}</div>`;
+  return page(1440, 860, `${learnBar()}
+  <main style="flex:1;display:grid;grid-template-columns:520px minmax(0, 1fr);gap:28px;padding:28px 36px;min-height:0">
+    <section style="${panel(c)};padding:22px 24px;display:flex;flex-direction:column;gap:18px;align-self:start">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="${label(c)}">Learn Salmon · Test yourself</span>
+        ${h1('Check what you know', 28)}
+        <span style="font-size:13.5px;color:${c.ink2};line-height:1.5">Built from each page’s exam questions, graded automatically. Results are per page, on your route — no grade, nothing shared.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13.5px;font-weight:600">What to cover</span>
+        ${scope('What I’ve done so far', 'the 5 pages you know or started on this route', '5 pages', true)}
+        ${scope('The whole route', '11 of 12 pages — also a way to test out of everything', '11 pages')}
+        ${scope('One line', 'Data · Reads · Index', '')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13.5px;font-weight:600">How long</span>
+        ${seg(c, ['About 15 min · 12 questions', '30 min · 24', '60 min · 45'], 0)}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:10px;background:${c.bg};font-size:12.5px;line-height:1.5;color:${c.ink2}">
+        <span>Questions are mixed across pages and weighted toward what you tested longest ago. Numbers and sequences change each time.</span>
+        <span>No hints and no answers until the end. You can stop and come back.</span>
+        <span style="color:${c.ink3}">Selective alignment isn’t included: its exam questions aren’t reviewed yet.</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12.5px;color:${c.ink3}">Last test on this route: 9 days ago</span>${primary(c, 'Start the test', '')}</div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:0;border-radius:14px;overflow:hidden;border:1px solid ${c.border};background:${c.bg}">
+      <div style="padding:8px 14px;font-size:12px;color:${c.ink3};border-bottom:1px solid ${c.border};background:${c.surface}">In progress — what the test looks like</div>
+      ${focusBar('Test · Learn Salmon', progress(4, 4, 12), `<span style="font-size:13px;color:${c.ink2}">Stop and save</span>`)}
+      <div style="display:flex;flex-direction:column;gap:18px;padding:32px 40px">
+        <span style="${label(c)}">Question 5 of 12 · no hints in a test</span>
+        ${h1('A FASTQ record’s quality line reads <span style="font-family:' + MONO + '">II5+#</span>. Which base is the least reliable?', 26)}
+        <pre style="margin:0;padding:14px 16px;border-radius:10px;background:${c.surface};border:1px solid ${c.border};font-family:${MONO};font-size:14px;line-height:1.7;color:${c.ink}">@read_812
+GATTA
++
+II5+#</pre>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+          ${opt('Base 1 · G')}${opt('Base 3 · T')}${opt('Base 4 · T')}${opt('Base 5 · A', true)}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12.5px;color:${c.ink3}">The page this question comes from is shown with your results.</span>
+          ${primary(c, 'Next question', '')}
+        </div>
+      </div>
+    </section>
+  </main>`);
+}
+
+function examResults() {
+  const res = { dna: 'confirmed', expr: 'shaky', reads: 'confirmed', rnaseq: 'confirmed', fastq: 'notyet' };
+  const pill = (x, y, st) => {
+    const [txt, bg, fg, w] = st === 'confirmed' ? ['confirmed', c.surface, c.ink2, 78] : st === 'shaky' ? ['shaky', c.measSoft, c.meas, 52] : ['not yet', c.openSoft, c.open, 60];
+    return `<rect x="${x - w / 2}" y="${y}" width="${w}" height="20" rx="10" style="fill:${bg};stroke:${st === 'confirmed' ? c.border2 : bg};stroke-width:1"></rect><text x="${x}" y="${y + 14}" text-anchor="middle" style="font-family:${UI};font-size:11.5px;font-weight:600;fill:${fg}">${txt}</text>`;
+  };
+  const marks = Object.entries(res).map(([k, st]) => { const [, x, y] = MS[k]; return pill(x, y + 14, st); }).join('');
+  const map = routeMetro({ sel: null }).replace(/<\/svg>$/, marks + '</svg>');
+  const nodeRow = (n, st, got, why, action) => `<div style="display:grid;grid-template-columns:minmax(0, 1fr) 90px 70px minmax(0, 1.4fr) 170px;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid ${c.border};font-size:13.5px">
+    <span style="font-weight:600">${n}</span>
+    <span>${st === 'confirmed' ? greyTag('confirmed') : st === 'shaky' ? amberTag('shaky') : redTag('not yet')}</span>
+    <span style="font-family:${MONO};font-size:12.5px;color:${c.ink2}">${got}</span>
+    <span style="font-size:12.5px;color:${c.ink2};line-height:1.45">${why}</span>
+    <span style="display:flex;justify-content:flex-end">${action}</span></div>`;
+  return page(1440, 1320, `${learnBar()}
+  <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 36px 32px;min-height:0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:13px;color:${c.ink3}">Learn Salmon › Test yourself › Results</span>
+        ${h1('What the test showed', 32)}
+        <span style="font-size:14.5px;color:${c.ink2}">What you’ve done so far · 12 questions · 16 min · 9 of 12 answered right</span>
+      </div>
+      <div style="display:flex;gap:8px">${secondary(c, 'Review the answers')}${secondary(c, 'Test again')}${primary(c, 'Back to the route', '')}</div>
+    </div>
+    <div style="display:flex;gap:14px">
+      ${[['3 pages confirmed', 'they stay known on your route', c.ink], ['1 page shaky', 'added to your next review', c.meas], ['1 page not yet', 'back on your route, with a step back offered', c.open]].map(([t, sub, col]) => `<div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:14px 18px;${panel(c)}"><span style="font-size:18px;font-weight:600;color:${col}">${t}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div>`).join('')}
+    </div>
+    <section style="${panel(c)};padding:14px 18px 10px;display:flex;flex-direction:column;gap:6px">
+      ${map}
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px;font-size:12px;color:${c.ink2}">
+        <span>Only the pages in this test are marked. Confirmed spends no colour; shaky is amber; not yet is red.</span>
+      </div>
+    </section>
+    <section style="${panel(c)};overflow:hidden">
+      <div style="display:grid;grid-template-columns:minmax(0, 1fr) 90px 70px minmax(0, 1.4fr) 170px;gap:14px;padding:10px 16px;font-size:11.5px;color:${c.ink3}"><span>Page</span><span>Result</span><span>Right</span><span>What the wrong answers point at</span><span></span></div>
+      ${nodeRow('FASTQ on disk', 'notyet', '0 of 2', 'Both answers read quality characters as numbers. The step back goes to <b style="color:' + c.ink + ';font-weight:600">Sequencing reads</b> → base quality.', primary(c, 'Step back', ''))}
+      ${nodeRow('Gene expression', 'shaky', '2 of 3', 'Mixed up transcripts and genes once. Added to review in 1 day.', secondary(c, 'Open page'))}
+      ${nodeRow('DNA and genes', 'confirmed', '2 of 2', '—', '')}
+      ${nodeRow('Sequencing reads', 'confirmed', '3 of 3', '—', '')}
+      ${nodeRow('RNA-seq experiments', 'confirmed', '2 of 2', '—', '')}
+    </section>
+    <span style="font-size:12.5px;color:${c.ink3}">A self-test isn’t a certificate and has no overall grade. Your answers are kept as evidence for what the route shows you.</span>
+  </main>`);
 }
 
 // ── write everything ────────────────────────────────────────────
@@ -1803,6 +1905,8 @@ const LEARN = [
   ['Placement', 'L2 · Placement — the first station of the tutor loop', placement(), 1440, 800, 'Reached from: Start (“Place me first”), Route, Home.\nLeads to: the shortened route.\nOne question per candidate stop, no hints, no score (tutor spec T3). A right answer drops the stop and what only it needed; “I don’t know this yet” keeps it. The side panel shows the route shortening as you go. The goal itself is never tested out of.'],
   ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1480, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route says where it starts: AP Biology level (T10).'],
   ['Node', 'L5 · Node — learn it, blocks, questions with hints, a step back', node(), 1440, 5420, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
+  ['ExamSetup', 'L13 · Exam — set up, and a test in progress', examSetup(), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
+  ['ExamResults', 'L13 · Exam — results per page, on the route', examResults(), 1440, 1320, 'Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.'],
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],
   ['Knowledge', 'L9 · Your knowledge — areas that may not connect', knowledge(), 1440, 1480, 'Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.'],
   ['AccountMenu', 'Account menu', account(), 320, 420, 'Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.'],

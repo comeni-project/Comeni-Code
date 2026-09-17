@@ -40,7 +40,7 @@ Design preview in Claude Code; published copies are views, and the generator is 
 
 | Learn | Studio |
 |---|---|
-| L1 Start · L2 Placement · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S6 Review · S7 Requests · S8 Implementing · S9 Weave review · S11 Quality · S15 Assistant · S16–S17 AI · S18 Skeletons |
+| L1 Start · L2 Placement · L3 Home · L4 Route · L5 Node · L9 Your knowledge · L12 Explore · L13 Exam (set up, results) · account menu | S2 Graph · S3 Node workbench · S4 Figure composer · S6 Review · S7 Requests · S8 Implementing · S9 Weave review · S11 Quality · S15 Assistant · S16–S17 AI · S18 Skeletons |
 
 **Revised 2026-09-17 for the [tutor spec](../superpowers/specs/2026-09-17-code-as-tutor-design.md):**
 - **L5 Node:** a *Learn it* section with Read / Watch and outside resources, hints in checks, and a
@@ -48,7 +48,7 @@ Design preview in Claude Code; published copies are views, and the generator is 
 - **L4 Route:** a suggested step back and the level the route starts at.
 - **S3 Workbench:** a Resources tab and block scores.
 - **S17 AI:** the new call sites and the scoring settings.
-- **New boards:** L2, S6, S11 and S18.
+- **New boards:** L2, S6, S11 and S18; then **L13 Exam** in two boards (set up and in progress; results per page on the map), with **Test yourself** on Route and Home, an **Exam pool** tab in the Workbench, and a pool-question row in Quality (T7.1).
 
 Not yet drawn: L6 Problem (its full block is inside L5), L7 Review, L8 Weekly, L11 From Labs,
 S1 Inbox and the smaller settings pages.
