@@ -196,7 +196,8 @@ mandatory. Part 3 must meet this:
 
 **A consequence for part 8.** When `DEBUG` is off, Django does not serve static files itself,
 so the Compose stack needs something that does (WhiteNoise is the usual choice). Part 8's spec
-decides.
+decides. *Resolved: WhiteNoise (part 3), checked inside the container by
+[part 8](2026-09-17-m0-compose-stack-design.md).*
 
 ## P2.6 Risks
 

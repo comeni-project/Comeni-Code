@@ -11,8 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
 workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist, and the web app (`apps/web`) shows the health page at `/` and the identity specimen at
-`/identity`.
+`/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
+specimen at `/identity`; and `docker compose up -d --wait` runs the whole stack.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -22,6 +22,12 @@ docker compose up -d --wait postgres redis   # Postgres 18 on :5433, Redis 8 on 
 uv sync --locked --all-packages
 uv run python apps/api/manage.py migrate
 ```
+
+**Two ways to run it.** The whole stack in Compose (migrate, api, worker, beat and web beside
+Postgres and Redis): `docker compose up -d --wait`, then open http://127.0.0.1:8090. For
+development, keep only `postgres redis` in Compose and run the API, worker, beat and `npm run dev`
+natively (below). **`docker compose down -v` deletes the development database;** to stop just the
+app services, `docker compose rm -sf migrate api worker beat web`.
 
 **Node 24 for the web app** (it refuses other versions). On Fedora, `nodejs24` installs `node-24`,
 `npm-24` and `npx-24` beside the default Node 22, and `npm-24` still runs under whatever `node` is
@@ -47,6 +53,7 @@ uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --
 uv run python apps/api/manage.py collectstatic --noinput            # fills CODE_STATIC_ROOT
 uv run celery -A code_api worker -l info                            # background worker
 uv run celery -A code_api beat -l info                              # scheduler (separate process)
+ops/stack-check.sh                  # check a running Compose stack through web (CI runs it)
 uv run ruff check .                 # lint
 uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
 uv run mypy                         # strict types over packages/, apps/api/ and tests/
@@ -257,8 +264,11 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
 apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py, celery.py, redis.py), openapi.json, tests
-apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest)
-compose.yaml              the local stack: postgres and redis now, the rest from part 8
+apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
+compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
+Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
+.dockerignore             keeps .env and host builds out of images
+ops/                      nginx config for the web image, and stack-check.sh
 docs/index.md             documentation map
 docs/design/              how screens are made
 docs/notes/journal/       session records, append-only

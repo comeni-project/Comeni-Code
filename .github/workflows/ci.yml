@@ -1,7 +1,8 @@
 name: CI
 
 # Every pull request runs the same command sets as a local check, one job per language: python
-# (M0 part 1 spec, P1.3; part 2, P2.4; part 4, P4.4) and web (part 5, P5.4).
+# (M0 part 1 spec, P1.3; part 2, P2.4; part 4, P4.4), web (part 5, P5.4), and stack, which starts
+# Compose and checks the health page through web (part 8, P8.4).
 
 on:
   push:
@@ -114,3 +115,29 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  stack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Development values only; CI has no secrets to give the stack.
+      - name: Settings
+        run: cp .env.example .env
+
+      - name: Build
+        run: docker compose build
+
+      - name: Start
+        run: docker compose up -d --wait --wait-timeout 180
+
+      - name: Check through the web service
+        run: ops/stack-check.sh
+
+      - name: Logs
+        if: failure()
+        run: docker compose ps -a && docker compose logs --no-color
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v
