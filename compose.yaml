@@ -1,5 +1,26 @@
-# Comeni Code's local stack. M0 part 2 starts it with Postgres; part 8 adds the rest.
+# Comeni Code's stack (M0 part 8 spec). `docker compose up -d --wait` runs all of it; open
+# http://127.0.0.1:8090. For development, `docker compose up -d --wait postgres redis` and run the
+# API, worker, beat and `npm run dev` natively (CLAUDE.md).
 name: comeni-code
+
+# The API image's settings, shared by migrate, api, worker and beat. .env supplies the secret key;
+# the rest point at the services inside Compose's network.
+x-api-settings: &api-settings
+  image: comeni-code-api
+  env_file: .env
+  environment:
+    CODE_DATABASE_URL: postgresql://code:code@postgres:5432/code
+    CODE_REDIS_URL: redis://redis:6379/0
+    CODE_DEBUG: "false"
+    CODE_ALLOWED_HOSTS: localhost,127.0.0.1
+
+x-after-migrate: &after-migrate
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
 
 services:
   postgres:
@@ -32,6 +53,62 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  # Runs once and exits, so the three services after it never race to migrate.
+  migrate:
+    <<: *api-settings
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["python", "apps/api/manage.py", "migrate", "--noinput"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *api-settings
+    depends_on: *after-migrate
+    healthcheck:
+      # Serving means 200 or 503: a stopped worker is the health page's news, not Docker's.
+      test: ["CMD", "python", "-m", "code_api.health.probe"]
+      interval: 10s
+      timeout: 6s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    <<: *api-settings
+    command: ["celery", "-A", "code_api", "worker", "-l", "info"]
+    depends_on: *after-migrate
+    healthcheck:
+      # The worker itself answers; the heartbeat would also fail when beat is down.
+      test: ["CMD-SHELL", "celery -A code_api inspect ping -d celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  beat:
+    <<: *api-settings
+    # The schedule file goes where the non-root user can write; it holds nothing to keep.
+    command: ["celery", "-A", "code_api", "beat", "-l", "info", "-s", "/tmp/celerybeat-schedule"]
+    depends_on: *after-migrate
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      # 8090 on the host: 8000 and 8080 are often taken.
+      - "127.0.0.1:8090:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   postgres-data:
