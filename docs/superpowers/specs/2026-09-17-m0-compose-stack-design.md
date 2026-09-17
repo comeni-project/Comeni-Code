@@ -149,7 +149,9 @@ exited 0 (Compose 5.0, checked twice in the scratch build).
 
 - **Image tags, not digests.** `python:3.14-slim-trixie`, `node:24-alpine`, `nginx:1.29-alpine`
   and the uv image move within their lines. Pinning digests (and letting Dependabot bump them)
-  is a later decision, with hosting.
+  is a later decision, with hosting. *Resolved 2026-09-17 (operator): all six images are pinned by
+  digest with their tags kept, and `.github/dependabot.yml` bumps them, along with Actions, uv and
+  npm.*
 - **`comeni-code-api` is a fixed image name,** shared by four services. A second checkout of the
   repository building under another project name overwrites it; scratch builds must expect that.
 - **The stack uses development settings.** `.env.example`'s key and Postgres's `code/code` are

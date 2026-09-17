@@ -2,6 +2,8 @@
 # http://127.0.0.1:8090. For development, `docker compose up -d --wait postgres redis` and run the
 # API, worker, beat and `npm run dev` natively (CLAUDE.md).
 name: comeni-code
+# Images are pinned by digest with their tag kept for reading; Dependabot bumps both
+# (.github/dependabot.yml). A tag alone can change under us between two builds.
 
 # The API image's settings, shared by migrate, api, worker and beat. .env supplies the secret key;
 # the rest point at the services inside Compose's network.
@@ -24,7 +26,7 @@ x-after-migrate: &after-migrate
 
 services:
   postgres:
-    image: postgres:18
+    image: postgres:18@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280
     environment:
       POSTGRES_USER: code
       POSTGRES_PASSWORD: code
@@ -42,7 +44,7 @@ services:
       retries: 30
 
   redis:
-    image: redis:8
+    image: redis:8@sha256:298e5b3bc566bade82f46ad5511777a4a07a294097ce16ada2f6a42be5239df5
     ports:
       # 6380 on the host: 6379 is often taken by another project's Redis.
       - "127.0.0.1:6380:6379"
