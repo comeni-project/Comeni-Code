@@ -6,9 +6,10 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-17-m0-part-3-ninja-api.md`](2026-09-17-m0-part-3-ninja-api.md)**: M0 part 3 is built
-> (the Ninja API, health, the docs page and the committed schema). For the product direction read
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) and the entries after it. Nine
+> [`2026-09-17-m0-part-4-celery.md`](2026-09-17-m0-part-4-celery.md)**: M0 part 4 is built
+> (Celery, beat, Redis, and health for Redis and the worker). Read its *Traps* on process
+> handling before running background processes. For the product direction read
+> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) and the entries after it. Ten
 > entries share this date.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
@@ -47,6 +48,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-m0-part-4-celery.md) | **M0 part 4 built.** Celery on Python 3.14, Redis 8, a beat heartbeat, `redis` and `worker` health checks; process-handling traps recorded |
 | [2026-09-17](2026-09-17-m0-part-3-ninja-api.md) | **M0 part 3 built.** `/api/health` (200/503), the docs page via WhiteNoise, the committed OpenAPI schema |
 | [2026-09-17](2026-09-17-first-steps-in-mvp.md) | **First steps in the MVP.** A design round before M3; a few First steps nodes under the Salmon route |
 | [2026-09-17](2026-09-17-levels.md) | **Levels.** Five content levels (First steps → Advanced); learners at every level; accounts 13+ until a consent spec |
