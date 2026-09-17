@@ -11,7 +11,8 @@ once and nothing drifts:
 
 | File | Holds |
 |---|---|
-| [`.design/_identity.mjs`](../../.design/_identity.mjs) | the hybrid identity: light and dark tokens, shared pieces, the identity boards for Code and Labs |
+| [`.design/tokens.json`](../../.design/tokens.json) | the hybrid identity's values: light and dark tokens, fonts, radii. The boards and the web app's Tailwind theme both read it |
+| [`.design/_identity.mjs`](../../.design/_identity.mjs) | the hybrid identity drawn: shared pieces, the identity boards for Code and Labs |
 | [`.design/build_pages.mjs`](../../.design/build_pages.mjs) | every page, the network and route maps, figure components, and the canvas layout |
 | `.design/*.dc.html`, `.design/canvas.json` | generated output — committed, never edited by hand |
 

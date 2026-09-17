@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
 workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist, and the web app (`apps/web`) exists as a shell.
+`/api/docs`) exist, and the web app (`apps/web`) shows the identity specimen in light and dark.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -61,6 +61,7 @@ npm run typecheck   # TypeScript 7, strict
 npm test            # vitest
 npm run build       # vite build
 npm run dev         # http://127.0.0.1:5173
+npm run tokens      # regenerate src/styles/tokens.css after changing .design/tokens.json
 ```
 
 **Adding a pure package** means declaring its allowlist in `tests/guards/purity.py`. An
@@ -163,7 +164,7 @@ never the learner; stages of education such as "AP" are for authors' writing gui
 ## Decided, do not reopen (architecture spec R1)
 
 - **Backend:** Django + Django Ninja. **Web:** React + Vite + TypeScript + TanStack Query +
-  Tailwind, with the hybrid identity tokens from `.design/_identity.mjs`.
+  Tailwind, with the hybrid identity tokens from `.design/tokens.json`.
 - **Infrastructure:** Postgres, Redis, Celery with celery beat, Docker Compose. One LiteLLM
   gateway, arriving at M5.
 - **Pure packages** in `packages/` (`code-schema`, `code-weaver`; later `code-figures`,
@@ -203,8 +204,10 @@ push through.
 - **Decisions go in specs**, with the alternatives rejected. Edit an older spec only to point at
   the newer decision.
 - **Sessions go in the journal**, append-only; update the box at the top of its README.
-- **Screens are generated.** Change `.design/build_pages.mjs` or `.design/_identity.mjs`, then run
-  `node .design/build_pages.mjs`. Never hand-edit a `.dc.html`.
+- **Screens are generated.** Change `.design/build_pages.mjs`, `.design/_identity.mjs` or
+  `.design/tokens.json`, then run `node .design/build_pages.mjs`. Never hand-edit a `.dc.html`.
+- **Token values live only in `.design/tokens.json`.** After changing one, also run
+  `npm run tokens` in `apps/web`; a test fails until the committed `tokens.css` matches.
 - **No mega plans.** When a phase starts, split it into parts; each part gets a short spec, then a
   specific plan, then test-first code, then a journal entry (architecture spec R5).
 - **Research is cited** in the spec that uses it.

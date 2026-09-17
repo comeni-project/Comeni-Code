@@ -1,6 +1,6 @@
 # M0 part 6 — identity tokens into Tailwind
 
-**Status: agreed 2026-09-17.** This is part 6 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #23.** This is part 6 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). It builds on
 part 5's web toolchain ([P5.2](2026-09-17-m0-web-toolchain-design.md)) and brings in the identity
 settled in W10 of the [2026-09-16 spec](2026-09-16-comeni-code-weaving-and-pages-design.md). This
