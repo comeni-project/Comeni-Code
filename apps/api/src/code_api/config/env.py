@@ -25,6 +25,7 @@ class Env(BaseSettings):
 
     secret_key: SecretStr = Field(min_length=50)
     database_url: SecretStr
+    redis_url: SecretStr
     debug: bool = False
     allowed_hosts: Annotated[list[str], NoDecode] = []
     # Where collectstatic writes; relative paths are from the working directory (the repo root).
@@ -36,6 +37,13 @@ class Env(BaseSettings):
         scheme = urlsplit(value.get_secret_value()).scheme
         if scheme not in {"postgres", "postgresql"}:
             raise ValueError("must be a postgresql:// URL")
+        return value
+
+    @field_validator("redis_url")
+    @classmethod
+    def _redis_only(cls, value: SecretStr) -> SecretStr:
+        if urlsplit(value.get_secret_value()).scheme not in {"redis", "rediss"}:
+            raise ValueError("must be a redis:// URL")
         return value
 
     @field_validator("allowed_hosts", mode="before")

@@ -20,5 +20,18 @@ services:
       timeout: 3s
       retries: 30
 
+  redis:
+    image: redis:8
+    ports:
+      # 6380 on the host: 6379 is often taken by another project's Redis.
+      - "127.0.0.1:6380:6379"
+    # A broker holds nothing that must survive a restart.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
 volumes:
   postgres-data:
