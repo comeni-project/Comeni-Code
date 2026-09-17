@@ -1,0 +1,147 @@
+/* Generated from .design/tokens.json by `npm run tokens`. Do not edit (M0 part 6 spec, P6.2). */
+
+/* Light, the default. */
+:root {
+  color-scheme: light;
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --canvas: #f8f9fb;
+  --grid: rgba(40, 60, 110, 0.055);
+  --grid-2: rgba(40, 60, 110, 0.028);
+  --border: #e1e4ec;
+  --border-2: #c9cedb;
+  --ink: #171a26;
+  --ink-2: #474d63;
+  --ink-3: #666c84;
+  --rail: #b3b9ca;
+  --line: #0f9d7a; /* route · valid */
+  --line-soft: #ddf3ec; /* route · valid (fill) */
+  --sel: #2f6feb; /* next · selected */
+  --sel-soft: #e6eefd; /* next · selected (fill) */
+  --meas: #9a5b00; /* measured · stale · not yet reviewed */
+  --meas-bar: #d08a10; /* measured · stale (marks) */
+  --meas-soft: #fbf0dc; /* measured · stale (fill) */
+  --open: #c92f36; /* needs you · wrong */
+  --open-soft: #fce5e6; /* needs you · wrong (fill) */
+  --settled: #474d63; /* settled: spends no colour */
+  --exon: #eceff5;
+  --btn: #0b7f63;
+  --btn-ink: #ffffff;
+  --btn-sh: #075c48;
+  --float: 0 6px 18px -10px rgba(23, 26, 38, 0.25);
+}
+
+/* Dark when the system asks for it, unless someone chose light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #12141b;
+    --surface: #1a1d27;
+    --canvas: #161820;
+    --grid: rgba(140, 170, 255, 0.06);
+    --grid-2: rgba(140, 170, 255, 0.03);
+    --border: #282c3a;
+    --border-2: #3a3f52;
+    --ink: #e8eaf2;
+    --ink-2: #b0b5c8;
+    --ink-3: #8c92a8;
+    --rail: #4a5068;
+    --line: #2fc79b; /* route · valid */
+    --line-soft: #113529; /* route · valid (fill) */
+    --sel: #6ea2ff; /* next · selected */
+    --sel-soft: #172642; /* next · selected (fill) */
+    --meas: #f0b840; /* measured · stale · not yet reviewed */
+    --meas-bar: #f0b840; /* measured · stale (marks) */
+    --meas-soft: #35290f; /* measured · stale (fill) */
+    --open: #ff6e73; /* needs you · wrong */
+    --open-soft: #3a1b20; /* needs you · wrong (fill) */
+    --settled: #b0b5c8; /* settled: spends no colour */
+    --exon: #232736;
+    --btn: #2fc79b;
+    --btn-ink: #06201a;
+    --btn-sh: #1e8c6c;
+    --float: 0 8px 22px -12px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Dark when someone chose it, whatever the system says. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #12141b;
+  --surface: #1a1d27;
+  --canvas: #161820;
+  --grid: rgba(140, 170, 255, 0.06);
+  --grid-2: rgba(140, 170, 255, 0.03);
+  --border: #282c3a;
+  --border-2: #3a3f52;
+  --ink: #e8eaf2;
+  --ink-2: #b0b5c8;
+  --ink-3: #8c92a8;
+  --rail: #4a5068;
+  --line: #2fc79b; /* route · valid */
+  --line-soft: #113529; /* route · valid (fill) */
+  --sel: #6ea2ff; /* next · selected */
+  --sel-soft: #172642; /* next · selected (fill) */
+  --meas: #f0b840; /* measured · stale · not yet reviewed */
+  --meas-bar: #f0b840; /* measured · stale (marks) */
+  --meas-soft: #35290f; /* measured · stale (fill) */
+  --open: #ff6e73; /* needs you · wrong */
+  --open-soft: #3a1b20; /* needs you · wrong (fill) */
+  --settled: #b0b5c8; /* settled: spends no colour */
+  --exon: #232736;
+  --btn: #2fc79b;
+  --btn-ink: #06201a;
+  --btn-sh: #1e8c6c;
+  --float: 0 8px 22px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* Tailwind's palette is only ours: no default colours, so no colour outside the law. */
+@theme {
+  --color-*: initial;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-grid: var(--grid);
+  --color-grid-2: var(--grid-2);
+  --color-border: var(--border);
+  --color-border-2: var(--border-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rail: var(--rail);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-sel: var(--sel);
+  --color-sel-soft: var(--sel-soft);
+  --color-meas: var(--meas);
+  --color-meas-bar: var(--meas-bar);
+  --color-meas-soft: var(--meas-soft);
+  --color-open: var(--open);
+  --color-open-soft: var(--open-soft);
+  --color-settled: var(--settled);
+  --color-exon: var(--exon);
+  --color-btn: var(--btn);
+  --color-btn-ink: var(--btn-ink);
+  --color-btn-sh: var(--btn-sh);
+  --shadow-float: var(--float);
+  --font-sans: "Lexend Variable", "Lexend", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
+  --radius-control: 10px;
+  --radius-panel: 14px;
+  --radius-pill: 9999px;
+}
+
+/* `dark:` follows the same rule as the variables: the system, unless someone chose. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+}
