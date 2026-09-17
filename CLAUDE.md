@@ -227,11 +227,15 @@ push through.
   is code. One logical change per commit; the body says why.
 - **Branch for work** (`feat/…`, `docs/…`, `ci/…`); never commit to `main`. Merges go through
   pull requests. Commit and push only when asked, or when the approved plan says to.
+- **`main` takes only pull requests with green checks, in this repository and the content
+  repository, for everyone** (rulesets in `.github/rulesets/main.json`, no bypass). Required checks
+  are named in the ruleset: renaming a CI job means changing the ruleset in the same change. Wait
+  for checks with their exit code (`gh pr checks --watch > log; rc=$?`), never through a pipe.
 - **Attribution:** end commits with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`,
   and pull-request descriptions with
   `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
-- **Confirm outward-facing actions first:** GitHub settings (such as branch protection),
-  creating repositories, publishing.
+- **Confirm outward-facing actions first:** GitHub settings (rulesets, merge settings and other
+  repository settings), creating repositories, publishing.
 - **The design canvas** is at https://claude.ai/artifact/RxgqwSDJ2N3UTSg4HUotxJ. From M3, each
   screen is compared with its board.
 - **Do not build Labs features here**, and do not build Code inside Labs. **No code is shared
