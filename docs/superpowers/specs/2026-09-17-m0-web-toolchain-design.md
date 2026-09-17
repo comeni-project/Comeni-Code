@@ -1,6 +1,6 @@
 # M0 part 5 — the web toolchain
 
-**Status: agreed 2026-09-17.** This is part 5 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #21.** This is part 5 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). R1 decided the
 stack: React, Vite, TypeScript, TanStack Query and Tailwind. This spec decides what R7 leaves to
 this part:
