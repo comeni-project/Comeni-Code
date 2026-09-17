@@ -9,10 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
+**Status: phase M0 (Skeleton) done; M1 (content core) is next, starting with its parts list.** The Python
 workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
 `/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
-specimen at `/identity`; and `docker compose up -d --wait` runs the whole stack.
+specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
+in `comeni-code-content` takes only green pull requests.
 
 **First-time setup** (from the repository root, where every command runs):
 
