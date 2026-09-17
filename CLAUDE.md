@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Comeni Code
 
 **The learning platform of the comeni-project**, beside
@@ -5,10 +9,20 @@
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: design, nothing built.** No application code yet. Before doing anything, read the
-newest entry in [`docs/notes/journal/`](docs/notes/journal/), then the specs in
-[`docs/superpowers/specs/`](docs/superpowers/specs/) — the newest wins where they disagree. The
-stack and the phases (M0–M9, with objectives) are in the 2026-09-17 architecture spec.
+**Status: design finished; building starts at phase M0 (Skeleton).** No application code yet, so
+there are no build, lint or test commands yet. Add them here when the first M0 part lands.
+
+**Read first, in this order:**
+
+1. This file.
+2. [`docs/notes/journal/`](docs/notes/journal/): its README (the rules and the box naming the
+   entry to read), then the newest entry.
+3. The architecture spec, `docs/superpowers/specs/2026-09-17-…-architecture-and-roadmap-design.md`,
+   which you work from: R1 stack, R2 repository shape, R3 content flow, R4 phases M0–M9 with
+   *done when*, R5 how a phase is built, R7 what part specs decide, R8 open questions.
+4. As needed: the 2026-09-16 spec (W-sections: weaving, pages, AI, identity) and the 2026-09-02
+   spec. **The newest spec wins** where they disagree.
+5. [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) for commit and pull-request style.
 
 ## The claim
 
@@ -60,6 +74,44 @@ Use the vocabulary in §3 of the first spec and W3.2 of the second. In particula
 "module" (a module is an nf-core process in Labs); **track** is a reviewed woven route; **goal**,
 **needs**, **goes deeper**, **related**.
 
+## Decided, do not reopen (architecture spec R1)
+
+- **Backend:** Django + Django Ninja. **Web:** React + Vite + TypeScript + TanStack Query +
+  Tailwind, with the hybrid identity tokens from `.design/_identity.mjs`.
+- **Infrastructure:** Postgres, Redis, Celery with celery beat, Docker Compose. One LiteLLM
+  gateway, arriving at M5.
+- **Pure packages** in `packages/` (`code-schema`, `code-weaver`; later `code-figures`,
+  `code-problems`) import no Django, no HTTP client and no model library.
+- **Content:** drafts are stored in Postgres. Approved content is stored as files in
+  `comeni-project/comeni-code-content` (sibling checkout `../comeni-code-content`), one folder per
+  node: `node.yaml`, a MyST `body.md` and YAML data files. Content lands through a pull request
+  that auto-merges when its CI is green. A worker follows that repo's `main` and rebuilds the
+  index. **Tests use `tests/fixtures/` and never read the real content repo.**
+- **Accounts:** django-allauth (ORCID, GitHub, email/password), with a session cookie.
+- **Labs** (`../Comeni-Labs`) is a reference for its purity guard (`tests/guards/`), CI and repo
+  shape. **Read it; never import from it.**
+- **v1 demo:** "learn Salmon", end to end (M9).
+
+## Building a phase (architecture spec R5, required)
+
+1. **No mega plans.** Never write a plan for a whole phase or for the product.
+2. **Split the phase into parts**, each one buildable and reviewable in a few sessions. The
+   parts list goes in a new journal entry, not in a document of its own.
+3. **Each part gets a short spec** in `docs/superpowers/specs/YYYY-MM-DD-<part>-design.md`: what
+   the part does, the decisions it needs (R7: module names, and tooling inside the stack such as
+   the workspace tool, test runner and lint), and the alternatives rejected.
+4. **Stop for the operator's approval** of the parts list and the part spec before planning.
+5. **Then a specific plan** in `docs/superpowers/plans/YYYY-MM-DD-<part>.md`, with ordered,
+   test-first steps. **Build it test-first**, check it against the phase's *done when* (and its
+   board, if it has a screen), then write a journal entry. Then start the next part.
+
+Use the superpowers skills: brainstorming for a part spec, writing-plans for its plan, and
+test-driven-development and executing-plans for the build. Drive the work yourself; use
+subagents only for review or for a second opinion on a design.
+
+**Estimates:** if one is wrong by more than about double, stop and say so, with options. Do not
+push through.
+
 ## Working here
 
 - **Decisions go in specs**, with the alternatives rejected. Edit an older spec only to point at
@@ -72,13 +124,37 @@ Use the vocabulary in §3 of the first spec and W3.2 of the second. In particula
 - **Research is cited** in the spec that uses it.
 - **Commits** follow the house style: `docs(spec): …`, `design: …`, then `feat`/`fix`/… once there
   is code. One logical change per commit; the body says why.
-- **Branch for work**; do not commit to `main` directly.
+- **Branch for work** (`feat/…`, `docs/…`, `ci/…`); never commit to `main`. Merges go through
+  pull requests. Commit and push only when asked, or when the approved plan says to.
+- **Attribution:** end commits with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`,
+  and pull-request descriptions with
+  `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
+- **Confirm outward-facing actions first:** GitHub settings (such as branch protection),
+  creating repositories, publishing.
+- **The design canvas** is at https://claude.ai/artifact/RxgqwSDJ2N3UTSg4HUotxJ. From M3, each
+  screen is compared with its board.
 - **Do not build Labs features here**, and do not build Code inside Labs. **No code is shared
   between the two repositories** — philosophy, layout and identity only.
 - **Pure packages stay pure.** `packages/` imports no Django, HTTP client or model library; a
   test will enforce it from M0.
 
+## Pending questions
+
+- **A sign-in shared with Labs:** OIDC with Code as the provider, or a separate identity service.
+  Labs recorded this on 2026-09-17
+  (`../Comeni-Labs/docs/notes/journal/2026-09-17-labs-in-the-hybrid-identity.md`). It does not
+  block M0. Add it to R8 of the architecture spec the next time that spec is edited.
+
+## Environment
+
+Fedora Linux. `gh` is authenticated for `comeni-project`. Docker, Node and `uv` are installed.
+There is no Chrome, so to look at a page use `firefox --headless --screenshot`. If the system
+Python lacks PyYAML, use `/home/gibli/Documents/GitHub/Comeni-Labs/.venv/bin/python`.
+
 ## Layout
+
+Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React),
+`tests/fixtures/`, `compose.yaml`. Today only the following exists:
 
 ```
 .design/                  design canvas generator and its output
