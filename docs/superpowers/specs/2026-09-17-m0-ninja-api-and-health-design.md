@@ -1,6 +1,6 @@
 # M0 part 3 — the Ninja API and the health route
 
-**Status: agreed 2026-09-17.** This is part 3 of phase M0 (architecture spec R4). Its objective
+**Status: agreed 2026-09-17; built in PR #17.** This is part 3 of phase M0 (architecture spec R4). Its objective
 and check were restated in
 [`2026-09-17-m0-part-2-django-project.md`](../../notes/journal/2026-09-17-m0-part-2-django-project.md),
 and it must meet the OpenAPI constraint in
