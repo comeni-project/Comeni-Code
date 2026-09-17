@@ -507,7 +507,7 @@ worded states fix.
 Reference values (light / dark): ground `#F4F5F8` / `#12141B`; surface `#FFFFFF` / `#1A1D27`;
 ink `#171A26` / `#E8EAF2`; route `#0F9D7A` / `#2FC79B`; primary button `#0B7F63` / `#2FC79B`;
 next `#2F6FEB` / `#6EA2FF`; measured `#9A5B00` (text) / `#F0B840`; needs-you `#C92F36` / `#FF6E73`.
-The generator in `.design/_identity.mjs` holds the full set. Adopting this in Labs is a separate
+The full set is in `.design/tokens.json` (moved from `_identity.mjs` by [M0 part 6](2026-09-17-m0-identity-tokens-design.md)), which the boards and the web app both read. Adopting this in Labs is a separate
 decision for Labs; Code adopts it now.
 
 ---

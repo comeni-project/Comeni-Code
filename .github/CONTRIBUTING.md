@@ -26,7 +26,7 @@ you spend time on it.
 | Change | Where | What review looks for |
 |---|---|---|
 | A design decision | a spec in `docs/superpowers/specs/` | the decision, **the alternatives rejected and why**, and what it supersedes |
-| A screen | `.design/build_pages.mjs` (or `_identity.mjs` for tokens), then rebuild | the spec it follows, and what a user is trying to do on that screen |
+| A screen | `.design/build_pages.mjs` (or `tokens.json` for token values), then rebuild; after a token change also run `npm run tokens` in `apps/web` | the spec it follows, and what a user is trying to do on that screen |
 | A record of a working session | a new file in `docs/notes/journal/` | the journal's own rules (below) |
 | Everything else in `docs/` | the file itself | that it matches the specs, or says it doesn't |
 
