@@ -1,0 +1,49 @@
+# Working journal
+
+One entry per working session, dated, **append-only**. A new session — a person's or an agent's —
+reads the newest entry first and is productive in five minutes.
+
+## Reading it
+
+> **The newest entry is
+> [`2026-09-16-the-design-before-the-code.md`](2026-09-16-the-design-before-the-code.md)** — the
+> session that turned authored tracks into woven routes, drew every key page twice, settled the
+> visual identity with Labs, and seeded this repository. Read its *What is next* before starting.
+
+**Newest first, and stop when you have enough.** The top third of each entry — where things stand
+and what is next — is enough for most sessions. The rest explains *why*.
+
+**When a day has more than one entry, name the one to read first in the box above.** A directory
+listing sorts by filename, not by the order the sessions happened.
+
+If an entry disagrees with the specs or the code, the specs and the code are right. Say so in a new
+entry.
+
+## Writing one
+
+At the end of a session that changed anything a future session needs to know:
+
+```
+docs/notes/journal/YYYY-MM-DD-a-short-title.md
+```
+
+Cover, in this order:
+
+1. **Where things stand** — claims a reader can check, with the command that checks them
+2. **What changed this session** — with commit hashes, not prose summaries
+3. **Decisions made, and why** — especially the alternatives rejected. This is the part that is
+   expensive to reconstruct and the reason the journal exists.
+4. **What is next** — in recommended order, with the reason for the order
+5. **Open questions** — things genuinely undecided, so nobody assumes they were settled
+6. **Traps** — what a fresh reader would get wrong
+
+Do not summarise the specs. The journal is for what the specs do not hold: sequence, intent, and
+what was ruled out along the way.
+
+Then update the box at the top of this file to point at the new entry.
+
+## Entries
+
+| Date | Session |
+|---|---|
+| [2026-09-16](2026-09-16-the-design-before-the-code.md) | **Tracks become woven routes.** The second spec; every key page drawn and redrawn against research; the hybrid identity; the AI pages; the repository seeded. No code |

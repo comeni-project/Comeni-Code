@@ -1,0 +1,31 @@
+name: Design feedback
+description: A decision in the specs, or a screen, that you think is wrong or incomplete
+labels: [design]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Which part
+      description: A spec section (e.g. W3.3, §5.5) or a screen (e.g. L4 Route, S6 Review).
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing
+      description: What someone would be trying to do, and where the design gets in their way.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would do instead
+      description: Optional. If you know of a product or study that does it better, link it.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Optional. Research, your own experience teaching or learning, or a product that shows it.

@@ -1,0 +1,39 @@
+name: Something is broken
+description: A broken link, a rebuild that fails, or documentation that contradicts itself
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. There is no application yet, so for now this covers the
+        documentation and the design generator.
+
+        **If this is a way learner data or model keys could leak, or content that executes,
+        do not file it here** — use
+        [private reporting](https://github.com/comeni-project/Comeni-Code/security/advisories/new)
+        instead.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what you found instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: The file, link or command.
+      placeholder: node .design/build_pages.mjs
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What it printed
+      description: Optional. The full error output.
+      render: shell

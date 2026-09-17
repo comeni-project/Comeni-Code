@@ -1,0 +1,13 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security, privacy or conduct report
+    url: https://github.com/comeni-project/Comeni-Code/security/advisories/new
+    about: >-
+      A way learner data or model keys could leak, content that executes, or a Code of Conduct
+      problem. Please report these privately rather than in a public issue.
+  - name: The design documents
+    url: https://github.com/comeni-project/Comeni-Code/tree/main/docs/superpowers/specs
+    about: What Code is, how routes are woven, and every page — read these before proposing a change.
+  - name: Comeni Labs
+    url: https://github.com/comeni-project/Comeni-Labs/issues
+    about: Problems with building or running pipelines belong in the Labs repository.

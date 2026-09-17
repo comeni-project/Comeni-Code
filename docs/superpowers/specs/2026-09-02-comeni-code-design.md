@@ -2,6 +2,10 @@
 
 **Status: design, not agreed implementation.** Written 2026-09-02 from a brainstorming session.
 Nothing here has been built. The implementation plan does not exist yet.
+**Tracks are woven from goals, not authored** — that model, the pages, navigation, figures and
+visual identity are specified in
+[`2026-09-16-comeni-code-weaving-and-pages-design.md`](2026-09-16-comeni-code-weaving-and-pages-design.md),
+which wins where the two disagree.
 
 Comeni Code is the third repository under the `comeni-project` umbrella, beside
 [Comeni Labs](https://github.com/comeni-project/Comeni-Labs) (Mendel, Wiener) and
@@ -175,7 +179,9 @@ Chosen partly to avoid collisions with Labs, which is a working codebase with it
 | Term | Means | Why not the obvious word |
 |---|---|---|
 | **node** | One idea, with a claim, prerequisites and evidence | **Never "module".** In Labs a module is an nf-core process on disk (`registry/tools/nf-core/star/module/`). Reusing the word guarantees permanent ambiguity. |
-| **track** | An ordered route through the graph to an outcome | "Course" implies linear, enrolled and completable — the opposite of a graph entered from the middle. |
+| **track** | A route **woven** from a goal: the target nodes plus everything they need, in order. A reviewed route is a named track. (Revised 2026-09-16.) | "Course" implies linear, enrolled and completable — the opposite of a graph entered from the middle. |
+| **goal** | What a learner asks to learn; resolves to one to three target nodes | — |
+| **needs · goes deeper · related** | The three directed links between nodes. Only *needs* builds a route. | "Edge" alone hides that the kinds behave differently. |
 | **claim** | The one thing a learner can do after a node | The instructional-design term is "learning objective"; `claim` matches Labs' register (contracts, premises, citations). |
 | **spine** | The shortest complete path through a track | Labs already uses this word for exactly this idea: *"the RNA-seq spine, ~15–20 modules on the canonical path, not the full decision tree."* One word, both halves of the system. |
 | **elaboration** | A node hanging off the spine, reachable but not in the way | Reigeluth's own term (§6.2). |
@@ -381,20 +387,25 @@ than a liability.
 
 ## 6. The track
 
-### 6.1 A track is an authored artifact, not a query
+### 6.1 A track is woven from a goal — superseded 2026-09-16
 
-Tracks have their own typed holes and their own approval moment. The track author decides which
-nodes are on the spine; the node author decides whether a node is a threshold. **Two authorities,
-two review moments.**
+This section first said *a track is an authored artifact, not a query*, with its own holes
+(outcome, spine, elaborations, framing) and a track author. **That is replaced.** A track is now
+**woven**: a learner's goal resolves to one to three target nodes, and the route is computed by
+walking the nodes' directed *needs* links backwards — a pure function of the graph and the
+learner's state. AI proposes targets, links and short connecting text; it never chooses the route.
+A route becomes a named track once a reviewer approves its connecting text, and `framing` (§5.2)
+becomes that per-route text. The full model is W3 of
+[`2026-09-16-comeni-code-weaving-and-pages-design.md`](2026-09-16-comeni-code-weaving-and-pages-design.md).
 
-| Track hole | Notes |
-|---|---|
-| **outcome** | What the learner can do at the end. Concrete and real — "align your reads and get a counts matrix", not "understand RNA-seq". |
-| **spine** | The ordered shortest complete path (§6.2). |
-| **elaborations** | Nodes reachable from spine nodes, off the main path. |
-| **framing** | Per-node, per-track (§5.2). |
+What survives: the node author still decides `threshold` (§6.3), and a route still has to be a
+complete, honest path to a real outcome (§6.2).
 
 ### 6.2 `spine` — sequencing, not prioritisation
+
+*Under weaving, the spine is the woven route itself: the nodes the goal needs, in order.
+Elaborations are the nodes reached by* goes deeper *links, offered on a node's page and never
+added to the route. The argument below still holds; only who produces the path has changed.*
 
 Reigeluth's elaboration theory and its Simplifying Conditions Method: find the **simplest version
 of the whole task that is still representative of the whole task** — the *epitome* — teach that,
@@ -497,8 +508,10 @@ runtime is pure lookup*) transplanted intact.
 
 ### 7.2 B: the interface rules that follow from §2
 
-- **The map is the front door, and it is a transit map** (§2.0.2): a track is a **line**, a node
-  is a **stop**, a node several tracks need is an **interchange**.
+- **The map is a transit map** (§2.0.2): a track is a **line**, a node is a **stop**, a node
+  several tracks need is an **interchange**. *Revised 2026-09-16: the front door is now the goal
+  ("What do you want to learn?") and the Home overview; the map is the network view of all woven
+  tracks (W3.7, W6).*
 - **The trunk is straight; branches bend.** The track's own line runs dead straight with evenly
   spaced stops and labels alternating above and below. Every other segment is octilinear — 0, 45
   or 90 degrees. Relative order and connection are the content; absolute position is not.
@@ -539,6 +552,9 @@ Per §2.2, C points at Labs' **reasoning**, not its output.
 **One tool, all the way down.** STAR → alignment → sequencing → DNA, plus the algorithmic branch,
 with a wet-lab-biologist track whose spine is ~11 nodes over a graph of perhaps 40–60. It ends
 with the learner running a real pipeline.
+
+*Restated 2026-09-16 (W12 of the weaving document): two goals that share most of their nodes —
+**learn STAR** and **learn Salmon** — so that reuse between routes is exercised from the start.*
 
 Chosen because it exercises every hole, both edge kinds, all three verification rungs and the
 Labs link — and because if the authoring loop cannot produce *this*, it cannot produce 500 nodes
@@ -646,7 +662,8 @@ Reopening condition: evidence from real learners that C alone does not explain r
 4. **How deep does "all the way down to DNA" actually go** for the wet-lab track before the spine
    stops being honest?
 5. **Content licence.** Labs is Apache-2.0 and registry data is CC-BY-4.0. Node prose is closer
-   to registry data than to code.
+   to registry data than to code. *Decided 2026-09-16: learning content is **CC BY 4.0**; code stays
+   Apache-2.0 (`LICENSE-CONTENT.md`).*
 6. **Where the content lives** — in this repo as files (the declared-data argument), or in a
    database. §5.4 leans files; not decided.
 
