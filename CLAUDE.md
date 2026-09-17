@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
 workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist; the web app does not.
+`/api/docs`) exist, and the web app (`apps/web`) exists as a shell.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -20,6 +20,20 @@ cp .env.example .env                   # local values for every CODE_* variable
 docker compose up -d --wait postgres redis   # Postgres 18 on :5433, Redis 8 on :6380
 uv sync --locked --all-packages
 uv run python apps/api/manage.py migrate
+```
+
+**Node 24 for the web app** (it refuses other versions). On Fedora, `nodejs24` installs `node-24`,
+`npm-24` and `npx-24` beside the default Node 22, and `npm-24` still runs under whatever `node` is
+first on `PATH`, so give Node 24 its own directory:
+
+```
+sudo dnf install nodejs24
+mkdir -p ~/.local/node24/bin
+ln -sf /usr/bin/node-24 ~/.local/node24/bin/node
+ln -sf /usr/bin/npm-24 ~/.local/node24/bin/npm
+ln -sf /usr/bin/npx-24 ~/.local/node24/bin/npx
+export PATH="$HOME/.local/node24/bin:$PATH"   # add to your shell profile; check: node --version
+cd apps/web && npm ci && cd ../..
 ```
 
 **Commands** (CI runs exactly these):
@@ -37,6 +51,16 @@ uv run ruff format --check .        # formatting (also Python blocks inside Mark
 uv run mypy                         # strict types over packages/, apps/api/ and tests/
 uv run pytest                       # all tests
 uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
+```
+
+**Web commands** (in `apps/web`, on Node 24):
+
+```
+npm run lint        # Biome: lint and formatting
+npm run typecheck   # TypeScript 7, strict
+npm test            # vitest
+npm run build       # vite build
+npm run dev         # http://127.0.0.1:5173
 ```
 
 **Adding a pure package** means declaring its allowlist in `tests/guards/purity.py`. An
@@ -221,9 +245,11 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 ```
 .design/                  design canvas generator and its output
 .env.example              local values for every CODE_* variable
+.nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
 apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest)
 compose.yaml              the local stack: postgres and redis now, the rest from part 8
 docs/index.md             documentation map
 docs/design/              how screens are made
