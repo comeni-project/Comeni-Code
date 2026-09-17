@@ -452,13 +452,20 @@ Levels below university bring learners under 18, and some under 13.
 - **First steps pages may need interface changes** (larger type, shorter pages, less density).
   This is the one place the audience may reach the design. First steps content and those changes
   come together, in their own design round.
+- **First steps is in the MVP** (operator, the same day). So:
+  - the design round for First steps pages happens **before M3**, when the learner pages are
+    first built;
+  - v1 includes a small set of First steps nodes below the Salmon route's Foundations nodes, so a
+    route can start there;
+  - under-13s use v1 without an account (above); accounts for them wait for the consent spec,
+    which is not an MVP requirement.
 
 - **The v1 demo stays *learn Salmon*** (R1, W12), but the route **starts at AP-biology level**,
   with its lower nodes drafted from skeletons (T5), and ends at a runnable Labs pipeline. The
   claim under test is: *someone who knows AP Biology, or less, gets from "learn Salmon" to a
   pipeline they can run.*
-- The Salmon route's nodes span **Foundations → Advanced**. First steps nodes are not needed for
-  the v1 demo (see T14).
+- The Salmon route's nodes span **First steps → Advanced**: v1 includes a few First steps nodes
+  beneath its Foundations nodes (T10.2).
 - The first spec's §4 learner, a wet-lab biologist handed sequencing data, is still the v1
   learner the slice is tested with. Levels let the same route serve a school student who wants
   to learn Salmon too.
@@ -567,8 +574,7 @@ The findings that drive this document:
    it depend on the node's size?
 7. **Whether a *not yet* result from a self-test should return a node to the route
    automatically,** or ask the learner first.
-8. **First steps in the MVP, or deferred?** Recommended: deferred. It is not needed for the
-   Salmon demo, and it brings interface changes and under-13 accounts (T10.2).
+8. ~~**First steps in the MVP, or deferred?**~~ *Decided: in the MVP (T10.2).*
 9. **Where the level boundaries fall in practice.** The first skeleton review (S18) will show
    whether Introductory and Intermediate need clearer writing guides.
 

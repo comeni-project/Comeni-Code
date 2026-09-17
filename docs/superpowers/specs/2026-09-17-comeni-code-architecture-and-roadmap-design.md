@@ -127,6 +127,9 @@ decided part by part (R5).
   *Against W6, W10.*
 - *2026-09-17: the Node page includes its **Learn it** section with at least one embedded and one
   linked resource (tutor spec T4).*
+- *2026-09-17 (tutor spec T10.2): First steps is in the MVP. A design round for First steps pages
+  comes before M3's screens, and **done when** also includes a First steps node page beside its
+  board.*
 
 ### M4 — Studio core
 - The team signs in with roles; an author drafts a node, checks run, a reviewer approves, and it
