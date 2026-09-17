@@ -604,7 +604,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
   only, `docker compose rm -sf migrate api worker beat web`."
 
 - [ ] **Step 3: The part 2 spec's static-files note:** add "Resolved: WhiteNoise (part 3), checked
-  inside the container by [part 8](2026-09-17-m0-compose-stack-design.md)."
+  inside the container by part 8 (a link to `2026-09-17-m0-compose-stack-design.md`)."
 
 Run (root): `uv run pytest -q tests/repo && uv run ruff format --check .`
 Expected: clean.
