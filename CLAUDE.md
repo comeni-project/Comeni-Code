@@ -5,10 +5,10 @@
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: design, nothing built.** No application code, no implementation plan. Before doing
-anything, read the newest entry in [`docs/notes/journal/`](docs/notes/journal/), then the two
-specs in [`docs/superpowers/specs/`](docs/superpowers/specs/). The newer spec wins where they
-disagree.
+**Status: design, nothing built.** No application code yet. Before doing anything, read the
+newest entry in [`docs/notes/journal/`](docs/notes/journal/), then the specs in
+[`docs/superpowers/specs/`](docs/superpowers/specs/) — the newest wins where they disagree. The
+stack and the phases (M0–M9, with objectives) are in the 2026-09-17 architecture spec.
 
 ## The claim
 
@@ -67,11 +67,16 @@ Use the vocabulary in §3 of the first spec and W3.2 of the second. In particula
 - **Sessions go in the journal**, append-only; update the box at the top of its README.
 - **Screens are generated.** Change `.design/build_pages.mjs` or `.design/_identity.mjs`, then run
   `node .design/build_pages.mjs`. Never hand-edit a `.dc.html`.
+- **No mega plans.** When a phase starts, split it into parts; each part gets a short spec, then a
+  specific plan, then test-first code, then a journal entry (architecture spec R5).
 - **Research is cited** in the spec that uses it.
 - **Commits** follow the house style: `docs(spec): …`, `design: …`, then `feat`/`fix`/… once there
   is code. One logical change per commit; the body says why.
 - **Branch for work**; do not commit to `main` directly.
-- **Do not build Labs features here**, and do not build Code inside Labs.
+- **Do not build Labs features here**, and do not build Code inside Labs. **No code is shared
+  between the two repositories** — philosophy, layout and identity only.
+- **Pure packages stay pure.** `packages/` imports no Django, HTTP client or model library; a
+  test will enforce it from M0.
 
 ## Layout
 

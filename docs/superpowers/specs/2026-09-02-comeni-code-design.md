@@ -665,7 +665,8 @@ Reopening condition: evidence from real learners that C alone does not explain r
    to registry data than to code. *Decided 2026-09-16: learning content is **CC BY 4.0**; code stays
    Apache-2.0 (`LICENSE-CONTENT.md`).*
 6. **Where the content lives** — in this repo as files (the declared-data argument), or in a
-   database. §5.4 leans files; not decided.
+   database. §5.4 leans files; not decided. *Decided 2026-09-17 (R1 of the architecture spec):
+   drafts in Postgres, approved content as files in a separate content repository.*
 
 ---
 
