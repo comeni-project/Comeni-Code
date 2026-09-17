@@ -67,7 +67,9 @@ describe it as deterministic. The *route* is deterministic; the words are not.
 
 ## The model, in one paragraph
 
-**Code is the tutor on top of material that already exists.** It does not try to out-write Khan
+**Code is the tutor on top of material that already exists, for university students and
+researchers.** Khan Academy serves children and teenagers up to college entry; Code starts where
+that ends. The audience shapes page content (depth, tone, examples), not the product design. It does not try to out-write Khan
 Academy; it organises the best existing teaching into the right order for one learner's goal.
 Nodes are standalone topic pages, reviewed by a person and reused everywhere, and each points
 outward to the best existing video or reading. A learner's goal resolves to one to three target

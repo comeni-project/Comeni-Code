@@ -65,7 +65,7 @@ All decided by the operator on 2026-09-17, after the research report.
 | Learner chat | **Planned, not in v1** (T12). Invariant 8 holds for v1 | **Chat in v1** — Khan Academy's measured tutoring gains are modest (T11), and the structured tutor does not need it |
 | Scoring drafted work | **An AI judge scores every drafted block with reasons; low scores are redrafted automatically; reviewers filter and sort by score** (T8) | **No scoring** — reviewers would face skeleton-scale drafting unaided |
 | Automatic deployment of high scores | **Deferred until judge–human agreement is measured**, and then only for low-risk block types (T8.4) | **Auto-deploy now** — breaks invariant 5 without evidence |
-| Audience | **Routes may start at AP-biology level**; nodes further along stay at university level | University level only — would leave the bridge from school biology to pipelines unbuilt, which is the gap nobody covers |
+| Audience | **University students and researchers** (operator, restated the same day). **Khan Academy serves children and teenagers up to college entry; Code serves the people after that.** Routes may start at AP-biology level only as **catch-up prerequisites for that audience**, and nodes further along are written at university level | **A school audience** — Khan Academy's ground, and the wrong register for researchers. **University level only, with no catch-up** — a biologist missing a school topic would have nowhere to start |
 
 ---
 
@@ -252,6 +252,25 @@ gets checked: **self-tests are the mastery system for v1**, without levels.
 - Pool questions are drafted, scored (T8) and reviewed like any other block. A node without a
   reviewed pool of at least 4 is left out of exams, and the setup page says so.
 
+**Authoring questions: the same block editor as a page.** *(Added the same day, at the
+operator's request.)* An exam question is a small **block document**, built in the Workbench's
+**Exam pool** tab with the same editor, outline, live preview and checks as a node page (W7 S3).
+It is not a plain text form.
+
+| Part | Built from | Checked by |
+|---|---|---|
+| **Stem** | `text`, `math`, `figure` (a library component filled with data), `image` (with author and licence), `table`, `code` or sequence block | the same checks as on a page (W5.1, W5.3); alt text required on figures and images |
+| **Answer** | one of: **choice** (each option may itself hold text, a figure or an image), **number** (with tolerance and unit), **sequence or string** (exact, or a normalisation rule), **figure interaction** (the component computes the answer, e.g. click the bubble in a graph), **order** (put steps in order) | exactly one correct answer; distractors distinct; a figure-interaction answer computed, never typed |
+| **Variants** | an optional **seed**: the component or generator draws numbers, sequences or graphs per learner | a self-test over 20 seeds: every variant has one correct answer and renders |
+| **Metadata** | the node it tests, the claim it checks, difficulty estimate, the misconception each distractor targets (links to a `callout`, so a wrong answer can step back, T6.1) | every distractor names a misconception or is marked plain |
+| **Rationale** | shown only in the results, never during the test | present |
+
+- **Hints are not allowed in exam questions.** A test has none (T7.1).
+- **AI may draft questions,** and they are scored (T8) and reviewed like any other block. The
+  model fills a component's data; it never draws.
+- **Preview** shows the question exactly as a learner sees it in a test, across several seeds,
+  on desktop and phone, and in dark mode.
+
 **Building an exam.**
 
 | Choice | Options |
@@ -362,12 +381,22 @@ These appear in Quality (S11).
 
 ## T10. The slice and the audience
 
+**Who Code is for: university students and researchers.** Khan Academy is built mainly for
+children and teenagers, from primary school to getting into college, with teachers and
+districts around them. Code starts where that ends: undergraduates, graduate students, and
+researchers who need to analyse data. **This shapes page content, not the overall design:**
+depth, tone, examples and what a node assumes. Nothing is simplified for a younger reader, and a
+page assumes a self-directed adult. The product and interface design (the tutor loop, routes,
+maps, Studio) stand as specified. AP-level nodes exist only to fill gaps this audience turns out
+to have.
+
 - **The v1 demo stays *learn Salmon*** (R1, W12), but the route **starts at AP-biology level**,
   with its lower nodes drafted from skeletons (T5), and ends at a runnable Labs pipeline. The
   claim under test is: *someone who knows AP Biology, or less, gets from "learn Salmon" to a
   pipeline they can run.*
-- Nodes near the start may be written at AP level. Nodes further along stay at university level.
-  Each node records its `level`.
+- Nodes near the start may cover AP-level material, **written for an adult who missed it**, not
+  for a school student. Nodes further along stay at university level. Each node records its
+  `level`.
 - The first spec's §4 learner, a wet-lab biologist handed sequencing data, is unchanged. Routes
   starting at AP level serve them better.
 
@@ -449,6 +478,7 @@ The findings that drive this document:
 | **L13 Exam** | new: set up (scope, length), in progress (mixed, no hints), results per node on the map (T7.1) |
 | **L3 Home, L4 Route** | a **Test yourself** action |
 | **S3 Node workbench** | a **Resources** tab and an **Exam pool** tab; `resource` and hints in the block list; **scores** in the outline and a **Score** panel |
+| **S3 Exam pool (question builder)** | new board: the pool's questions with state and score; a question as blocks (stem with figure or image; answer type; options that hold figures); variants across seeds; distractors mapped to misconceptions; live preview as in a test; checks (T7.1) |
 | **S6 Review** | drawn for the first time: blocks sorted and filtered by score, with the judge's reasons, redraft history, and *agree / disagree* |
 | **S11 Quality** | drawn for the first time: tutor measures (T9), judge–human agreement, broken or unhelpful resources, automatic deployment shown as locked |
 | **S17 AI · Models** | the three new call sites, the judge's model family rule, and the x / N settings |
