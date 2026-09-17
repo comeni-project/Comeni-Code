@@ -1,7 +1,7 @@
 name: CI
 
-# Every pull request runs the same command set as a local check (M0 part 1 spec, P1.3). Later
-# M0 parts add their own jobs here.
+# Every pull request runs the same command set as a local check (M0 part 1 spec, P1.3; part 2
+# spec, P2.4). Later M0 parts add their own jobs here.
 
 on:
   push:
@@ -19,6 +19,29 @@ concurrency:
 jobs:
   python:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: code
+          POSTGRES_PASSWORD: code
+          POSTGRES_DB: code
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U code -d code"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    # Settings load in mypy and pytest too, so every step sees these. CI-only values.
+    env:
+      CODE_SECRET_KEY: ci-only-insecure-key-for-github-actions-0000000000000000
+      CODE_DATABASE_URL: postgresql://code:code@localhost:5432/code
+      CODE_DEBUG: "false"
+      CODE_ALLOWED_HOSTS: localhost
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -31,6 +54,12 @@ jobs:
       - name: Sync the workspace
         run: uv sync --locked --all-packages
 
+      - name: Django checks
+        run: |
+          uv run python apps/api/manage.py check
+          uv run python apps/api/manage.py makemigrations --check --dry-run
+          uv run python apps/api/manage.py migrate
+
       - name: Lint
         run: uv run ruff check .
 
@@ -42,4 +71,5 @@ jobs:
 
       - name: Tests
         run: uv run pytest -v
-        # Includes both purity guards and their self-tests, and the link check.
+        # Includes both purity guards and their self-tests, the link check, and the API's
+        # environment and database tests.

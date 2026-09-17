@@ -10,15 +10,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phase M0 (Skeleton) in progress.** The parts list is in the journal. The Python
-workspace exists; the Django project and the web app do not yet.
+workspace and the Django project (`apps/api`, no API routes yet) exist; the web app does not.
+
+**First-time setup** (from the repository root, where every command runs):
+
+```
+cp .env.example .env                   # local values for every CODE_* variable
+docker compose up -d --wait postgres   # Postgres 18 on localhost:5433
+uv sync --locked --all-packages
+uv run python apps/api/manage.py migrate
+```
 
 **Commands** (CI runs exactly these):
 
 ```
 uv sync --locked --all-packages     # install the workspace (Python 3.14)
+uv run python apps/api/manage.py check                              # Django's checks
+uv run python apps/api/manage.py makemigrations --check --dry-run   # models match migrations
 uv run ruff check .                 # lint
 uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
-uv run mypy                         # strict types over packages/ and tests/
+uv run mypy                         # strict types over packages/, apps/api/ and tests/
 uv run pytest                       # all tests
 uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
 ```
@@ -26,6 +37,10 @@ uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared
 **Adding a pure package** means declaring its allowlist in `tests/guards/purity.py`. An
 undeclared directory under `packages/` fails the guard. The guards are two partial checks
 (static imports and a runtime audit hook), and the honest claim is their union.
+
+**Settings come only from `CODE_*` variables**, read by `code_api/config/env.py`, and nothing
+else reads the environment. mypy and pytest load the settings too, so they need `.env` (or the
+variables). Tests marked `django_db` need Postgres running; the rest don't.
 
 **Read first, in this order:**
 
@@ -173,8 +188,11 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 
 ```
 .design/                  design canvas generator and its output
+.env.example              local values for every CODE_* variable
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
+apps/api/                 the Django project, code_api (config/, accounts/), and its tests
+compose.yaml              the local stack: postgres now, the rest from part 8
 docs/index.md             documentation map
 docs/design/              how screens are made
 docs/notes/journal/       session records, append-only
