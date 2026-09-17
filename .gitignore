@@ -169,3 +169,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# collectstatic output (CODE_STATIC_ROOT)
+staticfiles/
