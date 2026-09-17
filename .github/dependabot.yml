@@ -1,0 +1,60 @@
+# Dependabot keeps pinned versions from going stale: container images pinned by digest, GitHub
+# Actions pinned by commit, and the Python and npm lockfiles. Every update is a pull request that
+# must pass python, web and stack before it can merge (.github/rulesets/main.json).
+#
+# Grouped per ecosystem, so a quiet week is a few pull requests, not a backlog nobody reads.
+version: 2
+updates:
+  - package-ecosystem: docker
+    directories: ["/", "/apps/web"]
+    schedule:
+      interval: weekly
+    groups:
+      images:
+        patterns: ["*"]
+    commit-message:
+      prefix: build
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      compose-images:
+        patterns: ["*"]
+    commit-message:
+      prefix: build
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    commit-message:
+      prefix: build
+
+  - package-ecosystem: npm
+    directory: /apps/web
+    schedule:
+      interval: weekly
+    groups:
+      web:
+        patterns: ["*"]
+    ignore:
+      # jsdom 30 needs Node 24.15; Fedora's nodejs24 is 24.14.1. Issue #32 tracks the move.
+      - dependency-name: jsdom
+        versions: [">=30"]
+    commit-message:
+      prefix: build
