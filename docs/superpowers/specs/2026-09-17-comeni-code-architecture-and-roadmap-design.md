@@ -120,13 +120,18 @@ decided part by part (R5).
 - Every node on a route says why it is there.
 - **Done when** the Salmon route matches the Route board; repeated runs are byte-identical; a cycle
   is refused. *Against W3.3.*
+- *2026-09-17 (tutor spec T10.1): a node's **level** never adds or removes a stop. The weaver
+  reports the route's **level span** (e.g. First steps → Advanced) as output. **Done when** also
+  includes: the same graph with every level changed produces the same route. The Salmon route on
+  the board starts at its First steps stop (13 stops).*
 
 ### M3 — Thin learner path
 - A learner can find a target without AI, see its route as a metro map, and read a node.
 - **Done when** the Start, Route and Node pages sit convincingly beside the L1, L4 and L5 boards.
   *Against W6, W10.*
 - *2026-09-17: the Node page includes its **Learn it** section with at least one embedded and one
-  linked resource (tutor spec T4).*
+  linked resource (tutor spec T4), Read / Watch, the node's **level** tag, and `try` questions with
+  hints and a rationale (T6.2). The Route page shows the route's **level span** (T10.1).*
 - *2026-09-17 (tutor spec T10.2): First steps is in the MVP. A design round for First steps pages
   comes before M3's screens, and **done when** also includes a First steps node page beside its
   board.*
@@ -136,6 +141,12 @@ decided part by part (R5).
   lands on `comeni-code-content` through a pull request.
 - **Done when** one node goes draft → checked → approved → landed, and learners see it after the
   worker picks up the merge. *Against W7 S3, S6, S10; R3.*
+- *2026-09-17 (tutor spec T4, T6, T7.1, T10.1): the workbench also edits a node's **level**
+  (with its writing guide), its **resources** (provider, part, licence, embed or link), hints
+  and rationales, and its **exam pool** in the question builder (a question as blocks, with a
+  typed answer). All of it works without AI; M5 adds drafting and scores. **Done when** also
+  includes: the landed node has a level, at least one resource, and an exam pool of at least 4
+  approved questions.*
 
 ### M5 — AI gateway
 - Models are reachable only through LiteLLM at the declared call sites, and every call is recorded.
@@ -151,6 +162,10 @@ decided part by part (R5).
 ### M6 — Figures and problems
 - The first figure components, the figure composer, and problems with seeded datasets and checkers.
 - **Done when** the de Bruijn page works end to end, including its problem. *Against W5.3; S4, S5.*
+- *2026-09-17 (tutor spec T7.1): figures are also used in **exam questions**: in stems, in answer
+  options, and as **figure-interaction answers** computed by the component. **Seeded variants**
+  are checked across 20 seeds. **Done when** also includes: the de Bruijn exam question with
+  figure options passes its 20-seed check.*
 
 ### M7 — Requests and weave review
 - Missing nodes and unknown goals become requests that a person decides; connecting text is
@@ -166,13 +181,19 @@ decided part by part (R5).
 - *2026-09-17 (tutor spec T7.1): self-tests (L13) on the same engine as review. **Done when** also
   includes: an exam over "what I've done so far" is built from exam pools, graded automatically,
   and its per-node results change what the route shows.*
+- *2026-09-17 (tutor spec T6.1, T10.1): **step backs** (a wrong answer offers a detour and
+  returns to the same question), placement's **"you told us" hint** (asks lower levels first,
+  never marks known), and the **level filter** in Explore. **Done when** also includes: a step
+  back returns the learner to the question it came from.*
 
 ### M9 — The Salmon demo
 - The whole Salmon route authored, reviewed and landed, ending in a Labs pipeline.
 - **Done when** a new learner goes from *learn Salmon* to a pipeline they can run. *Against W12.*
-- *2026-09-17 (tutor spec T10): the learner may start at AP-biology level. The route takes them
-  back a step when an answer shows a gap, and gives the best existing video or reading at each
-  stop.*
+- *2026-09-17 (tutor spec T10, T10.2): the Salmon route spans **First steps → Advanced**, and a
+  learner starts wherever placement leaves them. The route takes them back a step when an answer
+  shows a gap, gives the best existing video or reading at each stop, and offers self-tests.
+  **Done when** also includes: a learner starting at First steps, without an account, reaches the
+  pipeline.*
 
 **Why this order.** The schema and the weaver carry the product's central claim and need no UI, so
 they are built and proved first. Screens come at M3 rather than last because the design was drawn
@@ -212,7 +233,8 @@ boards whenever a part adds one, and the journal records the comparison.
 ## R6. What stays out of v1
 
 Hosting and deployment beyond Compose; learner accounts beyond what M8 needs; the weekly problem;
-solutions threads; S11 Quality (it needs traffic); the Labs *arriving from a decision* page (L11)
+solutions threads; S11 Quality's learner measures (they need traffic — *revised 2026-09-17: the
+judge–human agreement view is in v1, because recording agreement is, tutor spec T8.3; see R8*); the Labs *arriving from a decision* page (L11)
 until Labs exposes a link to Code.
 
 *Added 2026-09-17 (tutor spec T12):*
@@ -245,5 +267,7 @@ and how the content repository is mounted.
    block M0.
 6. **A consent spec for minors' accounts** (tutor spec T10.2): parental consent, and how long
    minors' evidence is kept. It must exist before accounts open to under-13s.
-7. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
+7. **How much of S11 Quality is in v1.** Judge–human agreement is recorded from M5 and shown in v1.
+   The tutor measures (T9) need traffic and may wait. Decide when M5 is split into parts.
+8. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
    far down the AP-level start goes.
