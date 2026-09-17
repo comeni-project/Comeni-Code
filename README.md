@@ -5,8 +5,9 @@ want to understand â€” a tool like Salmon, a method, a problem with your reads â
 route to it from standalone, reviewed pages, each of which says where its claims come from. Code
 is **the tutor on top of what already exists**: it puts the best existing teaching (Khan Academy,
 OpenStax, Galaxy Training, the Carpentries) in the right order for your goal, checks what you
-know, and takes you back a step when you need it. It is built for **university students and
-researchers**. Khan Academy serves school-age learners; Code starts where that ends.
+know, and takes you back a step when you need it. It is built for **self-directed learners at
+every level**: each page has a level from *First steps* to *Advanced*, so a route reaches as far
+down as you need and as far up as research.
 
 > **You learn the thing you are about to run, and every sentence says where it came from.**
 

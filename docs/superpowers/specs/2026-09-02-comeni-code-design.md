@@ -211,9 +211,10 @@ Consequences, stated because they were the argument against this choice:
   taught in life-science degrees, producing researchers tasked with analysing data they cannot
   analyse.
 - *Widened 2026-09-17 (T10 of the [tutor spec](2026-09-17-code-as-tutor-design.md)): routes may
-  start at AP-biology level, so this learner is met where school biology left them. The audience
-  stays university students and researchers. Khan Academy serves school-age learners; Code serves
-  the people after them.*
+  start below university, so this learner is met where school biology left them. Revised again
+  the same day: nodes carry five content levels (First steps to Advanced), and Code serves
+  self-directed learners at every level. This wet-lab biologist stays the learner the v1 slice is
+  tested with (tutor spec T10).*
 
 ---
 

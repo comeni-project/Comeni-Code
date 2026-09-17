@@ -56,7 +56,7 @@ All decided by the operator on 2026-09-16.
 | A goal or node that does not exist yet? | **It goes to a request queue, and moves to the implementing queue only when a human has seen it** (W3.6). |
 | Where does a new learner land? | **"What do you want to learn?"**, then a route preview, then optional placement on that route. |
 | Where do commands run? | **On the learner's machine.** Nothing runs on our side (§5.1.1). |
-| How is a node presented? | **One page, written for university students and researchers, with questions inline.** "Try it" blocks expand in place, hold the interactive figures, and return in review. Revised the same day: an earlier stepped-screens / reference-page split was judged oversimplified for this audience. |
+| How is a node presented? | **One page, written for university students and researchers, with questions inline.** *(2026-09-17: written at the node's **level**, First steps to Advanced — tutor spec T10.1.)* "Try it" blocks expand in place, hold the interactive figures, and return in review. Revised the same day: an earlier stepped-screens / reference-page split was judged oversimplified for this audience. |
 | How is a route drawn? | **As a metro map that branches and merges** (§2.0.2's form): lines leave the start and all end at the goal, stops where lines meet are interchanges, and a need that doesn't lie along a line is a thin connector. Most routes aren't linear; a single straight line would misrepresent them. A list view gives the same order as text. |
 | What does Home show? | **The route you last opened**, not the whole network. The full network lives on *Your knowledge* (L9). |
 | Visual identity | **The Comeni hybrid**, shared with Labs (W10). |
@@ -73,7 +73,8 @@ learner pages (no per-hole approval).
 ### W3.1 A node stands alone
 
 A node is a complete page on one topic: its claim, what it needs, exposition, figure, worked
-example, check, problem, misconception (§5.1, W5). It **must read correctly with no route around
+example, check, problem, misconception (§5.1, W5). *(2026-09-17: each node also has a **level**,
+which describes its content, never the learner — tutor spec T10.1.)* It **must read correctly with no route around
 it** — a learner may arrive from search, from Labs, or from any of a hundred routes.
 
 Granularity follows Math Academy's experience: a topic that turns out to hold several ideas is

@@ -113,7 +113,7 @@ decided part by part (R5).
 - *2026-09-17 (tutor spec T4, T6, T7): the schema also holds `resource` blocks, hints,
   rationales and `step_back_to`, and learner answers are stored as evidence. A small skeleton
   seeds the fixtures. Nodes also hold an exam pool (T7.1), so adding it later needs no content
-  migration.*
+  migration, and a **level** (T10.1), one of five.*
 
 ### M2 — Weaver
 - Goal targets become a route by a pure function (W3.3), reachable from a CLI and the API.
@@ -240,5 +240,7 @@ and how the content repository is mounted.
    service. Raised in Labs' journal on 2026-09-17
    (`Comeni-Labs/docs/notes/journal/2026-09-17-labs-in-the-hybrid-identity.md`). It does not
    block M0.
-6. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
+6. **A consent spec for minors' accounts** (tutor spec T10.2): parental consent, and how long
+   minors' evidence is kept. It must exist before accounts open to under-13s.
+7. **The tutor spec's open questions** (T14): the thresholds x and N, the embed allow-list, and how
    far down the AP-level start goes.
