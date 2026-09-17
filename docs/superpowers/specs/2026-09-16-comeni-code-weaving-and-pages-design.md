@@ -492,6 +492,10 @@ decision for Labs; Code adopts it now.
 
 ### W11.2 Build order
 
+*Superseded 2026-09-17 by R4 of the
+[architecture and roadmap spec](2026-09-17-comeni-code-architecture-and-roadmap-design.md), which
+keeps this order's reasoning and adds the skeleton, the learner path and the demo as milestones.*
+
 §8.2 still governs: the first question is whether the loop produces nodes people learn from.
 
 1. **The node schema and the weaver** — links, groups, the walk (W3.3) as a pure, tested

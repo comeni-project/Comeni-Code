@@ -8,6 +8,7 @@ decision records.
 |---|---|---|
 | [2026-09-02 — Comeni Code design](2026-09-02-comeni-code-design.md) | design; partly superseded | what Code is, why its predecessors died, the node as typed holes, the review risk, why the game layer is refused |
 | [2026-09-16 — weaving, pages and identity](2026-09-16-comeni-code-weaving-and-pages-design.md) | design | woven routes, every page, content blocks and the content API, where the AI runs, the visual identity, order of work |
+| [2026-09-17 — architecture and roadmap](2026-09-17-comeni-code-architecture-and-roadmap-design.md) | design | the stack (Django + Ninja, React, Postgres, Redis, LiteLLM, Compose), where content lives, the repository shape, milestones M0–M9 |
 
 ## Rules
 

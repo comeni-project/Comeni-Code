@@ -28,6 +28,7 @@ proposing code.
 |---|---|
 | Why this exists, and why two earlier attempts at it died | [`2026-09-02-comeni-code-design.md`](docs/superpowers/specs/2026-09-02-comeni-code-design.md) |
 | How routes are woven, every page, figures, AI use, the visual identity | [`2026-09-16-comeni-code-weaving-and-pages-design.md`](docs/superpowers/specs/2026-09-16-comeni-code-weaving-and-pages-design.md) |
+| The stack and the order it will be built in | [`2026-09-17-comeni-code-architecture-and-roadmap-design.md`](docs/superpowers/specs/2026-09-17-comeni-code-architecture-and-roadmap-design.md) |
 | Where things stand today | [the newest journal entry](docs/notes/journal/) |
 | The screens | [`docs/design/`](docs/design/) and the generator in [`.design/`](.design/) |
 | Everything else | [`docs/index.md`](docs/index.md) |
