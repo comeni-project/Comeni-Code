@@ -53,6 +53,9 @@ Design preview in Claude Code; published copies are views, and the generator is 
 Not yet drawn: L6 Problem (its full block is inside L5), L7 Review, L8 Weekly, L11 From Labs,
 S1 Inbox and the smaller settings pages.
 
-**Where the canvas is published.** The first canvas was published as a private artifact on the
-operator's earlier account. Publishing the regenerated canvas is started by the operator
-(`/design`), because that skill cannot be run on an agent's own initiative.
+**Where the canvas is published.** The current canvas, all 26 boards, is
+https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa (a private artifact on the operator's current
+account). The earlier canvas, from before the tutor changes, is on the operator's previous
+account. Both are views; the generator is the source. When republishing, the canvas type needs a
+`<script data-dc-script>` block on every board, and the publishing step adds a minimal one to the
+boards the generator writes without it.
