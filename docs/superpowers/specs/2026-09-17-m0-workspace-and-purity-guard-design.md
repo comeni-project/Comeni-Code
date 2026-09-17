@@ -1,6 +1,6 @@
 # M0 part 1 — workspace, pure packages and purity guard
 
-**Status: design, awaiting the operator's approval.** Written 2026-09-17. This is part 1 of phase
+**Status: agreed 2026-09-17; built in PR #4.** Written 2026-09-17. This is part 1 of phase
 M0 (architecture spec R4). The parts list is in the journal,
 [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). It decides what R7
 leaves to a part spec: the Python version, the workspace tool, the test runner, lint and type
