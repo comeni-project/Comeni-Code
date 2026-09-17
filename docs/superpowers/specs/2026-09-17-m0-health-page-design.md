@@ -1,6 +1,6 @@
 # M0 part 7 — the health page
 
-**Status: agreed 2026-09-17.** This is part 7 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #25.** This is part 7 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). It builds on
 part 3's `/api/health` ([P3.2](2026-09-17-m0-ninja-api-and-health-design.md)), part 4's checks
 ([P4.3](2026-09-17-m0-celery-beat-redis-design.md)) and part 6's identity

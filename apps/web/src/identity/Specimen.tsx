@@ -1,5 +1,6 @@
 // The identity specimen: every token in use, beside the Identity boards (M0 part 6 spec, P6.3).
 import { useState } from "react";
+import { TopBar } from "../layout/TopBar";
 
 type Theme = "system" | "light" | "dark";
 
@@ -44,31 +45,7 @@ export function Specimen() {
 
   return (
     <div className="min-h-screen">
-      <header className="flex h-15 items-center justify-between border-b border-border px-7">
-        <div className="flex items-center gap-2.5">
-          <svg width="30" height="16" viewBox="0 0 30 16" aria-hidden="true">
-            <line
-              x1="3"
-              y1="8"
-              x2="27"
-              y2="8"
-              className="stroke-line"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-            {[4, 15, 26].map((cx) => (
-              <circle
-                key={cx}
-                cx={cx}
-                cy="8"
-                r="3.5"
-                className="fill-surface stroke-ink"
-                strokeWidth="2"
-              />
-            ))}
-          </svg>
-          <span className="text-[17px] font-bold tracking-[-0.01em]">Comeni Code</span>
-        </div>
+      <TopBar>
         <fieldset className="flex gap-0.5 rounded-control border border-border bg-bg p-[3px]">
           <legend className="sr-only">Theme</legend>
           {(["system", "light", "dark"] as const).map((option) => (
@@ -85,7 +62,7 @@ export function Specimen() {
             </button>
           ))}
         </fieldset>
-      </header>
+      </TopBar>
 
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-7 py-8">
         <div className="flex flex-col gap-1.5">

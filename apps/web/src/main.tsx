@@ -9,7 +9,12 @@ if (root === null) {
   throw new Error("index.html has no #root element");
 }
 
-// Part 7 adds the first query; the provider is here from the start.
+// Start both fonts now. A font otherwise loads only when its first text renders, and text that
+// arrives with data (the check names in Geist Mono) stayed invisible (M0 part 7 spec, P7.5).
+for (const family of ['"Lexend Variable"', '"Geist Mono Variable"']) {
+  void document.fonts.load(`1em ${family}`);
+}
+
 const queryClient = new QueryClient();
 
 createRoot(root).render(
