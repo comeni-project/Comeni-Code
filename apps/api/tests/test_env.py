@@ -7,12 +7,20 @@ from code_api.config.env import Env, database_from_url
 
 KEY = "k" * 50
 URL = "postgresql://code:code@localhost:5433/code"
+REDIS = "redis://localhost:6380/0"
 
 
 @pytest.fixture(autouse=True)
 def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     """Each test starts from no `CODE_*` variables, whatever the shell or `.env` holds."""
-    for name in ("SECRET_KEY", "DATABASE_URL", "DEBUG", "ALLOWED_HOSTS"):
+    for name in (
+        "SECRET_KEY",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "DEBUG",
+        "ALLOWED_HOSTS",
+        "STATIC_ROOT",
+    ):
         monkeypatch.delenv(f"CODE_{name}", raising=False)
 
 
@@ -27,6 +35,7 @@ def test_reads_prefixed_variables(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch,
         secret_key=KEY,
         database_url=URL,
+        redis_url=REDIS,
         debug="true",
         allowed_hosts=" code.example , localhost ,",
     )
@@ -37,7 +46,7 @@ def test_reads_prefixed_variables(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_defaults_are_the_safe_ones(monkeypatch: pytest.MonkeyPatch) -> None:
-    env = make_env(monkeypatch, secret_key=KEY, database_url=URL)
+    env = make_env(monkeypatch, secret_key=KEY, database_url=URL, redis_url=REDIS)
     assert env.debug is False
     assert env.allowed_hosts == []
 
@@ -45,13 +54,13 @@ def test_defaults_are_the_safe_ones(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_ignores_unprefixed_variables(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DATABASE_URL", "postgresql://other:other@elsewhere/other")
     with pytest.raises(ValidationError) as caught:
-        make_env(monkeypatch, secret_key=KEY)
+        make_env(monkeypatch, secret_key=KEY, redis_url=REDIS)
     assert "database_url" in str(caught.value)
 
 
 def test_a_missing_variable_is_named(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(ValidationError) as caught:
-        make_env(monkeypatch, database_url=URL)
+        make_env(monkeypatch, database_url=URL, redis_url=REDIS)
     assert "secret_key" in str(caught.value)
 
 
@@ -59,7 +68,7 @@ def test_a_short_secret_key_is_refused_without_being_shown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     with pytest.raises(ValidationError) as caught:
-        make_env(monkeypatch, secret_key="too-short-to-be-a-key", database_url=URL)
+        make_env(monkeypatch, secret_key="too-short-to-be-a-key", database_url=URL, redis_url=REDIS)
     assert "secret_key" in str(caught.value)
     assert "too-short-to-be-a-key" not in str(caught.value)
 
@@ -68,8 +77,27 @@ def test_only_postgres_urls_are_accepted_and_none_is_shown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     with pytest.raises(ValidationError) as caught:
-        make_env(monkeypatch, secret_key=KEY, database_url="mysql://root:hunter2@db/code")
+        make_env(
+            monkeypatch,
+            secret_key=KEY,
+            database_url="mysql://root:hunter2@db/code",
+            redis_url=REDIS,
+        )
     assert "must be a postgresql:// URL" in str(caught.value)
+    assert "hunter2" not in str(caught.value)
+
+
+def test_only_redis_urls_are_accepted_and_none_is_shown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with pytest.raises(ValidationError) as caught:
+        make_env(
+            monkeypatch,
+            secret_key=KEY,
+            database_url=URL,
+            redis_url="http://user:hunter2@cache/0",
+        )
+    assert "must be a redis:// URL" in str(caught.value)
     assert "hunter2" not in str(caught.value)
 
 

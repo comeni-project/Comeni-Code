@@ -8,6 +8,9 @@ from typing import Literal
 
 from django.db import connection
 
+from code_api import redis as redis_client
+from code_api.health.heartbeat import HEARTBEAT_STALE_AFTER_SECONDS, last_heartbeat
+
 log = logging.getLogger(__name__)
 
 Status = Literal["ok", "down"]
@@ -26,7 +29,22 @@ def database() -> None:
         cursor.execute("SELECT 1")
 
 
-CHECKS: dict[str, Callable[[], None]] = {"database": database}
+def redis() -> None:
+    """PING Redis. Raises if it doesn't answer within its timeout."""
+    redis_client.client().ping()
+
+
+def worker() -> None:
+    """The heartbeat a worker writes must be recent. Raises with a reason that is only logged."""
+    last = last_heartbeat()
+    if last is None:
+        raise RuntimeError("no heartbeat")
+    age = time.time() - last
+    if age > HEARTBEAT_STALE_AFTER_SECONDS:
+        raise RuntimeError(f"last heartbeat {age:.0f} s ago")
+
+
+CHECKS: dict[str, Callable[[], None]] = {"database": database, "redis": redis, "worker": worker}
 
 
 def run(name: str, check: Callable[[], None]) -> CheckResult:

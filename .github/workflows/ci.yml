@@ -34,6 +34,15 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 30
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
 
     # Settings load in mypy and pytest too, so every step sees these. CI-only values.
     env:
@@ -41,6 +50,7 @@ jobs:
       CODE_DATABASE_URL: postgresql://code:code@localhost:5432/code
       CODE_DEBUG: "false"
       CODE_ALLOWED_HOSTS: localhost
+      CODE_REDIS_URL: redis://localhost:6379/0
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

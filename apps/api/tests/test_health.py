@@ -9,7 +9,9 @@ from code_api.health import checks
 
 
 @pytest.mark.django_db
-def test_healthy_when_the_database_answers(client: Client) -> None:
+def test_healthy_when_the_database_answers(client: Client, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Only the database here; Redis and the worker are tested in test_worker_health.py.
+    monkeypatch.setattr(checks, "CHECKS", {"database": checks.database})
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"

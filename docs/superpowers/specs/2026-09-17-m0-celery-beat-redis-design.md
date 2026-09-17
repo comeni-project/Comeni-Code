@@ -1,6 +1,6 @@
 # M0 part 4 — Celery, beat and Redis
 
-**Status: agreed 2026-09-17.** This is part 4 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #19.** This is part 4 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). It builds on
 part 3's health route ([P3.2](2026-09-17-m0-ninja-api-and-health-design.md)). This spec decides
 what R7 leaves to this part:
