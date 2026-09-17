@@ -230,7 +230,7 @@ requires-dist = [
     { name = "django", specifier = ">=6.1,<6.2" },
     { name = "django-ninja", specifier = ">=1.7,<1.8" },
     { name = "gunicorn", specifier = ">=26.2,<27" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.3,<3.4" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.5,<3.4" },
     { name = "pydantic-settings", specifier = ">=2.15,<3" },
     { name = "whitenoise", specifier = ">=6.12,<7" },
 ]
