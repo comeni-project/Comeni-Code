@@ -1,0 +1,24 @@
+# Comeni Code's local stack. M0 part 2 starts it with Postgres; part 8 adds the rest.
+name: comeni-code
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: code
+      POSTGRES_PASSWORD: code
+      POSTGRES_DB: code
+    ports:
+      # 5433 on the host: 5432 is often taken by another project's database.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      # From 18 the image keeps data in a versioned directory under /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U code -d code"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  postgres-data:
