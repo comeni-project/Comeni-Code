@@ -1,6 +1,6 @@
 # M0 part 2 — the Django project boots
 
-**Status: agreed 2026-09-17.** This is part 2 of phase M0 (architecture spec R4). The parts list
+**Status: agreed 2026-09-17; built in PR #7.** This is part 2 of phase M0 (architecture spec R4). The parts list
 is in [`2026-09-17-m0-in-parts.md`](../../notes/journal/2026-09-17-m0-in-parts.md). Part 1 is
 [`2026-09-17-m0-workspace-and-purity-guard-design.md`](2026-09-17-m0-workspace-and-purity-guard-design.md).
 This spec decides what R7 leaves to this part: the project layout and module names, how

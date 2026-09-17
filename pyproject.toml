@@ -1,12 +1,19 @@
 # A virtual workspace: the root is not a package. `uv sync --all-packages` installs every member.
 [tool.uv.workspace]
-members = ["packages/*"]
+members = ["packages/*", "apps/api"]
 
 [dependency-groups]
-dev = ["pytest>=9.1", "ruff>=0.16", "mypy>=2.3"]
+dev = [
+    "pytest>=9.1",
+    "pytest-django>=4.14",
+    "ruff>=0.16",
+    "mypy>=2.3,<2.4",
+    "django-stubs[compatible-mypy]>=6.1,<6.2",
+]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "apps/api/tests"]
+DJANGO_SETTINGS_MODULE = "code_api.config.settings"
 # `tests/` is on the path so `guards.purity` imports without making `tests` a package.
 pythonpath = ["tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
@@ -20,12 +27,22 @@ extend-exclude = ["tests/guards/fixtures"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+# Django writes migrations with help texts no formatter can wrap. E501 only: the rest still applies.
+"apps/api/src/code_api/*/migrations/*.py" = ["E501"]
+
 [tool.ruff.lint.isort]
-known-first-party = ["code_schema", "code_weaver", "guards"]
+known-first-party = ["code_api", "code_schema", "code_weaver", "guards"]
 
 [tool.mypy]
 strict = true
-files = ["packages", "tests"]
+files = ["packages", "apps/api", "tests"]
+# pydantic's plugin knows that settings fields come from the environment, not from arguments.
+plugins = ["pydantic.mypy", "mypy_django_plugin.main"]
 exclude = ['^tests/guards/fixtures/']
-mypy_path = "tests"
+# apps/api/src is listed so each file there has exactly one module name.
+mypy_path = ["tests", "apps/api/src"]
 explicit_package_bases = true
+
+[tool.django-stubs]
+django_settings_module = "code_api.config.settings"
