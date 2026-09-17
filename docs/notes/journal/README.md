@@ -6,11 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-17-m0-part-4-celery.md`](2026-09-17-m0-part-4-celery.md)**: M0 part 4 is built
-> (Celery, beat, Redis, and health for Redis and the worker). Read its *Traps* on process
-> handling before running background processes. For the product direction read
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) and the entries after it. Ten
-> entries share this date.
+> [`2026-09-17-m0-part-5-web-toolchain.md`](2026-09-17-m0-part-5-web-toolchain.md)**: M0 part 5
+> is built (the web app's toolchain on Node 24). Read its *Traps* on Fedora's two Node versions.
+> For process handling see [part 4's entry](2026-09-17-m0-part-4-celery.md); for the product
+> direction, [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md) and the entries after
+> it. Eleven entries share this date.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -48,6 +48,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-m0-part-5-web-toolchain.md) | **M0 part 5 built.** `apps/web`: Vite 8, React 19, TypeScript 7 strict, Biome, vitest; a web CI job; jsdom 29 until Fedora ships Node 24.15 |
 | [2026-09-17](2026-09-17-m0-part-4-celery.md) | **M0 part 4 built.** Celery on Python 3.14, Redis 8, a beat heartbeat, `redis` and `worker` health checks; process-handling traps recorded |
 | [2026-09-17](2026-09-17-m0-part-3-ninja-api.md) | **M0 part 3 built.** `/api/health` (200/503), the docs page via WhiteNoise, the committed OpenAPI schema |
 | [2026-09-17](2026-09-17-first-steps-in-mvp.md) | **First steps in the MVP.** A design round before M3; a few First steps nodes under the Salmon route |

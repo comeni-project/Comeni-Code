@@ -1,7 +1,7 @@
 name: CI
 
-# Every pull request runs the same command set as a local check (M0 part 1 spec, P1.3; part 2
-# spec, P2.4). Later M0 parts add their own jobs here.
+# Every pull request runs the same command sets as a local check, one job per language: python
+# (M0 part 1 spec, P1.3; part 2, P2.4; part 4, P4.4) and web (part 5, P5.4).
 
 on:
   push:
@@ -83,3 +83,34 @@ jobs:
         run: uv run pytest -v
         # Includes both purity guards and their self-tests, the link check, and the API's
         # environment and database tests.
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      # The lockfile is the contract; .npmrc refuses install scripts and any Node but 24.
+      - name: Install
+        run: npm ci
+
+      - name: Lint and format
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
