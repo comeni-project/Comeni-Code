@@ -6,10 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-17-m0-part-1-workspace-and-guards.md`](2026-09-17-m0-part-1-workspace-and-guards.md)**:
-> M0 part 1 is built (the workspace and both purity guards), and part 2 needs its spec next. Two
-> entries share this date; read this one first. The M0 parts list is in
-> [`2026-09-17-m0-in-parts.md`](2026-09-17-m0-in-parts.md).
+> [`2026-09-17-m0-part-2-django-project.md`](2026-09-17-m0-part-2-django-project.md)**: M0
+> part 2 is built (the Django project boots on Postgres 18), and it restates part 3's objective
+> with the operator's OpenAPI requirement. Three entries share this date; read this one first,
+> then [part 1's](2026-09-17-m0-part-1-workspace-and-guards.md), then
+> [the parts list](2026-09-17-m0-in-parts.md).
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -47,6 +48,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-17](2026-09-17-m0-part-2-django-project.md) | **M0 part 2 built.** `code_api` on Django 6.1 with a validated `CODE_*` environment, a custom user, Postgres 18 in Compose, CI with Postgres; part 3 must follow OpenAPI with a mandatory docs page |
 | [2026-09-17](2026-09-17-m0-part-1-workspace-and-guards.md) | **M0 part 1 built.** The uv workspace, empty pure packages, static and runtime purity guards (the canary was red in CI), the link check, CI |
 | [2026-09-17](2026-09-17-m0-in-parts.md) | **M0 in parts.** The design PRs are merged; CLAUDE.md now covers the build phase; M0 is split into nine parts. No code |
 | [2026-09-16](2026-09-16-the-design-before-the-code.md) | **Tracks become woven routes.** The second spec; every key page drawn and redrawn against research; the hybrid identity; the AI pages; the repository seeded. No code |
