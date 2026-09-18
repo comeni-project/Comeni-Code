@@ -1,6 +1,6 @@
 """One link list, every per-node rule of spec M1P2.5."""
 
-from code_schema.links import Link, parse_links
+from code_schema.links import Link, locate_links, parse_links
 from code_schema.problems import Problem
 from code_schema.yaml_lines import load_mapping
 
@@ -131,3 +131,12 @@ def test_a_bad_link_is_left_out_but_the_good_ones_are_kept() -> None:
     links, problems = run(GOOD + "  - node: k-mers\n")
     assert len(problems) == 1
     assert [link.node for link in links] == ["what-tpm-measures", "selective-alignment"]
+
+
+def test_locate_links_finds_each_links_line() -> None:
+    text = GOOD + "related:\n  - node: kallisto\n    reason: kallisto differs.\n"
+    assert locate_links(text, file="salmon/node.yaml") == {
+        ("needs", "what-tpm-measures"): 2,
+        ("needs", "selective-alignment"): 4,
+        ("related", "kallisto"): 7,
+    }

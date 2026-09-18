@@ -9,8 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phase M0 (Skeleton) done; M1 (content core) under way — part 1 of 6, the node format in
-`code-schema`, is built.** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
+**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–3 of 6 are built: the node
+format, its links, and `code-schema validate`.** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
 `/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
 specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
 in `comeni-code-content` takes only green pull requests.
@@ -59,6 +59,7 @@ uv run ruff check .                 # lint
 uv run ruff format --check .        # formatting (also Python blocks inside Markdown)
 uv run mypy                         # strict types over packages/, apps/api/ and tests/
 uv run pytest                       # all tests
+uv run code-schema validate ../comeni-code-content   # the node format, as content CI checks it
 uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
 ```
 
