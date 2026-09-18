@@ -7,8 +7,9 @@ value means the file and the object disagree and the writer would rewrite the fi
 
 from __future__ import annotations
 
+import difflib
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass
 
 Check = Callable[[object], str | None]
@@ -97,5 +98,20 @@ def slug(*, noun: str) -> Check:
         if isinstance(value, str) and SLUG.match(value):
             return None
         return f"{shown(value)} is not a {noun} (lower case, digits and single hyphens)"
+
+    return check
+
+
+def in_registry(names: Collection[str], *, noun: str, registry: str) -> Check:
+    """A value listed in a registry file, with the closest listed name when it is not."""
+    ordered = sorted(names)
+
+    def check(value: object) -> str | None:
+        if isinstance(value, str) and value in names:
+            return None
+        message = f"{shown(value)} is not a {noun} — {registry} lists {len(ordered)}"
+        if isinstance(value, str) and (close := difflib.get_close_matches(value, ordered, n=1)):
+            message += f", closest is `{close[0]}`"
+        return message
 
     return check
