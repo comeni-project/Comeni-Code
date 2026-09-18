@@ -133,9 +133,10 @@ spec, not in code.
 1. **The route is computed, not generated.** Same graph, goal and learner state → same route.
    A model is involved only in suggesting targets, which the learner confirms.
 2. **Only *needs* links build routes.** *Goes deeper* and *related* change what a page offers,
-   never a route. *Needs* links may not form a cycle. **There are three kinds and no more** — what
-   comes before, what lies below, what stands beside (W3.2) — and anything else is derived
-   (*needed by*), a block, or a region.
+   never a route. *Needs* links may not form a cycle. **v1 has three kinds** — what comes before,
+   what lies below, what stands beside (W3.2) — **each with a reason**; anything else is derived
+   (*needed by*), a block, or a region. Two optional paths (*helps*, *any-of*) are designed in W3.2
+   and wired only when content needs them; neither ever changes a route unless the learner opens it.
 3. **A node reads correctly with no route around it.** Only the connecting text varies per route;
    node bodies never do.
 4. **Nothing leaves the request queue without a person.** Models may propose and group requests;

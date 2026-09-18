@@ -89,6 +89,11 @@ reader's question it answers**, *related* is narrowed to the peer test and cappe
 neighbours that are derived rather than authored are named. A kind exists only if it changes a
 route, answers a question no other kind answers, or feeds a health check.*
 
+*Revised again 2026-09-18 (operator, M1 part 2 — [spec](2026-09-18-m1-links-in-the-schema-design.md)):
+**every link carries a reason**, not only *needs*; *needs* is **a list of entries, not *all of* /
+*any of* groups**; and two **optional paths** — alternatives and detours — are designed here but
+not wired in v1 (below).*
+
 **Three directions, and an author picks one by asking which question the link answers:**
 
 | Link | Direction | The reader's question | Means | Bounded by |
@@ -101,20 +106,22 @@ route, answers a question no other kind answers, or feeds a health check.*
 
 - ***needs* exists for the weaver.** These edges are the only input to a route (invariant 1);
   every computed thing in the product — the metro map, the time estimate, what a learner may skip,
-  the step back — is derived from them and from nothing else. Grouped *all of* or *any of*
-  (§6.3.1), each group with a reason. Reviewed as its own hole, one group at a time (§5.1).
+  the step back — is derived from them and from nothing else. **A list of entries, each one node
+  with a reason**; the list itself means *all of these*. Reviewed as its own hole, one entry at a
+  time (§5.1).
 - ***goes deeper* exists because depth cannot live inside a node.** A node holds one claim, runs
   5–15 minutes (W3.1) and carries one level (T10.1), so *Transcription* at Foundations and at
   Intermediate are necessarily two nodes and something has to join them. And because a route
   **ends**: a learner who finishes and wants more has no move except inventing a new goal, and
-  this is the one exit from a finished route. Written on the shallower node, pointing further on;
-  the way back up is derived. A side-door on the page, **never added to a route**. Reviewed with
+  this is the one exit from a finished route. Written on the shallower node, pointing further on
+  — to a node at the **same level or higher, never lower** (deeper in detail at the same level is
+  common and fine; a lower target is the way back up, which is derived). A side-door on the page, **never added to a route**. Reviewed with
   the node.
 - ***related* exists because a learner can move sideways only by knowing a word.** Search (L10)
   finds by the word the learner already has, which is exactly what someone new to a field lacks;
   L12 browses tracks, not nodes. Without it the graph is a strict tree of *needs* and depth. It
-  matters most where there is no route at all — from search, or from Labs (L11), where an *any of*
-  group cannot help because no route exists to resolve one. It is also read by goal resolution
+  matters most where there is no route at all — from search, or from Labs (L11), where no route
+  exists to offer an alternative. It is also read by goal resolution
   (W3.3 step 1), which proposes targets from a human-approved set of peers instead of inventing
   them. Symmetric: written once, shown on both pages. Reviewed with the node, lightest review.
 
@@ -147,6 +154,56 @@ every route that passes through it.** *Goes deeper* and *related* only change wh
 *needs* links may not form a cycle; S2's health check refuses one. *Goes deeper* may not form one
 either — a topic cannot be further on than itself — and the validator refuses it.
 
+**Every link has a reason, written from this page's point of view.** A reason is what the learner
+reads, and it is also the check that a link belongs: an author — or a model proposing links — who
+cannot write one does not have a link, only a feeling, and a reviewer has nothing to approve. Each
+kind's reason answers its own question:
+
+| Kind | The reason answers | *Salmon*'s example |
+|---|---|---|
+| *needs* | why you need it first | *Salmon reports abundance in TPM.* |
+| *goes deeper* | what more you get there | *How Salmon fits a transcriptome's k-mers into memory, and why that makes it fast.* |
+| *related* | **how it differs from this node** | *kallisto does the same job by pseudoalignment, without Salmon's bias correction.* |
+
+*Related* is written **on both nodes**, each with its own reason from its own page, so opening any
+`node.yaml` shows every neighbour it has (only *needed by* is derived). Studio's content API writes
+both sides in one call; the validator refuses a link written on one side only.
+
+**A need is what understanding the claim requires, never how to operate a tool.** *Salmon*'s claim
+can be understood without a shell, so *command-line basics* is not one of its needs, and it is not
+a peer either — nobody reads it instead of *Salmon*. Ways to run something (Salmon's documentation,
+the Galaxy Training Network's tutorial, the Labs pipeline) are **resources in the body** (T4),
+which the learner picks from without the route growing. A practical node, such as *Working with
+FASTQ files*, may need *command-line basics* in the ordinary way.
+
+**Optional paths — designed, not wired in v1.** A route must never change on its own except
+through *needs*; anything optional happens only when the learner opens it. Two shapes are designed
+so that nobody reinvents them, and each is wired only when real content (M1 part 4's Salmon
+fixtures and after) shows it is needed. Both are additive: no existing node changes when they
+arrive, and if one proves confusing it is removed while that is still cheap.
+
+| | required | optional — the learner opens it |
+|---|---|---|
+| **before** | *needs* (auto-expands) | *helps* (a detour) · *any-of* (a switch) |
+| **below** | — | *goes deeper* |
+| **beside** | — | *related* |
+
+- ***helps* — "you'll find this easier if…".** A list beside *needs*, same entry shape, **never
+  added to a route**; the map shows it as a dotted side stop before the node, which the learner
+  may add. It is the home of the soft prerequisite (*Salmon* is helped by *probability
+  distributions*), which otherwise becomes a weak *need* and lengthens every route through it.
+- ***any-of* — "one of these".** An entry inside *needs* naming two or more nodes and a
+  `default`. **The author's default goes on the route**; the stop reads "or: …" and the learner
+  may switch; stored evidence that the learner knows another member meets the entry. Nothing is
+  guessed from route length. For two treatments that should not be merged — the same idea written
+  for two audiences: *de Bruijn graphs* needs any of *graphs* and *graphs for biologists*, default
+  the latter; a computer-science student who has tested out of *graphs* is ready, a biologist gets
+  the biology-framed version. Two nodes with one claim are otherwise a Studio health concern
+  (merge them), not a schema feature.
+
+A learner's choices are part of their state, so invariant 1 holds: the same graph, goal and choices
+give the same route.
+
 **On maps, the learner chooses what to see.** A metro map draws the *needs* strand always; **goes
 deeper and related are a toggle, off by default** (L4, L9, and the side column of L5), drawn
 distinctly from the route. Turning them on never changes a route, a time estimate or a stop order
@@ -157,9 +214,9 @@ the metro style only; neighbourhood and box drawings stay in Studio.
 
 | Alternative | Why not |
 |---|---|
-| **helps, not required** (a soft prerequisite) | the kind authors would most often confuse with the two either side of it, and its whole job is one sentence a page can say in prose. A weak *needs* link is worse than none: it lengthens every route through it |
+| **helps, not required** (a soft prerequisite) | the kind authors would most often confuse with the two either side of it, and its whole job is one sentence a page can say in prose. A weak *needs* link is worse than none: it lengthens every route through it. *Reversed later on 2026-09-18: as an optional detour that is **never** added to a route, it cannot weaken one, which was the objection. It is designed above and wired when content needs it* |
 | **commonly confused with** | the peer test already pairs *TPM* and *FPKM*; the explanation belongs in a `misconception` callout |
-| **alternative / does the same job** | on a route that is an *any of* group; off a route it is a peer |
+| **alternative / does the same job** | off a route it is a peer; on a route, the designed *any-of* entry above |
 | **application / used in** | the inverse of *needs*, read forwards — derived, not authored |
 | **broader / narrower** | that is **region**, a classification, not an edge |
 | **worked example, practice for** | blocks inside a node (W5) |
@@ -171,9 +228,10 @@ Given a goal, in order:
 1. **Resolve the goal to targets.** A model proposes one to three existing nodes for the
    learner's words ("quantify my RNA-seq" → *Salmon* + *Differential expression*). The learner
    sees and confirms them. A goal no node covers goes to the request queue (W3.6).
-2. **Walk back.** From each target, follow *needs* groups to their members, recursively.
-3. **Resolve *any of* groups.** Prefer a member the learner already holds, otherwise the
-   member with the shortest remaining route, otherwise the group's declared default.
+2. **Walk back.** From each target, follow *needs* entries to their nodes, recursively.
+3. ~~**Resolve *any of* groups.**~~ *Revised 2026-09-18: v1 has no choices in *needs*. When the
+   designed *any-of* entry is wired (W3.2), it resolves to a member the learner is known to hold,
+   otherwise to the author's default, which the learner may switch — never by route length.*
 4. **Remove what is held.** Nodes the learner has settled (§9.1) or tested out of (L2) drop out,
    and so does everything *only* they needed. *(2026-09-17: "settled" is **known**, backed by
    stored evidence — tutor spec T7.)*
@@ -494,7 +552,7 @@ content.
 | # | Page | Job | Holds | Refuses |
 |---|---|---|---|---|
 | S1 | **Inbox** | What needs me | Assigned reviews, my drafts, failed verifications, requests awaiting triage, quality alerts — each row opens the place to act | charts that lead nowhere |
-| S2 | **Graph** | Keep the network sound | **Search first**, with a tree of nodes by region; a **layered neighbourhood view** as the editing surface (two steps back, needs groups, the node, needed by; goes-deeper and related drawn differently), with **Table** for bulk edits and **Whole network** for looking; an **Editing view / Learner view** switch — learners only ever see the metro style, and the learner view shows how a change will look on their maps; add, split, merge; needs groups (all of / any of) with reasons; **the impact of a change before it is proposed** (routes lengthened, time added, texts needing re-review, cycles); every needs change proposed and reviewed on its own; link history; health (cycles, orphans, nodes no route reaches); weave preview for any goal | freehand layout; editing on the whole-network hairball |
+| S2 | **Graph** | Keep the network sound | **Search first**, with a tree of nodes by region; a **layered neighbourhood view** as the editing surface (two steps back, needs groups, the node, needed by; goes-deeper and related drawn differently), with **Table** for bulk edits and **Whole network** for looking; an **Editing view / Learner view** switch — learners only ever see the metro style, and the learner view shows how a change will look on their maps; add, split, merge; needs entries, each with its reason; **the impact of a change before it is proposed** (routes lengthened, time added, texts needing re-review, cycles); every needs change proposed and reviewed on its own; link history; health (cycles, orphans, nodes no route reaches); weave preview for any goal | freehand layout; editing on the whole-network hairball |
 | S3 | **Node workbench** | Fill one node | Tabs: **Content · Links · Problem · Settings**. An **outline** of every block with its state (Gutenberg's list view); the **block editor** with add-block points and per-block toolbars, **draft with AI** naming its prompt, model and human edits marked; **side panels** — **Preview** (live, desktop/phone, **click a block to edit it**, as in Wagtail, Sanity and Storyblok), **Checks**, **Sources** (resolves / doesn't), **History** (compare with the live version, as in Contentful), **Comments**; a **pre-submit checklist** that blocks *Submit for review* until it passes; who else is viewing | a "generate page" button; editing without seeing the result |
 | S4 | **Figure composer** | W5.3 in practice | Four steps — **Choose** (a gallery of components with thumbnails), **Data** (a sheet, pasteable; settings generated from the component's schema; YAML as an advanced view), **Interaction**, **Describe** (caption, **alt text**: figure type, what it shows, why it's there; data source and licence); an **Ask** box for described changes; a large preview with desktop/phone/dark and **every interaction state**; checks that name the field to fix; the **pinned component version** and where else it is used | a drawing canvas; code as the only way in |
 | S5 | **Problem builder** | Author a problem | Given/Return, **seeded dataset generator**, sample, rung, checker, **wrong answers → misconceptions**, a 20-dataset self-test | running learners' code |
@@ -628,7 +686,7 @@ keeps this order's reasoning and adds the skeleton, the learner path and the dem
 their nodes: *learn STAR* and *learn Salmon*.** They share DNA, genes and expression,
 sequencing, FASTQ, reference genomes and coordinates, and what an aligner does; Salmon adds
 k-mers, de Bruijn graphs, selective alignment and expectation–maximisation. That exercises every
-hole, all three link kinds, *any of* groups, reuse between two routes, a missing-node request,
+hole, all three link kinds, reuse between two routes, a missing-node request,
 and the Labs ending — at perhaps 40–60 nodes.
 
 *Revised 2026-09-17 (tutor spec T10): the Salmon route starts at AP-biology level, its lower
