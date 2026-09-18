@@ -5,9 +5,10 @@ reads the newest entry first and is productive in five minutes.
 
 ## Reading it
 
-> **The newest entry is [`2026-09-18-node-neighbours.md`](2026-09-18-node-neighbours.md)**: the
-> three kinds of link each have one reason for existing, *related* is the peer test, and
-> Dependabot is narrowed. Next is M1's parts list. **M0 is done** —
+> **The newest entry is [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md)**: **M1 starts**,
+> split into six parts; next is part 1's spec. For what a node's links mean and why there are
+> three, read [`2026-09-18-node-neighbours.md`](2026-09-18-node-neighbours.md) — the peer test and
+> the reason each kind exists — which also records the Dependabot narrowing. **M0 is done** —
 > [`2026-09-17-m0-part-9-repository-guardrails.md`](2026-09-17-m0-part-9-repository-guardrails.md)
 > says so, and `main` in both repositories takes only green pull
 > requests. For the Compose stack and merging safely, read
