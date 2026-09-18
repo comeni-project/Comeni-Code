@@ -21,7 +21,7 @@ PACKAGES = ROOT / "packages"
 # Adding one is a reviewed change to this file.
 ALLOWED: Mapping[str, frozenset[str]] = {
     "code-schema": frozenset(
-        {"__future__", "collections.abc", "dataclasses", "re", "typing", "yaml"}
+        {"__future__", "collections.abc", "dataclasses", "pathlib", "re", "typing", "yaml"}
     ),
     "code-weaver": frozenset({"__future__", "typing"}),
 }
