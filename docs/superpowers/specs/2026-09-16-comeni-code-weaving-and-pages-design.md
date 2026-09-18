@@ -83,15 +83,86 @@ node is **5–15 minutes** of learning and has **one** claim.
 
 ### W3.2 Three kinds of link, all directed
 
-| Link | Means | Used for | Reviewed as |
-|---|---|---|---|
-| **needs** | *B cannot be understood without A* | **Building routes.** Grouped: *all of* or *any of* (§6.3.1). Each group carries a reason. | Its own hole, one group at a time (§5.1) |
-| **goes deeper** | *after B, A is the natural next step down* | A side-door on B's page. **Never added to a route.** | With the node |
-| **related** | *A and B are worth reading together* | "See also" on both pages, and search | With the node, lightest review |
+*Revised 2026-09-18 (operator), before M1 fixes them in the schema. The three kinds and what they
+may do are unchanged. What is new: each kind now carries **one reason for existing** and **one
+reader's question it answers**, *related* is narrowed to the peer test and capped, and the
+neighbours that are derived rather than authored are named. A kind exists only if it changes a
+route, answers a question no other kind answers, or feeds a health check.*
+
+**Three directions, and an author picks one by asking which question the link answers:**
+
+| Link | Direction | The reader's question | Means | Bounded by |
+|---|---|---|---|---|
+| **needs** | what comes **before** | *What must I already know?* | B cannot be understood without A | what the topic requires |
+| **goes deeper** | what lies **below** | *Where do I go for more?* | A is this topic taken further | the levels of this topic |
+| **related** | what stands **beside** | *Am I in the right place?* | A is what a learner might be reading **instead of** B | the peer test, and a cap of 4 |
+
+**Why each one exists:**
+
+- ***needs* exists for the weaver.** These edges are the only input to a route (invariant 1);
+  every computed thing in the product — the metro map, the time estimate, what a learner may skip,
+  the step back — is derived from them and from nothing else. Grouped *all of* or *any of*
+  (§6.3.1), each group with a reason. Reviewed as its own hole, one group at a time (§5.1).
+- ***goes deeper* exists because depth cannot live inside a node.** A node holds one claim, runs
+  5–15 minutes (W3.1) and carries one level (T10.1), so *Transcription* at Foundations and at
+  Intermediate are necessarily two nodes and something has to join them. And because a route
+  **ends**: a learner who finishes and wants more has no move except inventing a new goal, and
+  this is the one exit from a finished route. Written on the shallower node, pointing further on;
+  the way back up is derived. A side-door on the page, **never added to a route**. Reviewed with
+  the node.
+- ***related* exists because a learner can move sideways only by knowing a word.** Search (L10)
+  finds by the word the learner already has, which is exactly what someone new to a field lacks;
+  L12 browses tracks, not nodes. Without it the graph is a strict tree of *needs* and depth. It
+  matters most where there is no route at all — from search, or from Labs (L11), where an *any of*
+  group cannot help because no route exists to resolve one. It is also read by goal resolution
+  (W3.3 step 1), which proposes targets from a human-approved set of peers instead of inventing
+  them. Symmetric: written once, shown on both pages. Reviewed with the node, lightest review.
+
+**The peer test.** *Related* means **what a learner might be looking at instead of this node** —
+not "interesting nearby", not "same area". *Instead of.* Every other kind is bounded by something
+real; "worth reading together" is bounded by nothing, which is how a *See also* list grows to a
+dozen and stops being read. Most nodes have none to three; **the validator refuses more than
+four**, and a node that wants eight is telling its author it should be split. Any node may be a
+peer of any other — the test does the fencing, not regions.
+
+Worked: *Salmon*'s peers are *kallisto*, *RSEM* and *STAR + featureCounts*; *What TPM measures*
+has *What FPKM measures* and *Raw counts and why they mislead*, which is how the classic
+confusable pair is served without a kind of its own. *DESeq2* is **not** a peer of *Salmon* — it
+comes after, and appears free as *needed by*.
+
+**Two relations the peer test deliberately excludes**, because each is better served elsewhere:
+
+| Excluded | Example | Where it goes |
+|---|---|---|
+| **Transfer** — the same idea in another field | *k-mers* ↔ *hash functions* | body prose, in the sentence that explains the connection — which teaches more than a chip in a side panel |
+| **Siblings** — the next thing in a process | *Transcription* ↔ *Translation* | a route gives the next stop; off a route, both hang under the need they share |
+
+**Derived neighbours, never authored:** **needed by** (the inverse of *needs*, shown on L5),
+**used in** (the same edges read forwards), and the way back up from a *goes deeper*. **Step back
+to** (T6.1) is not a kind either: it is a pointer on a `misconception` callout, constrained to a
+*needs* ancestor.
 
 Only *needs* is load-bearing, and it is where review effort goes: **a wrong *needs* link corrupts
 every route that passes through it.** *Goes deeper* and *related* only change what a page offers.
-*needs* links may not form a cycle; S2's health check refuses one.
+*needs* links may not form a cycle; S2's health check refuses one. *Goes deeper* may not form one
+either — a topic cannot be further on than itself — and the validator refuses it.
+
+**On maps, the learner chooses what to see.** A metro map draws the *needs* strand always; **goes
+deeper and related are a toggle, off by default** (L4, L9, and the side column of L5), drawn
+distinctly from the route. Turning them on never changes a route, a time estimate or a stop order
+— it adds side-doors to a picture that is already computed. Invariant 12 still holds: learners see
+the metro style only; neighbourhood and box drawings stay in Studio.
+
+**Rejected as further kinds:**
+
+| Alternative | Why not |
+|---|---|
+| **helps, not required** (a soft prerequisite) | the kind authors would most often confuse with the two either side of it, and its whole job is one sentence a page can say in prose. A weak *needs* link is worse than none: it lengthens every route through it |
+| **commonly confused with** | the peer test already pairs *TPM* and *FPKM*; the explanation belongs in a `misconception` callout |
+| **alternative / does the same job** | on a route that is an *any of* group; off a route it is a peer |
+| **application / used in** | the inverse of *needs*, read forwards — derived, not authored |
+| **broader / narrower** | that is **region**, a classification, not an edge |
+| **worked example, practice for** | blocks inside a node (W5) |
 
 ### W3.3 The weave
 
@@ -380,6 +451,11 @@ question; an image carries its own.
 | L11 | **From Labs** | A Mendel decision → the node that explains it | The decision with rule, premise, citation; the node opened at the relevant part; **judge it yourself before the short answer** | Labs' output as the answer (§2.2) |
 | L12 | **Explore** | Browse 50+ tracks | **Search first**; facets with counts (how much you hold, ends in Labs, region, goal type, time left); **applied filters as removable chips**; dense rows with *you hold N of M* and time left for you; sort by most already held; a **Network** view limited to the filtered tracks | cards that stop scaling; a network of everything by default |
 
+*Revised 2026-09-18 (W3.2): **L4** and **L9** carry a **side-doors toggle** — goes-deeper and
+related links drawn on the map, distinct from the route, **off by default**. It changes the
+picture, never the route, the time left or the order of stops; L5's side column holds the same
+three kinds plus the derived Needed by.*
+
 *Revised 2026-09-17 (tutor spec T3, T13.3):*
 - *L2 is the first station of the tutor loop.*
 - *L4 shows detours.*
@@ -573,8 +649,10 @@ nodes drafted from skeletons, and ends at a runnable Labs pipeline.*
    silently, or show what changed?
 7. **Ordering ties** (W3.3 step 5) — is "region, then declared order" enough, or do routes need
    an author-declared preference between siblings?
-8. **What *related* is allowed to link** — any node, or only within a region, to keep it from
-   becoming noise?
+8. ~~**What *related* is allowed to link** — any node, or only within a region, to keep it from
+   becoming noise?~~ — *answered 2026-09-18 (W3.2): any node. The **peer test** — what a learner
+   might be reading **instead of** this node — bounds it, not a region fence, which would have cut
+   the best links in the graph; a cap of four makes noise visible instead of gradual.*
 
 ---
 

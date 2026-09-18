@@ -5,10 +5,12 @@ reads the newest entry first and is productive in five minutes.
 
 ## Reading it
 
-> **The newest entry is
-> [`2026-09-17-m0-part-9-repository-guardrails.md`](2026-09-17-m0-part-9-repository-guardrails.md)**:
-> M0 part 9 is built and **M0 is done**; `main` in both repositories takes only green pull
-> requests. Next is M1's parts list. For the Compose stack and merging safely, read
+> **The newest entry is [`2026-09-18-node-neighbours.md`](2026-09-18-node-neighbours.md)**: the
+> three kinds of link each have one reason for existing, *related* is the peer test, and
+> Dependabot is narrowed. Next is M1's parts list. **M0 is done** —
+> [`2026-09-17-m0-part-9-repository-guardrails.md`](2026-09-17-m0-part-9-repository-guardrails.md)
+> says so, and `main` in both repositories takes only green pull
+> requests. For the Compose stack and merging safely, read
 > [part 8's entry](2026-09-17-m0-part-8-compose-stack.md); for the health page,
 > [part 7's](2026-09-17-m0-part-7-health-page.md); for the product direction,
 > [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Fifteen entries share this date.
