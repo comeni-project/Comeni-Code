@@ -6,9 +6,9 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-18-m1-part-3-graph-rules.md`](2026-09-18-m1-part-3-graph-rules.md)**: M1 part 3 is
-> built — `code-schema validate` checks a whole content folder; next is wiring it into the content
-> repository, then part 4, the Salmon fixtures. Links are
+> [`2026-09-18-content-validates-nodes.md`](2026-09-18-content-validates-nodes.md)**: the content
+> repository now runs `code-schema validate`, pinned, with six researched regions; M1 part 3 is done
+> ([its entry](2026-09-18-m1-part-3-graph-rules.md)); next is part 4, the Salmon fixtures. Links are
 > [part 2's entry](2026-09-18-m1-part-2-links.md); part 1 (the node folder) is
 > [`2026-09-18-m1-part-1-node-folder.md`](2026-09-18-m1-part-1-node-folder.md); M1's six parts are
 > in [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md). For what a node's links mean and why there are
@@ -57,6 +57,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-18](2026-09-18-content-validates-nodes.md) | **Content validates nodes.** comeni-code-content runs `code-schema validate` pinned to `559cbf4`; six regions from research into what Salmon depends on; *de Bruijn graphs* on Salmon's route left for part 4 |
 | [2026-09-18](2026-09-18-m1-part-3-graph-rules.md) | **M1 part 3 built.** `code-schema validate`: near misses, unique ids, targets, *related* on both nodes, levels, one ring per tangle of cycles; GitHub annotations; the content repository will pin a commit |
 | [2026-09-18](2026-09-18-m1-part-2-links.md) | **M1 part 2 built.** Every link is `node` + `reason`; *needs* a list, *related* on both nodes, at most four; twelve per-node rules; *helps* and *any-of* designed in W3.2, refused until wired |
 | [2026-09-18](2026-09-18-m1-part-1-node-folder.md) | **M1 part 1 built.** `code-schema` reads a node folder, reports every problem with file, line and field, and writes it back byte for byte; key lines kept per mapping (a plan bug, fixed) |
