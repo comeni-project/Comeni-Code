@@ -23,8 +23,9 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
-from code_schema.yaml_lines import load_mapping
+from code_schema.yaml_lines import Lines, load_mapping
 
 SCHEMA = 1
 NODE_FILE = "node.yaml"
@@ -50,6 +51,9 @@ class Node:
     level: Level
     minutes: int
     body: str
+    needs: tuple[Link, ...] = ()
+    goes_deeper: tuple[Link, ...] = ()
+    related: tuple[Link, ...] = ()
 
 
 def fields(regions: Collection[str]) -> tuple[Spec, ...]:
@@ -94,16 +98,21 @@ def parse_node(
         return None, sorted(problems, key=Problem.sort_key)
 
     specs = fields(regions)
-    known = {spec.name for spec in specs}
-    missing = [spec.name for spec in specs if spec.required and spec.name not in data]
+    names = [*(spec.name for spec in specs), *LINK_FIELDS]
+    required = {spec.name for spec in specs if spec.required}
+    absent = [name for name in names if name not in data]
+    missing = [name for name in absent if name in required]
     for key in data:
-        if key in known:
+        if key in names:
             continue
         message = f"unknown field `{key}`"
-        if close := difflib.get_close_matches(key, missing, n=1):
-            # A typo of a required field is one mistake, so it is one problem.
-            message += f" — did you mean `{close[0]}`? ({close[0]} is required and missing)"
-            missing.remove(close[0])
+        if close := difflib.get_close_matches(key, absent, n=1):
+            message += f" — did you mean `{close[0]}`?"
+            absent.remove(close[0])
+            if close[0] in missing:
+                # A typo of a required field is one mistake, so it is one problem.
+                message += f" ({close[0]} is required and missing)"
+                missing.remove(close[0])
         problems.append(Problem(file=file, line=lines.get(key), message=message))
     for name in missing:
         problems.append(Problem(file=file, field=name, message="required field is missing"))
@@ -113,6 +122,8 @@ def parse_node(
             problems.append(
                 Problem(file=file, field=spec.name, line=lines.get(spec.name), message=wrong)
             )
+
+    links = _parse_all_links(data, node_id=node_id, lines=lines, file=file, problems=problems)
 
     if problems:
         return None, sorted(problems, key=Problem.sort_key)
@@ -136,9 +147,51 @@ def parse_node(
             level=Level(level),
             minutes=minutes,
             body=body,
+            needs=links["needs"],
+            goes_deeper=links["goes-deeper"],
+            related=links["related"],
         ),
         [],
     )
+
+
+def _parse_all_links(
+    data: dict[str, object], *, node_id: str, lines: Lines, file: str, problems: list[Problem]
+) -> dict[str, tuple[Link, ...]]:
+    """Each kind's links, and the one rule that spans kinds (spec M1P2.5).
+
+    A node is one kind of neighbour, not two: needs X and related X is before *and* instead of;
+    needs X and goes-deeper X is before *and* after.
+    """
+    parsed: dict[str, tuple[Link, ...]] = {}
+    seen: dict[str, tuple[str, int | None]] = {}
+    for kind in LINK_FIELDS:
+        if kind not in data:
+            parsed[kind] = ()
+            continue
+        links, link_lines, link_problems = parse_links(
+            data[kind], kind=kind, node_id=node_id, lines=lines, file=file
+        )
+        problems += link_problems
+        parsed[kind] = links
+        for link, line in zip(links, link_lines, strict=True):
+            if link.node not in seen:
+                seen[link.node] = (kind, line)
+                continue
+            other_kind, other_line = seen[link.node]
+            at = "" if other_line is None else f" (line {other_line})"
+            problems.append(
+                Problem(
+                    file=file,
+                    field=kind,
+                    line=line,
+                    message=(
+                        f"{link.node} is also under {other_kind}{at} — "
+                        "a node is one kind of neighbour, not two"
+                    ),
+                )
+            )
+    return parsed
 
 
 def _read_text(path: Path) -> tuple[str | None, str | None]:
