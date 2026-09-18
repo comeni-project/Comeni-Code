@@ -133,7 +133,9 @@ spec, not in code.
 1. **The route is computed, not generated.** Same graph, goal and learner state → same route.
    A model is involved only in suggesting targets, which the learner confirms.
 2. **Only *needs* links build routes.** *Goes deeper* and *related* change what a page offers,
-   never a route. *Needs* links may not form a cycle.
+   never a route. *Needs* links may not form a cycle. **There are three kinds and no more** — what
+   comes before, what lies below, what stands beside (W3.2) — and anything else is derived
+   (*needed by*), a block, or a region.
 3. **A node reads correctly with no route around it.** Only the connecting text varies per route;
    node bodies never do.
 4. **Nothing leaves the request queue without a person.** Models may propose and group requests;
@@ -165,8 +167,9 @@ spec, not in code.
 
 Use the vocabulary in §3 of the first spec and W3.2 of the second. In particular: **node**, never
 "module" (a module is an nf-core process in Labs); **track** is a reviewed woven route; **goal**,
-**needs**, **goes deeper**, **related**; **resource** (an outside video or reading attached to a
-node); **skeleton** (draft node stubs and needs links from a public outline — never a track);
+**needs**, **goes deeper**, **related** (*peers* — what a learner might read **instead of** this
+node, at most four; never a loose "see also"); **needed by** (derived, never authored);
+**resource** (an outside video or reading attached to a node); **skeleton** (draft node stubs and needs links from a public outline — never a track);
 **known** (a learner's state for a node, backed by stored evidence); **score** (a judge model's
 rating of a drafted block, Studio only); **step back** (a detour to a prerequisite after a wrong
 answer); **self-test** (an exam a learner generates from node exam pools, graded automatically,
