@@ -143,7 +143,9 @@ def test_a_missing_field_has_no_line() -> None:
 
 
 def test_a_problem_about_a_folder_names_no_field() -> None:
-    assert str(Problem(file="salmon/", message="body.md is missing")) == "salmon/: body.md is missing"
+    assert (
+        str(Problem(file="salmon/", message="body.md is missing")) == "salmon/: body.md is missing"
+    )
 
 
 def test_problems_sort_by_file_then_line() -> None:
@@ -455,8 +457,7 @@ def test_one_of_lists_what_was_expected() -> None:
     check = one_of(LEVELS, noun="level")
     assert check("intermediate") is None
     assert check("expert") == (
-        '"expert" is not a level '
-        "(first-steps, foundations, introductory, intermediate, advanced)"
+        '"expert" is not a level (first-steps, foundations, introductory, intermediate, advanced)'
     )
 
 
@@ -677,9 +678,7 @@ def test_a_bad_id_names_the_line() -> None:
 def test_a_repeated_id_is_refused_once() -> None:
     text = GOOD + "  - id: sequence-analysis\n    name: Again\n"
     _, problems = parse_regions(text)
-    assert [str(p) for p in problems] == [
-        'regions.yaml: id: "sequence-analysis" is listed twice'
-    ]
+    assert [str(p) for p in problems] == ['regions.yaml: id: "sequence-analysis" is listed twice']
 
 
 def test_regions_must_be_a_list_of_mappings() -> None:
@@ -741,7 +740,12 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
     listed = data.get("regions")
     if not isinstance(listed, list):
         return {}, [
-            Problem(file=file, field="regions", line=lines.get("regions"), message="must be a list of regions")
+            Problem(
+                file=file,
+                field="regions",
+                line=lines.get("regions"),
+                message="must be a list of regions",
+            )
         ]
 
     regions: dict[str, Region] = {}
@@ -890,11 +894,11 @@ def test_an_unknown_field_with_no_close_match_is_reported_alone() -> None:
 
 
 def test_a_missing_field_has_no_line() -> None:
-    without_minutes = "\n".join(line for line in GOOD.splitlines() if not line.startswith("minutes"))
+    without_minutes = "\n".join(
+        line for line in GOOD.splitlines() if not line.startswith("minutes")
+    )
     _, problems = parse(without_minutes + "\n")
-    assert [str(p) for p in problems] == [
-        "salmon/node.yaml: minutes: required field is missing"
-    ]
+    assert [str(p) for p in problems] == ["salmon/node.yaml: minutes: required field is missing"]
 
 
 def test_a_later_schema_is_refused_by_name() -> None:
@@ -914,9 +918,7 @@ def test_an_unknown_region_names_the_registry() -> None:
 
 def test_a_claim_without_terminal_punctuation_is_refused() -> None:
     _, problems = parse(GOOD.replace("aligning them.", "aligning them"))
-    assert [str(p) for p in problems] == [
-        "salmon/node.yaml:3: claim: must end with . ? or !"
-    ]
+    assert [str(p) for p in problems] == ["salmon/node.yaml:3: claim: must end with . ? or !"]
 
 
 def test_an_empty_body_is_refused() -> None:
@@ -1055,9 +1057,7 @@ def parse_node(
         if spec.name not in data:
             continue
         value = data[spec.name]
-        wrong = (
-            _region_problem(value, regions) if spec.name == "region" else spec.check(value)
-        )
+        wrong = _region_problem(value, regions) if spec.name == "region" else spec.check(value)
         if wrong is not None:
             problems.append(
                 Problem(file=file, field=spec.name, line=lines.get(spec.name), message=wrong)

@@ -211,17 +211,18 @@ wrong and what was expected.
 ```python
 @dataclass(frozen=True)
 class Problem:
-    file: str            # "salmon/node.yaml"
-    field: str | None    # "level"
+    file: str  # "salmon/node.yaml"
+    field: str | None  # "level"
     message: str
     line: int | None
 
+
 FIELDS = (
-    Spec("schema",  required=True, check=exactly(1)),
-    Spec("title",   required=True, check=one_line(max_len=80)),
-    Spec("claim",   required=True, check=one_sentence(max_len=200)),
-    Spec("region",  required=True, check=in_registry("regions.yaml")),
-    Spec("level",   required=True, check=one_of(LEVELS)),
+    Spec("schema", required=True, check=exactly(1)),
+    Spec("title", required=True, check=one_line(max_len=80)),
+    Spec("claim", required=True, check=one_sentence(max_len=200)),
+    Spec("region", required=True, check=in_registry("regions.yaml")),
+    Spec("level", required=True, check=one_of(LEVELS)),
     Spec("minutes", required=True, check=whole_number(minimum=1)),
 )
 ```
