@@ -3,7 +3,7 @@
 # Build from the repository root: docker build -f Dockerfile.api .
 # Base images are pinned by digest; Dependabot bumps them (.github/dependabot.yml).
 
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim@sha256:70d929693dc74ea71d4e510d79e987b5de0723d98439ca7a7196f910055438b0 AS build
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim@sha256:768543c09cfe47d3d08c3cbfffadead2029a96d19c3c05285c8b6c6f637aa3a8 AS build
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 # Whole folders, never a list of packages: a new workspace member can't be forgotten here.
