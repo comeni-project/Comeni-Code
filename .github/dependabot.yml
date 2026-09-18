@@ -3,6 +3,11 @@
 # must pass python, web and stack before it can merge (.github/rulesets/main.json).
 #
 # Grouped per ecosystem, so a quiet week is a few pull requests, not a backlog nobody reads.
+#
+# What Dependabot may move: digests, and versions inside the lines this repository already chose.
+# What it may not: the lines themselves — Python 3.14, Node 24, Postgres 18, Redis 8 — and the
+# version ranges written in pyproject.toml. Those are decisions with a spec and a journal entry
+# behind them, so they are moved by hand, and the `ignore` entries below say why each one is held.
 version: 2
 updates:
   - package-ecosystem: docker
@@ -12,6 +17,16 @@ updates:
     groups:
       images:
         patterns: ["*"]
+    ignore:
+      # apps/web/package.json asks for node >=24 <25, so a node 26 image fails `npm ci` in the
+      # build stage. Moving the Node line means changing engines, the shim and jsdom together
+      # (issue #32).
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
+      # The Python line is `requires-python = ">=3.14"` across the workspace; it moves with a
+      # deliberate upgrade, not with the image.
+      - dependency-name: python
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: build
 
@@ -22,6 +37,13 @@ updates:
     groups:
       compose-images:
         patterns: ["*"]
+    ignore:
+      # A Postgres major is a data migration, not an image bump: the old data directory is
+      # unreadable by the new server. Held for a change that says how the data moves.
+      - dependency-name: postgres
+        update-types: ["version-update:semver-major"]
+      - dependency-name: redis
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: build
 
@@ -39,6 +61,12 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Update uv.lock, never pyproject.toml. The default strategy raises a range's floor whenever a
+    # patch lands inside it (`>=5.6,<5.7` → `>=5.6.3,<5.7`), which is a pull request a week that
+    # changes nothing we depend on. The ranges name the lines we chose; the lock says what we run.
+    # The cost: transitive dependencies in uv.lock only move when a direct one does
+    # (dependabot-core#14073). Security alerts open their own pull requests either way.
+    versioning-strategy: lockfile-only
     groups:
       python:
         patterns: ["*"]
@@ -56,5 +84,9 @@ updates:
       # jsdom 30 needs Node 24.15; Fedora's nodejs24 is 24.14.1. Issue #32 tracks the move.
       - dependency-name: jsdom
         versions: [">=30"]
+      # @types/node follows the Node line, not npm's latest: types for 26 describe APIs Node 24
+      # doesn't have. It moves when the node image and engines do.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: build
