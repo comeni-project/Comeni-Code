@@ -23,12 +23,14 @@ ALLOWED: Mapping[str, frozenset[str]] = {
     "code-schema": frozenset(
         {
             "__future__",
+            "argparse",
             "collections.abc",
             "dataclasses",
             "difflib",
             "enum",
             "pathlib",
             "re",
+            "sys",
             "typing",
             "yaml",
         }
