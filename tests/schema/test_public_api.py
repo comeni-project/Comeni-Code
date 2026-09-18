@@ -5,6 +5,7 @@ import code_schema
 
 def test_the_public_api_is_what_the_spec_names() -> None:
     assert set(code_schema.__all__) == {
+        "Content",
         "Level",
         "Link",
         "Node",
@@ -12,6 +13,7 @@ def test_the_public_api_is_what_the_spec_names() -> None:
         "Region",
         "parse_node",
         "parse_regions",
+        "read_content",
         "read_node",
         "read_regions",
         "write_node_folder",
