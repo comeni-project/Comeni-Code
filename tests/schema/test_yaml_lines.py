@@ -13,7 +13,8 @@ def test_it_reads_a_mapping_and_records_each_key_line() -> None:
     data, lines, problems = load_mapping(GOOD, file="salmon/node.yaml")
     assert problems == []
     assert data == {"schema": 1, "title": "Salmon", "minutes": 12}
-    assert lines == {"schema": 1, "title": 2, "minutes": 3}
+    assert lines.root == {"schema": 1, "title": 2, "minutes": 3}
+    assert lines.get("title") == 2
 
 
 def test_a_syntax_error_becomes_a_problem_with_its_line() -> None:
@@ -38,6 +39,16 @@ def test_an_empty_file_is_a_problem() -> None:
     assert str(problems[0]) == "salmon/node.yaml: the file is empty"
 
 
-def test_nested_keys_are_recorded_too() -> None:
-    _, lines, _ = load_mapping("needs:\n  - reason: because\n", file="n/node.yaml")
-    assert lines == {"needs": 1, "reason": 2}
+def test_each_mapping_in_a_list_keeps_its_own_lines() -> None:
+    text = "regions:\n  - id: a\n    name: A\n  - id: b\n    name: B\n"
+    data, lines, _ = load_mapping(text, file="regions.yaml")
+    assert data is not None
+    entries = data["regions"]
+    assert isinstance(entries, list)
+    assert [lines.of(entry, "id") for entry in entries] == [2, 4]
+    assert [lines.of(entry, "name") for entry in entries] == [3, 5]
+
+
+def test_a_value_that_is_not_a_loaded_mapping_has_no_lines() -> None:
+    _, lines, _ = load_mapping("title: Salmon\n", file="n/node.yaml")
+    assert lines.of({"title": "Salmon"}, "title") is None
