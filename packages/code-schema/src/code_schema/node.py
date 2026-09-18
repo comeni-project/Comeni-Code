@@ -142,9 +142,9 @@ def parse_node(
 
 
 def _read_text(path: Path) -> tuple[str | None, str | None]:
-    """The file's text, or why it could not be read."""
+    """The file's text, exactly — line endings untranslated — or why it could not be read."""
     try:
-        return path.read_text(encoding="utf-8"), None
+        return path.read_text(encoding="utf-8", newline=""), None
     except UnicodeDecodeError:
         return None, "the file is not UTF-8"
 
