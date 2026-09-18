@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 from code_schema.fields import one_sentence, shown, slug
 from code_schema.problems import Problem
-from code_schema.yaml_lines import Lines
+from code_schema.yaml_lines import Lines, load_mapping
 
 LINK_FIELDS = ("needs", "goes-deeper", "related")
 MAX_PEERS = 4
@@ -115,3 +115,26 @@ def parse_links(
         )
 
     return tuple(links), tuple(link_lines), problems
+
+
+def locate_links(node_yaml: str, *, file: str) -> dict[tuple[str, str], int]:
+    """The line of each link's `node` key, by kind and target, for messages about links.
+
+    Lines are not stored on Node: a node is a value the round-trip laws compare, and where it was
+    written is not part of it.
+    """
+    data, lines, _ = load_mapping(node_yaml, file=file)
+    found: dict[tuple[str, str], int] = {}
+    if data is None:
+        return found
+    for kind in LINK_FIELDS:
+        entries = data.get(kind)
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            target, line = entry.get("node"), lines.of(entry, "node")
+            if isinstance(target, str) and line is not None:
+                found.setdefault((kind, target), line)
+    return found
