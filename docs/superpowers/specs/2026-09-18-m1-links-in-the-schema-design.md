@@ -98,7 +98,7 @@ test-out, work done — W3.3 step 4).
 **A need is what understanding the claim requires, never how to operate a tool.** *Salmon*'s claim
 can be understood without a shell, so *command-line basics* is not one of its needs — and not a
 peer, since nobody reads it instead of *Salmon*. Ways to run something are **resources in the body**
-(T4): Salmon's documentation, the Labs pipeline. A practical
+(T4): Salmon's documentation, the Galaxy Training Network's tutorial, the Labs pipeline. A practical
 node (*Working with FASTQ files*) may need *command-line basics* in the ordinary way. No validator
 can check this; S6's review does.
 
