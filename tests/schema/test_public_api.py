@@ -6,6 +6,7 @@ import code_schema
 def test_the_public_api_is_what_the_spec_names() -> None:
     assert set(code_schema.__all__) == {
         "Level",
+        "Link",
         "Node",
         "Problem",
         "Region",

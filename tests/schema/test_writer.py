@@ -3,6 +3,7 @@
 from dataclasses import replace
 from pathlib import Path
 
+from code_schema.links import Link
 from code_schema.node import Level, Node, read_node
 from code_schema.writer import write_node_folder, write_node_yaml
 
@@ -86,3 +87,67 @@ def test_a_body_with_windows_line_endings_comes_back_byte_for_byte(tmp_path: Pat
     assert node is not None
     write_node_folder(node, folder)
     assert (folder / "body.md").read_bytes() == crlf
+
+
+LINKED = replace(
+    NODE,
+    needs=(Link("what-tpm-measures", "Salmon reports abundance in TPM."),),
+    goes_deeper=(
+        Link(
+            "pufferfish-index",
+            "How Salmon fits a transcriptome's k-mers into memory, and why that makes it fast.",
+        ),
+    ),
+    related=(
+        Link(
+            "kallisto",
+            "kallisto does the same job by pseudoalignment, without Salmon's bias correction.",
+        ),
+    ),
+)
+
+LINKED_CANONICAL = (
+    CANONICAL
+    + """\
+needs:
+  - node: what-tpm-measures
+    reason: Salmon reports abundance in TPM.
+goes-deeper:
+  - node: pufferfish-index
+    reason: How Salmon fits a transcriptome's k-mers into memory, and why that makes it fast.
+related:
+  - node: kallisto
+    reason: kallisto does the same job by pseudoalignment, without Salmon's bias correction.
+"""
+)
+
+
+def test_links_are_written_after_minutes_indented_in_a_fixed_order() -> None:
+    assert write_node_yaml(LINKED) == LINKED_CANONICAL
+
+
+def test_a_node_without_links_writes_no_link_keys() -> None:
+    assert write_node_yaml(NODE) == CANONICAL
+
+
+def test_the_three_laws_hold_with_links(tmp_path: Path) -> None:
+    folder = tmp_path / "salmon"
+    write_node_folder(LINKED, folder)
+    again, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert problems == []
+    assert again == LINKED
+    assert (folder / "node.yaml").read_text(encoding="utf-8") == LINKED_CANONICAL
+    write_node_folder(again, folder)
+    assert (folder / "node.yaml").read_text(encoding="utf-8") == LINKED_CANONICAL
+
+
+def test_link_order_is_the_authors() -> None:
+    two = replace(
+        NODE,
+        needs=(
+            Link("selective-alignment", "Salmon maps reads by selective alignment."),
+            Link("what-tpm-measures", "Salmon reports abundance in TPM."),
+        ),
+    )
+    written = write_node_yaml(two)
+    assert written.index("selective-alignment") < written.index("what-tpm-measures")

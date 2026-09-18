@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
 
@@ -184,3 +185,77 @@ def test_a_body_that_is_not_utf8_is_refused(tmp_path: Path) -> None:
     (folder / "body.md").write_bytes(b"\xff\xfe not text")
     _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
     assert [str(p) for p in problems] == ["salmon/body.md: the file is not UTF-8"]
+
+
+LINKED = (
+    GOOD
+    + """\
+needs:
+  - node: what-tpm-measures
+    reason: Salmon reports abundance in TPM.
+goes-deeper:
+  - node: pufferfish-index
+    reason: How Salmon fits a transcriptome's k-mers into memory, and why that makes it fast.
+related:
+  - node: kallisto
+    reason: kallisto does the same job by pseudoalignment, without Salmon's bias correction.
+"""
+)
+
+
+def test_a_node_reads_its_three_kinds_of_link() -> None:
+    node, problems = parse(LINKED)
+    assert problems == []
+    assert node is not None
+    assert node.needs == (Link("what-tpm-measures", "Salmon reports abundance in TPM."),)
+    assert [link.node for link in node.goes_deeper] == ["pufferfish-index"]
+    assert [link.node for link in node.related] == ["kallisto"]
+
+
+def test_a_node_without_links_has_empty_tuples() -> None:
+    node, _ = parse(GOOD)
+    assert node is not None
+    assert node.needs == node.goes_deeper == node.related == ()
+
+
+def test_a_node_is_one_kind_of_neighbour_not_two() -> None:
+    both = LINKED + "  - node: what-tpm-measures\n    reason: TPM is another way to count.\n"
+    _, problems = parse(both)
+    assert [str(p) for p in problems] == [
+        "salmon/node.yaml:16: related: what-tpm-measures is also under needs (line 8) — "
+        "a node is one kind of neighbour, not two"
+    ]
+
+
+def test_a_typo_of_an_optional_field_is_suggested() -> None:
+    _, problems = parse(LINKED.replace("goes-deeper:", "goes_deeper:"))
+    assert [str(p) for p in problems] == [
+        "salmon/node.yaml:10: unknown field `goes_deeper` — did you mean `goes-deeper`?"
+    ]
+
+
+def test_link_problems_and_field_problems_come_in_one_run() -> None:
+    broken = LINKED.replace("level: intermediate", "level: expert").replace(
+        "reason: Salmon reports abundance in TPM.", "reason: TPM"
+    )
+    _, problems = parse(broken)
+    assert [str(p) for p in problems] == [
+        'salmon/node.yaml:5: level: "expert" is not a level '
+        "(first-steps, foundations, introductory, intermediate, advanced)",
+        "salmon/node.yaml:9: needs: the reason for what-tpm-measures must end with . ? or !",
+    ]
+
+
+def test_the_designed_optional_paths_are_refused_until_wired() -> None:
+    helps = LINKED + "helps:\n  - node: probability\n    reason: It helps.\n"
+    _, problems = parse(helps)
+    assert [str(p) for p in problems] == ["salmon/node.yaml:16: unknown field `helps`"]
+
+    any_of = LINKED.replace(
+        "  - node: what-tpm-measures\n",
+        "  - any-of: [graphs, graphs-for-biologists]\n    node: what-tpm-measures\n",
+    )
+    _, problems = parse(any_of)
+    assert [str(p) for p in problems] == [
+        "salmon/node.yaml:8: needs: unknown key `any-of` in a link (a link has node and reason)"
+    ]
