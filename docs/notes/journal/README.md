@@ -6,9 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-18-m1-part-1-node-folder.md`](2026-09-18-m1-part-1-node-folder.md)**: M1 part 1 is
-> built — `code-schema` reads, validates and writes a node folder; next is part 2, links. M1's six
-> parts are in [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md). For what a node's links mean and why there are
+> [`2026-09-18-m1-part-2-links.md`](2026-09-18-m1-part-2-links.md)**: M1 part 2 is built — links
+> with reasons in `node.yaml`, checked and written back; next is part 3, graph rules and the
+> validate command. Part 1 (the node folder) is
+> [`2026-09-18-m1-part-1-node-folder.md`](2026-09-18-m1-part-1-node-folder.md); M1's six parts are
+> in [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md). For what a node's links mean and why there are
 > three, read [`2026-09-18-node-neighbours.md`](2026-09-18-node-neighbours.md) — the peer test and
 > the reason each kind exists — which also records the Dependabot narrowing. **M0 is done** —
 > [`2026-09-17-m0-part-9-repository-guardrails.md`](2026-09-17-m0-part-9-repository-guardrails.md)
@@ -54,6 +56,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-18](2026-09-18-m1-part-2-links.md) | **M1 part 2 built.** Every link is `node` + `reason`; *needs* a list, *related* on both nodes, at most four; twelve per-node rules; *helps* and *any-of* designed in W3.2, refused until wired |
 | [2026-09-18](2026-09-18-m1-part-1-node-folder.md) | **M1 part 1 built.** `code-schema` reads a node folder, reports every problem with file, line and field, and writes it back byte for byte; key lines kept per mapping (a plan bug, fixed) |
 | [2026-09-18](2026-09-18-m1-in-parts.md) | **M1 in parts.** Six parts; `body.md` opaque in M1; horizontal parts, not vertical slices. No code |
 | [2026-09-18](2026-09-18-node-neighbours.md) | **Node neighbours.** Three link kinds, one reason each; *related* is the peer test, capped at four; a side-doors toggle on maps; Dependabot narrowed |
