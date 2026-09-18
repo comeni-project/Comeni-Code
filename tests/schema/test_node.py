@@ -1,6 +1,8 @@
 """The six core fields, their messages, and the closed field set (spec M1P1.3, M1P1.5)."""
 
-from code_schema.node import Level, Node, parse_node
+from pathlib import Path
+
+from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
 
 REGIONS = {"sequence-analysis", "molecular-biology"}
@@ -111,3 +113,62 @@ def test_an_id_that_is_not_a_slug_is_refused() -> None:
     assert [str(p) for p in problems] == [
         'Salmon Node/: "Salmon Node" is not a node id (lower case, digits and single hyphens)'
     ]
+
+
+def make_folder(root: Path, name: str, *, body: str = BODY, yaml_text: str = GOOD) -> Path:
+    folder = root / name
+    folder.mkdir(parents=True)
+    (folder / "node.yaml").write_text(yaml_text, encoding="utf-8")
+    (folder / "body.md").write_text(body, encoding="utf-8")
+    return folder
+
+
+def test_read_node_takes_the_id_from_the_folder(tmp_path: Path) -> None:
+    node, problems = read_node(make_folder(tmp_path, "salmon"), regions=REGIONS, root=tmp_path)
+    assert problems == []
+    assert node is not None and node.id == "salmon"
+
+
+def test_a_nested_folder_keeps_the_leaf_as_the_id(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "sequence-analysis/salmon")
+    node, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert problems == []
+    assert node is not None and node.id == "salmon"
+
+
+def test_messages_name_the_path_from_the_content_root(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "sequence-analysis/salmon", yaml_text=GOOD + "colour: teal\n")
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert [str(p) for p in problems] == [
+        "sequence-analysis/salmon/node.yaml:7: unknown field `colour`"
+    ]
+
+
+def test_a_missing_body_is_refused(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "salmon")
+    (folder / "body.md").unlink()
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert [str(p) for p in problems] == ["salmon/: body.md is missing"]
+
+
+def test_a_missing_node_yaml_is_refused(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "salmon")
+    (folder / "node.yaml").unlink()
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert [str(p) for p in problems] == ["salmon/: node.yaml is missing"]
+
+
+def test_a_node_inside_a_node_is_refused(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "salmon")
+    make_folder(folder, "pufferfish")
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert [str(p) for p in problems] == [
+        "salmon/: holds another node (pufferfish/node.yaml); a node folder holds one node"
+    ]
+
+
+def test_a_body_that_is_not_utf8_is_refused(tmp_path: Path) -> None:
+    folder = make_folder(tmp_path, "salmon")
+    (folder / "body.md").write_bytes(b"\xff\xfe not text")
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert [str(p) for p in problems] == ["salmon/body.md: the file is not UTF-8"]

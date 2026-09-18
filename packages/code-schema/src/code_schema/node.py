@@ -11,6 +11,7 @@ import difflib
 from collections.abc import Collection
 from dataclasses import dataclass
 from enum import StrEnum
+from pathlib import Path
 
 from code_schema.fields import (
     Spec,
@@ -26,6 +27,8 @@ from code_schema.problems import Problem
 from code_schema.yaml_lines import load_mapping
 
 SCHEMA = 1
+NODE_FILE = "node.yaml"
+BODY_FILE = "body.md"
 
 
 class Level(StrEnum):
@@ -83,7 +86,7 @@ def parse_node(
     if (wrong := _node_id(node_id)) is not None:
         problems.append(Problem(file=folder, message=wrong))
     if not body.strip():
-        problems.append(Problem(file=f"{folder}body.md", message="the file is empty"))
+        problems.append(Problem(file=f"{folder}{BODY_FILE}", message="the file is empty"))
 
     data, lines, load_problems = load_mapping(node_yaml, file=file)
     problems += load_problems
@@ -135,4 +138,56 @@ def parse_node(
             body=body,
         ),
         [],
+    )
+
+
+def _read_text(path: Path) -> tuple[str | None, str | None]:
+    """The file's text, or why it could not be read."""
+    try:
+        return path.read_text(encoding="utf-8"), None
+    except UnicodeDecodeError:
+        return None, "the file is not UTF-8"
+
+
+def read_node(
+    folder: Path, *, regions: Collection[str], root: Path | None = None
+) -> tuple[Node | None, list[Problem]]:
+    """Read one node folder. The id is the folder's name (spec M1P1.2).
+
+    Paths in messages are relative to `root`, the content root; by default the folder's parent.
+    """
+    base = folder.parent if root is None else root
+    where = f"{folder.relative_to(base).as_posix()}/"
+    problems: list[Problem] = []
+
+    nested = sorted(
+        found.parent.relative_to(folder).as_posix()
+        for found in folder.rglob(NODE_FILE)
+        if found.parent != folder
+    )
+    if nested:
+        problems.append(
+            Problem(
+                file=where,
+                message=(
+                    f"holds another node ({nested[0]}/{NODE_FILE}); a node folder holds one node"
+                ),
+            )
+        )
+    for name in (NODE_FILE, BODY_FILE):
+        if not (folder / name).is_file():
+            problems.append(Problem(file=where, message=f"{name} is missing"))
+    if problems:
+        return None, problems
+
+    node_yaml, node_error = _read_text(folder / NODE_FILE)
+    body, body_error = _read_text(folder / BODY_FILE)
+    for name, error in ((NODE_FILE, node_error), (BODY_FILE, body_error)):
+        if error is not None:
+            problems.append(Problem(file=f"{where}{name}", message=error))
+    if node_yaml is None or body is None:
+        return None, problems
+
+    return parse_node(
+        node_yaml, body, node_id=folder.name, regions=regions, file=f"{where}{NODE_FILE}"
     )
