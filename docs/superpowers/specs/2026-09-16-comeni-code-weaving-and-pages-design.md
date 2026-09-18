@@ -172,7 +172,7 @@ both sides in one call; the validator refuses a link written on one side only.
 **A need is what understanding the claim requires, never how to operate a tool.** *Salmon*'s claim
 can be understood without a shell, so *command-line basics* is not one of its needs, and it is not
 a peer either — nobody reads it instead of *Salmon*. Ways to run something (Salmon's documentation,
-the Labs pipeline) are **resources in the body** (T4),
+the Galaxy Training Network's tutorial, the Labs pipeline) are **resources in the body** (T4),
 which the learner picks from without the route growing. A practical node, such as *Working with
 FASTQ files*, may need *command-line basics* in the ordinary way.
 
