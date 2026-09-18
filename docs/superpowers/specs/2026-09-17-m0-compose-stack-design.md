@@ -151,7 +151,11 @@ exited 0 (Compose 5.0, checked twice in the scratch build).
   and the uv image move within their lines. Pinning digests (and letting Dependabot bump them)
   is a later decision, with hosting. *Resolved 2026-09-17 (operator): all six images are pinned by
   digest with their tags kept, and `.github/dependabot.yml` bumps them, along with Actions, uv and
-  npm.*
+  npm.* *2026-09-18: its first run showed what it must not move — a `node:26` image fails `npm ci`
+  against `apps/web/package.json`'s `engines`, and the uv ecosystem raised range floors
+  (`>=5.6,<5.7` → `>=5.6.3,<5.7`) that change nothing we run. The config now holds the Python,
+  Node, Postgres and Redis lines and pyproject's ranges (`versioning-strategy: lockfile-only`), and
+  moves digests, lock entries and versions inside those lines.*
 - **`comeni-code-api` is a fixed image name,** shared by four services. A second checkout of the
   repository building under another project name overwrites it; scratch builds must expect that.
 - **The stack uses development settings.** `.env.example`'s key and Postgres's `code/code` are
