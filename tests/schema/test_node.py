@@ -96,6 +96,18 @@ def test_a_region_nothing_like_the_registry_gets_no_guess() -> None:
     ]
 
 
+def test_a_title_longer_than_a_line_of_a_card_is_refused() -> None:
+    _, problems = parse(GOOD.replace("title: Salmon", "title: " + "Salmon " * 12))
+    assert [str(p) for p in problems] == [
+        "salmon/node.yaml:2: title: is longer than 80 characters (83)"
+    ]
+
+
+def test_minutes_of_zero_is_refused() -> None:
+    _, problems = parse(GOOD.replace("minutes: 12", "minutes: 0"))
+    assert [str(p) for p in problems] == ["salmon/node.yaml:6: minutes: 0 is not at least 1"]
+
+
 def test_a_claim_without_terminal_punctuation_is_refused() -> None:
     _, problems = parse(GOOD.replace("aligning them.", "aligning them"))
     assert [str(p) for p in problems] == ["salmon/node.yaml:3: claim: must end with . ? or !"]

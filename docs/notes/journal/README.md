@@ -5,8 +5,10 @@ reads the newest entry first and is productive in five minutes.
 
 ## Reading it
 
-> **The newest entry is [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md)**: **M1 starts**,
-> split into six parts; next is part 1's spec. For what a node's links mean and why there are
+> **The newest entry is
+> [`2026-09-18-m1-part-1-node-folder.md`](2026-09-18-m1-part-1-node-folder.md)**: M1 part 1 is
+> built — `code-schema` reads, validates and writes a node folder; next is part 2, links. M1's six
+> parts are in [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md). For what a node's links mean and why there are
 > three, read [`2026-09-18-node-neighbours.md`](2026-09-18-node-neighbours.md) — the peer test and
 > the reason each kind exists — which also records the Dependabot narrowing. **M0 is done** —
 > [`2026-09-17-m0-part-9-repository-guardrails.md`](2026-09-17-m0-part-9-repository-guardrails.md)
@@ -52,6 +54,9 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-18](2026-09-18-m1-part-1-node-folder.md) | **M1 part 1 built.** `code-schema` reads a node folder, reports every problem with file, line and field, and writes it back byte for byte; key lines kept per mapping (a plan bug, fixed) |
+| [2026-09-18](2026-09-18-m1-in-parts.md) | **M1 in parts.** Six parts; `body.md` opaque in M1; horizontal parts, not vertical slices. No code |
+| [2026-09-18](2026-09-18-node-neighbours.md) | **Node neighbours.** Three link kinds, one reason each; *related* is the peer test, capped at four; a side-doors toggle on maps; Dependabot narrowed |
 | [2026-09-17](2026-09-17-m0-part-9-repository-guardrails.md) | **M0 part 9 built; M0 done.** `validate`, squash auto-merge and a no-bypass ruleset on `comeni-code-content`; a no-bypass ruleset requiring python, web and stack on Comeni-Code; every proof recorded |
 | [2026-09-17](2026-09-17-m0-part-8-compose-stack.md) | **M0 part 8 built.** Compose runs migrate, api (gunicorn), worker, beat and web (nginx) on 127.0.0.1:8090; a CI `stack` job; M0 done except part 9; a PR merged red, fixed |
 | [2026-09-17](2026-09-17-m0-part-7-health-page.md) | **M0 part 7 built.** The health page at `/` through Vite's proxy, five worded states, API types from `openapi.json` with json-schema-to-typescript; fonts start at load |
