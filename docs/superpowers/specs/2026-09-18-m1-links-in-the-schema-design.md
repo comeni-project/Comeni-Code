@@ -98,7 +98,7 @@ test-out, work done — W3.3 step 4).
 **A need is what understanding the claim requires, never how to operate a tool.** *Salmon*'s claim
 can be understood without a shell, so *command-line basics* is not one of its needs — and not a
 peer, since nobody reads it instead of *Salmon*. Ways to run something are **resources in the body**
-(T4): Salmon's documentation, the Galaxy Training Network's tutorial, the Labs pipeline. A practical
+(T4): Salmon's documentation, the Labs pipeline. A practical
 node (*Working with FASTQ files*) may need *command-line basics* in the ordinary way. No validator
 can check this; S6's review does.
 
@@ -122,7 +122,7 @@ rules exist. M1 part 4's Salmon fixtures are the first evidence of whether eithe
 | *all of* / *any of* groups (W3.2 as it stood) | a shared reason is vague; the list is already *all of*; choices guessed from "what the learner holds" rarely fire, because a new learner has no evidence |
 | Choices resolved by shortest remaining route | an author's judgment (audience, level) is a better signal than a count of stops |
 | A bare list of ids (`needs: [k-mers, graphs]`) | no room for a reason, and no room for a second entry kind later without rewriting every node |
-| *command-line basics* or *Galaxy basics* as needs of a conceptual node | would add a tool-operation stop to every route through the node, for a skill its claim does not depend on |
+| *command-line basics* as a need of a conceptual node | would add a tool-operation stop to every route through the node, for a skill its claim does not depend on |
 
 ## M1P2.4 *goes deeper* and *related*
 
@@ -226,5 +226,5 @@ The rules that need more than one file, each already given a home by this part's
   must edit two files, and part 3's message says exactly which.
 - **The optional paths may never be wired.** That is the intent if content does not ask for them;
   W3.2 keeps their design so they are not reinvented differently later.
-- **A need that is really a tool** (*Galaxy basics* under *Salmon*) passes every check in this part.
+- **A need that is really a tool** (*command-line basics* under *Salmon*) passes every check in this part.
   The rule in M1P2.3 is enforced by review alone.

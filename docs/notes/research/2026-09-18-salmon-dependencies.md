@@ -27,9 +27,7 @@ for *needs*: **a need is what understanding the claim requires, never how to ope
 - **Reports** `TPM`, `NumReads` and `EffectiveLength` in `quant.sf`, and can express its
   uncertainty with bootstraps or Gibbs samples. *(Documentation.)*
 - **Needs to know the library**: paired or single end, stranded or not, and which strand — the
-  library type string (`IU`, `SF`, …). *(Documentation.)* Reference-based RNA-seq courses (the
-  Galaxy Training Network's) teach FASTQ, quality control, paired-end reads, the reference and its
-  annotation, and strandedness before any quantification.
+  library type string (`IU`, `SF`, …). *(Documentation.)*
 
 ## Sorted into links
 
@@ -78,7 +76,7 @@ transcripts with a probabilistic model.*
 **needed by** — derived, for reference: *tximport* (transcript to gene), *Differential expression
 with DESeq2*.
 
-**Not needs** — tool operation, which the rule excludes: *command-line basics*, *Galaxy*, building an
+**Not needs** — tool operation, which the rule excludes: *command-line basics*, building an
 index with `salmon index`. These are resources in the body (T4).
 
 ## What it changes
@@ -119,5 +117,3 @@ index with `salmon index`. These are resources in the body (T4).
   [doi:10.1093/bioinformatics/bty292](https://doi.org/10.1093/bioinformatics/bty292)
 - [Salmon documentation](https://salmon.readthedocs.io/en/latest/salmon.html) — selective
   alignment, decoys, library types, VBEM default, bias flags, `quant.sf`.
-- Galaxy Training Network, [*Reference-based RNA-Seq data analysis*](https://training.galaxyproject.org/training-material/topics/transcriptomics/tutorials/ref-based/tutorial.html)
-  — the order a course teaches FASTQ, QC, paired ends, references, strandedness and counting.
