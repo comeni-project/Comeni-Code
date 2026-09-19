@@ -89,8 +89,11 @@ evidence (a cascade) — a content edit tangled with learner data.
   replaced together, in one transaction.
 - **Nothing derived is stored.** *Needed by* is a reverse query on `Link`; a *related* link is
   stored as its two written halves, as the files have it.
-- **No second writer.** The models are not registered in the admin; the only code that writes them
-  is `code_api/content/index.py`, and part 6's API is read-only.
+- **No second writer.** The only code that writes these models is `code_api/content/index.py`.
+  The Django admin is not installed, and part 6's API is read-only.
+- **Text columns carry no length limits.** `title` ≤ 80 and `claim` ≤ 200 are the validator's
+  rules; repeating them as column sizes would give the rules two homes, and a rule tightened in one
+  and not the other would turn a clean rebuild into a database error.
 
 ## M1P5.5 The rebuild
 
@@ -124,7 +127,8 @@ and nobody would know why).
 
 `apps/api/tests/test_content_index.py`, against Compose's Postgres, reading only
 `tests/fixtures/salmon/` or copies of it in `tmp_path`. A test helper *dumps* the index: every row
-of the four tables as sorted tuples, build times left out.
+of `Region`, `Node` and `Link` as sorted tuples. Builds are checked on their own, since each rebuild
+adds one.
 
 | Test | Proves |
 |---|---|
@@ -135,7 +139,6 @@ of the four tables as sorted tuples, build times left out.
 | a failure forced while writing links leaves the old index and no new applied build | the transaction is all or nothing |
 | *Salmon*'s needs come back in the file's order | `position` |
 | the digest ignores a README change and changes when a body does | the digest tracks the index only |
-| the models are not in the admin | no second writer |
 
 The advisory lock is not tested: proving it needs two concurrent connections, which is more
 machinery than the one line it guards. It is named in the plan so a reviewer checks it by eye.
