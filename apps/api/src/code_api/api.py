@@ -6,7 +6,9 @@ Each Django app adds its own Router here. The schema is at /api/openapi.json and
 
 from ninja import NinjaAPI
 
+from code_api.content.api import router as content_router
 from code_api.health.api import router as health_router
 
 api = NinjaAPI(title="Comeni Code API", version="0.1.0")
 api.add_router("/health", health_router)
+api.add_router("/nodes", content_router)

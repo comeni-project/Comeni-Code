@@ -339,6 +339,27 @@ def cards(links: Sequence[Link]) -> list[dict[str, str]]:
     ]
 
 
+def needed_by(target: str) -> list[dict[str, str]]:
+    """The cards for the nodes whose files say they need `target`, sorted by title ignoring case."""
+    sources = sorted(
+        (
+            node
+            for node in CONTENT.nodes.values()
+            if any(link.node == target for link in node.needs)
+        ),
+        key=lambda node: (node.title.casefold(), node.id),
+    )
+    return [
+        {
+            "id": node.id,
+            "title": node.title,
+            "level": node.level,
+            "reason": next(link.reason for link in node.needs if link.node == target),
+        }
+        for node in sources
+    ]
+
+
 def get(client: Client, node_id: str) -> Any:
     return client.get(f"/api/nodes/{node_id}")
 
@@ -361,11 +382,17 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         "needs": cards(salmon.needs),
         "goes_deeper": cards(salmon.goes_deeper),
         "related": cards(salmon.related),
-        "needed_by": [],
+        "needed_by": needed_by("salmon"),
     }
     assert [card["id"] for card in body["needs"]][0] == "rna-seq-libraries"
     assert len(body["goes_deeper"]) == 5
     assert [card["id"] for card in body["related"]] == ["kallisto"]
+    # Three of the nodes attached below Salmon need it back; kallisto is related, not a need.
+    assert {card["id"] for card in body["needed_by"]} == {
+        "abundance-uncertainty",
+        "decoy-sequences",
+        "salmon-bias-models",
+    }
 
 
 def test_needed_by_is_derived_with_the_needing_nodes_reason(client: Client) -> None:

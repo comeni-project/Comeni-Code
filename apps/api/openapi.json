@@ -52,6 +52,145 @@
         ],
         "title": "HealthOut",
         "type": "object"
+      },
+      "Message": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "Message",
+        "type": "object"
+      },
+      "NeighbourOut": {
+        "description": "A neighbour as a card: enough for a node page's side panel (L5) without another request.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "level",
+          "reason"
+        ],
+        "title": "NeighbourOut",
+        "type": "object"
+      },
+      "NodeOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          },
+          "goes_deeper": {
+            "items": {
+              "$ref": "#/components/schemas/NeighbourOut"
+            },
+            "title": "Goes Deeper",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "needed_by": {
+            "items": {
+              "$ref": "#/components/schemas/NeighbourOut"
+            },
+            "title": "Needed By",
+            "type": "array"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeighbourOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "region": {
+            "$ref": "#/components/schemas/RegionOut"
+          },
+          "related": {
+            "items": {
+              "$ref": "#/components/schemas/NeighbourOut"
+            },
+            "title": "Related",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "claim",
+          "region",
+          "level",
+          "minutes",
+          "body",
+          "folder",
+          "needs",
+          "goes_deeper",
+          "related",
+          "needed_by"
+        ],
+        "title": "NodeOut",
+        "type": "object"
+      },
+      "RegionOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RegionOut",
+        "type": "object"
       }
     }
   },
@@ -91,6 +230,58 @@
         "summary": "Service health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/nodes/{node_id}": {
+      "get": {
+        "operationId": "code_api_content_api_node",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "A node and its neighbours",
+        "tags": [
+          "content"
         ]
       }
     }
