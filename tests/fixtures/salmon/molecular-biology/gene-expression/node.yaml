@@ -1,0 +1,9 @@
+schema: 1
+title: Gene expression
+claim: A gene is expressed when a cell copies it into RNA, and cells differ in which genes they express and how much.
+region: molecular-biology
+level: first-steps
+minutes: 10
+needs:
+  - node: dna-and-genes
+    reason: Expression is a gene being read, so it starts from what a gene is.

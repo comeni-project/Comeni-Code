@@ -1,0 +1,11 @@
+schema: 1
+title: Reads that map to several places
+claim: Many RNA-seq reads fit several transcripts equally well, so counting reads per transcript means deciding how to share them out.
+region: sequence-analysis
+level: introductory
+minutes: 10
+needs:
+  - node: read-mapping
+    reason: A read maps to several places when mapping finds more than one good match.
+  - node: transcripts-and-isoforms
+    reason: Isoforms share exons, so a read from a shared exon fits all of them.

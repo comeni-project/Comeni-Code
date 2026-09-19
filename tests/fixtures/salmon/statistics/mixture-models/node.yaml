@@ -1,0 +1,9 @@
+schema: 1
+title: Mixture models
+claim: A mixture model says each observation came from one of several sources in unknown proportions, and fitting it estimates those proportions.
+region: statistics
+level: introductory
+minutes: 12
+needs:
+  - node: likelihood
+    reason: A mixture model is fitted by finding the proportions with the highest likelihood.

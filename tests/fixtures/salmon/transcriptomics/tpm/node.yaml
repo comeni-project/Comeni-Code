@@ -1,0 +1,11 @@
+schema: 1
+title: What TPM measures
+claim: TPM, transcripts per million, is each transcript's share of the transcript molecules in a sample, scaled so the shares add up to a million.
+region: transcriptomics
+level: introductory
+minutes: 10
+needs:
+  - node: transcripts-and-isoforms
+    reason: TPM is measured per transcript.
+  - node: rna-seq-libraries
+    reason: TPM is estimated from the reads a library produces.

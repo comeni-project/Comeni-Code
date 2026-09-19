@@ -1,0 +1,6 @@
+schema: 1
+title: Probability
+claim: A probability is a number from 0 to 1 that says how likely something is, and the probabilities of all the possible outcomes add up to 1.
+region: statistics
+level: first-steps
+minutes: 10

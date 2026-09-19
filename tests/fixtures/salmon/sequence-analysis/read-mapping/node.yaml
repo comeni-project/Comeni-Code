@@ -1,0 +1,13 @@
+schema: 1
+title: Mapping reads to a reference
+claim: Mapping finds where in a reference each read could have come from, by looking up its k-mers and checking the candidate places with an alignment.
+region: sequence-analysis
+level: introductory
+minutes: 12
+needs:
+  - node: short-read-sequencing
+    reason: Mapping places the short reads a sequencer produces.
+  - node: k-mers
+    reason: Mappers find candidate places by looking up a read's k-mers.
+  - node: sequence-alignment
+    reason: Mappers check each candidate place with an alignment score.

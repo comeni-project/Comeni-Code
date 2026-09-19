@@ -1,0 +1,9 @@
+schema: 1
+title: Splicing
+claim: Splicing cuts the introns out of a new RNA and joins its exons, and different choices of exons give different RNAs from one gene.
+region: molecular-biology
+level: foundations
+minutes: 10
+needs:
+  - node: gene-expression
+    reason: Splicing happens to the RNA a gene is copied into.

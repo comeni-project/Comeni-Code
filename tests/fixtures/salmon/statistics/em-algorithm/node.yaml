@@ -1,0 +1,12 @@
+schema: 1
+title: The EM algorithm
+claim: The EM algorithm fits a mixture model by alternating two steps, sharing each observation among the sources by the current estimate and then re-estimating the proportions from those shares.
+region: statistics
+level: intermediate
+minutes: 15
+needs:
+  - node: mixture-models
+    reason: EM is the standard way to fit a mixture model when the source of each observation is hidden.
+goes-deeper:
+  - node: variational-bayes-em
+    reason: Variational Bayesian EM adds a prior to EM, and it is what Salmon runs by default.

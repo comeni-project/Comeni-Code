@@ -1,0 +1,9 @@
+schema: 1
+title: FASTQ and quality scores
+claim: A FASTQ file stores each read in four lines, a name, the letters, a separator and a quality score for each letter.
+region: sequencing
+level: first-steps
+minutes: 8
+needs:
+  - node: short-read-sequencing
+    reason: FASTQ is how a sequencer's reads are written down.

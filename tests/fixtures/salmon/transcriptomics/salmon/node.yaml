@@ -1,0 +1,33 @@
+schema: 1
+title: Salmon
+claim: Salmon estimates how much of each transcript a sample holds by mapping RNA-seq reads to the transcriptome and resolving reads that fit several transcripts with a probabilistic model.
+region: transcriptomics
+level: intermediate
+minutes: 15
+needs:
+  - node: rna-seq-libraries
+    reason: Salmon's input is the reads of an RNA-seq library, and it must know the library's type.
+  - node: transcripts-and-isoforms
+    reason: Salmon estimates abundance per transcript, and isoforms are why that is hard.
+  - node: tpm
+    reason: Salmon reports each transcript's abundance in TPM.
+  - node: read-mapping
+    reason: Salmon first finds which transcripts each read could have come from.
+  - node: multi-mapping-reads
+    reason: Most of Salmon's work is deciding where reads that fit several transcripts belong.
+  - node: em-algorithm
+    reason: Salmon shares ambiguous reads among transcripts with EM.
+goes-deeper:
+  - node: pufferfish-index
+    reason: The pufferfish index is how Salmon finds a read's candidate transcripts quickly.
+  - node: salmon-bias-models
+    reason: Salmon corrects its estimates for biases in which fragments get sequenced.
+  - node: decoy-sequences
+    reason: Decoys stop Salmon forcing reads from outside the transcriptome onto a transcript.
+  - node: variational-bayes-em
+    reason: Salmon's default is variational Bayesian EM, not plain EM.
+  - node: abundance-uncertainty
+    reason: Salmon can say how sure it is of each estimate.
+related:
+  - node: kallisto
+    reason: kallisto quantifies transcripts from the same reads, by pseudoalignment instead of alignment.
