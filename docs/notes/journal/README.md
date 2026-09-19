@@ -5,8 +5,11 @@ reads the newest entry first and is productive in five minutes.
 
 ## Reading it
 
-> **The newest entry is [`2026-09-19-m2-in-parts.md`](2026-09-19-m2-in-parts.md)**: **M2, the
-> weaver, starts**, in four parts — walk back and order, why and known, the CLI, the API; the
+> **The newest entry is
+> [`2026-09-19-m2-part-1-walk-back-and-order.md`](2026-09-19-m2-part-1-walk-back-and-order.md)**:
+> `code-weaver` weaves — `Graph` checked when built, `weave` gives the fixtures' 17-stop Salmon
+> route, the purity guard runs a weave. M2's parts are in
+> [`2026-09-19-m2-in-parts.md`](2026-09-19-m2-in-parts.md): **M2, the weaver**, in four parts — walk back and order, why and known, the CLI, the API; the
 > fixtures' 17 stops are the reference route. M1's last part is
 > [`2026-09-19-m1-part-6-command-and-api.md`](2026-09-19-m1-part-6-command-and-api.md): **M1 is
 > done** — `manage.py rebuild_index` and `GET /api/nodes/{node_id}`, with M1's done-when checks;
@@ -64,6 +67,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-19](2026-09-19-m2-part-1-walk-back-and-order.md) | **M2 part 1 built.** `Graph` refuses duplicates, unknown regions, dangling needs and cycles; `weave` orders by region then first-reached; 17 Salmon stops, byte-identical across hash seeds; the runtime guard runs a weave |
 | [2026-09-19](2026-09-19-m2-in-parts.md) | **M2 in parts.** Four parts: walk back and order, why/known/level span, the CLI, the API; goal resolution is M5's, *any-of* waits for content; the fixtures' 17 stops replace the board's 13 |
 | [2026-09-19](2026-09-19-m1-part-6-command-and-api.md) | **M1 part 6 built; M1 done.** `manage.py rebuild_index` from `--root` or `CODE_CONTENT_ROOT`, exit 0/1/2; `GET /api/nodes/{node_id}` with neighbour cards and derived needed-by; 404, or 503 before any build |
 | [2026-09-19](2026-09-19-m1-part-5-index.md) | **M1 part 5 built.** `code_api.content`: Region, Node, Link, IndexBuild; `rebuild_index` all or nothing, every attempt recorded; nodes named by id outside the index; MVP-only, per the operator |

@@ -1,6 +1,7 @@
 """The runtime purity guard, on the real packages and on a planted one (spec P1.4).
 
-In M0 the probe only imports each package. From M2 it must also run a weave.
+Since M2 part 1 the probe also runs a weave (`weave_probe`, spec M2P1.6), so a green guard says
+something about behaviour, not only imports.
 """
 
 from pathlib import Path
@@ -27,3 +28,11 @@ def test_the_static_guard_alone_misses_it() -> None:
         {"bad-static": frozenset({"importlib", "django"}), "bad-runtime": frozenset({"pathlib"})},
     )
     assert not [v for v in violations if "bad-runtime" in str(v.path)]
+
+
+GUARDS = Path(__file__).parent
+
+
+def test_the_weaver_runs_a_weave_without_a_watched_event() -> None:
+    result = import_under_hook(["weave_probe"], [GUARDS])
+    assert result.returncode == 0, result.stderr
