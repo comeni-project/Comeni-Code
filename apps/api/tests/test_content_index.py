@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from code_api.content.index import rebuild_index
+from code_api.content.index import content_digest, rebuild_index
 from code_api.content.models import IndexBuild, Link, Node, Region
 from code_schema import read_content
 
@@ -79,3 +79,29 @@ def test_links_keep_the_authors_order() -> None:
             .values_list("target_id", flat=True)
         )
         assert list(stored) == [link.node for link in links], kind
+
+
+def test_a_folder_with_problems_changes_nothing(tmp_path: Path) -> None:
+    rebuild_index(FIXTURES)
+    before = dump()
+    root = copy_of_fixtures(tmp_path)
+    shutil.rmtree(root / "statistics" / "em-algorithm")
+    expected = [str(problem) for problem in read_content(root).problems]
+    assert expected  # salmon, kallisto and variational-bayes-em now point at nothing
+
+    build = rebuild_index(root)
+
+    assert build.outcome == IndexBuild.Outcome.REFUSED
+    assert (build.problems, build.node_count) == (expected, 25)
+    assert dump() == before
+    assert IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).count() == 1
+
+
+def test_the_digest_tracks_the_index_only(tmp_path: Path) -> None:
+    root = copy_of_fixtures(tmp_path)
+    first = content_digest(root, read_content(root))
+    (root / "README.md").write_text("A readme is not part of the index.\n", encoding="utf-8")
+    assert content_digest(root, read_content(root)) == first
+    body = root / "statistics" / "likelihood" / "body.md"
+    body.write_text(body.read_text(encoding="utf-8") + "One more line.\n", encoding="utf-8")
+    assert content_digest(root, read_content(root)) != first
