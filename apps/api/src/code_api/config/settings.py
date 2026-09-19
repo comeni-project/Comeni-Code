@@ -71,6 +71,9 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = ENV.static_root
 
+# The content folder `manage.py rebuild_index` reads; `--root` overrides it (M1P6.2).
+CODE_CONTENT_ROOT = ENV.content_root
+
 # Celery (M0 part 4 spec, P4.2). No result backend: nothing reads task results yet.
 CELERY_BROKER_URL = ENV.redis_url.get_secret_value()
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True

@@ -6,9 +6,10 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-19-m1-part-5-index.md`](2026-09-19-m1-part-5-index.md)**: `code_api.content` holds the
-> index, filled all or nothing by `rebuild_index`; next is part 6, the command and the read API,
-> which closes M1. Part 4's 26 fixture nodes are
+> [`2026-09-19-m1-part-6-command-and-api.md`](2026-09-19-m1-part-6-command-and-api.md)**: **M1 is
+> done** — `manage.py rebuild_index` and `GET /api/nodes/{node_id}`, with M1's done-when checks;
+> next is M2, the weaver. The index itself is
+> [part 5's entry](2026-09-19-m1-part-5-index.md). Part 4's 26 fixture nodes are
 > [`2026-09-19-m1-part-4-salmon-fixtures.md`](2026-09-19-m1-part-4-salmon-fixtures.md): a route
 > from no background to Salmon with *de Bruijn graphs* below it, not on it. The content
 > repository runs `code-schema validate` ([`2026-09-18-content-validates-nodes.md`](2026-09-18-content-validates-nodes.md)); M1
@@ -61,6 +62,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-19](2026-09-19-m1-part-6-command-and-api.md) | **M1 part 6 built; M1 done.** `manage.py rebuild_index` from `--root` or `CODE_CONTENT_ROOT`, exit 0/1/2; `GET /api/nodes/{node_id}` with neighbour cards and derived needed-by; 404, or 503 before any build |
 | [2026-09-19](2026-09-19-m1-part-5-index.md) | **M1 part 5 built.** `code_api.content`: Region, Node, Link, IndexBuild; `rebuild_index` all or nothing, every attempt recorded; nodes named by id outside the index; MVP-only, per the operator |
 | [2026-09-19](2026-09-19-m1-part-4-salmon-fixtures.md) | **M1 part 4 built.** 26 Salmon fixture nodes: a 17-node route from no background, five goes-deeper nodes below Salmon, kallisto as its peer; W1 corrected; no *helps* or *any-of* needed |
 | [2026-09-18](2026-09-18-content-validates-nodes.md) | **Content validates nodes.** comeni-code-content runs `code-schema validate` pinned to `559cbf4`; six regions from research into what Salmon depends on; *de Bruijn graphs* on Salmon's route left for part 4 |

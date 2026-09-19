@@ -1,5 +1,7 @@
 """The environment is validated once, and only `CODE_*` variables count (spec P2.3)."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -20,6 +22,7 @@ def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "DEBUG",
         "ALLOWED_HOSTS",
         "STATIC_ROOT",
+        "CONTENT_ROOT",
     ):
         monkeypatch.delenv(f"CODE_{name}", raising=False)
 
@@ -49,6 +52,18 @@ def test_defaults_are_the_safe_ones(monkeypatch: pytest.MonkeyPatch) -> None:
     env = make_env(monkeypatch, secret_key=KEY, database_url=URL, redis_url=REDIS)
     assert env.debug is False
     assert env.allowed_hosts == []
+    assert env.content_root is None
+
+
+def test_the_content_root_is_a_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    env = make_env(
+        monkeypatch,
+        secret_key=KEY,
+        database_url=URL,
+        redis_url=REDIS,
+        content_root="../comeni-code-content",
+    )
+    assert env.content_root == Path("../comeni-code-content")
 
 
 def test_ignores_unprefixed_variables(monkeypatch: pytest.MonkeyPatch) -> None:
