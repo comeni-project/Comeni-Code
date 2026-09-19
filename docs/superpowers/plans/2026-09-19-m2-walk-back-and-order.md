@@ -384,11 +384,11 @@ import sys
 from pathlib import Path
 
 import pytest
+from weaver.fixture_graph import FIXTURES, fixture_graph
 
 from code_schema.content import read_content
 from code_weaver.graph import Graph, Need, Topic
 from code_weaver.weave import Route, UnknownGoal, weave
-from weaver.fixture_graph import FIXTURES, fixture_graph
 
 TESTS = Path(__file__).resolve().parents[1]
 
