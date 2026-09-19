@@ -50,9 +50,10 @@ path is from the working directory, as `static_root` is. The setting is optional
 and beat start without a content checkout — only the command needs one (M1P5.4).
 
 1. **No folder given:** exit 2, `set CODE_CONTENT_ROOT or pass --root`. Nothing is written.
-2. **The path is missing or not a folder:** exit 2, naming the path. Nothing is written. This check
-   is the command's one real duty: `read_content` reads a missing folder as empty content, and an
-   empty folder with no problems would replace the index with nothing.
+2. **The path is missing or not a folder:** exit 2, naming the path. Nothing is written.
+   `read_content` would stop there with a traceback (`FileNotFoundError`); the command says what is
+   wrong instead. An existing empty folder needs no check: it lacks `regions.yaml`, so the build is
+   refused.
 3. **Otherwise** `build = rebuild_index(root, commit=commit)`:
    - `applied` → stdout `Applied: 26 nodes, digest 3f2a9c01be47` (the digest's first 12
      characters), exit 0;
@@ -106,7 +107,9 @@ panel (L5), and the cards cost no query per neighbour.
   their targets; its incoming *needs* links with their sources.
 - **Read-only:** `GET` only, no sign-in (the content is openly licensed), no caching headers yet — a
   rebuild shows at once.
-- The route and its schemas appear in `/api/openapi.json`, so `/api/docs` shows them.
+- The route and its schemas appear in `/api/openapi.json`, so `/api/docs` shows them. The committed
+  `apps/api/openapi.json` is regenerated (a test fails while it is stale), and so is the web app's
+  `src/api/schema.ts` (`npm run api-types`).
 
 **Rejected:**
 
@@ -148,7 +151,7 @@ Against Compose's Postgres, reading only `tests/fixtures/salmon/` or copies of i
 | the setting alone is used; `--root` wins over it | where the folder comes from |
 | `--commit abc123` is stored on the build | the commit passes through |
 | a broken copy: exit 1, the validator's messages on stderr, the index unchanged | refusal becomes an exit code |
-| no folder given; a missing path: exit 2, no `IndexBuild` written, the index unchanged | the command never indexes nothing |
+| no folder given; a missing path: exit 2, no `IndexBuild` written, the index unchanged | a bad folder is an error, not a traceback |
 
 `apps/api/tests/test_nodes_api.py`, with the fixtures rebuilt first:
 
