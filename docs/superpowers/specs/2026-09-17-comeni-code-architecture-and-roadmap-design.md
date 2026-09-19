@@ -124,6 +124,9 @@ decided part by part (R5).
   reports the route's **level span** (e.g. First steps → Advanced) as output. **Done when** also
   includes: the same graph with every level changed produces the same route. The Salmon route on
   the board starts at its First steps stop (13 stops).*
+- *2026-09-19 (M2 parts list, journal): the reference route is the Salmon fixtures' **17 stops**
+  (M1P4.2), not the board's 13 — M1 part 4 took *de Bruijn graphs* off the route. Its level span
+  is **First steps → Intermediate**. The Route board is redrawn in M3's design round.*
 
 ### M3 — Thin learner path
 - A learner can find a target without AI, see its route as a metro map, and read a node.
