@@ -1220,7 +1220,7 @@ operator's master's classes.
 - [ ] **Step 4: The whole command set**
 
 Run: `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest`
-Expected: all pass (235 tests; Compose's Postgres and Redis running).
+Expected: all pass (266 tests; Compose's Postgres and Redis running).
 
 - [ ] **Step 5: Commit, pull request, merge on green**
 
