@@ -38,6 +38,10 @@ The Salmon example is a real one: since version 1.0 Salmon's default index is pu
 built on a compacted coloured de Bruijn graph, so *de Bruijn graphs* genuinely belongs on the route
 to *Salmon*.
 
+*Revised 2026-09-19 ([M1 part 4](2026-09-19-m1-salmon-fixtures-design.md)): under the need rule,
+de Bruijn graphs is not on the route to Salmon but one goes-deeper link away, through The
+pufferfish index. Salmon's claim can be understood without knowing how its index is built.*
+
 ---
 
 ## W2. Decisions taken in this session

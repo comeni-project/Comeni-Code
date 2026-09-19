@@ -6,9 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-18-content-validates-nodes.md`](2026-09-18-content-validates-nodes.md)**: the content
-> repository now runs `code-schema validate`, pinned, with six researched regions; M1 part 3 is done
-> ([its entry](2026-09-18-m1-part-3-graph-rules.md)); next is part 4, the Salmon fixtures. Links are
+> [`2026-09-19-m1-part-4-salmon-fixtures.md`](2026-09-19-m1-part-4-salmon-fixtures.md)**: 26 real
+> nodes in `tests/fixtures/salmon/`, a route from no background to Salmon with *de Bruijn graphs*
+> below it, not on it; next is part 5, the index. The content repository runs `code-schema
+> validate` ([`2026-09-18-content-validates-nodes.md`](2026-09-18-content-validates-nodes.md)); M1
+> part 3 is [its entry](2026-09-18-m1-part-3-graph-rules.md). Links are
 > [part 2's entry](2026-09-18-m1-part-2-links.md); part 1 (the node folder) is
 > [`2026-09-18-m1-part-1-node-folder.md`](2026-09-18-m1-part-1-node-folder.md); M1's six parts are
 > in [`2026-09-18-m1-in-parts.md`](2026-09-18-m1-in-parts.md). For what a node's links mean and why there are
@@ -19,7 +21,7 @@ reads the newest entry first and is productive in five minutes.
 > requests. For the Compose stack and merging safely, read
 > [part 8's entry](2026-09-17-m0-part-8-compose-stack.md); for the health page,
 > [part 7's](2026-09-17-m0-part-7-health-page.md); for the product direction,
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Fifteen entries share this date.
+> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Six entries share 2026-09-18.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -57,6 +59,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-19](2026-09-19-m1-part-4-salmon-fixtures.md) | **M1 part 4 built.** 26 Salmon fixture nodes: a 17-node route from no background, five goes-deeper nodes below Salmon, kallisto as its peer; W1 corrected; no *helps* or *any-of* needed |
 | [2026-09-18](2026-09-18-content-validates-nodes.md) | **Content validates nodes.** comeni-code-content runs `code-schema validate` pinned to `559cbf4`; six regions from research into what Salmon depends on; *de Bruijn graphs* on Salmon's route left for part 4 |
 | [2026-09-18](2026-09-18-m1-part-3-graph-rules.md) | **M1 part 3 built.** `code-schema validate`: near misses, unique ids, targets, *related* on both nodes, levels, one ring per tangle of cycles; GitHub annotations; the content repository will pin a commit |
 | [2026-09-18](2026-09-18-m1-part-2-links.md) | **M1 part 2 built.** Every link is `node` + `reason`; *needs* a list, *related* on both nodes, at most four; twelve per-node rules; *helps* and *any-of* designed in W3.2, refused until wired |

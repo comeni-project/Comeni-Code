@@ -1,0 +1,9 @@
+schema: 1
+title: Likelihood
+claim: The likelihood of a model is how probable it makes the data you actually saw, and the best-fitting model is the one with the highest likelihood.
+region: statistics
+level: foundations
+minutes: 10
+needs:
+  - node: probability
+    reason: Likelihood is the probability of the data under a model.

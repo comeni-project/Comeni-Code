@@ -1,0 +1,12 @@
+schema: 1
+title: k-mers
+claim: The k-mers of a sequence are all its substrings of length k, and they let a computer find shared sequence by looking words up.
+region: sequence-analysis
+level: foundations
+minutes: 8
+needs:
+  - node: dna-and-genes
+    reason: k-mers are words cut from DNA sequences.
+goes-deeper:
+  - node: de-bruijn-graphs
+    reason: A de Bruijn graph joins overlapping k-mers, which is how Salmon's index stores a transcriptome.

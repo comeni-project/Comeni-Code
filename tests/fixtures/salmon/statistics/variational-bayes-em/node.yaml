@@ -1,0 +1,9 @@
+schema: 1
+title: Variational Bayesian EM
+claim: Variational Bayesian EM estimates a distribution over abundances with a prior, instead of one best value, which steadies the estimates for poorly supported transcripts.
+region: statistics
+level: advanced
+minutes: 15
+needs:
+  - node: em-algorithm
+    reason: Variational Bayesian EM is EM with a prior, and a distribution in place of a single estimate.

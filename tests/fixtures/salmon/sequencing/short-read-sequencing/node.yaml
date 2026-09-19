@@ -1,0 +1,9 @@
+schema: 1
+title: Short-read sequencing
+claim: A short-read sequencer reads millions of short fragments of DNA at once and reports each one as a string of letters.
+region: sequencing
+level: first-steps
+minutes: 10
+needs:
+  - node: dna-and-genes
+    reason: A sequencer reads DNA's letters, so it starts from what DNA is.

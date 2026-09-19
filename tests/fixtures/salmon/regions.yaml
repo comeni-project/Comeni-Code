@@ -1,0 +1,14 @@
+# A copy of comeni-code-content's regions.yaml: tests never read that repository (R1).
+regions:
+  - id: molecular-biology
+    name: Molecular biology
+  - id: sequencing
+    name: Sequencing
+  - id: sequence-analysis
+    name: Sequence analysis
+  - id: algorithms
+    name: Algorithms
+  - id: statistics
+    name: Statistics
+  - id: transcriptomics
+    name: Transcriptomics

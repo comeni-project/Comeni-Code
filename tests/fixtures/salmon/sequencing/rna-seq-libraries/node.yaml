@@ -1,0 +1,13 @@
+schema: 1
+title: RNA-seq reads and libraries
+claim: RNA-seq turns a sample's RNA into a library of DNA fragments and sequences them, so the reads are a sample of the RNA it held.
+region: sequencing
+level: foundations
+minutes: 12
+needs:
+  - node: short-read-sequencing
+    reason: RNA-seq reads are short reads from a sequencer.
+  - node: fastq-and-quality-scores
+    reason: RNA-seq reads arrive as FASTQ files.
+  - node: gene-expression
+    reason: RNA-seq measures expression, so the RNA it reads comes from genes being expressed.

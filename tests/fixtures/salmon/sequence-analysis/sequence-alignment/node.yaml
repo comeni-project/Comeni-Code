@@ -1,0 +1,12 @@
+schema: 1
+title: Sequence alignment and scores
+claim: An alignment lines two sequences up, allowing gaps, and its score says how good the match is.
+region: sequence-analysis
+level: foundations
+minutes: 12
+needs:
+  - node: dna-and-genes
+    reason: Alignment compares DNA sequences letter by letter.
+goes-deeper:
+  - node: dynamic-programming
+    reason: Dynamic programming is how the best alignment is found without trying every one.

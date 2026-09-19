@@ -1,0 +1,9 @@
+schema: 1
+title: Transcripts and isoforms
+claim: A transcript is one RNA a gene can produce, and a gene's isoforms are its different transcripts, which often share most of their exons.
+region: molecular-biology
+level: foundations
+minutes: 10
+needs:
+  - node: splicing
+    reason: Isoforms exist because splicing can join a gene's exons in different ways.

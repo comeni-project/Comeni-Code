@@ -1,0 +1,11 @@
+schema: 1
+title: de Bruijn graphs
+claim: A de Bruijn graph has a node for each k-mer and an edge wherever one k-mer overlaps the next by all but one letter, so shared sequence is stored once.
+region: algorithms
+level: intermediate
+minutes: 15
+needs:
+  - node: k-mers
+    reason: A de Bruijn graph is built from k-mers.
+  - node: graphs
+    reason: A de Bruijn graph is a graph, with k-mers as its nodes.

@@ -9,8 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–3 of 6 are built: the node
-format, its links, and `code-schema validate`.** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
+**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–4 of 6 are built: the node
+format, its links, `code-schema validate`, and 26 Salmon fixture nodes in `tests/fixtures/salmon/`.** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
 `/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
 specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
 in `comeni-code-content` takes only green pull requests.
@@ -289,5 +289,6 @@ packages/code-schema/     pure: the node format, its validation messages, the ca
 packages/code-weaver/     pure, empty until M2
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks (relative links)
-tests/schema/             code-schema's tests; nodes are built in tmp_path, never read from content
+tests/fixtures/salmon/    26 real nodes, no background to Salmon; parts 5 and 6 load them
+tests/schema/             code-schema's tests; nodes are built in tmp_path or read from fixtures, never from content
 ```
