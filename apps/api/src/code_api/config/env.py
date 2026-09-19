@@ -30,6 +30,9 @@ class Env(BaseSettings):
     allowed_hosts: Annotated[list[str], NoDecode] = []
     # Where collectstatic writes; relative paths are from the working directory (the repo root).
     static_root: Path = Path("staticfiles")
+    # The content folder `manage.py rebuild_index` reads (M1 part 6 spec, M1P6.2). Optional: only
+    # the command needs a content checkout, so the API, worker and beat start without one.
+    content_root: Path | None = None
 
     @field_validator("database_url")
     @classmethod

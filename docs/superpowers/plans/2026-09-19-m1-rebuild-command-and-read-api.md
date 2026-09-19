@@ -99,7 +99,7 @@ from typing import Any
 
 import pytest
 from django.core.management import CommandError, call_command
-from pytest_django.fixtures import SettingsWrapper
+from pytest_django import Settings
 
 from code_api.content.index import rebuild_index
 from code_api.content.models import IndexBuild, Link, Node, Region
@@ -139,7 +139,7 @@ def test_the_command_rebuilds_from_files_alone() -> None:
     assert dump() == from_command
 
 
-def test_the_setting_is_used_and_root_wins(settings: SettingsWrapper, tmp_path: Path) -> None:
+def test_the_setting_is_used_and_root_wins(settings: Settings, tmp_path: Path) -> None:
     settings.CODE_CONTENT_ROOT = FIXTURES
     run()
     assert Node.objects.count() == 26
@@ -169,7 +169,7 @@ def test_a_refusal_exits_1_and_changes_nothing(tmp_path: Path) -> None:
     assert dump() == before
 
 
-def test_no_folder_exits_2(settings: SettingsWrapper) -> None:
+def test_no_folder_exits_2(settings: Settings) -> None:
     run("--root", str(FIXTURES))
     before = dump()
     settings.CODE_CONTENT_ROOT = None
