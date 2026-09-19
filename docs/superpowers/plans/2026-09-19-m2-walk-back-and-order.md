@@ -306,7 +306,7 @@ def _shortest_ring(graph: dict[str, list[str]], start: str, members: set[str]) -
 And `packages/code-weaver/src/code_weaver/__init__.py` becomes:
 
 ```python
-"""Comeni Code's weaver: goal ids to a route over needs links (W3.3). Pure: standard library only."""
+"""Comeni Code's weaver: goal ids to a route over needs links (W3.3). Standard library only."""
 ```
 
 - [ ] **Step 5: Run the tests to see them pass**
