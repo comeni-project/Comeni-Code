@@ -142,10 +142,11 @@ and the validator only refuses (M1P3.1).
 
 ## M1P4.6 What else changes
 
-- **The weaving spec, W1:** the Salmon paragraph says *de Bruijn graphs* is one *goes deeper*
-  from *Salmon*, through *The pufferfish index*, with a dated note.
-- **The parts list** records that part 4 grew from 8–12 nodes to 26, and why: *no background* is
-  what makes the route long.
+- **The weaving spec, W1:** a dated note under the Salmon paragraph says *de Bruijn graphs* is one
+  *goes deeper* away from *Salmon*, through *The pufferfish index*.
+- **Part 4's journal entry** records that it grew from the parts list's 8–12 nodes to 26, and why:
+  *no background* is what makes the route long. The parts list is a journal entry, so it is not
+  edited.
 - **The research note** is dated and not maintained; this spec supersedes its route.
 - **CLAUDE.md's status line** moves to part 4 done when it is.
 
