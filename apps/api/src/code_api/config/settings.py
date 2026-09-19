@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     # Ninja in INSTALLED_APPS serves the docs page from its bundled files, not a CDN (part 2, P2.5).
     "ninja",
     "code_api.accounts",
+    "code_api.content",
 ]
 
 MIDDLEWARE = [

@@ -9,8 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–4 of 6 are built: the node
-format, its links, `code-schema validate`, and 26 Salmon fixture nodes in `tests/fixtures/salmon/`.** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
+**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–5 of 6 are built: the node
+format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`, and
+the index (`code_api.content`, filled all or nothing by `rebuild_index`).** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
 `/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
 specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
 in `comeni-code-content` takes only green pull requests.
@@ -273,7 +274,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
