@@ -102,7 +102,8 @@ panel (L5), and the cards cost no query per neighbour.
   order (`Link.position`).
 - **`needed_by`** is derived (W1): the incoming *needs* links. Each card's `reason` is the one
   written on the needing node — why *it* needs this one. Nothing orders these by hand, so they are
-  sorted by title, then id.
+  sorted by title ignoring case, then id, in Python: Postgres's collation and Python's disagree on
+  whether *kallisto* comes before *Salmon*.
 - **Three queries, whatever the node's size:** the node with its region; its outgoing links with
   their targets; its incoming *needs* links with their sources.
 - **Read-only:** `GET` only, no sign-in (the content is openly licensed), no caching headers yet — a
