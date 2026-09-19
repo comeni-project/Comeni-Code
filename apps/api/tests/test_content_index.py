@@ -4,14 +4,18 @@ Reads only the part 4 fixtures, or copies of them in tmp_path (R1). Needs Compos
 """
 
 import shutil
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from code_api.content import index
 from code_api.content.index import content_digest, rebuild_index
 from code_api.content.models import IndexBuild, Link, Node, Region
-from code_schema import read_content
+from code_schema import Level, read_content, read_node, write_node_folder
+from code_schema import Link as SchemaLink
+from code_schema import Node as SchemaNode
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
 
@@ -105,3 +109,90 @@ def test_the_digest_tracks_the_index_only(tmp_path: Path) -> None:
     body = root / "statistics" / "likelihood" / "body.md"
     body.write_text(body.read_text(encoding="utf-8") + "One more line.\n", encoding="utf-8")
     assert content_digest(root, read_content(root)) != first
+
+
+def test_a_failure_while_writing_leaves_the_old_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    rebuild_index(FIXTURES)
+    before = dump()
+
+    def fail(content: object) -> list[Link]:
+        raise RuntimeError("the database went away")
+
+    monkeypatch.setattr(index, "_link_rows", fail)
+    with pytest.raises(RuntimeError):
+        rebuild_index(FIXTURES)
+    assert dump() == before
+    assert IndexBuild.objects.count() == 1
+
+
+def edit(root: Path) -> None:
+    """A claim changed, a node removed with the link to it, a node added, needs reordered."""
+    regions = set(read_content(root).regions)
+
+    def node(folder: str) -> SchemaNode:
+        read, problems = read_node(root / folder, regions=regions, root=root)
+        assert read is not None and problems == []
+        return read
+
+    likelihood = node("statistics/likelihood")
+    write_node_folder(
+        replace(likelihood, claim="Likelihood is how probable a model makes the data you saw."),
+        root / "statistics" / "likelihood",
+    )
+    salmon = node("transcriptomics/salmon")
+    write_node_folder(
+        replace(
+            salmon,
+            needs=tuple(reversed(salmon.needs)),
+            goes_deeper=tuple(
+                link for link in salmon.goes_deeper if link.node != "abundance-uncertainty"
+            ),
+        ),
+        root / "transcriptomics" / "salmon",
+    )
+    shutil.rmtree(root / "statistics" / "abundance-uncertainty")
+    write_node_folder(
+        SchemaNode(
+            id="paired-end-reads",
+            title="Paired-end reads",
+            claim="Paired-end reads are the two ends of one fragment, read towards each other.",
+            region="sequencing",
+            level=Level.FOUNDATIONS,
+            minutes=8,
+            body="Both ends of a fragment are read, which pins down where it came from.\n",
+            needs=(
+                SchemaLink(
+                    node="short-read-sequencing",
+                    reason="Paired-end reads come from a short-read sequencer.",
+                ),
+            ),
+        ),
+        root / "sequencing" / "paired-end-reads",
+    )
+
+
+def test_a_rebuild_after_an_edit_equals_a_fresh_build(tmp_path: Path) -> None:
+    root = copy_of_fixtures(tmp_path)
+    rebuild_index(root)
+    edit(root)
+    assert read_content(root).problems == ()
+
+    rebuild_index(root)
+    after_edit = dump()
+    Link.objects.all().delete()
+    Node.objects.all().delete()
+    Region.objects.all().delete()
+    rebuild_index(root)
+
+    assert dump() == after_edit
+    assert Node.objects.get(id="likelihood").claim.startswith("Likelihood is how probable")
+    assert not Node.objects.filter(id="abundance-uncertainty").exists()
+    assert Node.objects.filter(id="paired-end-reads").exists()
+    needs = (
+        Link.objects.filter(source_id="salmon", kind="needs")
+        .order_by("position")
+        .values_list("target_id", flat=True)
+    )
+    assert list(needs) == [
+        link.node for link in reversed(read_content(FIXTURES).nodes["salmon"].needs)
+    ]
