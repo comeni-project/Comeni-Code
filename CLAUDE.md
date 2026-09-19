@@ -9,9 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phase M0 (Skeleton) done; M1 (content core) under way — parts 1–5 of 6 are built: the node
-format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`, and
-the index (`code_api.content`, filled all or nothing by `rebuild_index`).** The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
+**Status: phases M0 (Skeleton) and M1 (content core) done; M2 (the weaver) is next.** M1 built the
+node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
+the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
+`GET /api/nodes/{node_id}`. The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
 `/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
 specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
 in `comeni-code-content` takes only green pull requests.
@@ -53,6 +54,7 @@ uv run python apps/api/manage.py check                              # Django's c
 uv run python apps/api/manage.py makemigrations --check --dry-run   # models match migrations
 uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json   # after any API change, then npm run api-types in apps/web
 uv run python apps/api/manage.py collectstatic --noinput            # fills CODE_STATIC_ROOT
+uv run python apps/api/manage.py rebuild_index --root tests/fixtures/salmon   # fill a local index; exit 0/1/2
 uv run celery -A code_api worker -l info                            # background worker
 uv run celery -A code_api beat -l info                              # scheduler (separate process)
 ops/stack-check.sh                  # check a running Compose stack through web (CI runs it)
@@ -274,7 +276,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
