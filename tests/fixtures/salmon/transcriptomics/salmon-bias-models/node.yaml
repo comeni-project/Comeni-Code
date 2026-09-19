@@ -1,0 +1,9 @@
+schema: 1
+title: Salmon's bias models
+claim: Salmon learns how sequence, GC content and position change which fragments get sequenced, and corrects each transcript's effective length for it.
+region: transcriptomics
+level: advanced
+minutes: 12
+needs:
+  - node: salmon
+    reason: The bias models refine the estimates Salmon makes.

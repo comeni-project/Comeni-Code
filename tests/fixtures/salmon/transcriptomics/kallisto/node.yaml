@@ -1,0 +1,22 @@
+schema: 1
+title: kallisto
+claim: kallisto estimates transcript abundance from RNA-seq reads by pseudoalignment, finding which transcripts a read fits without aligning it, and then running EM.
+region: transcriptomics
+level: intermediate
+minutes: 12
+needs:
+  - node: rna-seq-libraries
+    reason: kallisto's input is the reads of an RNA-seq library.
+  - node: transcripts-and-isoforms
+    reason: kallisto estimates abundance per transcript.
+  - node: tpm
+    reason: kallisto reports each transcript's abundance in TPM.
+  - node: k-mers
+    reason: Pseudoalignment matches a read's k-mers against the transcriptome's.
+  - node: multi-mapping-reads
+    reason: kallisto has to share reads that fit several transcripts.
+  - node: em-algorithm
+    reason: kallisto shares those reads among transcripts with EM.
+related:
+  - node: salmon
+    reason: Salmon quantifies transcripts from the same reads, with selective alignment and richer bias models.

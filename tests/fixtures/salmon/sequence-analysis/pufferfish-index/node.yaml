@@ -1,0 +1,11 @@
+schema: 1
+title: The pufferfish index
+claim: Pufferfish is the index Salmon builds from a transcriptome, a compacted coloured de Bruijn graph that finds where a read's k-mers occur using little memory.
+region: sequence-analysis
+level: advanced
+minutes: 15
+needs:
+  - node: de-bruijn-graphs
+    reason: Pufferfish stores the transcriptome as a compacted, coloured de Bruijn graph.
+  - node: read-mapping
+    reason: Pufferfish is the index a mapper looks a read's k-mers up in.

@@ -1,0 +1,6 @@
+schema: 1
+title: Dynamic programming
+claim: Dynamic programming solves a problem by solving each of its smaller overlapping subproblems once and building the answer from a table of their results.
+region: algorithms
+level: foundations
+minutes: 12

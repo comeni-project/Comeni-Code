@@ -1,0 +1,9 @@
+schema: 1
+title: Uncertainty in abundance
+claim: Salmon can repeat its inference on resampled data to show how much each abundance estimate could vary.
+region: statistics
+level: advanced
+minutes: 10
+needs:
+  - node: salmon
+    reason: The uncertainty is around Salmon's own estimates.

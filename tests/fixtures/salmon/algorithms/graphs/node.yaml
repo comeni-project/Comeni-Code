@@ -1,0 +1,6 @@
+schema: 1
+title: Graphs
+claim: A graph is a set of nodes joined by edges, and many problems become questions about paths through one.
+region: algorithms
+level: foundations
+minutes: 10

@@ -1,0 +1,9 @@
+schema: 1
+title: Decoy sequences
+claim: A decoy-aware index adds genome sequence to Salmon's transcriptome index, so reads from outside annotated transcripts are recognised instead of forced onto a transcript.
+region: sequence-analysis
+level: advanced
+minutes: 10
+needs:
+  - node: salmon
+    reason: Decoys change which reads Salmon counts.
