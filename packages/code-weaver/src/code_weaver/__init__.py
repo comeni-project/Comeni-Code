@@ -1,1 +1,1 @@
-"""Comeni Code's weaver: goal targets to a route over needs links (W3.3). Empty until M2."""
+"""Comeni Code's weaver: goal ids to a route over needs links (W3.3). Standard library only."""

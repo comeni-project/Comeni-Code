@@ -9,7 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phases M0 (Skeleton) and M1 (content core) done; M2 (the weaver) is next.** M1 built the
+**Status: phases M0 (Skeleton) and M1 (content core) done; M2 (the weaver) is under way: part 1
+(walk back and order, `code_weaver.weave`) is built, part 2 is next.** M1 built the
 node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
 the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
 `GET /api/nodes/{node_id}`. The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
@@ -289,9 +290,10 @@ docs/notes/research/      studies decisions were built on (the Khan Academy repo
 docs/superpowers/specs/   design documents
 docs/superpowers/plans/   one plan per part
 packages/code-schema/     pure: the node format, its validation messages, the canonical writer
-packages/code-weaver/     pure, empty until M2
+packages/code-weaver/     pure: Graph and weave (M2 part 1)
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks (relative links)
 tests/fixtures/salmon/    26 real nodes, no background to Salmon; parts 5 and 6 load them
 tests/schema/             code-schema's tests; nodes are built in tmp_path or read from fixtures, never from content
+tests/weaver/             code-weaver's tests; `fixture_graph` fills a Graph from the Salmon fixtures
 ```
