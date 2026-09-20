@@ -6,7 +6,10 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-20-m2-part-3-route-cli.md`](2026-09-20-m2-part-3-route-cli.md)**: `code-weaver route
+> [`2026-09-20-m2-part-4-route-api.md`](2026-09-20-m2-part-4-route-api.md)**: **M2 is done** —
+> `GET /api/routes?goal=salmon` weaves from the index and returns the stops as cards, with M2's
+> done-when table; next is M3, the thin learner path. The command is
+> [`2026-09-20-m2-part-3-route-cli.md`](2026-09-20-m2-part-3-route-cli.md): `code-weaver route
 > salmon --root tests/fixtures/salmon` prints the route, one line per stop, exiting 0, 1 or 2.
 > Part 2 is
 > [`2026-09-20-m2-part-2-why-known-and-span.md`](2026-09-20-m2-part-2-why-known-and-span.md): a
@@ -73,6 +76,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-20](2026-09-20-m2-part-4-route-api.md) | **M2 part 4 built; M2 done.** `GET /api/routes?goal=&known=`: stops as cards with their needed_by, the span and the minutes, three queries; 404, 422 and 503; the whole index per request is the MVP's bargain |
 | [2026-09-20](2026-09-20-m2-part-3-route-cli.md) | **M2 part 3 built.** `code-weaver route <goal>… --root <folder> [--known <id>]…`: a header with the count, time and span, then one line per stop with its first reason, at a fixed width of 100; exit 0/1/2 |
 | [2026-09-20](2026-09-20-m2-part-2-why-known-and-span.md) | **M2 part 2 built.** `needed_by` lists the route stops that need each stop with their stored reasons; the walk stops at known topics; `Graph` takes the level order and the route reports its span |
 | [2026-09-19](2026-09-19-m2-part-1-walk-back-and-order.md) | **M2 part 1 built.** `Graph` refuses duplicates, unknown regions, dangling needs and cycles; `weave` orders by region then first-reached; 17 Salmon stops, byte-identical across hash seeds; the runtime guard runs a weave |

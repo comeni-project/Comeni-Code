@@ -9,9 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phases M0 (Skeleton) and M1 (content core) done; M2 (the weaver) is under way: parts 1-3
-are built (`code_weaver.weave` gives an ordered route with its reasons, known set and level span,
-and `code-weaver route` prints it), part 4 (the API) is next.** M1 built the
+**Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
+path) is next.** M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
+known set and a level span — reachable through `code-weaver route` and `GET /api/routes`. M1 built the
 node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
 the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
 `GET /api/nodes/{node_id}`. The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
@@ -279,7 +279,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
@@ -292,7 +292,7 @@ docs/notes/research/      studies decisions were built on (the Khan Academy repo
 docs/superpowers/specs/   design documents
 docs/superpowers/plans/   one plan per part
 packages/code-schema/     pure: the node format, its validation messages, the canonical writer
-packages/code-weaver/     pure: Graph, weave and the route command (M2 parts 1-3)
+packages/code-weaver/     pure: Graph, weave and the route command (M2)
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks (relative links)
 tests/fixtures/salmon/    26 real nodes, no background to Salmon; parts 5 and 6 load them
