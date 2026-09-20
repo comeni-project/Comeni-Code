@@ -191,6 +191,106 @@
         ],
         "title": "RegionOut",
         "type": "object"
+      },
+      "RouteOut": {
+        "properties": {
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "known": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Known",
+            "type": "array"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "span": {
+            "$ref": "#/components/schemas/SpanOut"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/StopOut"
+            },
+            "title": "Stops",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goals",
+          "known",
+          "stops",
+          "span",
+          "minutes"
+        ],
+        "title": "RouteOut",
+        "type": "object"
+      },
+      "SpanOut": {
+        "properties": {
+          "highest": {
+            "title": "Highest",
+            "type": "string"
+          },
+          "lowest": {
+            "title": "Lowest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lowest",
+          "highest"
+        ],
+        "title": "SpanOut",
+        "type": "object"
+      },
+      "StopOut": {
+        "description": "A stop as the Route board draws it (L4), with why it is on this route (M2P2.2).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "needed_by": {
+            "items": {
+              "$ref": "#/components/schemas/NeighbourOut"
+            },
+            "title": "Needed By",
+            "type": "array"
+          },
+          "region": {
+            "$ref": "#/components/schemas/RegionOut"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "level",
+          "minutes",
+          "region",
+          "needed_by"
+        ],
+        "title": "StopOut",
+        "type": "object"
       }
     }
   },
@@ -280,6 +380,80 @@
           }
         },
         "summary": "A node and its neighbours",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/routes": {
+      "get": {
+        "operationId": "code_api_content_routes_route",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "goal",
+            "required": true,
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Goal",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "known",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Known"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "A route to one or more goals",
         "tags": [
           "content"
         ]
