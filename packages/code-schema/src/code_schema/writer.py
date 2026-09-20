@@ -13,6 +13,8 @@ import yaml
 
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
+from code_schema.questions import TRY_FIELD, Question
+from code_schema.resources import RESOURCE_FIELD, Resource
 
 # PyYAML folds long strings at 80 columns by default; a claim or a reason must stay on one line.
 _NO_FOLDING = 1_000_000
@@ -31,6 +33,38 @@ class _IndentedDumper(yaml.SafeDumper):
         return super().increase_indent(flow, False)
 
 
+def _resource(resource: Resource) -> dict[str, object]:
+    """The spec's field order (M3P1.2); part only when the author wrote one."""
+    written: dict[str, object] = {"kind": resource.kind, "provider": resource.provider}
+    written["url"] = resource.url
+    if resource.part:
+        written["part"] = resource.part
+    written["covers"] = resource.covers
+    written["licence"] = resource.licence
+    written["display"] = resource.display
+    written["level"] = resource.level.value
+    return written
+
+
+def _question(question: Question) -> dict[str, object]:
+    """The spec's field order (M3P1.3); nothing empty is invented."""
+    written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
+    if question.options:
+        written["options"] = [
+            {"text": option.text, "right": True} if option.right else {"text": option.text}
+            for option in question.options
+        ]
+    if question.answer is not None:
+        written["answer"] = question.answer
+    if question.unit:
+        written["unit"] = question.unit
+    if question.tolerance is not None:
+        written["tolerance"] = question.tolerance
+    written["hints"] = list(question.hints)
+    written["rationale"] = question.rationale
+    return written
+
+
 def write_node_yaml(node: Node) -> str:
     """The node's fields in the order the specs fix; each kind of link only when it has any."""
     fields: dict[str, object] = {
@@ -45,6 +79,10 @@ def write_node_yaml(node: Node) -> str:
         links: tuple[Link, ...] = getattr(node, attribute)
         if links:
             fields[key] = [{"node": link.node, "reason": link.reason} for link in links]
+    if node.resources:
+        fields[RESOURCE_FIELD] = [_resource(resource) for resource in node.resources]
+    if node.questions:
+        fields[TRY_FIELD] = [_question(question) for question in node.questions]
     return str(
         yaml.dump(
             fields,

@@ -5,6 +5,9 @@ from pathlib import Path
 
 from code_schema.links import Link
 from code_schema.node import Level, Node, read_node
+from code_schema.providers import Provider
+from code_schema.questions import Option, Question
+from code_schema.resources import Resource
 from code_schema.writer import write_node_folder, write_node_yaml
 
 REGIONS = {"sequence-analysis"}
@@ -151,3 +154,117 @@ def test_link_order_is_the_authors() -> None:
     )
     written = write_node_yaml(two)
     assert written.index("selective-alignment") < written.index("what-tpm-measures")
+
+
+# M3 part 1: resources and questions are written back too (spec M3P1.2, M3P1.3).
+
+PROVIDERS = {
+    "khan-academy": Provider("khan-academy", "Khan Academy", ("YouTube embed",), embed=True),
+    "openstax": Provider("openstax", "OpenStax", ("CC BY 4.0",), embed=False),
+}
+
+TAUGHT = replace(
+    NODE,
+    body="Salmon reads a transcriptome.\n\n{% try kmer-count %}\n\n{% try node-or-edge %}\n",
+    resources=(
+        Resource(
+            kind="video",
+            provider="khan-academy",
+            url="https://www.youtube.com/watch?v=abc",
+            covers="Why overlapping reads are assembled through their k-mers.",
+            licence="YouTube embed",
+            display="embed",
+            level=Level.INTRODUCTORY,
+            part="2:10–7:45",
+        ),
+        Resource(
+            kind="reading",
+            provider="openstax",
+            url="https://openstax.org/books/biology-2e/pages/17-1",
+            covers="The genome-sequencing section that sets up assembly.",
+            licence="CC BY 4.0",
+            display="link",
+            level=Level.FOUNDATIONS,
+        ),
+    ),
+    questions=(
+        Question(
+            id="kmer-count",
+            kind="number",
+            ask="How many 5-mers does a 100-base read contain?",
+            hints=("Every position where a window of width k still fits gives one k-mer.",),
+            rationale="A read of length L has L − k + 1 k-mers.",
+            answer=96,
+        ),
+        Question(
+            id="node-or-edge",
+            kind="choice",
+            ask="In this definition, is a k-mer a node or an edge?",
+            hints=("Look at what the definition puts in V and what it puts in E.",),
+            rationale="V holds the (k−1)-mers and E holds the k-mers.",
+            options=(Option(text="An edge", right=True), Option(text="A node")),
+        ),
+    ),
+)
+
+TAUGHT_YAML = """\
+resources:
+  - kind: video
+    provider: khan-academy
+    url: https://www.youtube.com/watch?v=abc
+    part: 2:10–7:45
+    covers: Why overlapping reads are assembled through their k-mers.
+    licence: YouTube embed
+    display: embed
+    level: introductory
+  - kind: reading
+    provider: openstax
+    url: https://openstax.org/books/biology-2e/pages/17-1
+    covers: The genome-sequencing section that sets up assembly.
+    licence: CC BY 4.0
+    display: link
+    level: foundations
+try:
+  - id: kmer-count
+    kind: number
+    ask: How many 5-mers does a 100-base read contain?
+    answer: 96
+    hints:
+      - Every position where a window of width k still fits gives one k-mer.
+    rationale: A read of length L has L − k + 1 k-mers.
+  - id: node-or-edge
+    kind: choice
+    ask: In this definition, is a k-mer a node or an edge?
+    options:
+      - text: An edge
+        right: true
+      - text: A node
+    hints:
+      - Look at what the definition puts in V and what it puts in E.
+    rationale: V holds the (k−1)-mers and E holds the k-mers.
+"""
+
+
+def test_resources_and_questions_are_written_after_the_core_fields() -> None:
+    assert write_node_yaml(TAUGHT) == CANONICAL + TAUGHT_YAML
+
+
+def test_law_1_holds_for_a_node_that_teaches(tmp_path: Path) -> None:
+    write_node_folder(TAUGHT, tmp_path / "salmon")
+    again, problems = read_node(
+        tmp_path / "salmon", regions=REGIONS, root=tmp_path, providers=PROVIDERS
+    )
+    assert problems == []
+    assert again == TAUGHT
+
+
+def test_law_2_holds_for_a_node_that_teaches(tmp_path: Path) -> None:
+    folder = tmp_path / "salmon"
+    folder.mkdir()
+    (folder / "node.yaml").write_text(CANONICAL + TAUGHT_YAML, encoding="utf-8")
+    (folder / "body.md").write_text(TAUGHT.body, encoding="utf-8")
+    node, problems = read_node(folder, regions=REGIONS, root=tmp_path, providers=PROVIDERS)
+    assert problems == []
+    assert node is not None
+    write_node_folder(node, folder)
+    assert (folder / "node.yaml").read_bytes() == (CANONICAL + TAUGHT_YAML).encode()

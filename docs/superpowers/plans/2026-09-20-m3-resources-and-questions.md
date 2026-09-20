@@ -95,7 +95,9 @@ def test_a_registry_is_read_in_order() -> None:
 
 
 def test_a_provider_listed_twice_is_a_problem() -> None:
-    _, problems = parse_providers(GOOD + "  - id: khan-academy\n    name: Again\n    licences: [x]\n    embed: false\n")
+    _, problems = parse_providers(
+        GOOD + "  - id: khan-academy\n    name: Again\n    licences: [x]\n    embed: false\n"
+    )
     assert [problem.message for problem in problems] == ['"khan-academy" is listed twice']
 
 
@@ -151,7 +153,7 @@ def _licences_problem(value: object) -> str | None:
     if not value:
         return "must list at least one licence"
     for entry in value:
-        if (wrong := _licence(entry)) is not None:   # one_line(max_len=60)
+        if (wrong := _licence(entry)) is not None:  # one_line(max_len=60)
             return wrong
     return None
 
@@ -385,13 +387,21 @@ if provider is None:
         message += f" — did you mean {close[0]}?"
     problems.append(problem(message, line_of("provider")))
 elif licence not in provider.licences:
-    problems.append(problem(
-        f"the resource from {provider.name} carries {licence}, "
-        f"which {provider.name} does not list", line_of("licence")))
+    problems.append(
+        problem(
+            f"the resource from {provider.name} carries {licence}, "
+            f"which {provider.name} does not list",
+            line_of("licence"),
+        )
+    )
 if provider is not None and display == "embed" and not provider.embed:
-    problems.append(problem(
-        f"the resource from {provider.name} asks for an embed it does not allow "
-        "— use display: link", line_of("display")))
+    problems.append(
+        problem(
+            f"the resource from {provider.name} asks for an embed it does not allow "
+            "— use display: link",
+            line_of("display"),
+        )
+    )
 ```
 
 - [ ] **Step 5: Run the tests**
@@ -497,7 +507,9 @@ def test_a_choice_question_is_read() -> None:
 def test_a_choice_needs_exactly_one_right_option() -> None:
     _, none = parse(CHOICE.replace("        right: true\n", ""))
     assert none[0].message == "the question node-or-edge has no right option"
-    _, two = parse(CHOICE.replace("      - text: A node", "      - text: A node\n        right: true"))
+    _, two = parse(
+        CHOICE.replace("      - text: A node", "      - text: A node\n        right: true")
+    )
     assert two[0].message == "the question node-or-edge has two right options"
 
 
@@ -513,7 +525,10 @@ def test_a_number_question_needs_an_answer() -> None:
 
 def test_options_on_a_number_question_are_refused() -> None:
     _, problems = parse(NUMBER + "    options:\n      - text: 96\n")
-    assert problems[0].message == "the number question kmer-count has options — a number question is answered with a value"
+    assert (
+        problems[0].message
+        == "the number question kmer-count has options — a number question is answered with a value"
+    )
 
 
 def test_a_figure_question_names_m6() -> None:
@@ -710,8 +725,11 @@ In `tests/schema/test_node.py`:
 ```python
 def test_a_node_carries_its_resources_and_questions() -> None:
     node, problems = parse_node(
-        node_yaml() + RESOURCES + TRY, "Prose.\n\n{% try kmer-count %}\n",
-        node_id="de-bruijn-graphs", regions=["sequence-analysis"], providers=PROVIDERS,
+        node_yaml() + RESOURCES + TRY,
+        "Prose.\n\n{% try kmer-count %}\n",
+        node_id="de-bruijn-graphs",
+        regions=["sequence-analysis"],
+        providers=PROVIDERS,
         file="de-bruijn-graphs/node.yaml",
     )
     assert problems == [] and node is not None
@@ -721,8 +739,11 @@ def test_a_node_carries_its_resources_and_questions() -> None:
 
 def test_a_marker_with_no_question_is_a_problem() -> None:
     _, problems = parse_node(
-        node_yaml(), "Prose.\n\n{% try ghost %}\n", node_id="a",
-        regions=["sequence-analysis"], file="a/node.yaml",
+        node_yaml(),
+        "Prose.\n\n{% try ghost %}\n",
+        node_id="a",
+        regions=["sequence-analysis"],
+        file="a/node.yaml",
     )
     assert [(problem.file, problem.line, problem.message) for problem in problems] == [
         ("a/body.md", 3, "{% try ghost %} names no question in node.yaml")
@@ -731,24 +752,33 @@ def test_a_marker_with_no_question_is_a_problem() -> None:
 
 def test_a_question_with_no_marker_is_a_problem() -> None:
     _, problems = parse_node(
-        node_yaml() + TRY, "Prose.\n", node_id="a",
-        regions=["sequence-analysis"], file="a/node.yaml",
+        node_yaml() + TRY,
+        "Prose.\n",
+        node_id="a",
+        regions=["sequence-analysis"],
+        file="a/node.yaml",
     )
     assert problems[0].message == "kmer-count has no {% try kmer-count %} in body.md"
 
 
 def test_two_markers_for_one_question_is_a_problem() -> None:
     _, problems = parse_node(
-        node_yaml() + TRY, "A.\n\n{% try kmer-count %}\n\nB.\n\n{% try kmer-count %}\n",
-        node_id="a", regions=["sequence-analysis"], file="a/node.yaml",
+        node_yaml() + TRY,
+        "A.\n\n{% try kmer-count %}\n\nB.\n\n{% try kmer-count %}\n",
+        node_id="a",
+        regions=["sequence-analysis"],
+        file="a/node.yaml",
     )
     assert problems[0].message == "{% try kmer-count %} appears twice in body.md"
 
 
 def test_another_marker_is_refused_by_name() -> None:
     _, problems = parse_node(
-        node_yaml(), 'Prose.\n\n{% figure component="x" %}\n', node_id="a",
-        regions=["sequence-analysis"], file="a/node.yaml",
+        node_yaml(),
+        'Prose.\n\n{% figure component="x" %}\n',
+        node_id="a",
+        regions=["sequence-analysis"],
+        file="a/node.yaml",
     )
     assert problems[0].message == (
         '{% figure component="x" %} is not read — only {% try %} markers are, until M6'
@@ -934,7 +964,9 @@ def test_a_rebuild_stores_providers_resources_and_questions(db, salmon_root) -> 
     assert Provider.objects.count() == 3
     node = Node.objects.get(id="de-bruijn-graphs")
     assert [resource.display for resource in node.resources.order_by("position")] == [
-        "embed", "link", "link"
+        "embed",
+        "link",
+        "link",
     ]
     question = node.questions.order_by("position").first()
     assert question.question_id == "kmer-count" and question.answer == 96
