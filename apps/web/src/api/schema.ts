@@ -120,6 +120,7 @@ export interface SpanOut {
  * A stop as the Route board draws it (L4), with why it is on this route (M2P2.2).
  */
 export interface StopOut {
+  claim: string;
   id: string;
   level: string;
   minutes: number;
