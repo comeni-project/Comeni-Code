@@ -10,8 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
-path) is in progress — parts 1 and 2 of six are built.** M3 part 2 added **search without a
-model**: `code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
+path) is in progress — parts 1 to 3 of six are built.** M3 part 3 gave the app a **router** and
+its **first screen**: `/` is the Start page (L1) — ask, confirm a target, see the route preview —
+with the health page moved to `/health`. M3 part 2 added **search without a model**:
+`code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
 `GET /api/search`. M3 part 1 gave a node its outside **resources** (checked against a
 `providers.yaml` registry) and its inline **try questions** with hints and a rationale, placed in
 `body.md` by `{% try <id> %}` markers, through the index to `GET /api/nodes/{node_id}`. M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
@@ -19,8 +21,8 @@ known set and a level span — reachable through `code-weaver route` and `GET /a
 node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
 the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
 `GET /api/nodes/{node_id}`. The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist; the web app (`apps/web`) shows the health page at `/` and the identity
-specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
+`/api/docs`) exist; the web app (`apps/web`) shows the Start page at `/`, the health page at `/health` and the
+identity specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
 in `comeni-code-content` takes only green pull requests.
 
 **First-time setup** (from the repository root, where every command runs):
@@ -285,7 +287,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
 apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, /api/search, health/, api.py, celery.py, redis.py), openapi.json, tests
-apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
+apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), health/, identity/, layout/, api/; its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
 .dockerignore             keeps .env and host builds out of images
