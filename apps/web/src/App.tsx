@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from "react-router";
 import { HealthPage } from "./health/HealthPage";
 import { Specimen } from "./identity/Specimen";
 import { TopBar } from "./layout/TopBar";
+import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
 
 function NotFound() {
@@ -28,6 +29,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<StartPage />} />
+      <Route path="/route" element={<RoutePage />} />
       <Route path="/health" element={<HealthPage />} />
       <Route path="/identity" element={<Specimen />} />
       <Route path="*" element={<NotFound />} />

@@ -37,21 +37,10 @@ describe("the map", () => {
     expect(screen.getByRole("button", { name: /k-mers/ })).toHaveAttribute("aria-current", "true");
   });
 
-  it("names every band beside the map", () => {
-    map();
-    for (const name of [
-      "Molecular biology",
-      "Sequencing",
-      "Sequence analysis",
-      "Statistics",
-      "Transcriptomics",
-    ]) {
-      expect(screen.getByText(name)).toBeInTheDocument();
-    }
-  });
-
   it("describes itself for a reader who cannot see it", () => {
     map();
-    expect(screen.getByRole("img", { name: /17 stops/ })).toBeInTheDocument();
+    const drawing = screen.getByRole("img", { name: /17 stops/ });
+    expect(drawing).toHaveAccessibleName(/5 lines/);
+    expect(drawing).toHaveAccessibleName(/ending at Salmon/);
   });
 });

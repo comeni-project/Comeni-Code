@@ -2,11 +2,9 @@
 //
 // The paths are SVG; the stops are real HTML buttons laid over it, so a stop can be reached with
 // the keyboard and named for a screen reader. One colour for every line — W10 gives one meaning
-// per colour, so lines are told apart by position and the labels at the left, as the board does.
+// per colour — and the lines are named in the page's rail above the map, as the board does it.
 import type { RouteOut } from "../api/schema";
 import { layout } from "./layout";
-
-const LABEL_Y = 16;
 
 export function RouteMap({
   route,
@@ -55,17 +53,6 @@ export function RouteMap({
               strokeWidth={2.5}
               strokeLinejoin="round"
             />
-          ))}
-          {drawn.bands.map((band) => (
-            <text
-              key={band.region.id}
-              x={4}
-              y={band.y + LABEL_Y}
-              className="fill-ink-3 font-mono"
-              style={{ fontSize: 11 }}
-            >
-              {band.region.name}
-            </text>
           ))}
         </svg>
 
