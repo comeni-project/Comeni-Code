@@ -1,0 +1,155 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ResultOut, SearchOut } from "../api/schema";
+import { StartPage } from "./StartPage";
+
+const salmon: ResultOut = {
+  id: "salmon",
+  title: "Salmon",
+  claim: "Salmon estimates how much of each transcript a sample holds.",
+  level: "intermediate",
+  minutes: 15,
+  region: { id: "transcriptomics", name: "Transcriptomics" },
+};
+
+const kallisto: ResultOut = { ...salmon, id: "kallisto", title: "kallisto" };
+const tpm: ResultOut = { ...salmon, id: "tpm", title: "TPM" };
+
+const found = (results: ResultOut[], unmatched: string[] = []): SearchOut => ({
+  query: "salmon",
+  results,
+  unmatched,
+});
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+/** One stub for both endpoints: whichever URL is asked for gets its own answer. */
+function answering(search: unknown, route?: unknown, status = 200) {
+  const stub = vi.fn(async (url: string) =>
+    url.startsWith("/api/search") ? json(search, status) : json(route ?? {}, status),
+  );
+  vi.stubGlobal("fetch", stub);
+  return stub;
+}
+
+function open(path = "/") {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={[path]}>
+        <StartPage />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("the Start page", () => {
+  it("asks the question and offers the board's examples", () => {
+    answering(found([]));
+    open();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "What do you want to learn?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Why my reads don't map" })).toBeInTheDocument();
+  });
+
+  it("searches what was typed, and puts it in the url", async () => {
+    answering(found([salmon]));
+    open();
+    await userEvent.type(screen.getByLabelText("What do you want to learn?"), "salmon");
+    await userEvent.click(screen.getByRole("button", { name: "Build my route" }));
+    expect(await screen.findByText("Is this what you mean?")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/search?q=salmon"),
+      expect.anything(),
+    );
+  });
+
+  it("searches straight away when the url already carries the words", async () => {
+    answering(found([salmon]));
+    open("/?q=salmon");
+    expect(await screen.findByRole("button", { name: "Choose Salmon" })).toBeInTheDocument();
+    expect(screen.getByText(salmon.claim)).toBeInTheDocument();
+  });
+
+  it("says it is searching while it waits", () => {
+    vi.stubGlobal("fetch", () => new Promise(() => {}));
+    open("/?q=salmon");
+    expect(screen.getByText("Searching…")).toBeInTheDocument();
+  });
+
+  it("names a word nothing is about", async () => {
+    answering(found([], ["nanopore"]));
+    open("/?q=nanopore");
+    expect(await screen.findByText(/Nothing here is about “nanopore” yet/)).toBeInTheDocument();
+  });
+
+  it("prints the API's own sentence when there is no index", async () => {
+    answering({ detail: "The index has not been built yet." }, undefined, 503);
+    open("/?q=salmon");
+    expect(await screen.findByText("The index has not been built yet.")).toBeInTheDocument();
+  });
+
+  it("says when it cannot reach the API", async () => {
+    vi.stubGlobal("fetch", async () => {
+      throw new TypeError("no network");
+    });
+    open("/?q=salmon");
+    expect(await screen.findByText(/Can't reach the API · network error/)).toBeInTheDocument();
+  });
+
+  it("searches an example's phrase when it is clicked", async () => {
+    answering(found([salmon]));
+    open();
+    await userEvent.click(screen.getByRole("button", { name: "Why my reads don't map" }));
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("q=Why+my+reads+don%27t+map"),
+      expect.anything(),
+    );
+  });
+
+  it("keeps up to three targets, and then stops offering more", async () => {
+    answering(found([salmon, kallisto, tpm]), route());
+    open("/?q=salmon");
+    for (const title of ["Salmon", "kallisto", "TPM"]) {
+      await userEvent.click(await screen.findByRole("button", { name: `Choose ${title}` }));
+    }
+    expect(screen.getByText("Three targets is the most a route takes.")).toBeInTheDocument();
+  });
+
+  it("drops a target when its chip is removed", async () => {
+    answering(found([salmon, kallisto]), route());
+    open("/?q=salmon&goal=salmon");
+    await userEvent.click(await screen.findByRole("button", { name: "Remove Salmon" }));
+    expect(screen.queryByRole("button", { name: "Remove Salmon" })).not.toBeInTheDocument();
+  });
+});
+
+/** The 17-stop Salmon route, in the shape /api/routes answers (M2P4.2). */
+export function route() {
+  const stop = (id: string, title: string, minutes: number) => ({
+    id,
+    title,
+    level: "first-steps",
+    minutes,
+    region: { id: "molecular-biology", name: "Molecular biology" },
+    needed_by: [],
+  });
+  return {
+    goals: ["salmon"],
+    known: [],
+    minutes: 184,
+    span: { lowest: "first-steps", highest: "intermediate" },
+    stops: [
+      stop("dna-and-genes", "DNA and genes", 10),
+      ...Array.from({ length: 15 }, (_, index) => stop(`stop-${index}`, `Stop ${index}`, 11)),
+      { ...stop("salmon", "Salmon", 15), level: "intermediate" },
+    ],
+  };
+}
