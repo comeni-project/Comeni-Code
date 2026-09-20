@@ -94,7 +94,7 @@ bad flag, so 2 is already the usage code.
 |---|---|---|
 | `--root` is not a folder | `code-weaver: no such folder: x` | 2 |
 | `read_content` found problems | `code-weaver: 3 problems in the content; run code-schema validate x` | 1 |
-| `Graph(...)` refused the content | `GraphError`'s lines, one per problem | 1 |
+| `Graph(...)` refused the content (defensive: validated content never is) | `GraphError`'s lines, one per problem | 1 |
 | A goal is not a node in the content | `code-weaver: not in the content: zzz` | 2 |
 
 - **Content problems are not re-listed.** `code-schema validate` prints them with file, line and
@@ -120,7 +120,7 @@ code is another thing to keep in step across three commands.
 | two goals: both named in the header, in route order | goals are a set (M2P1.4) |
 | a missing folder, a file as the root: the message and 2 | usage errors |
 | a content folder with a broken node: the count, the advice, and 1 | content problems |
-| a content folder whose needs form a cycle: `GraphError`'s line and 1 | a refused graph |
+| a refused graph (built by hand: `read_content` already refuses a cycle): its lines and 1 | the defensive branch |
 | an unknown goal: `not in the content: zzz` and 2 | `UnknownGoal` is caught |
 | a node with a 60-character title and a long reason: the line is cut with `…` and still 100 | cutting |
 
