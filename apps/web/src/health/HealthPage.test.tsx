@@ -1,6 +1,7 @@
 // Every health state, in words (M0 part 7 spec, P7.4). fetch is stubbed; no API runs.
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { HealthOut } from "../api/schema";
 import { HealthPage } from "./HealthPage";
@@ -21,7 +22,9 @@ function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <HealthPage pollMs={false} />
+      <MemoryRouter>
+        <HealthPage pollMs={false} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }

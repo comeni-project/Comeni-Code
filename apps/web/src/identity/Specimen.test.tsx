@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it } from "vitest";
 import { Specimen } from "./Specimen";
 
@@ -6,7 +7,11 @@ afterEach(() => document.documentElement.removeAttribute("data-theme"));
 
 describe("Specimen", () => {
   it("says every colour role in words, not colour alone", () => {
-    render(<Specimen />);
+    render(
+      <MemoryRouter>
+        <Specimen />
+      </MemoryRouter>,
+    );
     for (const role of [
       "Route · valid",
       "Next · selected",
@@ -19,7 +24,11 @@ describe("Specimen", () => {
   });
 
   it("switches the theme attribute, and system removes it", () => {
-    render(<Specimen />);
+    render(
+      <MemoryRouter>
+        <Specimen />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByRole("button", { name: "dark" }));
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     fireEvent.click(screen.getByRole("button", { name: "light" }));
