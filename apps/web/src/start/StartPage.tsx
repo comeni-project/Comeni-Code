@@ -6,12 +6,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { ApiUnreachable } from "../api/client";
+import { fetchRoute } from "../api/routes";
 import type { ResultOut } from "../api/schema";
 import { fetchSearch } from "../api/search";
 import { TopBar } from "../layout/TopBar";
 import { EXAMPLES } from "./examples";
+import { RoutePreview } from "./RoutePreview";
 
 export const MAX_GOALS = 3;
+
+/** The Route page part 4 builds, in the vocabulary the API already speaks (M3P3.2). */
+export const routePage = (goals: readonly string[]) =>
+  `/route?${new URLSearchParams(goals.map((goal) => ["goal", goal]))}`;
 
 const sentenceOf = (error: Error) =>
   error instanceof ApiUnreachable && error.status !== undefined
@@ -70,6 +76,13 @@ export function StartPage() {
     for (const goal of goals.filter((other) => other !== id)) next.append("goal", goal);
     setParams(next);
   }
+
+  const preview = useQuery({
+    queryKey: ["route", ...goals],
+    queryFn: ({ signal }) => fetchRoute(goals, [], signal),
+    enabled: goals.length > 0,
+    retry: false,
+  });
 
   const chosen = (search.data?.results ?? []).filter((result) => goals.includes(result.id));
 
@@ -181,6 +194,16 @@ export function StartPage() {
                 </ul>
               )}
             </section>
+          )}
+
+          {goals.length === 0 ? null : preview.isPending ? (
+            <p className="text-[15px] text-ink-2">Weaving your route…</p>
+          ) : preview.isError ? (
+            <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
+              {sentenceOf(preview.error)}
+            </p>
+          ) : (
+            <RoutePreview route={preview.data} href={routePage(goals)} />
           )}
         </div>
       </main>

@@ -153,3 +153,49 @@ export function route() {
     ],
   };
 }
+
+describe("the route preview", () => {
+  const chosen = "/?q=salmon&goal=salmon";
+
+  it("shows the route once a target is chosen", async () => {
+    answering(found([salmon]), route());
+    open(chosen);
+    expect(await screen.findByText("17 stops")).toBeInTheDocument();
+    expect(screen.getByText("about 3 h 4 min")).toBeInTheDocument();
+    expect(screen.getByText("First steps → Intermediate")).toBeInTheDocument();
+    expect(screen.getByText("DNA and genes")).toBeInTheDocument();
+  });
+
+  it("marks the goal among the stops", async () => {
+    answering(found([salmon]), route());
+    open(chosen);
+    expect(await screen.findByText("your goal")).toBeInTheDocument();
+  });
+
+  it("says it is weaving while it waits", async () => {
+    vi.stubGlobal("fetch", async (url: string) =>
+      url.startsWith("/api/search") ? json(found([salmon])) : new Promise(() => {}),
+    );
+    open(chosen);
+    expect(await screen.findByText("Weaving your route…")).toBeInTheDocument();
+  });
+
+  it("links Start from the beginning to the route page", async () => {
+    answering(found([salmon]), route());
+    open(chosen);
+    expect(await screen.findByRole("link", { name: "Start from the beginning" })).toHaveAttribute(
+      "href",
+      "/route?goal=salmon",
+    );
+  });
+
+  it("prints the API's sentence when the route cannot be woven", async () => {
+    vi.stubGlobal("fetch", async (url: string) =>
+      url.startsWith("/api/search")
+        ? json(found([salmon]))
+        : json({ detail: "No topic with id 'salmon'. It may have been removed or renamed." }, 404),
+    );
+    open(chosen);
+    expect(await screen.findByText(/No topic with id 'salmon'/)).toBeInTheDocument();
+  });
+});
