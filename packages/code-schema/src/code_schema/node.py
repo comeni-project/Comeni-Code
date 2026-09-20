@@ -10,7 +10,6 @@ from __future__ import annotations
 import difflib
 from collections.abc import Collection
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
 
 from code_schema.fields import (
@@ -23,23 +22,20 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+
+# Re-exported: every earlier part imports Level from here (M1P1.3).
+from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
+from code_schema.markers import find_markers
 from code_schema.problems import Problem
+from code_schema.providers import Provider
+from code_schema.questions import TRY_FIELD, Question, parse_questions
+from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
 from code_schema.yaml_lines import Lines, load_mapping
 
 SCHEMA = 1
 NODE_FILE = "node.yaml"
 BODY_FILE = "body.md"
-
-
-class Level(StrEnum):
-    """T10.1's five. A level describes a node, never a learner."""
-
-    FIRST_STEPS = "first-steps"
-    FOUNDATIONS = "foundations"
-    INTRODUCTORY = "introductory"
-    INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
 
 
 @dataclass(frozen=True)
@@ -54,6 +50,8 @@ class Node:
     needs: tuple[Link, ...] = ()
     goes_deeper: tuple[Link, ...] = ()
     related: tuple[Link, ...] = ()
+    resources: tuple[Resource, ...] = ()
+    questions: tuple[Question, ...] = ()
 
 
 def fields(regions: Collection[str]) -> tuple[Spec, ...]:
@@ -82,6 +80,7 @@ def parse_node(
     node_id: str,
     regions: Collection[str],
     file: str,
+    providers: dict[str, Provider] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """Never raises. Returns the node only when there is no problem at all."""
     folder = file.rsplit("/", 1)[0] + "/" if "/" in file else ""
@@ -98,7 +97,7 @@ def parse_node(
         return None, sorted(problems, key=Problem.sort_key)
 
     specs = fields(regions)
-    names = [*(spec.name for spec in specs), *LINK_FIELDS]
+    names = [*(spec.name for spec in specs), *LINK_FIELDS, RESOURCE_FIELD, TRY_FIELD]
     required = {spec.name for spec in specs if spec.required}
     absent = [name for name in names if name not in data]
     missing = [name for name in absent if name in required]
@@ -125,6 +124,24 @@ def parse_node(
 
     links = _parse_all_links(data, node_id=node_id, lines=lines, file=file, problems=problems)
 
+    resources: tuple[Resource, ...] = ()
+    if RESOURCE_FIELD in data:
+        resources, resource_problems = parse_resources(
+            data[RESOURCE_FIELD], providers=providers, lines=lines, file=file
+        )
+        problems += resource_problems
+
+    questions: tuple[Question, ...] = ()
+    question_problems: list[Problem] = []
+    if TRY_FIELD in data:
+        questions, question_problems = parse_questions(data[TRY_FIELD], lines=lines, file=file)
+        problems += question_problems
+    if not question_problems:
+        # A question that did not parse has no marker to check, and one cascade is enough.
+        problems += _marker_problems(
+            body, questions, lines=lines, data=data, file=file, body_file=f"{folder}{BODY_FILE}"
+        )
+
     if problems:
         return None, sorted(problems, key=Problem.sort_key)
 
@@ -150,9 +167,72 @@ def parse_node(
             needs=links["needs"],
             goes_deeper=links["goes-deeper"],
             related=links["related"],
+            resources=resources,
+            questions=questions,
         ),
         [],
     )
+
+
+def _marker_problems(
+    body: str,
+    questions: tuple[Question, ...],
+    *,
+    lines: Lines,
+    data: dict[str, object],
+    file: str,
+    body_file: str,
+) -> list[Problem]:
+    """A question is asked where its marker is, so the two lists must match exactly (M3P1.3)."""
+    markers, others = find_markers(body)
+    problems = [
+        Problem(
+            file=body_file,
+            line=line,
+            message=f"{text} is not read — only {{% try %}} markers are, until M6",
+        )
+        for text, line in others
+    ]
+
+    asked = {question.id for question in questions}
+    seen: set[str] = set()
+    for marker in markers:
+        if marker.id not in asked:
+            problems.append(
+                Problem(
+                    file=body_file,
+                    line=marker.line,
+                    message=f"{{% try {marker.id} %}} names no question in {NODE_FILE}",
+                )
+            )
+        elif marker.id in seen:
+            problems.append(
+                Problem(
+                    file=body_file,
+                    line=marker.line,
+                    message=f"{{% try {marker.id} %}} appears twice in {BODY_FILE}",
+                )
+            )
+        seen.add(marker.id)
+
+    entries = data.get(TRY_FIELD)
+    written = entries if isinstance(entries, list) else []
+    for question in questions:
+        if question.id in seen:
+            continue
+        entry = next(
+            (item for item in written if isinstance(item, dict) and item.get("id") == question.id),
+            None,
+        )
+        problems.append(
+            Problem(
+                file=file,
+                field=TRY_FIELD,
+                line=None if entry is None else lines.of(entry, "id"),
+                message=(f"{question.id} has no {{% try {question.id} %}} in {BODY_FILE}"),
+            )
+        )
+    return problems
 
 
 def _parse_all_links(
@@ -203,7 +283,11 @@ def _read_text(path: Path) -> tuple[str | None, str | None]:
 
 
 def read_node(
-    folder: Path, *, regions: Collection[str], root: Path | None = None
+    folder: Path,
+    *,
+    regions: Collection[str],
+    root: Path | None = None,
+    providers: dict[str, Provider] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """Read one node folder. The id is the folder's name (spec M1P1.2).
 
@@ -242,5 +326,10 @@ def read_node(
         return None, problems
 
     return parse_node(
-        node_yaml, body, node_id=folder.name, regions=regions, file=f"{where}{NODE_FILE}"
+        node_yaml,
+        body,
+        node_id=folder.name,
+        regions=regions,
+        providers=providers,
+        file=f"{where}{NODE_FILE}",
     )

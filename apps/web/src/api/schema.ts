@@ -5,7 +5,11 @@ export interface ApiSchemas {
   Message: Message;
   NeighbourOut: NeighbourOut;
   NodeOut: NodeOut;
+  OptionOut: OptionOut;
+  ProviderOut: ProviderOut;
+  QuestionOut: QuestionOut;
   RegionOut: RegionOut;
+  ResourceOut: ResourceOut;
   RouteOut: RouteOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
@@ -40,10 +44,49 @@ export interface NodeOut {
   minutes: number;
   needed_by: NeighbourOut[];
   needs: NeighbourOut[];
+  questions: QuestionOut[];
   region: RegionOut;
   related: NeighbourOut[];
+  resources: ResourceOut[];
+}
+/**
+ * A try question, its answer included: it is formative, and the page checks it (M3P1.4).
+ *
+ * Exam questions (T7.1) are scored, and their answers never leave the server.
+ */
+export interface QuestionOut {
+  answer: number | null;
+  ask: string;
+  hints: string[];
+  id: string;
+  kind: string;
+  options: OptionOut[] | null;
+  rationale: string;
+  tolerance: number | null;
+  unit: string | null;
+}
+export interface OptionOut {
+  right: boolean;
+  text: string;
 }
 export interface RegionOut {
+  id: string;
+  name: string;
+}
+/**
+ * One entry of the Learn it section (M3P1.2). Our sentence and a link, never their text.
+ */
+export interface ResourceOut {
+  covers: string;
+  display: string;
+  kind: string;
+  level: string;
+  licence: string;
+  part: string;
+  provider: ProviderOut;
+  url: string;
+}
+export interface ProviderOut {
   id: string;
   name: string;
 }

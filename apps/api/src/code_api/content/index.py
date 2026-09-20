@@ -12,8 +12,17 @@ from pathlib import Path
 
 from django.db import connection, transaction
 
-from code_api.content.models import IndexBuild, Link, Node, Region
+from code_api.content.models import (
+    IndexBuild,
+    Link,
+    Node,
+    Provider,
+    Question,
+    Region,
+    Resource,
+)
 from code_schema import Content, read_content
+from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
 from code_schema.regions import REGISTRY
 
 # Any fixed number: it names the transaction-scoped lock two rebuilds take in turn.
@@ -21,13 +30,13 @@ _LOCK = 5_172_031
 
 
 def content_digest(root: Path, content: Content) -> str:
-    """SHA-256 over regions.yaml and every file inside every node folder, in sorted path order.
+    """SHA-256 over the registries and every file inside every node folder, in sorted path order.
 
     Files outside the nodes (a README, .github/) do not change the index, so they do not change
     the digest. Each file contributes its relative path, its size and its bytes, so no two
     different folders hash alike by moving bytes between files.
     """
-    files = [root / REGISTRY] if (root / REGISTRY).is_file() else []
+    files = [root / name for name in (REGISTRY, PROVIDER_REGISTRY) if (root / name).is_file()]
     for folder in content.folders.values():
         for path in (root / folder).rglob("*"):
             relative = path.relative_to(root)
@@ -85,6 +94,52 @@ def _link_rows(content: Content) -> list[Link]:
     return rows
 
 
+def _provider_rows(content: Content) -> list[Provider]:
+    return [
+        Provider(id=provider.id, name=provider.name, position=position)
+        for position, provider in enumerate(content.providers.values())
+    ]
+
+
+def _resource_rows(content: Content) -> list[Resource]:
+    return [
+        Resource(
+            node_id=node.id,
+            position=position,
+            kind=resource.kind,
+            provider_id=resource.provider,
+            url=resource.url,
+            part=resource.part,
+            covers=resource.covers,
+            licence=resource.licence,
+            display=resource.display,
+            level=resource.level.value,
+        )
+        for node in content.nodes.values()
+        for position, resource in enumerate(node.resources)
+    ]
+
+
+def _question_rows(content: Content) -> list[Question]:
+    return [
+        Question(
+            node_id=node.id,
+            position=position,
+            question_id=question.id,
+            kind=question.kind,
+            ask=question.ask,
+            options=[{"text": option.text, "right": option.right} for option in question.options],
+            answer=question.answer,
+            unit=question.unit,
+            tolerance=question.tolerance,
+            hints=list(question.hints),
+            rationale=question.rationale,
+        )
+        for node in content.nodes.values()
+        for position, question in enumerate(node.questions)
+    ]
+
+
 def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
     """Replace the index with `root`'s content, or change nothing and record why.
 
@@ -105,11 +160,17 @@ def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
         with connection.cursor() as cursor:
             cursor.execute("SELECT pg_advisory_xact_lock(%s)", [_LOCK])
         Link.objects.all().delete()
+        Question.objects.all().delete()
+        Resource.objects.all().delete()
         Node.objects.all().delete()
         Region.objects.all().delete()
+        Provider.objects.all().delete()
         Region.objects.bulk_create(_region_rows(content))
+        Provider.objects.bulk_create(_provider_rows(content))
         Node.objects.bulk_create(_node_rows(content))
         Link.objects.bulk_create(_link_rows(content))
+        Resource.objects.bulk_create(_resource_rows(content))
+        Question.objects.bulk_create(_question_rows(content))
         return IndexBuild.objects.create(
             outcome=IndexBuild.Outcome.APPLIED,
             digest=digest,

@@ -5,6 +5,7 @@ from pathlib import Path
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
+from code_schema.providers import Provider
 
 REGIONS = {"sequence-analysis", "molecular-biology"}
 
@@ -259,3 +260,106 @@ def test_the_designed_optional_paths_are_refused_until_wired() -> None:
     assert [str(p) for p in problems] == [
         "salmon/node.yaml:8: needs: unknown key `any-of` in a link (a link has node and reason)"
     ]
+
+
+# M3 part 1: resources and try questions belong to the node (spec M3P1.1).
+
+PROVIDERS = {
+    "khan-academy": Provider("khan-academy", "Khan Academy", ("YouTube embed",), embed=True),
+}
+
+RESOURCES = """resources:
+  - kind: video
+    provider: khan-academy
+    url: https://www.youtube.com/watch?v=abc
+    part: 2:10–7:45
+    covers: Why overlapping reads are assembled through their k-mers.
+    licence: YouTube embed
+    display: embed
+    level: introductory
+"""
+
+TRY = """try:
+  - id: kmer-count
+    kind: number
+    ask: How many 5-mers does a 100-base read contain?
+    answer: 96
+    hints:
+      - Every position where a window of width k still fits gives one k-mer.
+    rationale: A read of length L has L − k + 1 k-mers.
+"""
+
+ASKED = "Prose.\n\n{% try kmer-count %}\n"
+
+
+def parse_with_providers(text: str, body: str = BODY) -> tuple[Node | None, list[Problem]]:
+    return parse_node(
+        text,
+        body,
+        node_id="salmon",
+        regions=REGIONS,
+        providers=PROVIDERS,
+        file="salmon/node.yaml",
+    )
+
+
+def test_a_node_carries_its_resources_and_questions() -> None:
+    node, problems = parse_with_providers(GOOD + RESOURCES + TRY, ASKED)
+    assert problems == []
+    assert node is not None
+    assert node.resources[0].provider == "khan-academy"
+    assert node.questions[0].id == "kmer-count"
+
+
+def test_a_node_without_them_has_empty_tuples() -> None:
+    node, problems = parse(GOOD)
+    assert problems == []
+    assert node is not None
+    assert node.resources == ()
+    assert node.questions == ()
+
+
+def test_a_marker_with_no_question_is_a_problem() -> None:
+    _, problems = parse(GOOD, "Prose.\n\n{% try ghost %}\n")
+    assert [(problem.file, problem.line, problem.message) for problem in problems] == [
+        ("salmon/body.md", 3, "{% try ghost %} names no question in node.yaml")
+    ]
+
+
+def test_a_question_with_no_marker_is_a_problem() -> None:
+    _, problems = parse(GOOD + TRY)
+    assert [(problem.file, problem.message) for problem in problems] == [
+        ("salmon/node.yaml", "kmer-count has no {% try kmer-count %} in body.md")
+    ]
+
+
+def test_two_markers_for_one_question_is_a_problem() -> None:
+    body = "A.\n\n{% try kmer-count %}\n\nB.\n\n{% try kmer-count %}\n"
+    _, problems = parse(GOOD + TRY, body)
+    assert [(problem.line, problem.message) for problem in problems] == [
+        (7, "{% try kmer-count %} appears twice in body.md")
+    ]
+
+
+def test_another_marker_is_refused_by_name() -> None:
+    _, problems = parse(GOOD, 'Prose.\n\n{% figure component="x" %}\n')
+    assert [problem.message for problem in problems] == [
+        '{% figure component="x" %} is not read — only {% try %} markers are, until M6'
+    ]
+
+
+def test_a_broken_question_does_not_also_report_its_marker() -> None:
+    _, problems = parse(GOOD + TRY.replace("    answer: 96\n", ""), ASKED)
+    assert [problem.message for problem in problems] == [
+        "the number question kmer-count has no answer"
+    ]
+
+
+def test_a_resource_without_a_registry_keeps_its_other_rules() -> None:
+    _, problems = parse(GOOD + RESOURCES.replace("https://", "http://"))
+    assert [problem.message for problem in problems] == ["the url must start with https://"]
+
+
+def test_resources_and_try_are_named_on_a_near_miss() -> None:
+    _, problems = parse(GOOD + "resource:\n  - kind: video\n")
+    assert problems[0].message == "unknown field `resource` — did you mean `resources`?"

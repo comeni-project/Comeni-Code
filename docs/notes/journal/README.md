@@ -6,9 +6,13 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-20-m3-in-parts.md`](2026-09-20-m3-in-parts.md)**: **M3, the thin learner path**, in six
+> [`2026-09-20-m3-part-1-resources-and-questions.md`](2026-09-20-m3-part-1-resources-and-questions.md)**:
+> **M3 part 1 is built** — a node carries outside resources, checked against a `providers.yaml`
+> registry, and try questions with hints and a rationale, placed in the prose by `{% try %}`
+> markers, through the index to `GET /api/nodes/{node_id}`. M3's parts are in
+> [`2026-09-20-m3-in-parts.md`](2026-09-20-m3-in-parts.md): **the thin learner path**, in six
 > parts — resources and try questions, search, the spine with Start, Route, Node, First steps; the
-> Route page reads `known` from the URL and no page invents learner state. Before it,
+> Route page reads `known` from the URL and no page invents learner state. Before those,
 > [`2026-09-20-m2-part-4-route-api.md`](2026-09-20-m2-part-4-route-api.md) says **M2 is done** —
 > `GET /api/routes?goal=salmon` weaves from the index and returns the stops as cards, with M2's
 > done-when table. The command is
@@ -41,7 +45,7 @@ reads the newest entry first and is productive in five minutes.
 > requests. For the Compose stack and merging safely, read
 > [part 8's entry](2026-09-17-m0-part-8-compose-stack.md); for the health page,
 > [part 7's](2026-09-17-m0-part-7-health-page.md); for the product direction,
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Six entries share 2026-09-18, and four share 2026-09-20.
+> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Six entries share 2026-09-18, and five share 2026-09-20.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -79,6 +83,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-20](2026-09-20-m3-part-1-resources-and-questions.md) | **M3 part 1 built.** `resources:` and `try:` in node.yaml, a providers.yaml registry deciding licences and embeds, `{% try id %}` markers in body.md, three index tables, and both lists on the node endpoint |
 | [2026-09-20](2026-09-20-m3-in-parts.md) | **M3 in parts.** Six parts: resources and try questions, search without AI, the spine and Start, Route, Node, First steps; `known` from the URL, no stored learner state, the body stays Markdown until M4. No page code |
 | [2026-09-20](2026-09-20-m2-part-4-route-api.md) | **M2 part 4 built; M2 done.** `GET /api/routes?goal=&known=`: stops as cards with their needed_by, the span and the minutes, three queries; 404, 422 and 503; the whole index per request is the MVP's bargain |
 | [2026-09-20](2026-09-20-m2-part-3-route-cli.md) | **M2 part 3 built.** `code-weaver route <goal>… --root <folder> [--known <id>]…`: a header with the count, time and span, then one line per stop with its first reason, at a fixed width of 100; exit 0/1/2 |

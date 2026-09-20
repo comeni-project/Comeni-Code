@@ -5,6 +5,8 @@ A  ACGTTGCA   ACGT CGTT GTTG TTGC TGCA
 B  ACGTTGAA   ACGT CGTT GTTG TTGA TGAA
 ```
 
+{% try kmers-per-read %}
+
 Make each distinct 4-mer a node, and draw an edge from `ACGT` to `CGTT` because the last three
 letters of one are the first three of the other. A and B share the path
 `ACGT → CGTT → GTTG`, stored once, and then it branches.
@@ -14,6 +16,8 @@ or `TTGAA`. That is a **compacted** de Bruijn graph. Recording which sequences e
 makes it **coloured**. Genome assemblers use these graphs to rebuild a genome from reads; the
 textbook form for assembly puts (k − 1)-mers on the nodes and k-mers on the edges, which is the
 same idea.
+
+{% try shared-unitig %}
 
 ## Further reading
 

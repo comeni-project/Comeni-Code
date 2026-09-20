@@ -2,9 +2,11 @@
 
 from code_schema.fields import (
     exactly,
+    https_url,
     one_line,
     one_of,
     one_sentence,
+    seconds,
     shown,
     slug,
     whole_number,
@@ -62,3 +64,20 @@ def test_slug_states_the_pattern() -> None:
     assert check("Sequence Analysis") == (
         '"Sequence Analysis" is not a region id (lower case, digits and single hyphens)'
     )
+
+
+def test_https_url_refuses_anything_else(name: str = "url") -> None:
+    check = https_url()
+    assert check("https://openstax.org/books/biology-2e/pages/17-1") is None
+    assert check("http://openstax.org") == "the url must start with https://"
+    assert check("openstax.org") == "the url must start with https://"
+    assert check("https://openstax.org/a page") == '"https://openstax.org/a page" is not a url'
+    assert check(7) == "7 is not a url"
+
+
+def test_seconds_reads_a_timestamp_or_answers_none() -> None:
+    assert seconds("7:45") == 465
+    assert seconds("1:07:45") == 4065
+    assert seconds("0:00") == 0
+    assert seconds("7:45.5") is None
+    assert seconds("the middle") is None

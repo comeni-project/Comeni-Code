@@ -40,3 +40,26 @@ def content_root(tmp_path: Path) -> Path:
 
 def rendered(root: Path) -> list[str]:
     return [str(p) for p in read_content(root).problems]
+
+
+PROVIDERS = """providers:
+  - id: khan-academy
+    name: Khan Academy
+    licences: [YouTube embed]
+    embed: true
+"""
+
+RESOURCE = """resources:
+  - kind: video
+    provider: khan-academy
+    url: https://www.youtube.com/watch?v=abc
+    covers: Why overlapping reads are assembled through their k-mers.
+    licence: YouTube embed
+    display: embed
+    level: introductory
+"""
+
+
+def with_providers(root: Path) -> Path:
+    (root / "providers.yaml").write_text(PROVIDERS, encoding="utf-8")
+    return root

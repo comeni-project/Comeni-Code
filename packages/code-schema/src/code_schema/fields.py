@@ -115,3 +115,32 @@ def in_registry(names: Collection[str], *, noun: str, registry: str) -> Check:
         return message
 
     return check
+
+
+_URL = re.compile(r"^https://[^\s<>\"]+$")
+_TIMESTAMP = re.compile(r"^(\d{1,2}:)?\d{1,2}:\d{2}$")
+
+
+def https_url() -> Check:
+    """A link we would open. http:// is refused rather than upgraded: nothing here coerces."""
+
+    def check(value: object) -> str | None:
+        if not isinstance(value, str) or not value.strip():
+            return f"{shown(value)} is not a url"
+        if not value.startswith("https://"):
+            return "the url must start with https://"
+        if not _URL.match(value):
+            return f"{shown(value)} is not a url"
+        return None
+
+    return check
+
+
+def seconds(stamp: str) -> int | None:
+    """`7:45` or `1:07:45` as seconds, or None when it is not a timestamp."""
+    if not _TIMESTAMP.match(stamp):
+        return None
+    parts = [int(part) for part in stamp.split(":")]
+    while len(parts) < 3:
+        parts.insert(0, 0)
+    return parts[0] * 3600 + parts[1] * 60 + parts[2]

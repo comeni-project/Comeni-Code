@@ -9,3 +9,48 @@ needs:
     reason: A de Bruijn graph is built from k-mers.
   - node: graphs
     reason: A de Bruijn graph is a graph, with k-mers as its nodes.
+resources:
+  - kind: video
+    provider: khan-academy
+    url: https://www.khanacademy.org/science/ap-biology/gene-expression-and-regulation/biotechnology/v/dna-sequencing
+    part: 2:10–7:45
+    covers: How a sequencer returns short overlapping pieces, which is what these graphs put back together.
+    licence: YouTube embed
+    display: embed
+    level: foundations
+  - kind: reading
+    provider: openstax
+    url: https://openstax.org/books/biology-2e/pages/17-3-whole-genome-sequencing
+    part: §17.3
+    covers: Why a genome is sequenced in fragments and has to be assembled afterwards.
+    licence: CC BY 4.0
+    display: link
+    level: foundations
+  - kind: tutorial
+    provider: galaxy-training
+    url: https://training.galaxyproject.org/training-material/topics/assembly/tutorials/debruijn-graph-assembly/tutorial.html
+    covers: Building a de Bruijn graph from a handful of reads by hand, one k at a time.
+    licence: CC BY 4.0
+    display: link
+    level: intermediate
+try:
+  - id: kmers-per-read
+    kind: number
+    ask: How many 4-mers does an 8-letter transcript contain?
+    answer: 5
+    hints:
+      - Slide a window of width k along the sequence and count the places where it still fits.
+      - The first row above lists them for transcript A.
+    rationale: A sequence of length L has L − k + 1 k-mers, so 8 − 4 + 1 = 5.
+  - id: shared-unitig
+    kind: choice
+    ask: Which stretch can be merged into one unitig for both transcripts?
+    options:
+      - text: ACGTTG
+        right: true
+      - text: TTGCA
+      - text: ACGTTGCA
+    hints:
+      - A unitig is a stretch with no branch in it.
+      - The two transcripts part company at the letter after the shared path.
+    rationale: Both transcripts share ACGT → CGTT → GTTG, which merges to ACGTTG; after it one goes to TTGCA and the other to TTGAA.
