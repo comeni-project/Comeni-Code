@@ -6,9 +6,11 @@ Tests never read the real content repository (R1).
 from pathlib import Path
 
 from code_schema.content import read_content
+from code_schema.node import Level
 from code_weaver.graph import Graph, Need, Topic
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
+LEVELS = [level.value for level in Level]
 
 
 def fixture_graph(*, every_level: str | None = None) -> Graph:
@@ -24,4 +26,4 @@ def fixture_graph(*, every_level: str | None = None) -> Graph:
         )
         for node in content.nodes.values()
     ]
-    return Graph(topics, list(content.regions))
+    return Graph(topics, list(content.regions), LEVELS)

@@ -9,6 +9,7 @@ GRAPH = Graph(
         Topic(id="b", region="r", level="foundations", needs=(Need(node="a", reason="b uses a"),)),
     ],
     ["r"],
+    ["first-steps", "foundations"],
 )
 
 if weave(GRAPH, ["b"]).stops != ("a", "b"):

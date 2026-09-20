@@ -1,4 +1,4 @@
-"""The weaver's graph: topics, their needs and the region order (spec M2P1.2).
+"""The weaver's graph: topics, their needs, and the region and level orders (spec M2P1.2).
 
 It is checked when it is built (M2P1.3), so a weave never fails for a reason of the graph's own.
 """
@@ -26,9 +26,11 @@ class Topic:
 
 
 class Graph:
-    """Topics by id, and the regions in the order of `regions.yaml`."""
+    """Topics by id, and the region and level orders, lowest level first."""
 
-    def __init__(self, topics: Iterable[Topic], regions: Sequence[str]) -> None:
+    def __init__(
+        self, topics: Iterable[Topic], regions: Sequence[str], levels: Sequence[str]
+    ) -> None:
         by_id: dict[str, Topic] = {}
         duplicates: list[str] = []
         for topic in topics:
@@ -43,6 +45,12 @@ class Graph:
             for t in by_id.values()
             if t.region not in known
         ]
+        known_levels = set(levels)
+        problems += [
+            f"{t.id}: level {t.level} is not in the level list"
+            for t in by_id.values()
+            if t.level not in known_levels
+        ]
         problems += [
             f"{t.id}: needs {need.node}, which is not in the graph"
             for t in by_id.values()
@@ -55,6 +63,7 @@ class Graph:
             raise GraphError("\n".join(problems))
         self.topics: Mapping[str, Topic] = by_id
         self.regions: tuple[str, ...] = tuple(regions)
+        self.levels: tuple[str, ...] = tuple(levels)
 
 
 def _rings(graph: dict[str, list[str]]) -> list[list[str]]:

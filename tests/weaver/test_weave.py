@@ -73,7 +73,7 @@ def test_levels_never_change_the_route() -> None:
 
 def test_topic_order_in_the_graph_changes_nothing() -> None:
     graph = fixture_graph()
-    reversed_graph = Graph(reversed(list(graph.topics.values())), graph.regions)
+    reversed_graph = Graph(reversed(list(graph.topics.values())), graph.regions, graph.levels)
     assert weave(reversed_graph, ["salmon"]).stops == SALMON_ROUTE
 
 
@@ -100,17 +100,22 @@ def test_region_breaks_a_tie_before_the_author_order() -> None:
     graph = Graph(
         [topic("g", "x", "y"), topic("x"), topic("y", region="first-region")],
         ["first-region", "a-region"],
+        ["foundations"],
     )
     assert weave(graph, ["g"]).stops == ("y", "x", "g")
 
 
 def test_first_reached_breaks_a_tie_within_a_region() -> None:
-    graph = Graph([topic("g", "z", "a"), topic("z"), topic("a")], ["a-region"])
+    graph = Graph([topic("g", "z", "a"), topic("z"), topic("a")], ["a-region"], ["foundations"])
     assert weave(graph, ["g"]).stops == ("z", "a", "g")
 
 
 def test_a_need_comes_first_whatever_its_region() -> None:
-    graph = Graph([topic("g", "x"), topic("x", region="last-region")], ["a-region", "last-region"])
+    graph = Graph(
+        [topic("g", "x"), topic("x", region="last-region")],
+        ["a-region", "last-region"],
+        ["foundations"],
+    )
     assert weave(graph, ["g"]).stops == ("x", "g")
 
 
