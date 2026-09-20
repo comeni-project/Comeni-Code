@@ -10,7 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
-path) is next.** M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
+path) is in progress — part 1 of six is built.** M3 part 1 gave a node its outside **resources**
+(checked against a `providers.yaml` registry) and its inline **try questions** with hints and a
+rationale, placed in `body.md` by `{% try <id> %}` markers, through the index to
+`GET /api/nodes/{node_id}`. M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
 known set and a level span — reachable through `code-weaver route` and `GET /api/routes`. M1 built the
 node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
 the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
@@ -291,11 +294,11 @@ docs/notes/journal/       session records, append-only
 docs/notes/research/      studies decisions were built on (the Khan Academy report)
 docs/superpowers/specs/   design documents
 docs/superpowers/plans/   one plan per part
-packages/code-schema/     pure: the node format, its validation messages, the canonical writer
+packages/code-schema/     pure: the node format (fields, links, resources, questions, markers), its validation messages, the canonical writer
 packages/code-weaver/     pure: Graph, weave and the route command (M2)
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks (relative links)
-tests/fixtures/salmon/    26 real nodes, no background to Salmon; parts 5 and 6 load them
+tests/fixtures/salmon/    26 real nodes and providers.yaml, no background to Salmon; the weaver and the API load them
 tests/schema/             code-schema's tests; nodes are built in tmp_path or read from fixtures, never from content
 tests/weaver/             code-weaver's tests; `fixture_graph` fills a Graph from the Salmon fixtures
 ```
