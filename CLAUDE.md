@@ -10,10 +10,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
-path) is in progress — part 1 of six is built.** M3 part 1 gave a node its outside **resources**
-(checked against a `providers.yaml` registry) and its inline **try questions** with hints and a
-rationale, placed in `body.md` by `{% try <id> %}` markers, through the index to
-`GET /api/nodes/{node_id}`. M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
+path) is in progress — parts 1 and 2 of six are built.** M3 part 2 added **search without a
+model**: `code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
+`GET /api/search`. M3 part 1 gave a node its outside **resources** (checked against a
+`providers.yaml` registry) and its inline **try questions** with hints and a rationale, placed in
+`body.md` by `{% try <id> %}` markers, through the index to `GET /api/nodes/{node_id}`. M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
 known set and a level span — reachable through `code-weaver route` and `GET /api/routes`. M1 built the
 node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
 the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
@@ -69,6 +70,7 @@ uv run mypy                         # strict types over packages/, apps/api/ and
 uv run pytest                       # all tests
 uv run code-schema validate ../comeni-code-content   # the node format, as content CI checks it
 uv run code-weaver route salmon --root tests/fixtures/salmon   # weave a route; exit 0/1/2
+uv run code-weaver find "why my reads don't map" --root tests/fixtures/salmon   # the candidates a goal is picked from
 uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
 ```
 
@@ -282,7 +284,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, /api/search, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, TypeScript 7, Biome, vitest); its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
@@ -295,7 +297,7 @@ docs/notes/research/      studies decisions were built on (the Khan Academy repo
 docs/superpowers/specs/   design documents
 docs/superpowers/plans/   one plan per part
 packages/code-schema/     pure: the node format (fields, links, resources, questions, markers), its validation messages, the canonical writer
-packages/code-weaver/     pure: Graph, weave and the route command (M2)
+packages/code-weaver/     pure: Graph, weave, find, and the route and find commands (M2, M3 part 2)
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks (relative links)
 tests/fixtures/salmon/    26 real nodes and providers.yaml, no background to Salmon; the weaver and the API load them
