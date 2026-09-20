@@ -6,8 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-20-m3-part-1-resources-and-questions.md`](2026-09-20-m3-part-1-resources-and-questions.md)**:
-> **M3 part 1 is built** — a node carries outside resources, checked against a `providers.yaml`
+> [`2026-09-20-m3-part-2-search.md`](2026-09-20-m3-part-2-search.md)**: **M3 part 2 is built** —
+> typed words become ranked candidate goals with no model, through `code_weaver.find`,
+> `code-weaver find` and `GET /api/search`. Before it,
+> [`2026-09-20-m3-part-1-resources-and-questions.md`](2026-09-20-m3-part-1-resources-and-questions.md)
+> says **M3 part 1 is built** — a node carries outside resources, checked against a `providers.yaml`
 > registry, and try questions with hints and a rationale, placed in the prose by `{% try %}`
 > markers, through the index to `GET /api/nodes/{node_id}`. M3's parts are in
 > [`2026-09-20-m3-in-parts.md`](2026-09-20-m3-in-parts.md): **the thin learner path**, in six
@@ -45,7 +48,7 @@ reads the newest entry first and is productive in five minutes.
 > requests. For the Compose stack and merging safely, read
 > [part 8's entry](2026-09-17-m0-part-8-compose-stack.md); for the health page,
 > [part 7's](2026-09-17-m0-part-7-health-page.md); for the product direction,
-> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Six entries share 2026-09-18, and five share 2026-09-20.
+> [`2026-09-17-code-as-tutor.md`](2026-09-17-code-as-tutor.md). Six entries share 2026-09-18, and six share 2026-09-20.
 
 **Newest first, and stop when you have enough.** The top third of each entry — where things stand
 and what is next — is enough for most sessions. The rest explains *why*.
@@ -83,6 +86,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-20](2026-09-20-m3-part-2-search.md) | **M3 part 2 built.** `code_weaver.find` ranks topics for typed words — prefixes, trimmed plurals, a stop list, order by words matched — reached by `code-weaver find` and `GET /api/search`; no model anywhere |
 | [2026-09-20](2026-09-20-m3-part-1-resources-and-questions.md) | **M3 part 1 built.** `resources:` and `try:` in node.yaml, a providers.yaml registry deciding licences and embeds, `{% try id %}` markers in body.md, three index tables, and both lists on the node endpoint |
 | [2026-09-20](2026-09-20-m3-in-parts.md) | **M3 in parts.** Six parts: resources and try questions, search without AI, the spine and Start, Route, Node, First steps; `known` from the URL, no stored learner state, the body stays Markdown until M4. No page code |
 | [2026-09-20](2026-09-20-m2-part-4-route-api.md) | **M2 part 4 built; M2 done.** `GET /api/routes?goal=&known=`: stops as cards with their needed_by, the span and the minutes, three queries; 404, 422 and 503; the whole index per request is the MVP's bargain |

@@ -10,7 +10,9 @@ export interface ApiSchemas {
   QuestionOut: QuestionOut;
   RegionOut: RegionOut;
   ResourceOut: ResourceOut;
+  ResultOut: ResultOut;
   RouteOut: RouteOut;
+  SearchOut: SearchOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
 }
@@ -90,6 +92,16 @@ export interface ProviderOut {
   id: string;
   name: string;
 }
+/**
+ * A candidate as the Start board's *Is this what you mean?* panel shows it (L1).
+ */
+export interface ResultOut {
+  claim: string;
+  id: string;
+  level: string;
+  minutes: number;
+  region: RegionOut;
+}
 export interface RouteOut {
   goals: string[];
   known: string[];
@@ -110,4 +122,9 @@ export interface StopOut {
   minutes: number;
   needed_by: NeighbourOut[];
   region: RegionOut;
+}
+export interface SearchOut {
+  query: string;
+  results: ResultOut[];
+  unmatched: string[];
 }

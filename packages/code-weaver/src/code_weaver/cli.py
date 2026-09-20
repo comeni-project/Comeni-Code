@@ -1,4 +1,4 @@
-"""`code-weaver route`: a goal to an ordered route, one line per stop (spec M2P3).
+"""`code-weaver`: `route` weaves a goal into stops (M2P3), `find` looks a goal up (M3P2.3).
 
 The only module in this package that reads files or imports `code-schema`; the weave itself
 imports nothing outside the standard library.
@@ -11,6 +11,7 @@ from pathlib import Path
 
 from code_schema.content import Content, read_content
 from code_schema.node import Level
+from code_weaver.find import Found, Target, find
 from code_weaver.graph import Graph, GraphError, Need, Topic
 from code_weaver.weave import Route, UnknownGoal, weave
 
@@ -30,6 +31,13 @@ def graph_of(content: Content) -> Graph:
         for node in content.nodes.values()
     ]
     return Graph(topics, list(content.regions), [level.value for level in Level])
+
+
+def targets_of(content: Content) -> list[Target]:
+    """What search sees: a node's id, title and claim. Bodies are not searched (M3P2.1)."""
+    return [
+        Target(id=node.id, title=node.title, claim=node.claim) for node in content.nodes.values()
+    ]
 
 
 def _cut(text: str, width: int) -> str:
@@ -79,6 +87,25 @@ def report(content: Content, route: Route, known: int) -> list[str]:
     return lines
 
 
+def found_report(content: Content, found: Found, words: str) -> list[str]:
+    """The header, a blank line, one line per candidate, and the words that matched nothing."""
+    if not found.ids:
+        lines = [_cut(f'Nothing matches "{words}"', WIDTH)]
+        return lines
+    matches = "matches" if len(found.ids) == 1 else "match"
+    lines = [_cut(f'{_plural(len(found.ids), "topic")} {matches} "{words}"', WIDTH), ""]
+    for number, identifier in enumerate(found.ids, 1):
+        node = content.nodes[identifier]
+        head = (
+            f"{number:>2}. {_cut(node.title, TITLE_COLUMN):<{TITLE_COLUMN}}  "
+            f"{node.level.value:<12}  {node.minutes:>3}m"
+        )
+        lines.append(_cut(f"{head}  {node.claim}", WIDTH))
+    if found.unmatched:
+        lines += ["", _cut(f"Nothing matches: {', '.join(found.unmatched)}", WIDTH)]
+    return lines
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """0 a route, 1 the content is wrong, 2 the command was used wrongly."""
     parser = argparse.ArgumentParser(prog="code-weaver", description="Comeni Code's weaver.")
@@ -89,7 +116,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     route.add_argument(
         "--known", action="append", default=[], metavar="ID", help="a node already held"
     )
+    look = commands.add_parser("find", help="find the topics some words are about")
+    look.add_argument("words", help="what the learner typed")
+    look.add_argument("--root", type=Path, required=True, help="the content root")
+    look.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        choices=range(1, 51),
+        metavar="N",
+        help="how many candidates to print (1 to 50)",
+    )
     arguments = parser.parse_args(argv)
+
+    if arguments.command == "find" and not arguments.words.strip():
+        print("code-weaver: a search needs a word", file=sys.stderr)
+        return 2
 
     root: Path = arguments.root
     if not root.is_dir():
@@ -103,6 +145,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
+    if arguments.command == "find":
+        found = find(targets_of(content), arguments.words, limit=arguments.limit)
+        for line in found_report(content, found, arguments.words):
+            print(line)
+        return 0
+
     try:
         graph = graph_of(content)
     except GraphError as refused:

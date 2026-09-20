@@ -380,6 +380,44 @@
         "title": "ResourceOut",
         "type": "object"
       },
+      "ResultOut": {
+        "description": "A candidate as the Start board's *Is this what you mean?* panel shows it (L1).",
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "region": {
+            "$ref": "#/components/schemas/RegionOut"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "claim",
+          "level",
+          "minutes",
+          "region"
+        ],
+        "title": "ResultOut",
+        "type": "object"
+      },
       "RouteOut": {
         "properties": {
           "goals": {
@@ -419,6 +457,35 @@
           "minutes"
         ],
         "title": "RouteOut",
+        "type": "object"
+      },
+      "SearchOut": {
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ResultOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "unmatched": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmatched",
+            "type": "array"
+          }
+        },
+        "required": [
+          "query",
+          "unmatched",
+          "results"
+        ],
+        "title": "SearchOut",
         "type": "object"
       },
       "SpanOut": {
@@ -642,6 +709,70 @@
           }
         },
         "summary": "A route to one or more goals",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "code_api_content_search_search",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Topics matching the words someone types",
         "tags": [
           "content"
         ]
