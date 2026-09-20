@@ -8,7 +8,9 @@ that searches. Part 3 of M3's six ([parts list](2026-09-20-m3-in-parts.md)); the
 [plan](../../superpowers/plans/2026-09-20-m3-spine-and-start.md) are in the same pull request.
 
 The operator decided the four questions and approved the design section by section; one agent
-built it, test first. **The part closes when the operator has looked at it beside the board.**
+built it, test first. **The operator looked at the running page beside the L1 board and approved
+it** — *"yeah looks good"* — which is what closes the part (R4's *done when* for M3 is a
+judgement, and it is theirs).
 
 ---
 
@@ -90,11 +92,9 @@ Plus CLAUDE.md's status and layout, and this entry.
 
 ## What is next
 
-1. **The operator looks** at `http://127.0.0.1:8090/` beside `.design/Start.dc.html`. The part
-   does not close before that, and what they say goes in this entry.
-2. **M3 part 4, the Route page**: the metro map, the selected-stop panel, the side-doors toggle,
+1. **M3 part 4, the Route page**: the metro map, the selected-stop panel, the side-doors toggle,
    `known` from the URL — and the Route board redrawn from 13 stops to 17.
-3. **`providers.yaml` in `comeni-code-content`** — still waiting on the operator.
+2. **`providers.yaml` in `comeni-code-content`** — still waiting on the operator.
 
 ## Open questions
 
