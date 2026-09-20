@@ -13,8 +13,7 @@ function NotFound() {
       <main className="mx-auto flex max-w-2xl flex-col gap-2 px-7 py-8">
         <h1 className="text-[30px] font-semibold tracking-[-0.02em]">Not found</h1>
         <p className="text-[15px] text-ink-2">
-          Nothing lives at{" "}
-          <code className="font-mono text-[13px]">{pathname}</code>. Try{" "}
+          Nothing lives at <code className="font-mono text-[13px]">{pathname}</code>. Try{" "}
           <a className="text-sel underline" href="/">
             the Start page
           </a>
