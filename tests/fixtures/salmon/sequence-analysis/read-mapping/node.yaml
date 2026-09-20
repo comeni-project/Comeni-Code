@@ -11,3 +11,11 @@ needs:
     reason: Mappers find candidate places by looking up a read's k-mers.
   - node: sequence-alignment
     reason: Mappers check each candidate place with an alignment score.
+resources:
+  - kind: tutorial
+    provider: galaxy-training
+    url: https://training.galaxyproject.org/training-material/topics/sequence-analysis/tutorials/mapping/tutorial.html
+    covers: Mapping a small read set to a reference and looking at where the reads landed.
+    licence: CC BY 4.0
+    display: link
+    level: introductory

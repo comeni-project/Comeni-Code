@@ -1,0 +1,14 @@
+# A copy of comeni-code-content's providers.yaml: tests never read that repository (R1).
+providers:
+  - id: khan-academy
+    name: Khan Academy
+    licences: [YouTube embed]
+    embed: true
+  - id: openstax
+    name: OpenStax
+    licences: [CC BY 4.0]
+    embed: true
+  - id: galaxy-training
+    name: Galaxy Training
+    licences: [CC BY 4.0]
+    embed: true

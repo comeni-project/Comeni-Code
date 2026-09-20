@@ -124,3 +124,43 @@ def test_each_attached_node_hangs_off_by_its_links(content: Content) -> None:
 def test_kallisto_and_salmon_are_peers(content: Content) -> None:
     assert [link.node for link in content.nodes["salmon"].related] == ["kallisto"]
     assert [link.node for link in content.nodes["kallisto"].related] == ["salmon"]
+
+
+# M3 part 1: what parts 5 and 6 draw (spec M3P1.5).
+
+
+def test_de_bruijn_graphs_has_an_embedded_and_two_linked_resources(content: Content) -> None:
+    node = content.nodes["de-bruijn-graphs"]
+    assert [resource.display for resource in node.resources] == ["embed", "link", "link"]
+    assert node.resources[0].provider == "khan-academy"
+    assert node.resources[0].part == "2:10–7:45"
+
+
+def test_another_node_has_a_linked_resource_alone(content: Content) -> None:
+    node = content.nodes["read-mapping"]
+    assert [resource.display for resource in node.resources] == ["link"]
+
+
+def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> None:
+    node = content.nodes["de-bruijn-graphs"]
+    assert [question.kind for question in node.questions] == ["number", "choice"]
+    assert all(question.hints and question.rationale for question in node.questions)
+    assert node.questions[0].answer == 5
+
+
+def test_every_question_is_asked_where_its_marker_is(content: Content) -> None:
+    node = content.nodes["de-bruijn-graphs"]
+    for question in node.questions:
+        assert f"{{% try {question.id} %}}" in node.body
+
+
+def test_every_resource_cites_a_listed_provider(content: Content) -> None:
+    assert set(content.providers) == {"khan-academy", "openstax", "galaxy-training"}
+    for node in content.nodes.values():
+        for resource in node.resources:
+            assert resource.provider in content.providers
+
+
+def test_no_fixture_node_is_about_galaxy(content: Content) -> None:
+    # Galaxy Training is a resource a node may cite; a node about Galaxy is not written.
+    assert not [node for node in content.nodes.values() if "galaxy" in node.id]
