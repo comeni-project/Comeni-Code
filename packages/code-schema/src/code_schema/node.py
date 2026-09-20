@@ -10,7 +10,6 @@ from __future__ import annotations
 import difflib
 from collections.abc import Collection
 from dataclasses import dataclass
-from enum import StrEnum
 from pathlib import Path
 
 from code_schema.fields import (
@@ -23,6 +22,9 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+
+# Re-exported: every earlier part imports Level from here (M1P1.3).
+from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.yaml_lines import Lines, load_mapping
@@ -30,16 +32,6 @@ from code_schema.yaml_lines import Lines, load_mapping
 SCHEMA = 1
 NODE_FILE = "node.yaml"
 BODY_FILE = "body.md"
-
-
-class Level(StrEnum):
-    """T10.1's five. A level describes a node, never a learner."""
-
-    FIRST_STEPS = "first-steps"
-    FOUNDATIONS = "foundations"
-    INTRODUCTORY = "introductory"
-    INTERMEDIATE = "intermediate"
-    ADVANCED = "advanced"
 
 
 @dataclass(frozen=True)
