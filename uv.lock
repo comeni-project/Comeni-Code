@@ -253,6 +253,12 @@ requires-dist = [{ name = "pyyaml", specifier = ">=6.0,<7" }]
 name = "code-weaver"
 version = "0.0.0"
 source = { editable = "packages/code-weaver" }
+dependencies = [
+    { name = "code-schema" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "code-schema", editable = "packages/code-schema" }]
 
 [[package]]
 name = "colorama"

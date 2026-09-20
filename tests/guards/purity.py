@@ -35,7 +35,20 @@ ALLOWED: Mapping[str, frozenset[str]] = {
             "yaml",
         }
     ),
-    "code-weaver": frozenset({"__future__", "collections.abc", "dataclasses", "heapq", "typing"}),
+    "code-weaver": frozenset(
+        {
+            "__future__",
+            "argparse",
+            "code_schema.content",
+            "code_schema.node",
+            "collections.abc",
+            "dataclasses",
+            "heapq",
+            "pathlib",
+            "sys",
+            "typing",
+        }
+    ),
 }
 
 # Called by bare name, these run code or import a module named at runtime.
