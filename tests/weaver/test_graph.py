@@ -5,28 +5,30 @@ import pytest
 from code_weaver.graph import Graph, GraphError, Need, Topic
 
 REGIONS = ["biology", "statistics"]
+LEVELS = ["first-steps", "foundations"]
 
 
-def topic(name: str, *needs: str, region: str = "biology") -> Topic:
+def topic(name: str, *needs: str, region: str = "biology", level: str = "foundations") -> Topic:
     return Topic(
         id=name,
         region=region,
-        level="foundations",
+        level=level,
         needs=tuple(Need(node=n, reason=f"{name} uses {n}") for n in needs),
     )
 
 
 def refusal(topics: list[Topic], regions: list[str] = REGIONS) -> str:
     with pytest.raises(GraphError) as caught:
-        Graph(topics, regions)
+        Graph(topics, regions, LEVELS)
     return str(caught.value)
 
 
 def test_a_sound_graph_keeps_its_topics_and_region_order() -> None:
-    graph = Graph([topic("b", "a"), topic("a")], REGIONS)
+    graph = Graph([topic("b", "a"), topic("a")], REGIONS, LEVELS)
     assert graph.topics["b"].needs == (Need(node="a", reason="b uses a"),)
     assert sorted(graph.topics) == ["a", "b"]
     assert graph.regions == ("biology", "statistics")
+    assert graph.levels == ("first-steps", "foundations")
 
 
 def test_a_duplicate_id_is_refused() -> None:
@@ -37,6 +39,10 @@ def test_an_unknown_region_is_refused() -> None:
     assert refusal([topic("a", region="nowhere")]) == (
         "a: region nowhere is not in the region list"
     )
+
+
+def test_an_unknown_level_is_refused() -> None:
+    assert refusal([topic("a", level="nowhere")]) == "a: level nowhere is not in the level list"
 
 
 def test_a_need_outside_the_graph_is_refused() -> None:
@@ -65,10 +71,12 @@ def test_every_problem_is_listed_in_a_fixed_order() -> None:
         topic("a", "ghost"),
         topic("a"),
         topic("r", region="nowhere"),
+        topic("s", level="nowhere"),
     ]
     assert refusal(topics).splitlines() == [
         "duplicate id: a",
         "r: region nowhere is not in the region list",
+        "s: level nowhere is not in the level list",
         "a: needs ghost, which is not in the graph",
         "needs cycle: p → q → p",
     ]

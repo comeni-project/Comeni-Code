@@ -6,7 +6,10 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-19-m2-part-1-walk-back-and-order.md`](2026-09-19-m2-part-1-walk-back-and-order.md)**:
+> [`2026-09-20-m2-part-2-why-known-and-span.md`](2026-09-20-m2-part-2-why-known-and-span.md)**: a
+> route says why each stop is on it, from the reasons already stored on the links, drops what the
+> learner knows, and reports its level span. Part 1 is
+> [`2026-09-19-m2-part-1-walk-back-and-order.md`](2026-09-19-m2-part-1-walk-back-and-order.md):
 > `code-weaver` weaves — `Graph` checked when built, `weave` gives the fixtures' 17-stop Salmon
 > route, the purity guard runs a weave. M2's parts are in
 > [`2026-09-19-m2-in-parts.md`](2026-09-19-m2-in-parts.md): **M2, the weaver**, in four parts — walk back and order, why and known, the CLI, the API; the
@@ -67,6 +70,7 @@ Then update the box at the top of this file to point at the new entry.
 
 | Date | Session |
 |---|---|
+| [2026-09-20](2026-09-20-m2-part-2-why-known-and-span.md) | **M2 part 2 built.** `needed_by` lists the route stops that need each stop with their stored reasons; the walk stops at known topics; `Graph` takes the level order and the route reports its span |
 | [2026-09-19](2026-09-19-m2-part-1-walk-back-and-order.md) | **M2 part 1 built.** `Graph` refuses duplicates, unknown regions, dangling needs and cycles; `weave` orders by region then first-reached; 17 Salmon stops, byte-identical across hash seeds; the runtime guard runs a weave |
 | [2026-09-19](2026-09-19-m2-in-parts.md) | **M2 in parts.** Four parts: walk back and order, why/known/level span, the CLI, the API; goal resolution is M5's, *any-of* waits for content; the fixtures' 17 stops replace the board's 13 |
 | [2026-09-19](2026-09-19-m1-part-6-command-and-api.md) | **M1 part 6 built; M1 done.** `manage.py rebuild_index` from `--root` or `CODE_CONTENT_ROOT`, exit 0/1/2; `GET /api/nodes/{node_id}` with neighbour cards and derived needed-by; 404, or 503 before any build |
