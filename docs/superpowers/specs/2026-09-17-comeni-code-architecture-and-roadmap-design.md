@@ -138,6 +138,13 @@ decided part by part (R5).
 - *2026-09-17 (tutor spec T10.2): First steps is in the MVP. A design round for First steps pages
   comes before M3's screens, and **done when** also includes a First steps node page beside its
   board.*
+- *2026-09-20 (M3 parts list, journal): M3 is **six parts** — resources and try questions;
+  search; the spine with **L1 Start**; **L4 Route**; **L5 Node**; **L5 First steps**. The pages
+  carry **no stored learner state**: `known` comes from the URL as the weaver takes it, and
+  progress per line, milestones and *not yet reviewed* wait for M4 and T7. `resource` and `try`
+  blocks enter here **read-only** — the authoring UI is M4's workbench. A node's **body stays
+  Markdown**; W5.1's block document arrives with that workbench. The Route board is redrawn from
+  13 stops to 17 in part 4.*
 
 ### M4 — Studio core
 - The team signs in with roles; an author drafts a node, checks run, a reviewer approves, and it
