@@ -13,11 +13,14 @@ dependencies = [
     "celery[redis]>=5.6,<5.7",
     "gunicorn>=26.2,<27",
     "code-schema",
+    "code-weaver",
 ]
 
-# The node format and read_content, from this workspace: the index reads content as CI does.
+# The node format and the weaver, from this workspace: the index reads content as CI does, and
+# /api/routes weaves from the index. Both must be installed in the image, not only in the dev sync.
 [tool.uv.sources]
 code-schema = { workspace = true }
+code-weaver = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.11,<0.12"]

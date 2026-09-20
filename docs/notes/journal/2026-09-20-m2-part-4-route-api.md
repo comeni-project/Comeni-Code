@@ -22,7 +22,9 @@ built it, test first.
 | Three queries, for one goal and for two | `uv run pytest apps/api/tests/test_routes_api.py -k queries` |
 | The endpoint and the command give the same stops, in the same order | `uv run pytest apps/api/tests/test_routes_api.py -k agree` |
 | The author's order of *needs* survives a different row order in Postgres | `uv run pytest apps/api/tests/test_routes_api.py -k row_order` |
-| The whole command set passes (360 tests) | `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest` |
+| An app declares every workspace package it imports, so the images have them | `uv run pytest tests/repo/test_dependencies.py` |
+| The stack serves it | `docker compose up -d --wait --build`, then `ops/stack-check.sh` and `curl "http://127.0.0.1:8090/api/routes?goal=salmon"` |
+| The whole command set passes (362 tests) | `uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest` |
 
 **M2 is done.** R4's *done when*, with 2026-09-19's note that the reference route is the fixtures'
 17 stops:
@@ -75,6 +77,13 @@ Plus CLAUDE.md's status and layout, and this entry.
 - **A gap the breakages found:** fetching the *needs* links without `order_by` still passed, because
   Postgres happened to return them in insertion order. A new test rewrites those rows in the
   opposite order and asserts the route is unchanged; that test does fail without `order_by`.
+- **CI's `stack` job went red on the first push**: `migrate` exited 1. The image installs
+  `uv sync --package code-api`, which installs what `apps/api` declares — and it declared
+  `code-schema` but not `code-weaver`, so the container had no weaver. Every other check passed,
+  because the dev sync installs the whole workspace. `apps/api` now declares `code-weaver`, and
+  `tests/repo/test_dependencies.py` fails whenever an app imports a workspace package it does not
+  declare. Rebuilt locally (`docker compose up -d --wait --build`), `ops/stack-check.sh` passes and
+  the endpoint answers through the stack.
 
 ## What is next
 
@@ -102,3 +111,7 @@ Plus CLAUDE.md's status and layout, and this entry.
 - **`openapi.json` and `schema.ts` are committed.** Any change to the endpoint regenerates both,
   or a Python test and a web test fail.
 - **The API tests need Compose's Postgres**, like the rest of `apps/api/tests`.
+- **`docker compose up -d --wait` reuses a cached image.** Add `--build` after changing Python
+  code, or the stack serves the previous build and a check can pass for the wrong reason.
+- **A workspace package an app imports must be in that app's dependencies**, not only in the
+  workspace; the image installs only what the app declares.
