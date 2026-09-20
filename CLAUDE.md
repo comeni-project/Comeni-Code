@@ -10,9 +10,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
 **Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
-path) is in progress — parts 1 to 3 of six are built.** M3 part 3 gave the app a **router** and
-its **first screen**: `/` is the Start page (L1) — ask, confirm a target, see the route preview —
-with the health page moved to `/health`. M3 part 2 added **search without a model**:
+path) is in progress — parts 1 to 4 of six are built.** M3 part 4 built the **Route page** (L4)
+at `/route?goal=…`: the woven route as a metro map — a line per region, a column per depth — with
+the selected stop explaining why it is there, and the L4 board redrawn to the fixtures' 17 stops.
+M3 part 3 gave the app a **router** and its **first screen**: `/` is the Start page (L1) — ask,
+confirm a target, see the route preview — with the health page moved to `/health`. M3 part 2 added **search without a model**:
 `code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
 `GET /api/search`. M3 part 1 gave a node its outside **resources** (checked against a
 `providers.yaml` registry) and its inline **try questions** with hints and a rationale, placed in
@@ -287,7 +289,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
 apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, /api/search, health/, api.py, celery.py, redis.py), openapi.json, tests
-apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), health/, identity/, layout/, api/; its Dockerfile builds the nginx image
+apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), route/ (L4, with the map's pure layout), health/, identity/, layout/, api/; its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
 .dockerignore             keeps .env and host builds out of images
