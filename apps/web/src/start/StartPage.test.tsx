@@ -49,6 +49,29 @@ function open(path = "/") {
 
 afterEach(() => vi.unstubAllGlobals());
 
+/** The 17-stop Salmon route, in the shape /api/routes answers (M2P4.2). */
+function route() {
+  const stop = (id: string, title: string, minutes: number) => ({
+    id,
+    title,
+    level: "first-steps",
+    minutes,
+    region: { id: "molecular-biology", name: "Molecular biology" },
+    needed_by: [],
+  });
+  return {
+    goals: ["salmon"],
+    known: [],
+    minutes: 184,
+    span: { lowest: "first-steps", highest: "intermediate" },
+    stops: [
+      stop("dna-and-genes", "DNA and genes", 10),
+      ...Array.from({ length: 15 }, (_, index) => stop(`stop-${index}`, `Stop ${index}`, 11)),
+      { ...stop("salmon", "Salmon", 15), level: "intermediate" },
+    ],
+  };
+}
+
 describe("the Start page", () => {
   it("asks the question and offers the board's examples", () => {
     answering(found([]));
@@ -130,29 +153,6 @@ describe("the Start page", () => {
     expect(screen.queryByRole("button", { name: "Remove Salmon" })).not.toBeInTheDocument();
   });
 });
-
-/** The 17-stop Salmon route, in the shape /api/routes answers (M2P4.2). */
-export function route() {
-  const stop = (id: string, title: string, minutes: number) => ({
-    id,
-    title,
-    level: "first-steps",
-    minutes,
-    region: { id: "molecular-biology", name: "Molecular biology" },
-    needed_by: [],
-  });
-  return {
-    goals: ["salmon"],
-    known: [],
-    minutes: 184,
-    span: { lowest: "first-steps", highest: "intermediate" },
-    stops: [
-      stop("dna-and-genes", "DNA and genes", 10),
-      ...Array.from({ length: 15 }, (_, index) => stop(`stop-${index}`, `Stop ${index}`, 11)),
-      { ...stop("salmon", "Salmon", 15), level: "intermediate" },
-    ],
-  };
-}
 
 describe("the route preview", () => {
   const chosen = "/?q=salmon&goal=salmon";

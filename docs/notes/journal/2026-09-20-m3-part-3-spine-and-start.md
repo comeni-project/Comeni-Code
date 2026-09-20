@@ -83,6 +83,10 @@ Plus CLAUDE.md's status and layout, and this entry.
 - Candidate buttons needed an explicit `aria-label` (*Choose Salmon*): their text also matched the
   example chip *Salmon*, so the test could not tell them apart — and neither could a screen
   reader.
+- **CI's web job was red on the first push, for accessibility rules `biome check --write` does not
+  fix**: `role="search"` on a form where `<search>` exists, `aria-hidden` on a focusable `<kbd>`,
+  and an export from a test file. The grep-swallowed exit code hid them locally a second time;
+  the checks below are now run for their status, not their output.
 
 ## What is next
 

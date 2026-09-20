@@ -63,27 +63,26 @@ export function TopBar({ children }: { children?: ReactNode }) {
         <span className="text-[17px] font-bold tracking-[-0.01em]">Comeni Code</span>
       </Link>
 
-      <form role="search" onSubmit={onSubmit} className="flex max-w-md flex-1 items-center">
-        <label htmlFor="top-search" className="sr-only">
-          {SEARCH_LABEL}
-        </label>
-        <div className="flex w-full items-center gap-2 rounded-control border border-border bg-surface px-3 py-1.5 focus-within:border-sel">
-          <input
-            id="top-search"
-            ref={field}
-            type="search"
-            name="q"
-            placeholder={SEARCH_LABEL}
-            className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-3"
-          />
-          <kbd
-            aria-hidden="true"
-            className="rounded-control border border-border px-1.5 py-0.5 font-mono text-[11px] text-ink-3"
-          >
-            /
-          </kbd>
-        </div>
-      </form>
+      <search className="flex max-w-md flex-1 items-center">
+        <form onSubmit={onSubmit} className="w-full">
+          <label htmlFor="top-search" className="sr-only">
+            {SEARCH_LABEL}
+          </label>
+          <div className="flex w-full items-center gap-2 rounded-control border border-border bg-surface px-3 py-1.5 focus-within:border-sel">
+            <input
+              id="top-search"
+              ref={field}
+              type="search"
+              name="q"
+              placeholder={SEARCH_LABEL}
+              className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-3"
+            />
+            <kbd className="rounded-control border border-border px-1.5 py-0.5 font-mono text-[11px] text-ink-3">
+              /
+            </kbd>
+          </div>
+        </form>
+      </search>
 
       {children}
     </header>
