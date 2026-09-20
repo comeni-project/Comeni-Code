@@ -12,6 +12,7 @@ from code_schema.content import Content, read_content
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
+from code_schema.providers import Provider, parse_providers, read_providers
 from code_schema.regions import Region, parse_regions, read_regions
 from code_schema.writer import write_node_folder, write_node_yaml
 
@@ -21,11 +22,14 @@ __all__ = [
     "Link",
     "Node",
     "Problem",
+    "Provider",
     "Region",
     "parse_node",
+    "parse_providers",
     "parse_regions",
     "read_content",
     "read_node",
+    "read_providers",
     "read_regions",
     "write_node_folder",
     "write_node_yaml",
