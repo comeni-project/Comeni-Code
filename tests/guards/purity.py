@@ -45,6 +45,9 @@ ALLOWED: Mapping[str, frozenset[str]] = {
             "dataclasses",
             "heapq",
             "pathlib",
+            # M3 part 2: find splits typed words. unicodedata is deliberately not here, which is
+            # why accents are not folded (M3P2.2).
+            "re",
             "sys",
             "typing",
         }

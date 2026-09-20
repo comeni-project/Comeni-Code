@@ -71,13 +71,14 @@ a different feature.
 
 ## M3P2.2 How words match
 
-**Text into words.** Fold case; split on anything that is not a letter or a digit, so `k-mers`
-becomes `k`, `mers` and `de-bruijn-graphs` becomes `de`, `bruijn`, `graphs`; then drop the stop
-list:
+**Text into words.** Fold case; **remove apostrophes**, so `don't` is one word to stop rather
+than `don` and a stray `t`; split on anything that is not a letter or a digit, so `k-mers` becomes
+`k`, `mers` and `de-bruijn-graphs` becomes `de`, `bruijn`, `graphs`; then drop the stop list:
 
 ```
-a and are as at be but by do does don for from how i in is it its me my
-no not of on or that the this to was what when where which who why with you your
+a and are arent as at be but by cant do does doesnt dont for from how i im in is isnt it its
+ive me my no not of on or that the this to was wasnt what when where which who why with wont
+you your youre
 ```
 
 **If every word is a stop word, none are dropped.** Someone searching "how to" gets our best
