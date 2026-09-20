@@ -15,6 +15,8 @@ from code_schema.graph import graph_problems
 from code_schema.links import locate_links
 from code_schema.node import BODY_FILE, NODE_FILE, Node, read_node
 from code_schema.problems import Problem
+from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
+from code_schema.providers import Provider, read_providers
 from code_schema.regions import Region, read_regions
 
 
@@ -26,6 +28,7 @@ class Content:
     folders: dict[str, str]
     regions: dict[str, Region]
     problems: tuple[Problem, ...]
+    providers: dict[str, Provider]
 
     def node_file(self, node_id: str) -> str:
         return f"{self.folders[node_id]}/{NODE_FILE}"
@@ -63,6 +66,9 @@ def _near_misses(root: Path, node_folders: list[Path]) -> list[Problem]:
 def read_content(root: Path) -> Content:
     """Every node under `root`, the regions, and every problem, sorted. Never raises."""
     regions, problems = read_regions(root)
+    # None means there is no registry, which only a resource makes a problem (M3P1.2).
+    providers, provider_problems = read_providers(root)
+    problems += provider_problems
     if (root / NODE_FILE).is_file():
         problems.append(
             Problem(
@@ -96,7 +102,7 @@ def read_content(root: Path) -> Content:
             )
             continue
         folders[folder.name] = relative
-        node, node_problems = read_node(folder, regions=regions, root=root)
+        node, node_problems = read_node(folder, regions=regions, root=root, providers=providers)
         problems += node_problems
         if node is not None:
             nodes[node.id] = node
@@ -104,9 +110,22 @@ def read_content(root: Path) -> Content:
             link_lines[node.id] = locate_links(text, file=f"{relative}/{NODE_FILE}")
 
     problems += graph_problems(nodes, folders, link_lines)
+    if providers is None:
+        citing = sorted(node.id for node in nodes.values() if node.resources)
+        if citing:
+            problems.append(
+                Problem(
+                    file=PROVIDER_REGISTRY,
+                    message=(
+                        f"the file is missing, and {folders[citing[0]]}/{NODE_FILE} "
+                        "cites a provider"
+                    ),
+                )
+            )
     return Content(
         nodes=nodes,
         folders=folders,
         regions=regions,
         problems=tuple(sorted(problems, key=Problem.sort_key)),
+        providers={} if providers is None else providers,
     )
