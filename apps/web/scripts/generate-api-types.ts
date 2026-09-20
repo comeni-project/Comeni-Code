@@ -10,17 +10,20 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 // Pydantic gives every property a title; json-schema-to-typescript would turn each into a type
 // alias (DurationMs, Status1, …). Refs move from the OpenAPI location to $defs.
-function prepare(value: Json): Json {
-  if (Array.isArray(value)) return value.map(prepare);
+//
+// `title` is that keyword everywhere except inside `properties`, where it is the name of a field.
+// Dropping it there too lost NodeOut.title, StopOut.title and ResultOut.title (M3 part 3).
+function prepare(value: Json, naming = false): Json {
+  if (Array.isArray(value)) return value.map((entry) => prepare(entry));
   if (value === null || typeof value !== "object") return value;
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => key !== "title")
+      .filter(([key]) => naming || key !== "title")
       .map(([key, v]) => [
         key,
         key === "$ref" && typeof v === "string"
           ? v.replace("#/components/schemas/", "#/$defs/")
-          : prepare(v),
+          : prepare(v, key === "properties"),
       ]),
   );
 }
