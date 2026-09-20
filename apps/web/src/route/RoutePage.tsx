@@ -10,8 +10,10 @@ import type { RouteOut } from "../api/schema";
 import { TopBar } from "../layout/TopBar";
 import { shownLevel, shownStops, shownTime } from "../start/format";
 import { layout } from "./layout";
+import { NextUp } from "./NextUp";
 import { RouteList } from "./RouteList";
 import { RouteMap } from "./RouteMap";
+import { StopPanel } from "./StopPanel";
 
 const sentenceOf = (error: Error) =>
   error instanceof ApiUnreachable && error.status !== undefined
@@ -130,13 +132,22 @@ export function RoutePage() {
 
             <Facts route={route} />
 
-            <section className="rounded-panel border border-border bg-surface px-5 py-4">
-              {view === "map" ? (
-                <RouteMap route={route} selected={selected} onSelect={select} />
-              ) : (
-                <RouteList route={route} selected={selected} onSelect={select} />
-              )}
-            </section>
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+              <section className="min-w-0 rounded-panel border border-border bg-surface px-5 py-4">
+                {view === "map" ? (
+                  <RouteMap route={route} selected={selected} onSelect={select} />
+                ) : (
+                  <RouteList route={route} selected={selected} onSelect={select} />
+                )}
+              </section>
+              <StopPanel
+                route={route}
+                drawn={layout(route)}
+                stop={route.stops.find((stop) => stop.id === selected)}
+              />
+            </div>
+
+            <NextUp route={route} drawn={layout(route)} />
           </>
         )}
       </main>

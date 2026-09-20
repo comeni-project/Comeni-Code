@@ -106,3 +106,91 @@ describe("the Route page", () => {
     expect(await screen.findAllByText("These can be done in any order")).toHaveLength(5);
   });
 });
+
+describe("the selected stop", () => {
+  const reasonFor = (id: string) =>
+    SALMON.stops.find((stop) => stop.id === "k-mers")?.needed_by.find((one) => one.id === id)
+      ?.reason ?? "";
+
+  it("asks you to pick one when none is selected", async () => {
+    answering(SALMON);
+    open();
+    expect(await screen.findByText(/Pick a stop to see why it's on your route/)).toBeVisible();
+  });
+
+  it("fills the panel from a pasted ?stop=", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    expect(await screen.findByRole("heading", { level: 2, name: "k-mers" })).toBeVisible();
+    const kmers = SALMON.stops.find((stop) => stop.id === "k-mers");
+    expect(screen.getByText(kmers?.claim ?? "")).toBeInTheDocument();
+    const panel = screen.getByRole("complementary");
+    expect(panel).toHaveTextContent("Foundations");
+    expect(panel).toHaveTextContent("8 min");
+  });
+
+  it("lists what it needs and what it unlocks", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    expect(await screen.findByText("Needs")).toBeInTheDocument();
+    const panel = screen.getByRole("complementary");
+    expect(panel).toHaveTextContent("Unlocks");
+    // k-mers is needed by read mapping, and needs DNA and genes.
+    expect(panel).toHaveTextContent("Mapping reads to a reference");
+    expect(panel).toHaveTextContent("DNA and genes");
+  });
+
+  it("gives every stored reason the stop is on this route", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    expect(await screen.findByText("Why it's on this route")).toBeInTheDocument();
+    expect(screen.getByText(reasonFor("read-mapping"))).toBeInTheDocument();
+  });
+
+  it("selects a stop into the url when the map is clicked", async () => {
+    answering(SALMON);
+    open();
+    await userEvent.click(await screen.findByRole("button", { name: /k-mers/ }));
+    expect(await screen.findByRole("heading", { level: 2, name: "k-mers" })).toBeVisible();
+  });
+
+  it("links Open page to the node", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    expect(await screen.findByRole("link", { name: "Open page" })).toHaveAttribute(
+      "href",
+      "/node/k-mers",
+    );
+  });
+});
+
+describe("what comes next", () => {
+  it("offers only the stops nothing blocks, at most four", async () => {
+    answering(SALMON);
+    open();
+    expect(await screen.findByText("Next up")).toBeInTheDocument();
+    const next = screen.getByRole("list", { name: "What you can start now" });
+    const names = [...next.querySelectorAll("li")].map((item) => item.textContent ?? "");
+    expect(names.length).toBeLessThanOrEqual(4);
+    expect(names.join(" ")).toContain("DNA and genes");
+    expect(names.join(" ")).toContain("Probability");
+    expect(names.join(" ")).not.toContain("Salmon");
+  });
+
+  it("says how many stops each one unlocks", async () => {
+    answering(SALMON);
+    open();
+    expect((await screen.findAllByText(/unlocks \d+ stops?/)).length).toBeGreaterThan(0);
+  });
+
+  it("says where the lines meet", async () => {
+    answering(SALMON);
+    open();
+    expect(await screen.findByText("Where lines meet")).toBeInTheDocument();
+    const junctions = screen.getAllByText(/feeds/);
+    expect(junctions.length).toBeGreaterThan(0);
+    expect(junctions.map((one) => one.textContent ?? "").join(" ")).toContain(
+      "(Sequence analysis)",
+    );
+  });
+});
