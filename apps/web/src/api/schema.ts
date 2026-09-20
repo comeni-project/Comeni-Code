@@ -35,6 +35,7 @@ export interface NeighbourOut {
   id: string;
   level: string;
   reason: string;
+  title: string;
 }
 export interface NodeOut {
   body: string;
@@ -50,6 +51,7 @@ export interface NodeOut {
   region: RegionOut;
   related: NeighbourOut[];
   resources: ResourceOut[];
+  title: string;
 }
 /**
  * A try question, its answer included: it is formative, and the page checks it (M3P1.4).
@@ -101,6 +103,7 @@ export interface ResultOut {
   level: string;
   minutes: number;
   region: RegionOut;
+  title: string;
 }
 export interface RouteOut {
   goals: string[];
@@ -122,6 +125,7 @@ export interface StopOut {
   minutes: number;
   needed_by: NeighbourOut[];
   region: RegionOut;
+  title: string;
 }
 export interface SearchOut {
   query: string;

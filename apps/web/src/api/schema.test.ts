@@ -12,3 +12,26 @@ describe("src/api/schema.ts", () => {
     ).toBe(await renderApiTypes(readOpenApi()));
   });
 });
+
+describe("the generator", () => {
+  // A property named `title` is a field, not the schema keyword Pydantic adds everywhere.
+  // Stripping both lost NodeOut.title, StopOut.title and ResultOut.title until M3 part 3.
+  it("keeps a property called title", async () => {
+    const rendered = await renderApiTypes({
+      components: {
+        schemas: {
+          StopOut: {
+            type: "object",
+            title: "StopOut",
+            required: ["id", "title"],
+            properties: {
+              id: { type: "string", title: "Id" },
+              title: { type: "string", title: "Title" },
+            },
+          },
+        },
+      },
+    });
+    expect(rendered).toContain("title: string;");
+  });
+});
