@@ -10,7 +10,7 @@ from weaver.fixture_graph import FIXTURES, fixture_graph
 
 from code_schema.content import read_content
 from code_weaver.graph import Graph, Need, Topic
-from code_weaver.weave import Route, UnknownGoal, weave
+from code_weaver.weave import NeededBy, UnknownGoal, weave
 
 TESTS = Path(__file__).resolve().parents[1]
 
@@ -45,7 +45,8 @@ def topic(name: str, *needs: str, region: str = "a-region") -> Topic:
 
 
 def test_salmon_gives_the_seventeen_stops_in_order() -> None:
-    assert weave(fixture_graph(), ["salmon"]) == Route(goals=("salmon",), stops=SALMON_ROUTE)
+    route = weave(fixture_graph(), ["salmon"])
+    assert (route.goals, route.stops) == (("salmon",), SALMON_ROUTE)
 
 
 def test_every_stop_follows_all_it_needs_for_every_goal() -> None:
@@ -80,7 +81,7 @@ def test_topic_order_in_the_graph_changes_nothing() -> None:
 def test_goals_are_a_set() -> None:
     graph = fixture_graph()
     route = weave(graph, ["tpm", "salmon", "tpm"])
-    assert route == Route(goals=("salmon", "tpm"), stops=SALMON_ROUTE)
+    assert (route.goals, route.stops) == (("salmon", "tpm"), SALMON_ROUTE)
     assert weave(graph, ["salmon", "tpm"]) == route
 
 
@@ -137,4 +138,71 @@ def test_fresh_processes_print_byte_identical_routes() -> None:
         for seed in ("0", "1", "2", "random")
     }
     assert len(outputs) == 1
-    assert b"'salmon'" in outputs.pop()
+    assert b"NeededBy(node='salmon'" in outputs.pop()
+
+
+LEARNED_FIRST = ("read-mapping", "k-mers", "sequence-alignment")
+
+
+def test_a_stop_lists_the_route_stops_that_need_it_with_their_reasons() -> None:
+    route = weave(fixture_graph(), ["salmon"])
+    assert route.needed_by["transcripts-and-isoforms"] == (
+        NeededBy(
+            node="multi-mapping-reads",
+            reason="Isoforms share exons, so a read from a shared exon fits all of them.",
+        ),
+        NeededBy(node="tpm", reason="TPM is measured per transcript."),
+        NeededBy(
+            node="salmon",
+            reason="Salmon estimates abundance per transcript, and isoforms are why that is hard.",
+        ),
+    )
+
+
+def test_needed_by_is_the_stored_needs_on_the_route_for_every_goal() -> None:
+    graph = fixture_graph()
+    for goal in graph.topics:
+        route = weave(graph, [goal])
+        assert tuple(route.needed_by) == route.stops
+        for stop in route.stops:
+            users = [s for s in route.stops if any(n.node == stop for n in graph.topics[s].needs)]
+            assert [entry.node for entry in route.needed_by[stop]] == users, (goal, stop)
+
+
+def test_a_goal_is_needed_only_by_other_goals() -> None:
+    graph = fixture_graph()
+    assert weave(graph, ["salmon"]).needed_by["salmon"] == ()
+    both = weave(graph, ["salmon", "tpm"]).needed_by
+    assert [entry.node for entry in both["tpm"]] == ["salmon"]
+
+
+def test_the_walk_stops_at_a_known_topic() -> None:
+    route = weave(fixture_graph(), ["salmon"], known=["read-mapping"])
+    assert route.stops == tuple(s for s in SALMON_ROUTE if s not in LEARNED_FIRST)
+    assert len(route.stops) == 14
+    assert [entry.node for entry in route.needed_by["short-read-sequencing"]] == [
+        "fastq-and-quality-scores",
+        "rna-seq-libraries",
+    ]
+
+
+def test_known_edge_cases() -> None:
+    graph = fixture_graph()
+    assert weave(graph, ["salmon"], known=["salmon"]).stops == SALMON_ROUTE
+    assert weave(graph, ["salmon"], known=["no-such-topic"]).stops == SALMON_ROUTE
+    assert weave(graph, ["salmon"], known=["read-mapping", "k-mers", "read-mapping"]) == weave(
+        graph, ["salmon"], known=["k-mers", "read-mapping"]
+    )
+
+
+def test_the_span_follows_the_level_order() -> None:
+    graph = fixture_graph()
+    assert weave(graph, ["salmon"]).span == ("first-steps", "intermediate")
+    assert weave(graph, ["em-algorithm"]).span == ("first-steps", "intermediate")
+    assert weave(graph, ["dna-and-genes"]).span == ("first-steps", "first-steps")
+
+
+def test_every_level_changed_keeps_the_route_and_spans_one_level() -> None:
+    route = weave(fixture_graph(every_level="advanced"), ["salmon"])
+    assert route.stops == SALMON_ROUTE
+    assert route.span == ("advanced", "advanced")
