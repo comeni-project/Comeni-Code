@@ -12,7 +12,15 @@ import pytest
 
 from code_api.content import index
 from code_api.content.index import content_digest, rebuild_index
-from code_api.content.models import IndexBuild, Link, Node, Region
+from code_api.content.models import (
+    IndexBuild,
+    Link,
+    Node,
+    Provider,
+    Question,
+    Region,
+    Resource,
+)
 from code_schema import Level, read_content, read_node, write_node_folder
 from code_schema import Link as SchemaLink
 from code_schema import Node as SchemaNode
@@ -196,3 +204,58 @@ def test_a_rebuild_after_an_edit_equals_a_fresh_build(tmp_path: Path) -> None:
     assert list(needs) == [
         link.node for link in reversed(read_content(FIXTURES).nodes["salmon"].needs)
     ]
+
+
+# M3 part 1: providers, resources and questions are indexed too (spec M3P1.4).
+
+
+def test_a_rebuild_stores_providers_resources_and_questions() -> None:
+    rebuild_index(FIXTURES)
+    assert list(Provider.objects.order_by("position").values_list("id", flat=True)) == [
+        "khan-academy",
+        "openstax",
+        "galaxy-training",
+    ]
+    node = Node.objects.get(id="de-bruijn-graphs")
+    resources = list(node.resources.order_by("position"))
+    assert [resource.display for resource in resources] == ["embed", "link", "link"]
+    assert resources[0].provider_id == "khan-academy"
+    assert resources[0].part == "2:10–7:45"
+    questions = list(node.questions.order_by("position"))
+    assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
+    assert questions[0].kind == "number"
+    assert questions[0].answer == 5
+    assert questions[0].options == []
+    assert questions[0].hints and questions[0].rationale
+    assert questions[1].options[0] == {"text": "ACGTTG", "right": True}
+
+
+def test_a_node_with_no_resources_has_none() -> None:
+    rebuild_index(FIXTURES)
+    assert Node.objects.get(id="dna-and-genes").resources.count() == 0
+    assert Node.objects.get(id="dna-and-genes").questions.count() == 0
+
+
+def test_a_second_rebuild_replaces_them() -> None:
+    rebuild_index(FIXTURES)
+    rebuild_index(FIXTURES)
+    assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
+    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 2
+
+
+def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
+    before = content_digest(FIXTURES, read_content(FIXTURES))
+    root = copy_of_fixtures(tmp_path)
+    registry = root / "providers.yaml"
+    registry.write_text(registry.read_text().replace("Khan Academy", "Khan academy"))
+    assert content_digest(root, read_content(root)) != before
+
+
+def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:
+    rebuild_index(FIXTURES)
+    root = copy_of_fixtures(tmp_path)
+    (root / "providers.yaml").unlink()
+    build = rebuild_index(root)
+    assert build.outcome == IndexBuild.Outcome.REFUSED
+    assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
+    assert Provider.objects.count() == 3
