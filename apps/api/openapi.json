@@ -142,6 +142,13 @@
             "title": "Needs",
             "type": "array"
           },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionOut"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
           "region": {
             "$ref": "#/components/schemas/RegionOut"
           },
@@ -150,6 +157,13 @@
               "$ref": "#/components/schemas/NeighbourOut"
             },
             "title": "Related",
+            "type": "array"
+          },
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceOut"
+            },
+            "title": "Resources",
             "type": "array"
           },
           "title": {
@@ -169,9 +183,135 @@
           "needs",
           "goes_deeper",
           "related",
-          "needed_by"
+          "needed_by",
+          "resources",
+          "questions"
         ],
         "title": "NodeOut",
+        "type": "object"
+      },
+      "OptionOut": {
+        "properties": {
+          "right": {
+            "title": "Right",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "right"
+        ],
+        "title": "OptionOut",
+        "type": "object"
+      },
+      "ProviderOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ProviderOut",
+        "type": "object"
+      },
+      "QuestionOut": {
+        "description": "A try question, its answer included: it is formative, and the page checks it (M3P1.4).\n\nExam questions (T7.1) are scored, and their answers never leave the server.",
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "ask": {
+            "title": "Ask",
+            "type": "string"
+          },
+          "hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hints",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OptionOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "tolerance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "ask",
+          "options",
+          "answer",
+          "unit",
+          "tolerance",
+          "hints",
+          "rationale"
+        ],
+        "title": "QuestionOut",
         "type": "object"
       },
       "RegionOut": {
@@ -190,6 +330,54 @@
           "name"
         ],
         "title": "RegionOut",
+        "type": "object"
+      },
+      "ResourceOut": {
+        "description": "One entry of the Learn it section (M3P1.2). Our sentence and a link, never their text.",
+        "properties": {
+          "covers": {
+            "title": "Covers",
+            "type": "string"
+          },
+          "display": {
+            "title": "Display",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "part": {
+            "title": "Part",
+            "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderOut"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "provider",
+          "url",
+          "part",
+          "covers",
+          "licence",
+          "display",
+          "level"
+        ],
+        "title": "ResourceOut",
         "type": "object"
       },
       "RouteOut": {

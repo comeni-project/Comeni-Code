@@ -78,6 +78,9 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         "goes_deeper": cards(salmon.goes_deeper),
         "related": cards(salmon.related),
         "needed_by": needed_by("salmon"),
+        # Salmon cites neither; de Bruijn graphs is the node that does (M3P1.5).
+        "resources": [],
+        "questions": [],
     }
     assert [card["id"] for card in body["needs"]][0] == "rna-seq-libraries"
     assert len(body["goes_deeper"]) == 5
@@ -133,14 +136,67 @@ def test_refused_builds_are_no_index(client: Client, tmp_path: Path) -> None:
     assert get(client, "salmon").status_code == 503
 
 
-def test_a_node_costs_three_queries(
+def test_a_node_costs_five_queries(
     client: Client, django_assert_num_queries: DjangoAssertNumQueries
 ) -> None:
     rebuild_index(FIXTURES)
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(5):
         assert get(client, "salmon").status_code == 200
 
 
 def test_the_schema_lists_the_node_route(client: Client) -> None:
     operation = client.get("/api/openapi.json").json()["paths"]["/api/nodes/{node_id}"]["get"]
     assert set(operation["responses"]) == {"200", "404", "503"}
+
+
+# M3 part 1: the Learn it section and the try questions (spec M3P1.4).
+
+
+def test_a_node_returns_its_resources_in_the_authors_order(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    body = get(client, "de-bruijn-graphs").json()
+    assert [resource["display"] for resource in body["resources"]] == ["embed", "link", "link"]
+    first = body["resources"][0]
+    assert first["provider"] == {"id": "khan-academy", "name": "Khan Academy"}
+    assert first["kind"] == "video"
+    assert first["part"] == "2:10–7:45"
+    assert first["licence"] == "YouTube embed"
+    assert first["level"] == "foundations"
+    assert first["covers"] == CONTENT.nodes["de-bruijn-graphs"].resources[0].covers
+
+
+def test_a_number_question_comes_with_its_hints_and_rationale(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    question = get(client, "de-bruijn-graphs").json()["questions"][0]
+    assert question["id"] == "kmers-per-read"
+    assert question["kind"] == "number"
+    assert question["answer"] == 5
+    assert question["options"] is None
+    assert question["unit"] is None and question["tolerance"] is None
+    assert len(question["hints"]) == 2
+    assert question["rationale"].startswith("A sequence of length L")
+
+
+def test_a_choice_question_comes_with_its_options(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    question = get(client, "de-bruijn-graphs").json()["questions"][1]
+    assert question["kind"] == "choice"
+    assert question["answer"] is None
+    assert question["options"] == [
+        {"text": "ACGTTG", "right": True},
+        {"text": "TTGCA", "right": False},
+        {"text": "ACGTTGCA", "right": False},
+    ]
+
+
+def test_a_node_with_neither_returns_empty_lists(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    body = get(client, "dna-and-genes").json()
+    assert body["resources"] == []
+    assert body["questions"] == []
+
+
+def test_the_body_keeps_the_markers_the_page_splits_on(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    body = get(client, "de-bruijn-graphs").json()
+    assert "{% try kmers-per-read %}" in body["body"]

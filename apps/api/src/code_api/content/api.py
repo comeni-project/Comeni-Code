@@ -7,7 +7,7 @@ size. An id not in the index is a normal case (M1P5.3): 404, or 503 when no buil
 from django.http import HttpRequest
 from ninja import Router, Schema, Status
 
-from code_api.content.models import IndexBuild, Link, Node
+from code_api.content.models import IndexBuild, Link, Node, Question, Resource
 
 router = Router(tags=["content"])
 
@@ -26,6 +26,46 @@ class NeighbourOut(Schema):
     reason: str
 
 
+class ProviderOut(Schema):
+    id: str
+    name: str
+
+
+class ResourceOut(Schema):
+    """One entry of the Learn it section (M3P1.2). Our sentence and a link, never their text."""
+
+    kind: str
+    provider: ProviderOut
+    url: str
+    part: str
+    covers: str
+    licence: str
+    display: str
+    level: str
+
+
+class OptionOut(Schema):
+    text: str
+    right: bool
+
+
+class QuestionOut(Schema):
+    """A try question, its answer included: it is formative, and the page checks it (M3P1.4).
+
+    Exam questions (T7.1) are scored, and their answers never leave the server.
+    """
+
+    id: str
+    kind: str
+    ask: str
+    options: list[OptionOut] | None
+    answer: float | None
+    unit: str | None
+    tolerance: float | None
+    hints: list[str]
+    rationale: str
+
+
 class NodeOut(Schema):
     id: str
     title: str
@@ -39,6 +79,8 @@ class NodeOut(Schema):
     goes_deeper: list[NeighbourOut]
     related: list[NeighbourOut]
     needed_by: list[NeighbourOut]
+    resources: list[ResourceOut]
+    questions: list[QuestionOut]
 
 
 class Message(Schema):
@@ -47,6 +89,35 @@ class Message(Schema):
 
 def _card(node: Node, reason: str) -> NeighbourOut:
     return NeighbourOut(id=node.id, title=node.title, level=node.level, reason=reason)
+
+
+def _resource(resource: Resource) -> ResourceOut:
+    return ResourceOut(
+        kind=resource.kind,
+        provider=ProviderOut(id=resource.provider.id, name=resource.provider.name),
+        url=resource.url,
+        part=resource.part,
+        covers=resource.covers,
+        licence=resource.licence,
+        display=resource.display,
+        level=resource.level,
+    )
+
+
+def _question(question: Question) -> QuestionOut:
+    """A number has no options and a choice no answer, so the page knows which it is reading."""
+    choice = question.kind == "choice"
+    return QuestionOut(
+        id=question.question_id,
+        kind=question.kind,
+        ask=question.ask,
+        options=[OptionOut(**option) for option in question.options] if choice else None,
+        answer=None if choice else question.answer,
+        unit=question.unit or None,
+        tolerance=question.tolerance,
+        hints=list(question.hints),
+        rationale=question.rationale,
+    )
 
 
 @router.get(
@@ -65,6 +136,8 @@ def node(request: HttpRequest, node_id: str) -> Status[NodeOut] | Status[Message
     out: dict[str, list[NeighbourOut]] = {kind: [] for kind in Link.Kind.values}
     for link in found.links_out.select_related("target").order_by("kind", "position"):
         out[link.kind].append(_card(link.target, link.reason))
+    resources = found.resources.select_related("provider").order_by("position")
+    questions = found.questions.order_by("position")
     incoming = found.links_in.filter(kind=Link.Kind.NEEDS).select_related("source")
     # Sorted here, not by the database: Postgres's collation and Python's differ on case.
     needed_by = sorted(incoming, key=lambda link: (link.source.title.casefold(), link.source.id))
@@ -83,5 +156,7 @@ def node(request: HttpRequest, node_id: str) -> Status[NodeOut] | Status[Message
             goes_deeper=out[Link.Kind.GOES_DEEPER],
             related=out[Link.Kind.RELATED],
             needed_by=[_card(link.source, link.reason) for link in needed_by],
+            resources=[_resource(resource) for resource in resources],
+            questions=[_question(question) for question in questions],
         ),
     )
