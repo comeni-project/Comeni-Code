@@ -10,11 +10,13 @@ export function RouteStrip({
   goals,
   known,
   route,
+  big = false,
 }: {
   id: string;
   goals: string[];
   known: string[];
   route: RouteOut | undefined;
+  big?: boolean;
 }) {
   const back = new URLSearchParams();
   for (const goal of goals) back.append("goal", goal);
@@ -30,9 +32,11 @@ export function RouteStrip({
   return (
     <section
       aria-label="Your route"
-      className="border-border border-b bg-surface text-[13px] text-ink-2"
+      className={`border-border border-b bg-surface text-ink-2 ${big ? "text-[15px]" : "text-[13px]"}`}
     >
-      <div className="flex min-h-[46px] flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2.5 sm:px-9">
+      <div
+        className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2.5 sm:px-9 ${big ? "min-h-[52px]" : "min-h-[46px]"}`}
+      >
         {route === undefined ? (
           <span>Finding your route…</span>
         ) : stop === undefined ? (
@@ -41,9 +45,15 @@ export function RouteStrip({
           </span>
         ) : (
           <span>
-            On your route to <b className="font-semibold text-ink">{aim}</b> · {stop.region.name}{" "}
-            line · stop {index + 1} of {route.stops.length}
-            {unlocks.length > 0 ? (
+            On your route to <b className="font-semibold text-ink">{aim}</b> ·{" "}
+            {big && index === 0 ? (
+              "the very first stop"
+            ) : (
+              <>
+                {big ? "" : `${stop.region.name} line · `}stop {index + 1} of {route.stops.length}
+              </>
+            )}
+            {unlocks.length > 0 && !big ? (
               <>
                 {" "}
                 · unlocks{" "}

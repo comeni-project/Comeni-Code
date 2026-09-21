@@ -23,7 +23,8 @@ done
 [ "$status" = "200" ] || fail "/api/health answered ${status:-nothing} after ${HEALTH_WAIT_S}s: $(cat /tmp/code-stack-health.json 2>/dev/null)"
 echo "ok   /api/health 200: $(cat /tmp/code-stack-health.json)"
 
-for path in / /health /identity; do
+# Deep paths are the app's own routes: nginx must serve index.html for them too (M3P6.4).
+for path in / /health /identity "/route?goal=salmon" /node/dna-and-genes; do
   curl -sf "$BASE$path" | grep -q '<div id="root">' || fail "$path is not the app's index.html"
   echo "ok   $path serves the app"
 done

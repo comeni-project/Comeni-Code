@@ -234,8 +234,8 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
 
 def test_a_node_with_no_resources_has_none() -> None:
     rebuild_index(FIXTURES)
-    assert Node.objects.get(id="dna-and-genes").resources.count() == 0
-    assert Node.objects.get(id="dna-and-genes").questions.count() == 0
+    assert Node.objects.get(id="probability").resources.count() == 0
+    assert Node.objects.get(id="probability").questions.count() == 0
 
 
 def test_a_second_rebuild_replaces_them() -> None:
