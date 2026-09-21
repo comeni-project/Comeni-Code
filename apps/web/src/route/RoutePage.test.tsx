@@ -191,12 +191,22 @@ describe("the selected stop", () => {
     expect(await screen.findByRole("link", { name: "Open page" })).toHaveClass("bg-btn");
   });
 
-  it("links Open page to the node", async () => {
+  it("links Open page to the node, carrying the route", async () => {
     answering(SALMON);
     open("/route?goal=salmon&stop=k-mers");
     expect(await screen.findByRole("link", { name: "Open page" })).toHaveAttribute(
       "href",
-      "/node/k-mers",
+      "/node/k-mers?goal=salmon",
+    );
+  });
+
+  it("carries what is known to the node too", async () => {
+    // The API echoes the known topics it was given; the page links with what it answered.
+    answering({ ...SALMON, known: ["tpm"] });
+    open("/route?goal=salmon&known=tpm&stop=k-mers");
+    expect(await screen.findByRole("link", { name: "Open page" })).toHaveAttribute(
+      "href",
+      "/node/k-mers?goal=salmon&known=tpm",
     );
   });
 });

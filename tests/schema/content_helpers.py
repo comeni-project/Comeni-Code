@@ -47,6 +47,7 @@ PROVIDERS = """providers:
     name: Khan Academy
     licences: [YouTube embed]
     embed: true
+    players: [youtube]
 """
 
 RESOURCE = """resources:
@@ -57,6 +58,7 @@ RESOURCE = """resources:
     licence: YouTube embed
     display: embed
     level: introductory
+    video: youtube:Jnk_4Maf5Fk
 """
 
 

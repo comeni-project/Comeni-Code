@@ -9,6 +9,7 @@ GOOD = """providers:
     name: Khan Academy
     licences: [YouTube embed]
     embed: true
+    players: [youtube]
   - id: openstax
     name: OpenStax
     licences: [CC BY 4.0]
@@ -21,15 +22,20 @@ def test_a_registry_is_read_in_order() -> None:
     assert problems == []
     assert list(providers) == ["khan-academy", "openstax"]
     assert providers["khan-academy"] == Provider(
-        id="khan-academy", name="Khan Academy", licences=("YouTube embed",), embed=True
+        id="khan-academy",
+        name="Khan Academy",
+        licences=("YouTube embed",),
+        embed=True,
+        players=("youtube",),
     )
+    assert providers["openstax"].players == ()
 
 
 def test_a_provider_listed_twice_is_a_problem() -> None:
     again = "  - id: khan-academy\n    name: Again\n    licences: [x]\n    embed: false\n"
     _, problems = parse_providers(GOOD + again)
     assert [problem.message for problem in problems] == ['"khan-academy" is listed twice']
-    assert problems[0].line == 10
+    assert problems[0].line == 11
 
 
 def test_every_field_is_required() -> None:
@@ -90,3 +96,21 @@ def test_a_present_file_is_read(tmp_path: Path) -> None:
     assert problems == []
     assert providers is not None
     assert list(providers) == ["khan-academy", "openstax"]
+
+
+def test_a_player_must_be_one_the_page_can_play() -> None:
+    _, problems = parse_providers(
+        "providers:\n  - id: a\n    name: A\n    licences: [x]\n    embed: true\n"
+        "    players: [vimeo]\n"
+    )
+    assert [(problem.field, problem.message) for problem in problems] == [
+        ("players", "vimeo is not a player (youtube)")
+    ]
+
+
+def test_players_must_be_a_list() -> None:
+    _, problems = parse_providers(
+        "providers:\n  - id: a\n    name: A\n    licences: [x]\n    embed: true\n"
+        "    players: youtube\n"
+    )
+    assert [problem.message for problem in problems] == ["must be a list of players"]

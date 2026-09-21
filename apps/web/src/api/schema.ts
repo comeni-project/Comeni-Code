@@ -13,6 +13,7 @@ export interface ApiSchemas {
   ResultOut: ResultOut;
   RouteOut: RouteOut;
   SearchOut: SearchOut;
+  SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
 }
@@ -41,16 +42,26 @@ export interface NodeOut {
   body: string;
   claim: string;
   folder: string;
-  goes_deeper: NeighbourOut[];
+  goes_deeper: SideCardOut[];
   id: string;
   level: string;
   minutes: number;
-  needed_by: NeighbourOut[];
-  needs: NeighbourOut[];
+  needed_by: SideCardOut[];
+  needs: SideCardOut[];
   questions: QuestionOut[];
   region: RegionOut;
-  related: NeighbourOut[];
+  related: SideCardOut[];
   resources: ResourceOut[];
+  title: string;
+}
+/**
+ * A neighbour on the node page, with its time: the L5 side column's *level · N min*.
+ */
+export interface SideCardOut {
+  id: string;
+  level: string;
+  minutes: number;
+  reason: string;
   title: string;
 }
 /**
@@ -89,6 +100,7 @@ export interface ResourceOut {
   part: string;
   provider: ProviderOut;
   url: string;
+  video: string | null;
 }
 export interface ProviderOut {
   id: string;

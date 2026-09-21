@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from "react-router";
 import { HealthPage } from "./health/HealthPage";
 import { Specimen } from "./identity/Specimen";
 import { TopBar } from "./layout/TopBar";
+import { NodePage } from "./node/NodePage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
 
@@ -30,6 +31,7 @@ export function App() {
     <Routes>
       <Route path="/" element={<StartPage />} />
       <Route path="/route" element={<RoutePage />} />
+      <Route path="/node/:id" element={<NodePage />} />
       <Route path="/health" element={<HealthPage />} />
       <Route path="/identity" element={<Specimen />} />
       <Route path="*" element={<NotFound />} />

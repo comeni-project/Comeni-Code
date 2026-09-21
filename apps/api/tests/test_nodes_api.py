@@ -21,20 +21,21 @@ CONTENT = read_content(FIXTURES)
 pytestmark = pytest.mark.django_db
 
 
-def cards(links: Sequence[Link]) -> list[dict[str, str]]:
+def cards(links: Sequence[Link]) -> list[dict[str, object]]:
     """The cards the API should give for links written in the files, in their order."""
     return [
         {
             "id": link.node,
             "title": CONTENT.nodes[link.node].title,
             "level": CONTENT.nodes[link.node].level,
+            "minutes": CONTENT.nodes[link.node].minutes,
             "reason": link.reason,
         }
         for link in links
     ]
 
 
-def needed_by(target: str) -> list[dict[str, str]]:
+def needed_by(target: str) -> list[dict[str, object]]:
     """The cards for the nodes whose files say they need `target`, sorted by title ignoring case."""
     sources = sorted(
         (
@@ -49,6 +50,7 @@ def needed_by(target: str) -> list[dict[str, str]]:
             "id": node.id,
             "title": node.title,
             "level": node.level,
+            "minutes": node.minutes,
             "reason": next(link.reason for link in node.needs if link.node == target),
         }
         for node in sources
@@ -101,7 +103,15 @@ def test_needed_by_is_derived_with_the_needing_nodes_reason(client: Client) -> N
     for source in ("kallisto", "salmon", "variational-bayes-em"):
         node = CONTENT.nodes[source]
         (reason,) = [link.reason for link in node.needs if link.node == "em-algorithm"]
-        expected.append({"id": source, "title": node.title, "level": node.level, "reason": reason})
+        expected.append(
+            {
+                "id": source,
+                "title": node.title,
+                "level": node.level,
+                "minutes": node.minutes,
+                "reason": reason,
+            }
+        )
     assert body["needed_by"] == expected
 
 
@@ -159,7 +169,9 @@ def test_a_node_returns_its_resources_in_the_authors_order(client: Client) -> No
     first = body["resources"][0]
     assert first["provider"] == {"id": "khan-academy", "name": "Khan Academy"}
     assert first["kind"] == "video"
-    assert first["part"] == "2:10–7:45"
+    assert first["part"] == ""
+    assert first["video"] == "youtube:Jnk_4Maf5Fk"
+    assert body["resources"][1]["video"] is None
     assert first["licence"] == "YouTube embed"
     assert first["level"] == "foundations"
     assert first["covers"] == CONTENT.nodes["de-bruijn-graphs"].resources[0].covers

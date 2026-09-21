@@ -111,7 +111,7 @@
           },
           "goes_deeper": {
             "items": {
-              "$ref": "#/components/schemas/NeighbourOut"
+              "$ref": "#/components/schemas/SideCardOut"
             },
             "title": "Goes Deeper",
             "type": "array"
@@ -130,14 +130,14 @@
           },
           "needed_by": {
             "items": {
-              "$ref": "#/components/schemas/NeighbourOut"
+              "$ref": "#/components/schemas/SideCardOut"
             },
             "title": "Needed By",
             "type": "array"
           },
           "needs": {
             "items": {
-              "$ref": "#/components/schemas/NeighbourOut"
+              "$ref": "#/components/schemas/SideCardOut"
             },
             "title": "Needs",
             "type": "array"
@@ -154,7 +154,7 @@
           },
           "related": {
             "items": {
-              "$ref": "#/components/schemas/NeighbourOut"
+              "$ref": "#/components/schemas/SideCardOut"
             },
             "title": "Related",
             "type": "array"
@@ -365,12 +365,24 @@
           "url": {
             "title": "Url",
             "type": "string"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video"
           }
         },
         "required": [
           "kind",
           "provider",
           "url",
+          "video",
           "part",
           "covers",
           "licence",
@@ -486,6 +498,40 @@
           "results"
         ],
         "title": "SearchOut",
+        "type": "object"
+      },
+      "SideCardOut": {
+        "description": "A neighbour on the node page, with its time: the L5 side column's *level · N min*.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "level",
+          "reason",
+          "minutes"
+        ],
+        "title": "SideCardOut",
         "type": "object"
       },
       "SpanOut": {
