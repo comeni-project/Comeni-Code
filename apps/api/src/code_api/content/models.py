@@ -68,6 +68,7 @@ class Resource(models.Model):
     kind = models.TextField(choices=[(kind, kind) for kind in RESOURCE_KINDS])
     provider = models.ForeignKey(Provider, on_delete=models.PROTECT, related_name="resources")
     url = models.TextField()
+    video = models.TextField(blank=True)  # player:id, for an embedded video (M3P5.3)
     part = models.TextField(blank=True)
     covers = models.TextField()
     licence = models.TextField()

@@ -221,6 +221,8 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     assert [resource.display for resource in resources] == ["embed", "link", "link"]
     assert resources[0].provider_id == "khan-academy"
     assert resources[0].part == ""
+    assert resources[0].video == "youtube:Jnk_4Maf5Fk"
+    assert resources[1].video == ""
     questions = list(node.questions.order_by("position"))
     assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
     assert questions[0].kind == "number"

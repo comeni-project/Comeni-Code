@@ -37,6 +37,7 @@ class ResourceOut(Schema):
     kind: str
     provider: ProviderOut
     url: str
+    video: str | None  # player:id, which the page plays in place (M3P5.3)
     part: str
     covers: str
     licence: str
@@ -96,6 +97,7 @@ def _resource(resource: Resource) -> ResourceOut:
         kind=resource.kind,
         provider=ProviderOut(id=resource.provider.id, name=resource.provider.name),
         url=resource.url,
+        video=resource.video or None,
         part=resource.part,
         covers=resource.covers,
         licence=resource.licence,

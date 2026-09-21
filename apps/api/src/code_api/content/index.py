@@ -109,6 +109,7 @@ def _resource_rows(content: Content) -> list[Resource]:
             kind=resource.kind,
             provider_id=resource.provider,
             url=resource.url,
+            video=resource.video,
             part=resource.part,
             covers=resource.covers,
             licence=resource.licence,

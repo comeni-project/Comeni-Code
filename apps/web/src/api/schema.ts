@@ -89,6 +89,7 @@ export interface ResourceOut {
   part: string;
   provider: ProviderOut;
   url: string;
+  video: string | null;
 }
 export interface ProviderOut {
   id: string;

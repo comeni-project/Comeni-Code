@@ -365,12 +365,24 @@
           "url": {
             "title": "Url",
             "type": "string"
+          },
+          "video": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video"
           }
         },
         "required": [
           "kind",
           "provider",
           "url",
+          "video",
           "part",
           "covers",
           "licence",
