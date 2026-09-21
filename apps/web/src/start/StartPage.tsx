@@ -41,7 +41,7 @@ function Target({
         onClick={onToggle}
         aria-pressed={chosen}
         aria-label={`${chosen ? "Remove" : "Choose"} ${result.title}`}
-        className={`flex w-full items-center gap-3.5 rounded-[10px] px-4 py-3 text-left ${
+        className={`flex w-full flex-wrap items-center gap-x-3.5 gap-y-1 rounded-[10px] px-4 py-3 text-left sm:flex-nowrap ${
           chosen
             ? "border-2 border-sel bg-sel-soft"
             : "border border-border bg-surface hover:border-sel"
@@ -70,7 +70,8 @@ function Target({
           <span className="text-[15px] font-semibold">{result.title}</span>
           <span className="text-[13px] text-ink-2">{result.claim}</span>
         </span>
-        <span className="shrink-0 font-mono text-[12px] text-ink-3">
+        {/* On a phone the region and time go under the text, past the tick. */}
+        <span className="basis-full pl-[34px] font-mono text-[12px] text-ink-3 sm:basis-auto sm:shrink-0 sm:pl-0">
           {result.region.name} · {result.minutes}m
         </span>
       </button>
