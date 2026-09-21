@@ -4,6 +4,7 @@
 // and unlocks from this route's own links, and the reasons from the links themselves (M2P2.2).
 // What the board also shows — questions answered, the problem that proves it, "in progress" —
 // needs learner records (T7) and problems (M6), so it is not drawn.
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteOut, StopOut } from "../api/schema";
 import { shownLevel } from "../start/format";
 import type { Layout } from "./layout";
@@ -29,20 +30,55 @@ function Names({
   );
 }
 
+/** Whether a box that scrolls has more below what shows, so its bottom edge can fade. */
+function useMoreBelow(key: string | undefined) {
+  const box = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  const check = useCallback(() => {
+    const area = box.current;
+    if (area !== null) setMore(area.scrollHeight - area.scrollTop - area.clientHeight > 2);
+  }, []);
+  useEffect(() => {
+    // A new stop brings new content to measure; with none selected there is nothing to fade.
+    if (key === undefined) return;
+    check();
+    const area = box.current;
+    if (area === null || typeof ResizeObserver === "undefined") return;
+    const watcher = new ResizeObserver(check);
+    watcher.observe(area);
+    return () => watcher.disconnect();
+  }, [check, key]);
+  return { box, more, check };
+}
+
+// Beside the map the panel is as tall as the map; beside the list, which can be long, it is a
+// card that follows the scroll instead (`follow`). Stacked on a narrow screen, it simply grows.
+const PLACED = {
+  beside: "lg:min-h-[26rem]",
+  follow: "lg:sticky lg:top-6 lg:self-start lg:h-[min(34rem,calc(100vh-3rem))]",
+};
+
 export function StopPanel({
   route,
   drawn,
   stop,
+  follow = false,
 }: {
   route: RouteOut;
   drawn: Layout;
   stop: StopOut | undefined;
+  follow?: boolean;
 }) {
   const titles = new Map(route.stops.map((one) => [one.id, one.title]));
+  const { box, more, check } = useMoreBelow(stop?.id);
 
   if (stop === undefined) {
     return (
-      <aside className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-[18px]">
+      <aside
+        className={`flex flex-col gap-2 self-start rounded-panel border border-border bg-surface p-[18px] ${
+          follow ? "lg:sticky lg:top-6" : ""
+        }`}
+      >
         <h2 className="text-[12px] font-medium text-ink-3">Selected stop</h2>
         <p className="text-[14px] text-ink-2">
           Pick a stop to see why it's on your route, what it needs and what it unlocks.
@@ -51,19 +87,28 @@ export function StopPanel({
     );
   }
 
-  // On a wide screen the panel is as tall as the map beside it, never taller: its content sits in
-  // an inset box, so it adds nothing to the row's height, and only the middle scrolls. Stacked
-  // under the map on a narrow screen, it simply grows.
+  // The content sits in an inset box, so on a wide screen it adds nothing to the row's height:
+  // the title and the action stay put, and only the middle scrolls, fading where there is more.
   return (
-    <aside className="relative rounded-panel border border-border bg-surface lg:min-h-[26rem]">
+    <aside
+      className={`relative rounded-panel border border-border bg-surface ${
+        follow ? PLACED.follow : PLACED.beside
+      }`}
+    >
       <div className="flex flex-col lg:absolute lg:inset-0">
         <div className="flex flex-col gap-1.5 px-[18px] pt-[18px] pb-3">
           <span className="text-[12px] font-medium text-ink-3">Selected stop</span>
           <h2 className="text-[20px] leading-tight font-semibold">{stop.title}</h2>
         </div>
         <div
+          ref={box}
+          onScroll={check}
           data-panel-body
-          className="scroll-shadows flex min-h-0 flex-1 flex-col gap-3 px-[18px] pb-3 *:shrink-0 lg:overflow-y-auto"
+          className={`flex min-h-0 flex-1 flex-col gap-3 px-[18px] pb-3 *:shrink-0 lg:overflow-y-auto ${
+            more
+              ? "lg:[mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent)]"
+              : ""
+          }`}
         >
           <p className="text-[14px] leading-normal">{stop.claim}</p>
 
@@ -96,10 +141,10 @@ export function StopPanel({
             )}
           </div>
         </div>
-        <div className="border-border border-t px-[18px] py-3">
+        <div className="px-[18px] pt-2 pb-[18px]">
           <a
             href={`/node/${stop.id}`}
-            className="self-start rounded-[9px] border border-border-2 bg-surface px-3.5 py-[7px] text-[13px] font-medium hover:border-sel"
+            className="inline-block rounded-control bg-btn px-[22px] py-2.5 text-[14px] font-semibold text-btn-ink shadow-[0_3px_0_0_var(--btn-sh)] hover:brightness-110"
           >
             Open page
           </a>

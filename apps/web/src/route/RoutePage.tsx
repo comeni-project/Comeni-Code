@@ -3,6 +3,7 @@
 // Everything is in the URL — goal, known, the selected stop and the view — so a route, a stop and
 // a shortened map are each a link someone can send (M3P3.2).
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { ApiUnreachable } from "../api/client";
 import { fetchRoute } from "../api/routes";
@@ -20,8 +21,14 @@ const sentenceOf = (error: Error) =>
     ? error.reason
     : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
+/** Past this many lines the rail folds, so a route across many regions keeps one tidy row. */
+const RAIL_SHOWN = 6;
+
 function Facts({ route }: { route: RouteOut }) {
-  const lines = layout(route).lines;
+  const all = layout(route).lines;
+  const [open, setOpen] = useState(false);
+  const folds = all.length > RAIL_SHOWN;
+  const lines = folds && !open ? all.slice(0, RAIL_SHOWN - 1) : all;
   return (
     <section className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-panel border border-border bg-surface px-5 py-3.5">
       <div className="flex min-w-44 flex-col gap-0.5">
@@ -48,6 +55,18 @@ function Facts({ route }: { route: RouteOut }) {
             </span>
           </li>
         ))}
+        {folds ? (
+          <li className="flex items-center">
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpen(!open)}
+              className="rounded-pill border border-border-2 px-3 py-1 text-[12.5px] font-medium text-ink-2 hover:border-sel hover:text-ink"
+            >
+              {open ? "Fewer lines" : `+${all.length - lines.length} more lines`}
+            </button>
+          </li>
+        ) : null}
       </ul>
     </section>
   );
@@ -96,6 +115,12 @@ export function RoutePage() {
     const next = new URLSearchParams(params);
     next.set("stop", id);
     setParams(next);
+  }
+
+  /** From below the map: select the stop, then bring the map and its panel back into view. */
+  function pick(id: string) {
+    select(id);
+    document.getElementById("route-map")?.scrollIntoView?.({ behavior: "smooth", block: "start" });
   }
 
   function show(which: "map" | "list") {
@@ -181,7 +206,10 @@ export function RoutePage() {
 
             <Facts route={route} />
 
-            <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div
+              id="route-map"
+              className="grid scroll-mt-6 gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]"
+            >
               <section className="flex min-w-0 flex-col gap-2 rounded-panel border border-border bg-surface px-[18px] pt-3.5 pb-3">
                 {view === "map" ? (
                   <>
@@ -196,13 +224,14 @@ export function RoutePage() {
                 )}
               </section>
               <StopPanel
+                follow={view === "list"}
                 route={route}
                 drawn={layout(route)}
                 stop={route.stops.find((stop) => stop.id === selected)}
               />
             </div>
 
-            <NextUp route={route} drawn={layout(route)} />
+            <NextUp route={route} drawn={layout(route)} onSelect={pick} />
           </>
         )}
       </main>

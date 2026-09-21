@@ -170,6 +170,27 @@ describe("the selected stop", () => {
     );
   });
 
+  it("follows the scroll as a card in the list view, rather than stretching down the list", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&view=list&stop=k-mers");
+    await screen.findByRole("heading", { level: 2, name: "k-mers" });
+    const panel = screen.getByRole("complementary");
+    expect(panel).toHaveClass("lg:sticky", "lg:self-start");
+  });
+
+  it("stands beside the map at the map's height in the map view", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    await screen.findByRole("heading", { level: 2, name: "k-mers" });
+    expect(screen.getByRole("complementary")).not.toHaveClass("lg:sticky");
+  });
+
+  it("offers Open page as the panel's main action, as the board's Continue", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=k-mers");
+    expect(await screen.findByRole("link", { name: "Open page" })).toHaveClass("bg-btn");
+  });
+
   it("links Open page to the node", async () => {
     answering(SALMON);
     open("/route?goal=salmon&stop=k-mers");
@@ -199,17 +220,27 @@ describe("what comes next", () => {
     expect((await screen.findAllByText(/unlocks \d+ stops?/)).length).toBeGreaterThan(0);
   });
 
-  it("says where the lines meet, one row per stop", async () => {
+  it("says what each starting stop gives you, in its own words", async () => {
     answering(SALMON);
     open();
-    const heading = await screen.findByRole("heading", { name: "Where lines meet" });
-    const rows = [...(heading.closest("section")?.querySelectorAll("li") ?? [])];
-    const text = rows.map((row) => row.textContent ?? "");
-    // Mapping reads is where Sequencing meets Sequence analysis.
-    const mapping = text.find((row) => row.startsWith("Mapping reads to a reference"));
-    expect(mapping).toContain("from Short-read sequencing");
-    // One row per stop, so no stop is named twice as a destination.
-    expect(new Set(text.map((row) => row.split("from")[0])).size).toBe(rows.length);
+    const next = await screen.findByRole("list", { name: "What you can start now" });
+    const dna = SALMON.stops.find((stop) => stop.id === "dna-and-genes");
+    expect(within(next).getByText(dna?.claim ?? "")).toBeInTheDocument();
+  });
+
+  it("picks a starting stop on the map when its card is clicked", async () => {
+    answering(SALMON);
+    open();
+    const next = await screen.findByRole("list", { name: "What you can start now" });
+    await userEvent.click(within(next).getByRole("button", { name: /Probability/ }));
+    expect(await screen.findByRole("heading", { level: 2, name: "Probability" })).toBeVisible();
+  });
+
+  it("no longer lists where lines meet: the map and the panel say it", async () => {
+    answering(SALMON);
+    open();
+    await screen.findByText("Next up");
+    expect(screen.queryByRole("heading", { name: "Where lines meet" })).not.toBeInTheDocument();
   });
 
   it("sits in the board's frame: a way home, and a way to change the goal", async () => {
@@ -229,6 +260,27 @@ describe("what comes next", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Where lines meet", { selector: "li *, li" })).toBeInTheDocument();
+  });
+
+  it("folds a long rail, and opens it on request", async () => {
+    // Nine lines: more than the rail shows before it folds.
+    const many = {
+      ...SALMON,
+      stops: SALMON.stops.map((stop, index) =>
+        index < 9 ? { ...stop, region: { id: `region-${index}`, name: `Region ${index}` } } : stop,
+      ),
+    };
+    answering(many);
+    const { container } = open();
+    await screen.findByText("17 stops");
+    const rail = within(container.querySelector("[data-rail]") as HTMLElement);
+    expect(rail.queryByText("Region 8")).not.toBeInTheDocument();
+    await userEvent.click(rail.getByRole("button", { name: /more lines/ }));
+    expect(rail.getByText("Region 8")).toBeInTheDocument();
+    expect(rail.getByRole("button", { name: "Fewer lines" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
   });
 
   it("draws the rail's bars neutral, since nothing is settled yet", async () => {
