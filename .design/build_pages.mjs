@@ -633,10 +633,10 @@ spells    ACGTTAG</pre></div>
       </div>
     </article>
     <aside style="display:flex;flex-direction:column;gap:22px">
-      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Learn it elsewhere</span>
-        ${[['Video', '[Khan Academy] Genome assembly', '2:10–7:45 · Introductory'], ['Reading', 'OpenStax Biology 2e §17.1', 'CC BY · Foundations'], ['Tutorial', 'Galaxy Training · DBG assembly', 'CC BY · Intermediate']].map(([k, n, m]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface}"><span style="font-size:11px;color:${c.ink3}">${k} · ${m}</span><span style="font-size:13px">${n}</span></div>`).join('')}
-        <span style="font-size:11.5px;color:${c.ink3};line-height:1.45">Picked by reviewers. We link or embed; nothing is copied.</span></div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:${c.ink3}">Around this node</span><span style="display:flex;padding:6px;color:${c.ink3}"><svg width="7" height="12" viewBox="0 0 7 12"><path d="M1 1l5 5-5 5" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg></span></div>
       ${[['Goes deeper', [['Compacted de Bruijn graphs', 'Advanced · 15 min'], ['Eulerian paths', 'Intermediate · 20 min'], ['Choosing k', 'Intermediate · 10 min']]], ['Related', [['Overlap graphs', 'Intermediate · 15 min'], ['Minimizers', 'Advanced · 15 min']]], ['Needed by', [['Salmon', 'your goal'], ['Assemble a genome', 'track'], ['Contigs', 'Intermediate · 10 min']]]].map(([t, items]) => `<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">${t}</span>${items.map(([n, m]) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};font-size:13px"><span>${n}</span><span style="color:${c.ink3};font-size:12px">${m}</span></div>`).join('')}</div>`).join('')}
+      </div>
       <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Sources</span>
         <div style="font-size:12.5px;line-height:1.5;color:${c.ink2};display:flex;flex-direction:column;gap:10px">
           <span><b style="font-family:${MONO};color:${c.sel};font-weight:500">[1]</b> Compeau, Pevzner &amp; Tesler (2011). How to apply de Bruijn graphs to genome assembly. <i>Nature Biotechnology</i> 29, 987–991. <span style="font-family:${MONO};font-size:11px">doi:10.1038/nbt.2023</span></span>
