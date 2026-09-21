@@ -9,3 +9,15 @@
     @apply bg-bg font-sans text-ink antialiased;
   }
 }
+
+/* A soft shadow at the top or bottom edge of a box that scrolls, only while there is more that
+   way: the surface-coloured covers scroll with the content and hide the shadows at each end. */
+@utility scroll-shadows {
+  background:
+    linear-gradient(var(--surface) 30%, transparent) top / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--surface) 70%) bottom / 100% 24px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgb(0 0 0 / 0.14), transparent) top / 100% 10px
+    no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgb(0 0 0 / 0.14), transparent) bottom / 100% 10px
+    no-repeat scroll;
+}

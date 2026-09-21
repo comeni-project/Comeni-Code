@@ -156,6 +156,20 @@ describe("the selected stop", () => {
     expect(await screen.findByRole("heading", { level: 2, name: "k-mers" })).toBeVisible();
   });
 
+  it("keeps the title and Open page in place while a long panel scrolls between them", async () => {
+    answering(SALMON);
+    open("/route?goal=salmon&stop=dna-and-genes");
+    await screen.findByRole("heading", { level: 2, name: "DNA and genes" });
+    const panel = screen.getByRole("complementary");
+    const body = panel.querySelector("[data-panel-body]");
+    expect(body).toHaveClass("lg:overflow-y-auto");
+    expect(body).toHaveTextContent("Why it's on this route");
+    expect(body).not.toHaveTextContent("Open page");
+    expect(body).not.toContainElement(
+      screen.getByRole("heading", { level: 2, name: "DNA and genes" }),
+    );
+  });
+
   it("links Open page to the node", async () => {
     answering(SALMON);
     open("/route?goal=salmon&stop=k-mers");

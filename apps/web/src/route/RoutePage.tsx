@@ -37,7 +37,9 @@ function Facts({ route }: { route: RouteOut }) {
           <li key={line.region.id} className="flex min-w-32 flex-1 flex-col gap-[5px]">
             <span className="flex justify-between gap-3 text-[12.5px]">
               <span className="font-semibold">{line.region.name}</span>
-              <span className="text-ink-3">{shownStops(line.stops.length)}</span>
+              <span className="shrink-0 whitespace-nowrap text-ink-3">
+                {shownStops(line.stops.length)}
+              </span>
             </span>
             <span className="flex gap-[3px]">
               {line.stops.map((id) => (
@@ -179,11 +181,14 @@ export function RoutePage() {
 
             <Facts route={route} />
 
-            <div className="grid items-start gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]">
               <section className="flex min-w-0 flex-col gap-2 rounded-panel border border-border bg-surface px-[18px] pt-3.5 pb-3">
                 {view === "map" ? (
                   <>
-                    <RouteMap route={route} selected={selected} onSelect={select} />
+                    {/* A short route's map is small; it sits in the middle of the room it gets. */}
+                    <div className="flex flex-1 flex-col justify-center">
+                      <RouteMap route={route} selected={selected} onSelect={select} />
+                    </div>
                     <Legend />
                   </>
                 ) : (

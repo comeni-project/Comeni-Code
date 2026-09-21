@@ -51,45 +51,60 @@ export function StopPanel({
     );
   }
 
+  // On a wide screen the panel is as tall as the map beside it, never taller: its content sits in
+  // an inset box, so it adds nothing to the row's height, and only the middle scrolls. Stacked
+  // under the map on a narrow screen, it simply grows.
   return (
-    <aside className="flex flex-col gap-3 rounded-panel border border-border bg-surface p-[18px]">
-      <span className="text-[12px] font-medium text-ink-3">Selected stop</span>
-      <h2 className="text-[20px] leading-tight font-semibold">{stop.title}</h2>
-      <p className="text-[14px] leading-normal">{stop.claim}</p>
+    <aside className="relative rounded-panel border border-border bg-surface lg:min-h-[26rem]">
+      <div className="flex flex-col lg:absolute lg:inset-0">
+        <div className="flex flex-col gap-1.5 px-[18px] pt-[18px] pb-3">
+          <span className="text-[12px] font-medium text-ink-3">Selected stop</span>
+          <h2 className="text-[20px] leading-tight font-semibold">{stop.title}</h2>
+        </div>
+        <div
+          data-panel-body
+          className="scroll-shadows flex min-h-0 flex-1 flex-col gap-3 px-[18px] pb-3 *:shrink-0 lg:overflow-y-auto"
+        >
+          <p className="text-[14px] leading-normal">{stop.claim}</p>
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3.5 gap-y-1.5 text-[13px]">
-        <dt className="text-ink-3">Level</dt>
-        <dd>{shownLevel(stop.level)}</dd>
-        <dt className="text-ink-3">Time</dt>
-        <dd>{stop.minutes} min</dd>
-        <Names label="Needs" ids={drawn.needs.get(stop.id) ?? []} titles={titles} />
-        <Names label="Unlocks" ids={drawn.unlocks.get(stop.id) ?? []} titles={titles} />
-      </dl>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3.5 gap-y-1.5 text-[13px]">
+            <dt className="text-ink-3">Level</dt>
+            <dd>{shownLevel(stop.level)}</dd>
+            <dt className="text-ink-3">Time</dt>
+            <dd>{stop.minutes} min</dd>
+            <Names label="Needs" ids={drawn.needs.get(stop.id) ?? []} titles={titles} />
+            <Names label="Unlocks" ids={drawn.unlocks.get(stop.id) ?? []} titles={titles} />
+          </dl>
 
-      <div className="flex flex-col gap-1.5 rounded-[9px] bg-line-soft px-3 py-2.5">
-        <span className="text-[12px] font-semibold">Why it's on this route</span>
-        {stop.needed_by.length === 0 ? (
-          <p className="text-[13px] text-ink-2">
-            It is your goal — the route is built back from it.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {stop.needed_by.map((needing) => (
-              <li key={needing.id} className="flex flex-col gap-0.5">
-                <span className="text-[12px] font-medium text-ink-2">{needing.title} needs it</span>
-                <span className="text-[13px] text-ink">{needing.reason}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+          <div className="flex flex-col gap-1.5 rounded-[9px] bg-line-soft px-3 py-2.5">
+            <span className="text-[12px] font-semibold">Why it's on this route</span>
+            {stop.needed_by.length === 0 ? (
+              <p className="text-[13px] text-ink-2">
+                It is your goal — the route is built back from it.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {stop.needed_by.map((needing) => (
+                  <li key={needing.id} className="flex flex-col gap-0.5">
+                    <span className="text-[12px] font-medium text-ink-2">
+                      {needing.title} needs it
+                    </span>
+                    <span className="text-[13px] text-ink">{needing.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+        <div className="border-border border-t px-[18px] py-3">
+          <a
+            href={`/node/${stop.id}`}
+            className="self-start rounded-[9px] border border-border-2 bg-surface px-3.5 py-[7px] text-[13px] font-medium hover:border-sel"
+          >
+            Open page
+          </a>
+        </div>
       </div>
-
-      <a
-        href={`/node/${stop.id}`}
-        className="self-start rounded-[9px] border border-border-2 bg-surface px-3.5 py-[7px] text-[13px] font-medium hover:border-sel"
-      >
-        Open page
-      </a>
     </aside>
   );
 }
