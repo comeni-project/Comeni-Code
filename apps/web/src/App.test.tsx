@@ -30,6 +30,12 @@ describe("App", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Health" })).toBeInTheDocument();
   });
 
+  it("shows a node's page at /node/<id>", () => {
+    vi.stubGlobal("fetch", () => new Promise(() => {}));
+    renderAt("/node/de-bruijn-graphs");
+    expect(screen.getByText("Loading the page…")).toBeInTheDocument();
+  });
+
   it("shows the identity specimen at /identity", () => {
     renderAt("/identity");
     expect(

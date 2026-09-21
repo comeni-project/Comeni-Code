@@ -6,6 +6,7 @@
 // needs learner records (T7) and problems (M6), so it is not drawn.
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RouteOut, StopOut } from "../api/schema";
+import { withRoute } from "../node/embed";
 import { shownLevel } from "../start/format";
 import type { Layout } from "./layout";
 
@@ -143,7 +144,7 @@ export function StopPanel({
         </div>
         <div className="px-[18px] pt-2 pb-[18px]">
           <a
-            href={`/node/${stop.id}`}
+            href={withRoute(`/node/${stop.id}`, route.goals, route.known)}
             className="inline-block rounded-control bg-btn px-[22px] py-2.5 text-[14px] font-semibold text-btn-ink shadow-[0_3px_0_0_var(--btn-sh)] hover:brightness-110"
           >
             Open page
