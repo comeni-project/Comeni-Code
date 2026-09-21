@@ -509,6 +509,10 @@
       "StopOut": {
         "description": "A stop as the Route board draws it (L4), with why it is on this route (M2P2.2).",
         "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -539,6 +543,7 @@
         "required": [
           "id",
           "title",
+          "claim",
           "level",
           "minutes",
           "region",

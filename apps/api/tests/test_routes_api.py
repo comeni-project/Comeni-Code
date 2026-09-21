@@ -13,9 +13,11 @@ from pytest_django import DjangoAssertNumQueries
 
 from code_api.content.index import rebuild_index
 from code_api.content.models import Link
+from code_schema import read_content
 from code_weaver.cli import main
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
+CONTENT = read_content(FIXTURES)
 
 pytestmark = pytest.mark.django_db
 
@@ -61,6 +63,7 @@ def test_salmon_comes_back_as_cards_with_its_span_and_minutes(client: Client, in
     assert body["stops"][0] == {
         "id": "dna-and-genes",
         "title": "DNA and genes",
+        "claim": CONTENT.nodes["dna-and-genes"].claim,
         "level": "first-steps",
         "minutes": 10,
         "region": {"id": "molecular-biology", "name": "Molecular biology"},
@@ -185,3 +188,11 @@ def test_the_route_is_in_the_openapi_schema() -> None:
     schema = json.loads((Path(__file__).resolve().parents[1] / "openapi.json").read_text())
     responses = schema["paths"]["/api/routes"]["get"]["responses"]
     assert set(responses) == {"200", "404", "503"}
+
+
+def test_a_stop_carries_its_claim(client: Client) -> None:
+    """The Route page's panel and its outcome sentence both read the claim (M3P4.1)."""
+    rebuild_index(FIXTURES)
+    stops = client.get("/api/routes", {"goal": "salmon"}).json()["stops"]
+    assert [stop["claim"] for stop in stops[:1]] == [CONTENT.nodes[stops[0]["id"]].claim]
+    assert all(stop["claim"] == CONTENT.nodes[stop["id"]].claim for stop in stops)

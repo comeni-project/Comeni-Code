@@ -24,22 +24,56 @@ const sentenceOf = (error: Error) =>
     ? error.reason
     : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
-function Candidate({ result, onChoose }: { result: ResultOut; onChoose: () => void }) {
+/** A candidate target: a ticked card once chosen, as on the Start board. */
+function Target({
+  result,
+  chosen,
+  onToggle,
+}: {
+  result: ResultOut;
+  chosen: boolean;
+  onToggle: () => void;
+}) {
   return (
     <li>
       <button
         type="button"
-        onClick={onChoose}
-        aria-label={`Choose ${result.title}`}
-        className="flex w-full flex-col gap-1 rounded-panel border border-border bg-surface p-4 text-left hover:border-sel"
+        onClick={onToggle}
+        aria-pressed={chosen}
+        aria-label={`${chosen ? "Remove" : "Choose"} ${result.title}`}
+        className={`flex w-full flex-wrap items-center gap-x-3.5 gap-y-1 rounded-[10px] px-4 py-3 text-left sm:flex-nowrap ${
+          chosen
+            ? "border-2 border-sel bg-sel-soft"
+            : "border border-border bg-surface hover:border-sel"
+        }`}
       >
-        <span className="flex items-baseline gap-2">
-          <span className="text-[17px] font-semibold">{result.title}</span>
-          <span className="font-mono text-[12px] text-ink-3">
-            {result.region.name} · {result.minutes}m
-          </span>
+        <span
+          aria-hidden="true"
+          className={`flex size-5 shrink-0 items-center justify-center rounded-[5px] ${
+            chosen ? "bg-sel" : "border-[1.5px] border-border-2 bg-surface"
+          }`}
+        >
+          {chosen ? (
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              className="stroke-surface"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M2 6.5 L5 9 L10 3" strokeWidth={2} strokeLinecap="round" />
+            </svg>
+          ) : null}
         </span>
-        <span className="text-[14px] text-ink-2">{result.claim}</span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="text-[15px] font-semibold">{result.title}</span>
+          <span className="text-[13px] text-ink-2">{result.claim}</span>
+        </span>
+        {/* On a phone the region and time go under the text, past the tick. */}
+        <span className="basis-full pl-[34px] font-mono text-[12px] text-ink-3 sm:basis-auto sm:shrink-0 sm:pl-0">
+          {result.region.name} · {result.minutes}m
+        </span>
       </button>
     </li>
   );
@@ -50,6 +84,8 @@ export function StartPage() {
   const words = params.get("q") ?? "";
   const goals = params.getAll("goal");
   const [typed, setTyped] = useState(words);
+  // Once a target is chosen the other candidates fold away, as on the board, until asked for.
+  const [adding, setAdding] = useState(false);
 
   const search = useQuery({
     queryKey: ["search", words],
@@ -65,6 +101,7 @@ export function StartPage() {
 
   function choose(id: string) {
     if (goals.includes(id) || goals.length >= MAX_GOALS) return;
+    setAdding(false);
     const next = new URLSearchParams(params);
     next.append("goal", id);
     setParams(next);
@@ -84,23 +121,31 @@ export function StartPage() {
     retry: false,
   });
 
-  const chosen = (search.data?.results ?? []).filter((result) => goals.includes(result.id));
+  const results = search.data?.results ?? [];
+  const offered = [
+    ...results.filter((result) => goals.includes(result.id)),
+    ...(goals.length >= MAX_GOALS || (goals.length > 0 && !adding)
+      ? []
+      : results.filter((result) => !goals.includes(result.id))),
+  ];
 
   return (
     <div className="min-h-screen">
       <TopBar />
-      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-7 py-10">
-        <section className="flex flex-col gap-4">
-          <h1 className="text-[34px] font-semibold tracking-[-0.02em]">
-            What do you want to learn?
-          </h1>
-          <p className="max-w-2xl text-[17px] text-ink-2">
-            Name a tool, a topic or a problem. We build a route from pages that already exist —
-            every stop says why it's there.
-          </p>
+      <main className="flex flex-col items-center gap-[26px] px-7 py-12">
+        <section className="flex w-full max-w-[760px] flex-col items-center gap-3">
+          <div className="mb-3.5 flex flex-col items-center gap-2.5 text-center">
+            <h1 className="text-[40px] leading-tight font-semibold tracking-[-0.02em] text-balance">
+              What do you want to learn?
+            </h1>
+            <p className="max-w-[56ch] text-[15px] leading-relaxed text-ink-2">
+              Name a tool, a topic or a problem. We build a route from pages that already exist —
+              every stop says why it's there.
+            </p>
+          </div>
 
           <form
-            className="flex flex-wrap items-center gap-3"
+            className="flex h-[58px] w-full items-center gap-3 rounded-panel border-2 border-ink bg-surface pr-2.5 pl-5 focus-within:border-sel"
             onSubmit={(event) => {
               event.preventDefault();
               ask(typed);
@@ -114,23 +159,23 @@ export function StartPage() {
               value={typed}
               onChange={(event) => setTyped(event.target.value)}
               placeholder="salmon"
-              className="min-w-64 flex-1 rounded-control border border-border bg-surface px-4 py-3 text-[17px] outline-none focus:border-sel"
+              className="min-w-0 flex-1 bg-transparent text-[19px] outline-none placeholder:text-ink-3"
             />
             <button
               type="submit"
-              className="rounded-control bg-btn px-5 py-3 text-[15px] font-semibold text-btn-ink shadow-[0_2px_0_0_var(--btn-sh)] hover:brightness-110"
+              className="shrink-0 rounded-control bg-btn px-[26px] py-2.5 text-[14.5px] font-semibold text-btn-ink shadow-[0_3px_0_0_var(--btn-sh)] hover:brightness-110"
             >
               Build my route
             </button>
           </form>
 
-          <ul className="flex flex-wrap gap-2">
+          <ul className="flex flex-wrap justify-center gap-2">
             {EXAMPLES.map((example) => (
               <li key={example}>
                 <button
                   type="button"
                   onClick={() => ask(example)}
-                  className="rounded-pill border border-border bg-surface px-3 py-1.5 text-[13px] text-ink-2 hover:border-sel hover:text-ink"
+                  className="rounded-pill border border-border-2 bg-surface px-3 py-[5px] text-[13px] text-ink-2 hover:border-sel hover:text-ink"
                 >
                   {example}
                 </button>
@@ -139,73 +184,72 @@ export function StartPage() {
           </ul>
         </section>
 
-        <div aria-live="polite" className="flex flex-col gap-8">
-          {words.trim() === "" ? null : search.isPending ? (
-            <p className="text-[15px] text-ink-2">Searching…</p>
-          ) : search.isError ? (
-            <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-              {sentenceOf(search.error)}
-            </p>
-          ) : search.data.results.length === 0 ? (
-            <p className="text-[15px] text-ink-2">
-              Nothing here is about “{search.data.unmatched.join("”, “") || words}” yet. Try another
-              word, or a tool's name.
-            </p>
-          ) : (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-[20px] font-semibold">Is this what you mean?</h2>
-                <p className="text-[13px] text-ink-3">Suggested from your words · you decide</p>
+        {words.trim() === "" ? null : (
+          <div
+            aria-live="polite"
+            className="flex w-full max-w-[1240px] flex-col gap-[18px] elevated rounded-panel border border-border bg-surface px-[26px] py-[22px]"
+          >
+            <section className="flex flex-col gap-2.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-[12px] font-medium text-ink-3">1 · Is this what you mean?</h2>
+                <span className="text-[12px] text-ink-3">
+                  Suggested from your words · you decide
+                </span>
               </div>
-
-              {chosen.length === 0 ? null : (
-                <ul className="flex flex-wrap gap-2">
-                  {chosen.map((result) => (
-                    <li key={result.id}>
-                      <span className="flex items-center gap-2 rounded-pill border border-line bg-line-soft px-3 py-1.5 text-[13px] text-ink">
-                        {result.title}
-                        <button
-                          type="button"
-                          aria-label={`Remove ${result.title}`}
-                          onClick={() => drop(result.id)}
-                          className="text-ink-2 hover:text-ink"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {goals.length >= MAX_GOALS ? (
-                <p className="text-[13px] text-ink-3">Three targets is the most a route takes.</p>
+              {search.isPending ? (
+                <p className="text-[15px] text-ink-2">Searching…</p>
+              ) : search.isError ? (
+                <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
+                  {sentenceOf(search.error)}
+                </p>
+              ) : results.length === 0 ? (
+                <p className="text-[15px] text-ink-2">
+                  Nothing here is about “{search.data.unmatched.join("”, “") || words}” yet. Try
+                  another word, or a tool's name.
+                </p>
               ) : (
-                <ul className="flex flex-col gap-3">
-                  {search.data.results
-                    .filter((result) => !goals.includes(result.id))
-                    .map((result) => (
-                      <Candidate
-                        key={result.id}
-                        result={result}
-                        onChoose={() => choose(result.id)}
-                      />
-                    ))}
-                </ul>
+                <>
+                  <ul className="flex flex-col gap-2">
+                    {offered.map((result) => {
+                      const chosen = goals.includes(result.id);
+                      return (
+                        <Target
+                          key={result.id}
+                          result={result}
+                          chosen={chosen}
+                          onToggle={() => (chosen ? drop(result.id) : choose(result.id))}
+                        />
+                      );
+                    })}
+                  </ul>
+                  {goals.length >= MAX_GOALS ? (
+                    <p className="text-[13px] text-ink-3">
+                      Three targets is the most a route takes.
+                    </p>
+                  ) : goals.length > 0 && !adding && results.length > goals.length ? (
+                    <button
+                      type="button"
+                      onClick={() => setAdding(true)}
+                      className="self-start text-[13px] font-medium text-sel hover:underline"
+                    >
+                      + Add another target (up to {MAX_GOALS})
+                    </button>
+                  ) : null}
+                </>
               )}
             </section>
-          )}
 
-          {goals.length === 0 ? null : preview.isPending ? (
-            <p className="text-[15px] text-ink-2">Weaving your route…</p>
-          ) : preview.isError ? (
-            <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-              {sentenceOf(preview.error)}
-            </p>
-          ) : (
-            <RoutePreview route={preview.data} href={routePage(goals)} />
-          )}
-        </div>
+            {goals.length === 0 ? null : preview.isPending ? (
+              <p className="text-[15px] text-ink-2">Weaving your route…</p>
+            ) : preview.isError ? (
+              <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
+                {sentenceOf(preview.error)}
+              </p>
+            ) : (
+              <RoutePreview route={preview.data} href={routePage(goals)} />
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
