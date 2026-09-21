@@ -4,3 +4,25 @@ claim: DNA is a long molecule written in four letters, and a gene is a stretch o
 region: molecular-biology
 level: first-steps
 minutes: 10
+resources:
+  - kind: video
+    provider: khan-academy
+    url: https://www.khanacademy.org/science/high-school-biology/hs-molecular-genetics/hs-discovery-and-structure-of-dna/v/dna-deoxyribonucleic-acid
+    video: youtube:AmOO4j0E408
+    covers: What DNA is made of, and how its four bases pair along the two strands.
+    licence: YouTube embed
+    display: embed
+    level: foundations
+try:
+  - id: base-pairing
+    kind: choice
+    ask: In DNA, which base pairs with A?
+    options:
+      - text: T (thymine)
+        right: true
+      - text: C (cytosine)
+      - text: G (guanine)
+      - text: A (adenine)
+    hints:
+      - Each base has exactly one partner, and the first paragraph names both pairs.
+    rationale: The strands pair A with T and C with G, so either strand says what the other must be.
