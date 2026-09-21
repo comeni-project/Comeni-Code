@@ -1,7 +1,7 @@
 // @vitest-environment node
 // The map's geometry, against the route the API really answers (spec M3P4R.2, M3P4.5).
 import { describe, expect, it } from "vitest";
-import { COLUMN, type Layout, layout, ROW, wrapTitle } from "./layout";
+import { COLUMN, GOAL_CHAR, type Layout, layout, ROW, wrapTitle } from "./layout";
 import { SALMON, SALMON_KNOWN } from "./salmon.fixture";
 
 const at = (drawn: Layout) => new Map(drawn.stops.map((stop) => [stop.id, stop]));
@@ -232,6 +232,36 @@ describe("the thin connectors", () => {
     const alignment = at(drawn).get("sequence-alignment");
     const reaching = drawn.links.filter((link) => link.endsWith(`${alignment?.x} ${alignment?.y}`));
     expect(reaching.length).toBeGreaterThan(0);
+  });
+});
+
+describe("room for the goal's name", () => {
+  const alone = (title: string) => ({
+    ...SALMON,
+    goals: ["only"],
+    stops: [
+      {
+        ...(SALMON.stops.at(-1) as (typeof SALMON.stops)[number]),
+        id: "only",
+        title,
+        needed_by: [],
+      },
+    ],
+  });
+
+  it("wraps a long goal name and leaves room for its longest line", () => {
+    for (const title of [
+      "Salmon",
+      "Uncertainty in abundance",
+      "Reads that map to several places",
+    ]) {
+      const drawn = layout(alone(title));
+      const goal = drawn.stops[0];
+      const longest = Math.max(...wrapTitle(title, 16).map((line) => line.length));
+      expect(drawn.box.x + drawn.box.width, title).toBeGreaterThanOrEqual(
+        (goal?.x ?? 0) + 26 + longest * GOAL_CHAR,
+      );
+    }
   });
 });
 

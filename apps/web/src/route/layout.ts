@@ -13,7 +13,12 @@ export const ROW = 92; // y to a second stop in one column of one line, further 
 export const LEAD = 70; // how far a branching line runs level before it turns out
 /** Past this many lines besides the goal's, trying every order costs too much. */
 export const MOST_ORDERED = 7;
-const MARGIN = { left: 130, right: 210, top: 90, bottom: 90 };
+const MARGIN = { left: 130, right: 60, top: 90, bottom: 90 };
+/** The goal's name: mono at 20 map units, wrapped at this many characters. */
+export const GOAL_WRAP = 16;
+/** How wide one mono character of it is, with a little to spare. */
+export const GOAL_CHAR = 12.5;
+const GOAL_GAP = 26; // from the goal's centre to its name
 
 export interface Point {
   x: number;
@@ -284,10 +289,17 @@ export function layout(route: RouteOut): Layout {
   const xs = stops.map((stop) => stop.x);
   const ys = stops.map((stop) => stop.y);
   const [left, top] = [Math.min(...xs) - MARGIN.left, Math.min(...ys) - MARGIN.top];
+  // The goal's name sits to its right, so the box makes room for its longest line.
+  const goalTitle = route.stops.find((stop) => stop.id === anchor)?.title ?? "";
+  const name = Math.max(...wrapTitle(goalTitle, GOAL_WRAP).map((line) => line.length), 9);
+  const right = Math.max(
+    Math.max(...xs) + MARGIN.right,
+    at(anchor).x + GOAL_GAP + name * GOAL_CHAR + 24,
+  );
   const box = {
     x: left,
     y: top,
-    width: Math.max(...xs) + MARGIN.right - left,
+    width: right - left,
     height: Math.max(...ys) + MARGIN.bottom - top,
   };
 

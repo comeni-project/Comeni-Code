@@ -4,14 +4,17 @@
 // never slides over its neighbour. Each stop also gets a real HTML button laid over it, so it can
 // be reached with the keyboard and named for a screen reader. One colour for every line — W10
 // gives one meaning per colour — and the lines are named in the page's rail, as the board does.
+import { useEffect, useRef } from "react";
 import type { RouteOut } from "../api/schema";
-import { layout, type Placed, wrapTitle } from "./layout";
+import { GOAL_WRAP, layout, type Placed, wrapTitle } from "./layout";
 
 const NAME = 17; // a stop's title, in map units
 const META = 14; // its minutes
 const LEADING = NAME + 2;
 /** Below this scale the text gets too small to read, so the map scrolls instead. */
 const SMALLEST = 0.55;
+/** Above this a short route would draw its text huge, so the map stops growing and centres. */
+export const LARGEST = 0.85;
 
 const halo = { paintOrder: "stroke", strokeLinejoin: "round" } as const;
 
@@ -20,9 +23,18 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
   if (placed.label === "right") {
     return (
       <g style={halo} className="stroke-surface" strokeWidth={6}>
-        <text x={x + 26} y={y - 2} className="fill-ink font-mono" fontSize={20} fontWeight={700}>
-          {title}
-        </text>
+        {wrapTitle(title, GOAL_WRAP).map((line, index, lines) => (
+          <text
+            key={line}
+            x={x + 26}
+            y={y - 2 - (lines.length - 1 - index) * 22}
+            className="fill-ink font-mono"
+            fontSize={20}
+            fontWeight={700}
+          >
+            {line}
+          </text>
+        ))}
         <text x={x + 26} y={y + 18} className="fill-btn font-mono" fontSize={META}>
           your goal
         </text>
@@ -111,11 +123,27 @@ export function RouteMap({
     .join(", ");
   const chosen = drawn.stops.find((placed) => placed.id === selected);
 
+  // Where the map is wider than the screen, bring the chosen stop into view.
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const area = scroller.current;
+    if (selected === null || area === null || area.scrollWidth <= area.clientWidth) return;
+    const button = [...area.querySelectorAll<HTMLElement>("[data-stop-button]")].find(
+      (one) => one.dataset.stopButton === selected,
+    );
+    if (button === undefined) return;
+    area.scrollLeft = button.offsetLeft - area.clientWidth / 2;
+  }, [selected]);
+
   return (
-    <div className="overflow-x-auto">
+    <div ref={scroller} className="overflow-x-auto">
       <div
-        className="relative"
-        style={{ aspectRatio: `${box.width} / ${box.height}`, minWidth: box.width * SMALLEST }}
+        className="relative mx-auto"
+        style={{
+          aspectRatio: `${box.width} / ${box.height}`,
+          minWidth: box.width * SMALLEST,
+          maxWidth: box.width * LARGEST,
+        }}
       >
         <svg
           viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
@@ -169,6 +197,7 @@ export function RouteMap({
             <button
               key={placed.id}
               type="button"
+              data-stop-button={placed.id}
               onClick={() => onSelect(placed.id)}
               aria-current={placed.id === selected ? "true" : undefined}
               aria-label={`${stop.title} · ${stop.minutes} min · ${stop.region.name}${

@@ -1,7 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { RouteMap } from "./RouteMap";
+import { layout } from "./layout";
+import { LARGEST, RouteMap } from "./RouteMap";
 import { SALMON } from "./salmon.fixture";
 
 const map = (selected: string | null = null, onSelect = vi.fn()) => {
@@ -63,5 +64,24 @@ describe("the map", () => {
   it("rings the selected stop", () => {
     const { container } = render(<RouteMap route={SALMON} selected="k-mers" onSelect={vi.fn()} />);
     expect(container.querySelector('[data-selected="k-mers"]')).not.toBeNull();
+  });
+
+  it("never draws bigger than its largest scale, so a short route keeps its text size", () => {
+    map();
+    const frame = screen.getByRole("img", { name: /17 stops/ }).parentElement;
+    expect(frame).toHaveStyle({ maxWidth: `${layout(SALMON).box.width * LARGEST}px` });
+  });
+
+  it("wraps a long goal name", () => {
+    const long = {
+      ...SALMON,
+      stops: SALMON.stops.map((stop) =>
+        stop.id === "salmon" ? { ...stop, title: "Uncertainty in abundance" } : stop,
+      ),
+    };
+    render(<RouteMap route={long} selected={null} onSelect={vi.fn()} />);
+    const drawing = screen.getByRole("img", { name: /17 stops/ });
+    expect(within(drawing).getByText("Uncertainty in")).toBeInTheDocument();
+    expect(within(drawing).getByText("abundance")).toBeInTheDocument();
   });
 });
