@@ -26,6 +26,12 @@ class NeighbourOut(Schema):
     reason: str
 
 
+class SideCardOut(NeighbourOut):
+    """A neighbour on the node page, with its time: the L5 side column's *level · N min*."""
+
+    minutes: int
+
+
 class ProviderOut(Schema):
     id: str
     name: str
@@ -76,10 +82,10 @@ class NodeOut(Schema):
     minutes: int
     body: str
     folder: str
-    needs: list[NeighbourOut]
-    goes_deeper: list[NeighbourOut]
-    related: list[NeighbourOut]
-    needed_by: list[NeighbourOut]
+    needs: list[SideCardOut]
+    goes_deeper: list[SideCardOut]
+    related: list[SideCardOut]
+    needed_by: list[SideCardOut]
     resources: list[ResourceOut]
     questions: list[QuestionOut]
 
@@ -88,8 +94,10 @@ class Message(Schema):
     detail: str
 
 
-def _card(node: Node, reason: str) -> NeighbourOut:
-    return NeighbourOut(id=node.id, title=node.title, level=node.level, reason=reason)
+def _card(node: Node, reason: str) -> SideCardOut:
+    return SideCardOut(
+        id=node.id, title=node.title, level=node.level, minutes=node.minutes, reason=reason
+    )
 
 
 def _resource(resource: Resource) -> ResourceOut:
@@ -135,7 +143,7 @@ def node(request: HttpRequest, node_id: str) -> Status[NodeOut] | Status[Message
             return Status(503, Message(detail="The index has not been built yet."))
         detail = f"No topic with id '{node_id}'. It may have been removed or renamed."
         return Status(404, Message(detail=detail))
-    out: dict[str, list[NeighbourOut]] = {kind: [] for kind in Link.Kind.values}
+    out: dict[str, list[SideCardOut]] = {kind: [] for kind in Link.Kind.values}
     for link in found.links_out.select_related("target").order_by("kind", "position"):
         out[link.kind].append(_card(link.target, link.reason))
     resources = found.resources.select_related("provider").order_by("position")
