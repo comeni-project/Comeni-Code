@@ -57,6 +57,11 @@ the title on the left, then *level · N min* on the right. On a route, the goal'
 *Needed by* says *your goal*. Every row links to its node and keeps the route in the URL. An
 empty group is left out.
 
+*Found while building:* the node endpoint's cards had no time, so they gain `minutes`, as
+`SideCardOut`, a subclass of `NeighbourOut`, at no extra query. The route's own cards are shared
+with `GET /api/routes` and stay as they were. *Rejected:* adding `minutes` to `NeighbourOut`,
+which would change the route endpoint's shape for a field the Route page does not show.
+
 **On a phone** everything is one column. The strip wraps, and the side column follows the body.
 
 **Rejected:**
