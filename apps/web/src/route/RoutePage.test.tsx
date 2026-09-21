@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -47,11 +47,13 @@ describe("the Route page", () => {
 
   it("names each line in the rail with how many stops it holds", async () => {
     answering(SALMON);
-    open();
-    expect(await screen.findByText("Molecular biology")).toBeInTheDocument();
-    expect(screen.getByText("Sequence analysis")).toBeInTheDocument();
-    expect(screen.getAllByText("4 stops")).toHaveLength(3);
-    expect(screen.getByText("3 stops")).toBeInTheDocument();
+    const { container } = open();
+    await screen.findByText("17 stops");
+    const rail = within(container.querySelector("[data-rail]") as HTMLElement);
+    expect(rail.getByText("Molecular biology")).toBeInTheDocument();
+    expect(rail.getByText("Sequence analysis")).toBeInTheDocument();
+    expect(rail.getAllByText("4 stops")).toHaveLength(3);
+    expect(rail.getByText("3 stops")).toBeInTheDocument();
   });
 
   it("asks the API for the goal and the known set in the url", async () => {
@@ -183,14 +185,43 @@ describe("what comes next", () => {
     expect((await screen.findAllByText(/unlocks \d+ stops?/)).length).toBeGreaterThan(0);
   });
 
-  it("says where the lines meet", async () => {
+  it("says where the lines meet, one row per stop", async () => {
     answering(SALMON);
     open();
-    expect(await screen.findByText("Where lines meet")).toBeInTheDocument();
-    const junctions = screen.getAllByText(/feeds/);
-    expect(junctions.length).toBeGreaterThan(0);
-    expect(junctions.map((one) => one.textContent ?? "").join(" ")).toContain(
-      "(Sequence analysis)",
-    );
+    const heading = await screen.findByRole("heading", { name: "Where lines meet" });
+    const rows = [...(heading.closest("section")?.querySelectorAll("li") ?? [])];
+    const text = rows.map((row) => row.textContent ?? "");
+    // Mapping reads is where Sequencing meets Sequence analysis.
+    const mapping = text.find((row) => row.startsWith("Mapping reads to a reference"));
+    expect(mapping).toContain("from Short-read sequencing");
+    // One row per stop, so no stop is named twice as a destination.
+    expect(new Set(text.map((row) => row.split("from")[0])).size).toBe(rows.length);
+  });
+
+  it("sits in the board's frame: a way home, and a way to change the goal", async () => {
+    answering(SALMON);
+    open();
+    await screen.findByText("17 stops");
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Change goal" })).toHaveAttribute("href", "/");
+  });
+
+  it("says how to read the map", async () => {
+    answering(SALMON);
+    open();
+    expect(
+      await screen.findByText(
+        "Every line ends at your goal. Thin lines are extra needs. Stops at the same distance can be done in any order.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Where lines meet", { selector: "li *, li" })).toBeInTheDocument();
+  });
+
+  it("draws the rail's bars neutral, since nothing is settled yet", async () => {
+    answering(SALMON);
+    const { container } = open();
+    await screen.findByText("17 stops");
+    expect(container.querySelectorAll("[data-rail] .bg-line")).toHaveLength(0);
+    expect(container.querySelectorAll("[data-rail] .bg-border-2")).toHaveLength(17);
   });
 });

@@ -33,7 +33,7 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
   const weight = placed.meets ? 600 : 500;
   const below = placed.label === "below";
   const nameY = (index: number) =>
-    below ? y + 32 + index * LEADING : y - 38 - (lines.length - 1 - index) * LEADING;
+    below ? y + 36 + index * LEADING : y - 44 - (lines.length - 1 - index) * LEADING;
   return (
     <g style={halo} className="stroke-surface" strokeWidth={6} textAnchor="middle">
       {lines.map((line, index) => (
@@ -50,7 +50,7 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
       ))}
       <text
         x={x}
-        y={below ? y + 32 + lines.length * LEADING : y - 20}
+        y={below ? y + 36 + lines.length * LEADING : y - 26}
         className="fill-ink-3 font-mono"
         fontSize={META}
       >
