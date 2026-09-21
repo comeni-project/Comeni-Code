@@ -57,14 +57,23 @@ the title on the left, then *level · N min* on the right. On a route, the goal'
 *Needed by* says *your goal*. Every row links to its node and keeps the route in the URL. An
 empty group is left out.
 
-*After the operator's review:* each group starts **folded**, as a button naming it and its count
-(*Needed by · 3*), and opens to its rows. With every group open by default the column competed
-with the node itself. The column is sticky beside the body.
+*Reworked after the operator's review (2026-09-21):* the page balances the body against its
+neighbours, and **the L5 board was changed to match, at the operator's request** (the board and
+the published canvas follow this decision, not the code):
 
-*Also after the review:* the article's text, boxes and cards share **one measure**, a 720 px
-column, where the board capped paragraphs at 66ch inside an 800 px one. The board's caps left
-every paragraph short of the boxes above it, and a lone resource card at half width, so a lone
-card now takes the full width.
+- **Full-bleed frame.** *On this page* sits at the window's left edge, and the body is centred in
+  the space left over.
+- **One "Around this node" rail.** *Goes deeper*, *Related* and *Needed by* sit together under a
+  header with a control that folds the rail to a 44 px strip showing its count (*Around this node ·
+  7*). Folded, the body widens from 800 to 920 px. The rail starts open from 1536 px, and the
+  learner's last choice is kept in their browser.
+- **The board's measures otherwise hold:** 36 px padding, 40 px gaps, 200 and 290 px columns,
+  15 px body text at 1.65, and the top bar's 460 px search in the middle. Text and boxes share
+  the body's width, so no paragraph stops short of the box above it.
+
+*Rejected:* folding each group on its own (the column still took its width, which was the
+complaint); moving the neighbours below the body (they fall out of reach while reading); a
+drawer from the strip (hidden by default, even on screens with room to spare).
 
 *Found while building:* the node endpoint's cards had no time, so they gain `minutes`, as
 `SideCardOut`, a subclass of `NeighbourOut`, at no extra query. The route's own cards are shared

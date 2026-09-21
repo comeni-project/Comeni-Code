@@ -107,3 +107,16 @@ and was checked against the published canvas in Chrome as each piece landed.
 | The paragraphs on *Mapping reads to a reference* looked oddly formatted | the paragraphs were capped at 66ch inside an 800 px column, so they stopped short of the boxes, and the Learn it sentence was capped at 52ch. The article is now one 720 px measure that text and boxes share, and a lone resource card takes the full width |
 
 Both are recorded in M3P5.2. The audit passes all 108 node cases again.
+
+**Then, the layout itself.** The operator wanted the body to get the room, not the neighbours.
+They chose a folding rail from three options (see M3P5.2, which also records the two rejected):
+- *On this page* sits at the left edge.
+- The neighbours share an *Around this node* rail that folds to a strip with its count, and the
+  body widens when it does.
+
+The page was then compared with L5 **in light, at 1440**, as the operator asked; comparing in
+dark mode had hidden details. That fixed the top bar's search, which every board centres with a
+magnifier (`e341098`), and restored the board's 36 px frame, 27 px contents rows and 15 px text
+(`21bf25c`). **The L5 board was changed to the new rail at the operator's request** (`561aeee`),
+and the published canvas's L5 artboard was republished from it (version 8; the live copy was
+checked first and matched the file it replaced). The audit passes 168 of 168.
