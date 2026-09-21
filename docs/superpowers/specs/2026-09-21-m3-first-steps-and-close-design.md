@@ -72,8 +72,11 @@ video yet, so a reviewer checks it before real content copies it.
 
 ## M3P6.4 M3's close
 
-- The stack check fetches a node through the web container and confirms that `video` is set on
-  de Bruijn graphs, so a broken index shows in CI.
+- The stack check asks the web container for the app's own deep paths — `/route?goal=salmon` and
+  `/node/dna-and-genes` — and fails unless each serves the app. A single-page app depends on the
+  server sending `index.html` for a path it has never heard of, and nothing checked that.
+  *Rejected:* checking a node's `video` through the API, as first written here. CI never fills
+  the index, so that check would only ever see "the index has not been built yet".
 - A journal entry checks R4's *done when* for M3 line by line against the running stack:
   - Start, Route and Node sit beside L1, L4 and L5;
   - the First steps page sits beside its own board;
@@ -93,7 +96,7 @@ video yet, so a reviewer checks it before real content copies it.
 | *Continue* goes to the next stop with the route; no card at the goal or off the route | the next step |
 | the strip says *the very first stop* on the first stop | the board's strip |
 | the fixture validates, and the API returns the new resource and question | the content |
-| the stack check sees `video` | M3's close in CI |
+| the stack check serves /route and /node/… | the app’s own paths reach it through nginx |
 
 In the browser, the audit's `node` sweep already covers every node, the five first-steps nodes
 included.
