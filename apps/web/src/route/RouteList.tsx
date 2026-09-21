@@ -27,7 +27,7 @@ export function RouteList({
             {stops.length > 1 ? (
               <p className="font-mono text-[11px] text-ink-3">These can be done in any order</p>
             ) : null}
-            <ul className="flex flex-col divide-y divide-border rounded-panel border border-border bg-surface">
+            <ul className="flex flex-col divide-y divide-border elevated rounded-panel border border-border bg-surface">
               {stops.map((stop) => (
                 <li key={stop.id}>
                   <button

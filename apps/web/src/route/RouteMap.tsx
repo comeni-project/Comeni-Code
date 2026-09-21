@@ -19,11 +19,20 @@ export const LARGEST = 0.85;
 
 const halo = { paintOrder: "stroke", strokeLinejoin: "round" } as const;
 
+/** A faint grid behind every map: one layer of fine lines, quieter than the canvas's drafting grid. */
+const grid = {
+  backgroundImage: [
+    "linear-gradient(var(--grid-2) 1px, transparent 1px)",
+    "linear-gradient(90deg, var(--grid-2) 1px, transparent 1px)",
+  ].join(","),
+  backgroundSize: "20px 20px",
+};
+
 function Label({ placed, title, minutes }: { placed: Placed; title: string; minutes: number }) {
   const { x, y } = placed;
   if (placed.label === "right") {
     return (
-      <g style={halo} className="stroke-surface" strokeWidth={6}>
+      <g style={halo} className="stroke-canvas" strokeWidth={6}>
         {wrapTitle(title, GOAL_WRAP).map((line, index, lines) => (
           <text
             key={line}
@@ -48,7 +57,7 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
   const nameY = (index: number) =>
     below ? y + 36 + index * LEADING : y - 44 - (lines.length - 1 - index) * LEADING;
   return (
-    <g style={halo} className="stroke-surface" strokeWidth={6} textAnchor="middle">
+    <g style={halo} className="stroke-canvas" strokeWidth={6} textAnchor="middle">
       {lines.map((line, index) => (
         <text
           key={line}
@@ -137,7 +146,12 @@ export function RouteMap({
   }, [selected]);
 
   return (
-    <div ref={scroller} className="overflow-x-auto">
+    <div
+      ref={scroller}
+      data-ground="grid"
+      className="overflow-x-auto rounded-[10px] border border-border bg-canvas px-3 py-2"
+      style={grid}
+    >
       <div
         className="relative mx-auto"
         style={{
@@ -155,7 +169,7 @@ export function RouteMap({
           <title>{`${drawn.stops.length} stops on ${drawn.lines.length} lines`}</title>
           {drawn.links.map((link) => (
             <g key={link} className="fill-none" strokeLinejoin="round">
-              <path d={link} className="stroke-surface" strokeWidth={7} />
+              <path d={link} className="stroke-canvas" strokeWidth={7} />
               <path d={link} className="stroke-line" strokeWidth={2.2} />
             </g>
           ))}

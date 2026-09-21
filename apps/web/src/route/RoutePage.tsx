@@ -30,7 +30,7 @@ function Facts({ route }: { route: RouteOut }) {
   const folds = all.length > RAIL_SHOWN;
   const lines = folds && !open ? all.slice(0, RAIL_SHOWN - 1) : all;
   return (
-    <section className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-panel border border-border bg-surface px-5 py-3.5">
+    <section className="flex flex-wrap items-center gap-x-7 gap-y-4 elevated rounded-panel border border-border bg-surface px-5 py-3.5">
       <div className="flex min-w-44 flex-col gap-0.5">
         <span className="text-[22px] font-semibold">{shownStops(route.stops.length)}</span>
         <span className="text-[13px] text-ink-2">{shownTime(route.minutes)}</span>
@@ -210,7 +210,7 @@ export function RoutePage() {
               id="route-map"
               className="grid scroll-mt-6 gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]"
             >
-              <section className="flex min-w-0 flex-col gap-2 rounded-panel border border-border bg-surface px-[18px] pt-3.5 pb-3">
+              <section className="flex min-w-0 flex-col gap-2 elevated rounded-panel border border-border bg-surface px-[18px] pt-3.5 pb-3">
                 {view === "map" ? (
                   <>
                     {/* A short route's map is small; it sits in the middle of the room it gets. */}

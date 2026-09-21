@@ -5,17 +5,6 @@ import type { RouteOut } from "../api/schema";
 import { RouteMap } from "../route/RouteMap";
 import { shownLevel, shownStops, shownTime } from "./format";
 
-/** The board's drafting grid: fine lines every 16 px, stronger every 80. */
-const grid = {
-  backgroundImage: [
-    "linear-gradient(var(--grid) 1px, transparent 1px)",
-    "linear-gradient(90deg, var(--grid) 1px, transparent 1px)",
-    "linear-gradient(var(--grid-2) 1px, transparent 1px)",
-    "linear-gradient(90deg, var(--grid-2) 1px, transparent 1px)",
-  ].join(","),
-  backgroundSize: "80px 80px, 80px 80px, 16px 16px, 16px 16px",
-};
-
 export function RoutePreview({ route, href }: { route: RouteOut; href: string }) {
   const navigate = useNavigate();
   const goals = new Set(route.goals);
@@ -44,13 +33,11 @@ export function RoutePreview({ route, href }: { route: RouteOut; href: string })
         </span>
       </div>
 
-      <div className="rounded-[10px] border border-border bg-canvas px-3 py-2" style={grid}>
-        <RouteMap
-          route={route}
-          selected={null}
-          onSelect={(id) => navigate(`${href}&stop=${encodeURIComponent(id)}`)}
-        />
-      </div>
+      <RouteMap
+        route={route}
+        selected={null}
+        onSelect={(id) => navigate(`${href}&stop=${encodeURIComponent(id)}`)}
+      />
 
       <div className="flex items-center justify-end gap-3.5 rounded-[10px] bg-bg px-4 py-3">
         <a

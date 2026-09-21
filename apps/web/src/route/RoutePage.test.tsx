@@ -262,6 +262,15 @@ describe("what comes next", () => {
     expect(screen.getByText("Where lines meet", { selector: "li *, li" })).toBeInTheDocument();
   });
 
+  it("lifts its panels, so dark mode has depth", async () => {
+    answering(SALMON);
+    const { container } = open("/route?goal=salmon&stop=k-mers");
+    await screen.findByRole("heading", { level: 2, name: "k-mers" });
+    const panels = container.querySelectorAll("main .rounded-panel");
+    expect(panels.length).toBeGreaterThanOrEqual(4);
+    for (const panel of panels) expect(panel).toHaveClass("elevated");
+  });
+
   it("folds a long rail, and opens it on request", async () => {
     // Nine lines: more than the rail shows before it folds.
     const many = {

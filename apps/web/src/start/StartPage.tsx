@@ -187,7 +187,7 @@ export function StartPage() {
         {words.trim() === "" ? null : (
           <div
             aria-live="polite"
-            className="flex w-full max-w-[1240px] flex-col gap-[18px] rounded-panel border border-border bg-surface px-[26px] py-[22px]"
+            className="flex w-full max-w-[1240px] flex-col gap-[18px] elevated rounded-panel border border-border bg-surface px-[26px] py-[22px]"
           >
             <section className="flex flex-col gap-2.5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">

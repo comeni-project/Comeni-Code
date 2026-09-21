@@ -75,7 +75,7 @@ export function StopPanel({
   if (stop === undefined) {
     return (
       <aside
-        className={`flex flex-col gap-2 self-start rounded-panel border border-border bg-surface p-[18px] ${
+        className={`flex flex-col gap-2 self-start elevated rounded-panel border border-border bg-surface p-[18px] ${
           follow ? "lg:sticky lg:top-6" : ""
         }`}
       >
@@ -91,7 +91,7 @@ export function StopPanel({
   // the title and the action stay put, and only the middle scrolls, fading where there is more.
   return (
     <aside
-      className={`relative rounded-panel border border-border bg-surface ${
+      className={`relative elevated rounded-panel border border-border bg-surface ${
         follow ? PLACED.follow : PLACED.beside
       }`}
     >

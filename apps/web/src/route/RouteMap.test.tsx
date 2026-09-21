@@ -84,4 +84,12 @@ describe("the map", () => {
     expect(within(drawing).getByText("Uncertainty in")).toBeInTheDocument();
     expect(within(drawing).getByText("abundance")).toBeInTheDocument();
   });
+
+  it("draws on the canvas's drafting grid, with halos in the grid's own colour", () => {
+    const { container } = render(<RouteMap route={SALMON} selected={null} onSelect={vi.fn()} />);
+    expect(container.querySelector('[data-ground="grid"]')).not.toBeNull();
+    // A halo in the panel's colour would show as a lighter box on the grid in dark mode.
+    expect(container.querySelector(".stroke-surface")).toBeNull();
+    expect(container.querySelectorAll(".stroke-canvas").length).toBeGreaterThan(0);
+  });
 });

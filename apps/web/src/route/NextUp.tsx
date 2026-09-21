@@ -25,7 +25,7 @@ export function NextUp({
     .filter((stop): stop is RouteOut["stops"][number] => stop !== undefined);
 
   return (
-    <section className="flex flex-col gap-2.5 rounded-panel border border-border bg-surface px-5 py-[18px]">
+    <section className="flex flex-col gap-2.5 elevated rounded-panel border border-border bg-surface px-5 py-[18px]">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-[15px] font-semibold">Next up</h2>
         <span className="text-[12px] text-ink-3">{ready.length} can start now · any order</span>
