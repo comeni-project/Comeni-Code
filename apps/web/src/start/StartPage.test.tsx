@@ -87,7 +87,7 @@ describe("the Start page", () => {
     open();
     await userEvent.type(screen.getByLabelText("What do you want to learn?"), "salmon");
     await userEvent.click(screen.getByRole("button", { name: "Build my route" }));
-    expect(await screen.findByText("Is this what you mean?")).toBeInTheDocument();
+    expect(await screen.findByText(/Is this what you mean\?/)).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/search?q=salmon"),
       expect.anything(),
@@ -141,9 +141,20 @@ describe("the Start page", () => {
     answering(found([salmon, kallisto, tpm]), route());
     open("/?q=salmon");
     for (const title of ["Salmon", "kallisto", "TPM"]) {
+      const more = screen.queryByRole("button", { name: /Add another target/ });
+      if (more !== null) await userEvent.click(more);
       await userEvent.click(await screen.findByRole("button", { name: `Choose ${title}` }));
     }
     expect(screen.getByText("Three targets is the most a route takes.")).toBeInTheDocument();
+  });
+
+  it("folds the other candidates away once a target is chosen, as the board does", async () => {
+    answering(found([salmon, kallisto]), route());
+    open("/?q=salmon&goal=salmon");
+    expect(await screen.findByRole("button", { name: "Remove Salmon" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Choose kallisto" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Add another target/ }));
+    expect(screen.getByRole("button", { name: "Choose kallisto" })).toBeInTheDocument();
   });
 
   it("drops a target when its chip is removed", async () => {
@@ -164,6 +175,20 @@ describe("the route preview", () => {
     expect(screen.getByText("about 3 h 4 min")).toBeInTheDocument();
     expect(screen.getByText("First steps → Intermediate")).toBeInTheDocument();
     expect(screen.getByText("DNA and genes")).toBeInTheDocument();
+  });
+
+  it("draws the route as the map, as the Start board does", async () => {
+    answering(found([salmon]), route());
+    open(chosen);
+    expect(await screen.findByRole("img", { name: /17 stops on/ })).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Stops on this route" })).not.toBeInTheDocument();
+  });
+
+  it("shows a chosen target as a ticked card", async () => {
+    answering(found([salmon]), route());
+    open(chosen);
+    const remove = await screen.findByRole("button", { name: "Remove Salmon" });
+    expect(remove).toHaveAttribute("aria-pressed", "true");
   });
 
   it("marks the goal among the stops", async () => {
