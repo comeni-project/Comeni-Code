@@ -16,14 +16,14 @@ export function NextUp({ route, drawn }: { route: RouteOut; drawn: Layout }) {
     .map((stop) => titles.get(stop.id))
     .filter((stop): stop is RouteOut["stops"][number] => stop !== undefined);
 
-  const bands = new Map(
-    drawn.bands.flatMap((band) => band.stops.map((id) => [id, band.region.name] as const)),
+  const lineOf = new Map(
+    drawn.lines.flatMap((band) => band.stops.map((id) => [id, band.region.name] as const)),
   );
   const junctions: string[] = [];
   for (const [id, needed] of drawn.needs) {
     for (const need of needed) {
-      const from = bands.get(need);
-      const to = bands.get(id);
+      const from = lineOf.get(need);
+      const to = lineOf.get(id);
       if (from === undefined || to === undefined || from === to) continue;
       junctions.push(`${titles.get(need)?.title} (${from}) feeds ${titles.get(id)?.title} (${to})`);
     }

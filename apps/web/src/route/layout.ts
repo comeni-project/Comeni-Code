@@ -1,40 +1,49 @@
-// Where every stop is drawn (spec M3P4.2).
+// Where every stop is drawn (spec M3P4R.2, amending M3P4.2).
 //
-// A line is a region — one band each, in the order the regions first appear, which is
-// regions.yaml's order because the weave sorts by region position (M2P1.3). A column is a stop's
-// depth in this route's *needs*: the board's "stops at the same distance can be done in any
-// order". Pure: the same route gives the same geometry, and the tests read it directly.
+// The canvas's metro map: a line per region, a column per depth in this route's *needs*. The
+// goal's line runs through the middle; the others sit above and below it in the order that keeps
+// needs between lines shortest, leave the stop they branch from at 45°, run level, and turn in
+// to meet at the goal. Pure: the same route gives the same geometry, and the tests read it.
 
 import type { RegionOut, RouteOut } from "../api/schema";
 
-export const COLUMN = 210; // x between depths
-export const ROW = 46; // y between rows inside a band
-export const PAD = 54; // space above and below a band's rows
-export const MARGIN = 110; // left and right margin, for the titles
+export const COLUMN = 230; // x between depths
+export const LANE = 100; // y between neighbouring lines
+export const ROW = 92; // y to a second stop in one column of one line, further out
+export const LEAD = 70; // how far a branching line runs level before it turns out
+/** Past this many lines besides the goal's, trying every order costs too much. */
+export const MOST_ORDERED = 7;
+const MARGIN = { left: 130, right: 210, top: 90, bottom: 90 };
 
-export interface Placed {
-  id: string;
+export interface Point {
   x: number;
   y: number;
-  depth: number;
-  goal: boolean;
 }
 
-export interface Band {
+export interface Placed extends Point {
+  id: string;
+  depth: number;
+  goal: boolean;
+  /** A branch point, or a stop a thin connector leaves or reaches. */
+  meets: boolean;
+  label: "above" | "below" | "right";
+}
+
+export interface Line {
   region: RegionOut;
-  y: number;
-  height: number;
+  /** 0 is the goal's line; negative lanes are above it, positive below. */
+  lane: number;
   stops: string[];
 }
 
 export interface Layout {
-  width: number;
-  height: number;
-  bands: Band[];
+  box: { x: number; y: number; width: number; height: number };
+  /** In route order, which is regions.yaml's order (M2P1.3). */
+  lines: Line[];
   stops: Placed[];
-  /** The thick line paths, one per band, each ending at the goal. */
+  /** The thick lines, one per line, each ending at the goal. */
   runs: string[];
-  /** The thin paths for a need that crosses bands. */
+  /** The thin connectors: a need no thick line carries. */
   links: string[];
   /** What each stop needs, on this route only. */
   needs: Map<string, string[]>;
@@ -76,114 +85,217 @@ function depths(route: RouteOut, needs: Map<string, string[]>): Map<string, numb
   return depth;
 }
 
-/** A horizontal run, then a 45° elbow into the next row — the board's own geometry. */
-export function elbow(x1: number, y1: number, x2: number, y2: number): string {
-  if (y1 === y2) return `M ${x1} ${y1} H ${x2}`;
-  const turn = x2 - Math.abs(y2 - y1);
-  return turn > x1 ? `M ${x1} ${y1} H ${turn} L ${x2} ${y2}` : `M ${x1} ${y1} L ${x2} ${y2}`;
+/**
+ * From one stop to another, level and at 45° only.
+ *
+ * `early` leaves at once and runs level into the stop — a line branching out. Otherwise it runs
+ * level first and turns in at the stop — a line meeting the goal, or a connector arriving.
+ * Where the rise is more than the run, 45° cannot fit and the path goes straight.
+ */
+export function elbow(a: Point, b: Point, early = false): string {
+  const start = `M ${a.x} ${a.y}`;
+  if (a.y === b.y) return `${start} H ${b.x}`;
+  const rise = Math.abs(b.y - a.y);
+  if (b.x - a.x <= rise) return `${start} L ${b.x} ${b.y}`;
+  if (early) {
+    const lead = Math.min(LEAD, b.x - a.x - rise);
+    const out = a.x + lead + rise;
+    return `${start}${lead > 0 ? ` H ${a.x + lead}` : ""} L ${out} ${b.y}${out < b.x ? ` H ${b.x}` : ""}`;
+  }
+  return `${start} H ${b.x - rise} L ${b.x} ${b.y}`;
 }
 
-function joined(points: { x: number; y: number }[]): string {
-  const first = points[0];
-  if (first === undefined) return "";
-  let path = `M ${first.x} ${first.y}`;
-  let from = first;
-  for (const point of points.slice(1)) {
-    path +=
-      point.y === from.y
-        ? ` H ${point.x}`
-        : elbow(from.x, from.y, point.x, point.y).slice(`M ${from.x} ${from.y}`.length);
-    from = point;
+/** A stop's title in lines of about `most` characters, broken between words. */
+export function wrapTitle(title: string, most = 20): string[] {
+  const lines: string[] = [];
+  for (const word of title.split(" ")) {
+    const last = lines[lines.length - 1];
+    if (last !== undefined && `${last} ${word}`.length <= most)
+      lines[lines.length - 1] = `${last} ${word}`;
+    else lines.push(word);
   }
-  return path;
+  return lines;
 }
+
+/** Every order of `items`, the given order first. */
+function orders<T>(items: T[]): T[][] {
+  if (items.length <= 1) return [items];
+  return items.flatMap((first, index) =>
+    orders([...items.slice(0, index), ...items.slice(index + 1)]).map((rest) => [first, ...rest]),
+  );
+}
+
+/** −1, +1, −2, +2, …: outward from the middle, alternating. */
+const slot = (index: number) => (index % 2 === 0 ? -(index / 2 + 1) : (index + 1) / 2);
+
+const EMPTY: Layout["box"] = {
+  x: -MARGIN.left,
+  y: -MARGIN.top,
+  width: MARGIN.left + MARGIN.right,
+  height: MARGIN.top + MARGIN.bottom,
+};
 
 export function layout(route: RouteOut): Layout {
   const { needs, unlocks } = relations(route);
   const depth = depths(route, needs);
-  const goals = new Set(route.goals);
+  const column = (id: string) => depth.get(id) ?? 0;
+  const regionOf = new Map(route.stops.map((stop) => [stop.id, stop.region.id]));
 
-  // One band per region, in the order the regions first appear in the route (M2P1.3).
   const regions: RegionOut[] = [];
   for (const stop of route.stops) {
     if (!regions.some((region) => region.id === stop.region.id)) regions.push(stop.region);
   }
-
-  const bands: Band[] = [];
-  const stops: Placed[] = [];
-  let y = 0;
-
-  for (const region of regions) {
-    const mine = route.stops.filter((stop) => stop.region.id === region.id);
-    const rows = new Map<number, number>(); // depth → how many are already there
-    let tallest = 1;
-    for (const stop of mine) {
-      const column = depth.get(stop.id) ?? 0;
-      const row = rows.get(column) ?? 0;
-      rows.set(column, row + 1);
-      tallest = Math.max(tallest, row + 1);
-    }
-    const height = PAD * 2 + (tallest - 1) * ROW;
-    const taken = new Map<number, number>();
-    const placed: Placed[] = [];
-    for (const stop of mine) {
-      const column = depth.get(stop.id) ?? 0;
-      const row = taken.get(column) ?? 0;
-      taken.set(column, row + 1);
-      placed.push({
-        id: stop.id,
-        x: MARGIN + column * COLUMN,
-        y: y + PAD + row * ROW,
-        depth: column,
-        goal: goals.has(stop.id),
-      });
-    }
-    bands.push({ region, y, height, stops: placed.map((stop) => stop.id) });
-    stops.push(...placed);
-    y += height;
+  if (route.stops.length === 0) {
+    return { box: EMPTY, lines: [], stops: [], runs: [], links: [], needs, unlocks };
   }
 
-  const where = new Map(stops.map((stop) => [stop.id, stop]));
-  const goal = stops.find((stop) => stop.goal) ?? stops[stops.length - 1];
+  // The goal every line runs to: the deepest one, the first named on a tie.
+  const goals = new Set(route.goals);
+  const anchor =
+    route.stops
+      .filter((stop) => goals.has(stop.id))
+      .reduce<string | undefined>(
+        (best, stop) => (best === undefined || column(stop.id) > column(best) ? stop.id : best),
+        undefined,
+      ) ?? (route.stops[route.stops.length - 1]?.id as string);
+  const middle = regionOf.get(anchor) as string;
 
-  // Every line ends at the goal: a band runs along its own row, then on to it.
-  //
-  // Only the band's first row is on the run. A stop sharing a column with another sits on a lower
-  // row, and is reached by the thin link from what it needs — the board's "thin lines are extra
-  // needs" — rather than by bending the line vertically, which a metro line never does.
-  const runs = bands.map((band) => {
-    const points = band.stops
-      .map((id) => where.get(id))
-      .filter((stop): stop is Placed => stop !== undefined && stop.y === band.y + PAD)
-      .sort((left, right) => left.x - right.x);
-    const last = points[points.length - 1];
-    const whole =
-      goal === undefined || (last !== undefined && last.id === goal.id)
-        ? points
-        : [...points, goal];
-    return joined(whole);
+  // Lanes: the goal's line in the middle, the others in the order that keeps needs between
+  // lines shortest. The first order found wins a tie, and orders are tried from route order.
+  const others = regions.map((region) => region.id).filter((id) => id !== middle);
+  const crossings: [string, string][] = [];
+  for (const [id, needed] of needs) {
+    if (id === anchor) continue;
+    for (const need of needed) {
+      const [from, to] = [regionOf.get(need) as string, regionOf.get(id) as string];
+      if (from !== to) crossings.push([from, to]);
+    }
+  }
+  const lanesFor = (order: string[]) =>
+    new Map<string, number>([[middle, 0], ...order.map((id, index) => [id, slot(index)] as const)]);
+  const cost = (lane: Map<string, number>) =>
+    crossings.reduce((sum, [a, b]) => sum + Math.abs((lane.get(a) ?? 0) - (lane.get(b) ?? 0)), 0);
+  let lane = lanesFor(others);
+  if (others.length <= MOST_ORDERED) {
+    let best = Number.POSITIVE_INFINITY;
+    for (const order of orders(others)) {
+      const candidate = lanesFor(order);
+      const spent = cost(candidate);
+      if (spent < best) [best, lane] = [spent, candidate];
+    }
+  }
+  const laneOf = (id: string) => lane.get(regionOf.get(id) as string) ?? 0;
+  // Which way is "further out" for a line: the middle line's extra rows go up.
+  const outward = (region: string) => ((lane.get(region) ?? 0) > 0 ? 1 : -1);
+
+  // Rows: the k-th stop of a line in one column sits k rows further out.
+  const row = new Map<string, number>();
+  const rows = new Map<string, number>(); // region → rows it needs
+  for (const region of regions) {
+    const taken = new Map<number, number>();
+    for (const stop of route.stops.filter((each) => each.region.id === region.id)) {
+      const k = taken.get(column(stop.id)) ?? 0;
+      taken.set(column(stop.id), k + 1);
+      row.set(stop.id, k);
+      rows.set(region.id, Math.max(rows.get(region.id) ?? 1, k + 1));
+    }
+  }
+
+  // Each line's y, stacked outward from the middle; a line makes room for its own extra rows.
+  const laneY = new Map<string, number>([[middle, 0]]);
+  for (const side of [-1, 1]) {
+    const lines = regions
+      .map((region) => region.id)
+      .filter((id) => Math.sign(lane.get(id) ?? 0) === side)
+      .sort((a, b) => Math.abs(lane.get(a) ?? 0) - Math.abs(lane.get(b) ?? 0));
+    let y = 0;
+    let extra = outward(middle) === side ? ((rows.get(middle) ?? 1) - 1) * ROW : 0;
+    for (const id of lines) {
+      y += side * (LANE + extra);
+      laneY.set(id, y);
+      extra = ((rows.get(id) ?? 1) - 1) * ROW;
+    }
+  }
+
+  const point = new Map<string, Point>(
+    route.stops.map((stop) => {
+      const region = stop.region.id;
+      const y = (laneY.get(region) ?? 0) + outward(region) * (row.get(stop.id) ?? 0) * ROW;
+      return [stop.id, { x: column(stop.id) * COLUMN, y }];
+    }),
+  );
+  const at = (id: string) => point.get(id) as Point;
+  const hop = (from: string, to: string, early = false) =>
+    elbow(at(from), at(to), early).replace(/^M \S+ \S+/, "");
+
+  // The thick lines: from where each branches, along its first row, to the goal.
+  const carried = new Set<string>(); // "need>stop" pairs a thick line draws
+  const meets = new Set<string>();
+  const runs = regions.map((region) => {
+    const on = route.stops
+      .filter((stop) => stop.region.id === region.id && row.get(stop.id) === 0)
+      .map((stop) => stop.id)
+      .sort((a, b) => at(a).x - at(b).x);
+    const first = on[0] as string;
+    const nearness = (id: string) => Math.abs(laneOf(id) - (lane.get(region.id) ?? 0));
+    const branch = (needs.get(first) ?? [])
+      .filter((need) => regionOf.get(need) !== region.id)
+      .reduce<string | undefined>((best, need) => {
+        if (best === undefined) return need;
+        if (column(need) !== column(best)) return column(need) > column(best) ? need : best;
+        return nearness(need) < nearness(best) ? need : best;
+      }, undefined);
+    const chain = [...(branch === undefined ? [] : [branch]), ...on];
+    if (chain[chain.length - 1] !== anchor) chain.push(anchor);
+    if (branch !== undefined) meets.add(branch);
+    const start = at(chain[0] as string);
+    let path = `M ${start.x} ${start.y}`;
+    chain.slice(1).forEach((id, index) => {
+      const from = chain[index] as string;
+      carried.add(`${from}>${id}`);
+      path += hop(from, id, index === 0 && branch !== undefined);
+    });
+    return path;
   });
 
+  // The thin connectors: every need no thick line carries, arriving at the stop that needs it.
   const links: string[] = [];
-  for (const [id, needed] of needs) {
-    const stop = where.get(id);
-    for (const need of needed) {
-      const from = where.get(need);
-      if (stop === undefined || from === undefined || from.y === stop.y) continue;
-      links.push(elbow(from.x, from.y, stop.x, stop.y));
-    }
-  }
-  // A stop on a lower row with nothing to link it — everything it needs shares its row — would
-  // float free of its line, so it is joined to the run it belongs to.
-  for (const band of bands) {
-    for (const id of band.stops) {
-      const stop = where.get(id);
-      if (stop === undefined || stop.y === band.y + PAD) continue;
-      const linked = (needs.get(id) ?? []).some((need) => where.get(need)?.y !== stop.y);
-      if (!linked) links.push(elbow(stop.x - COLUMN / 2, band.y + PAD, stop.x, stop.y));
+  for (const stop of route.stops) {
+    for (const need of needs.get(stop.id) ?? []) {
+      if (carried.has(`${need}>${stop.id}`)) continue;
+      const [from, to] = [at(need), at(stop.id)];
+      if (from.y === to.y && (regionOf.get(need) === stop.region.id || stop.id === anchor))
+        continue;
+      links.push(elbow(from, to));
+      meets.add(need);
+      meets.add(stop.id);
     }
   }
 
-  const width = MARGIN * 2 + Math.max(...stops.map((stop) => stop.depth), 0) * COLUMN;
-  return { width, height: y, bands, stops, runs, links, needs, unlocks };
+  const stops: Placed[] = route.stops.map((stop) => ({
+    id: stop.id,
+    ...at(stop.id),
+    depth: column(stop.id),
+    goal: goals.has(stop.id),
+    meets: meets.has(stop.id),
+    label: stop.id === anchor ? "right" : laneOf(stop.id) > 0 ? "below" : "above",
+  }));
+
+  const xs = stops.map((stop) => stop.x);
+  const ys = stops.map((stop) => stop.y);
+  const [left, top] = [Math.min(...xs) - MARGIN.left, Math.min(...ys) - MARGIN.top];
+  const box = {
+    x: left,
+    y: top,
+    width: Math.max(...xs) + MARGIN.right - left,
+    height: Math.max(...ys) + MARGIN.bottom - top,
+  };
+
+  const lines: Line[] = regions.map((region) => ({
+    region,
+    lane: lane.get(region.id) ?? 0,
+    stops: route.stops.filter((stop) => stop.region.id === region.id).map((stop) => stop.id),
+  }));
+
+  return { box, lines, stops, runs, links, needs, unlocks };
 }

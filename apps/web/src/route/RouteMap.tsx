@@ -26,15 +26,15 @@ export function RouteMap({
     <div className="overflow-x-auto">
       <div
         className="relative min-w-[720px]"
-        style={{ aspectRatio: `${drawn.width} / ${drawn.height}` }}
+        style={{ aspectRatio: `${drawn.box.width} / ${drawn.box.height}` }}
       >
         <svg
-          viewBox={`0 0 ${drawn.width} ${drawn.height}`}
+          viewBox={`${drawn.box.x} ${drawn.box.y} ${drawn.box.width} ${drawn.box.height}`}
           className="absolute inset-0 h-full w-full"
           role="img"
-          aria-label={`${drawn.stops.length} stops on ${drawn.bands.length} lines, ending at ${goalTitles}`}
+          aria-label={`${drawn.stops.length} stops on ${drawn.lines.length} lines, ending at ${goalTitles}`}
         >
-          <title>{`${drawn.stops.length} stops on ${drawn.bands.length} lines`}</title>
+          <title>{`${drawn.stops.length} stops on ${drawn.lines.length} lines`}</title>
           {drawn.runs.map((run) => (
             <path
               key={run}
@@ -71,8 +71,8 @@ export function RouteMap({
               }`}
               className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
               style={{
-                left: `${(placed.x / drawn.width) * 100}%`,
-                top: `${(placed.y / drawn.height) * 100}%`,
+                left: `${((placed.x - drawn.box.x) / drawn.box.width) * 100}%`,
+                top: `${((placed.y - drawn.box.y) / drawn.box.height) * 100}%`,
               }}
             >
               <span className="max-w-36 text-center text-[12px] leading-tight font-medium text-ink">

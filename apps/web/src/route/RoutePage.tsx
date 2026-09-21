@@ -21,7 +21,7 @@ const sentenceOf = (error: Error) =>
     : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
 function Facts({ route }: { route: RouteOut }) {
-  const bands = layout(route).bands;
+  const lines = layout(route).lines;
   return (
     <section className="flex flex-wrap items-center gap-x-7 gap-y-4 rounded-panel border border-border bg-surface px-5 py-4">
       <div className="flex min-w-44 flex-col">
@@ -29,14 +29,14 @@ function Facts({ route }: { route: RouteOut }) {
         <span className="text-[13px] text-ink-2">{shownTime(route.minutes)}</span>
       </div>
       <ul className="flex flex-1 flex-wrap gap-x-6 gap-y-3 border-border border-l pl-6">
-        {bands.map((band) => (
-          <li key={band.region.id} className="flex min-w-36 flex-col gap-1.5">
+        {lines.map((line) => (
+          <li key={line.region.id} className="flex min-w-36 flex-col gap-1.5">
             <span className="flex justify-between gap-3 text-[12.5px]">
-              <span className="font-semibold">{band.region.name}</span>
-              <span className="text-ink-3">{shownStops(band.stops.length)}</span>
+              <span className="font-semibold">{line.region.name}</span>
+              <span className="text-ink-3">{shownStops(line.stops.length)}</span>
             </span>
             <span className="flex gap-[3px]">
-              {band.stops.map((id) => (
+              {line.stops.map((id) => (
                 <span key={id} className="h-1.5 flex-1 rounded-pill bg-line" />
               ))}
             </span>
