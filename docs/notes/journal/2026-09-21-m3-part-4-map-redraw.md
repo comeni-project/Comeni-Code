@@ -89,3 +89,28 @@ connecting text (W3.4), and none is faked.
 - **Labels are SVG with `paint-order: stroke`.** The halo is `stroke-surface`, so on the Start
   page's grid it shows as a faint surface-coloured box. That is deliberate.
 - **The browser caches the bundle.** After `docker compose up --build`, reload before judging.
+
+## Later the same session: what the canvas could not show
+
+The operator asked for the cases a static board cannot predict. A one-off browser audit, run
+outside the repo with Playwright and headless Chromium against the Compose stack, measured 60
+cases. The cases were every node as a goal, every Salmon stop selected, seven widths from 360 to
+2560 px, two and three goals, a known set, the list view, dark mode and an unknown goal. For each
+one it checked labels overlapping each other or a stop, labels cut off, buttons off their stops,
+text size as read, the page scrolling sideways, boxes spilling, and the panel against the map's
+height.
+
+| Found | Fixed in |
+|---|---|
+| The selected-stop panel up to 175 px taller than the map on 4 of 17 stops, at every desktop width | `0b8be36`: the panel matches the map's height, pins its title and *Open page*, and scrolls the middle with an edge shadow |
+| A goal's name cut off on 13 of 26 goals | `a70e91a`: it wraps at 16 characters, and the box makes room for it |
+| Short routes drawn at up to 2.8× (48 px text) | `a70e91a`: the map stops growing at 0.85 and centres |
+| Start's candidate cards spilling at 360 px; the rail's counts wrapping at 1280 | `d4dad04`, `0b8be36` |
+
+After the fixes all 60 cases pass.
+
+**Still open, measured rather than fixed.** Thin connectors pass through other stops' labels on
+7 of the 26 goals: once on Salmon, 11 times on *Decoy sequences*, whose goal comes after Salmon.
+The halo keeps the text readable. Routing connectors around labels is a geometry change, so it
+belongs in a spec. Also, a route at a single level shows *First steps → First steps*, as the CLI
+does, and changing one without the other would break their match.
