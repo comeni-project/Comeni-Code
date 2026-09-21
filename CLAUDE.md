@@ -257,7 +257,7 @@ push through.
   `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 - **Confirm outward-facing actions first:** GitHub settings (rulesets, merge settings and other
   repository settings), creating repositories, publishing.
-- **The design canvas** is at https://claude.ai/artifact/RxgqwSDJ2N3UTSg4HUotxJ. From M3, each
+- **The design canvas** is at https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa. From M3, each
   screen is compared with its board.
 - **Do not build Labs features here**, and do not build Code inside Labs. **No code is shared
   between the two repositories** — philosophy, layout and identity only.
