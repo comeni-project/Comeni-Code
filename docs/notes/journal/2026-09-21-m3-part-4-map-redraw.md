@@ -114,3 +114,17 @@ After the fixes all 60 cases pass.
 The halo keeps the text readable. Routing connectors around labels is a geometry change, so it
 belongs in a spec. Also, a route at a single level shows *First steps → First steps*, as the CLI
 does, and changing one without the other would break their match.
+
+## Then: the operator's review of the page itself
+
+| Asked | Done in |
+|---|---|
+| The rail should scroll or expand for routes with many regions | `dbd0e10`: past six lines it folds behind *+N more lines* |
+| *Open page* looked ugly | `dbd0e10`: it is the board's green primary action, with no divider; the reasons fade instead of being cut off |
+| The dark mode looked off | `25b4857`: the map was heavier than the canvas; it now uses the board's line weights. The canvas's only dark reference is *Identity · Code dark* |
+| In the list view the selected stop stretched down the whole list | `dbd0e10`: a card of its own height that follows the scroll (measured: 544 px, pinned 24 px from the top) |
+| *Where lines meet* was useless | `dbd0e10`: removed. *Next up* takes the width, and each start shows its claim; picking one selects it on the map |
+
+**Decision:** *Where lines meet* is gone because the map draws the crossings and the panel lists
+each stop's needs and unlocks. The milestones keep the right-hand place once problems exist (M6),
+and *Next up* shares the width with them then.
