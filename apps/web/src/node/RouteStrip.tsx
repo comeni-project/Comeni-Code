@@ -32,7 +32,7 @@ export function RouteStrip({
       aria-label="Your route"
       className="border-border border-b bg-surface text-[13px] text-ink-2"
     >
-      <div className="mx-auto flex min-h-[46px] max-w-[1440px] flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2.5 sm:px-9">
+      <div className="flex min-h-[46px] flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-2.5 sm:px-9">
         {route === undefined ? (
           <span>Finding your route…</span>
         ) : stop === undefined ? (

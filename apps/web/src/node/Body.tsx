@@ -49,12 +49,12 @@ const COMPONENTS: Components = {
     );
   },
   ul: ({ children }) => (
-    <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
+    <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-[1.65] text-ink-2">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
+    <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-[1.65] text-ink-2">
       {children}
     </ol>
   ),

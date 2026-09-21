@@ -12,7 +12,7 @@ import { fetchNode } from "../api/nodes";
 import { fetchRoute } from "../api/routes";
 import type { NodeOut } from "../api/schema";
 import { TopBar } from "../layout/TopBar";
-import { Aside } from "./Aside";
+import { type Around, Aside, aroundCount } from "./Aside";
 import { Body } from "./Body";
 import { headingsOf } from "./body";
 import { withRoute } from "./embed";
@@ -54,7 +54,8 @@ function useReading(ids: string[]) {
 
 function Contents({ sections }: { sections: { id: string; text: string }[] }) {
   const reading = useReading(sections.map((section) => section.id));
-  if (sections.length === 0) return null;
+  // The column stays even when empty, so the body sits in the same place on every node.
+  if (sections.length === 0) return <div className="hidden lg:block" />;
   return (
     <nav aria-label="On this page" className="hidden lg:block">
       <div className="sticky top-6 flex flex-col gap-px pt-1">
@@ -66,7 +67,7 @@ function Contents({ sections }: { sections: { id: string; text: string }[] }) {
               key={section.id}
               href={`#${section.id}`}
               aria-current={here ? "location" : undefined}
-              className={`border-l-2 px-2.5 py-[5px] text-[13px] ${
+              className={`border-l-2 px-2.5 py-[5px] text-[13px] leading-[1.25] ${
                 here
                   ? "border-line font-semibold text-ink"
                   : "border-border text-ink-2 hover:text-ink"
@@ -115,16 +116,58 @@ function Needs({ node, goals, known }: { node: NodeOut; goals: string[]; known: 
   );
 }
 
+/** Past this width there is room for the rail and a full body at once, so it starts open. */
+const WIDE = 1536;
+const REMEMBERED = "code.node.rail";
+
+/** Whether the rail is open: the learner's last choice in this browser, else the screen's width. */
+function useRail(): [boolean, () => void] {
+  const [open, setOpen] = useState(() => {
+    try {
+      const kept = window.localStorage.getItem(REMEMBERED);
+      if (kept === "open" || kept === "folded") return kept === "open";
+    } catch {
+      // Storage can be blocked; the width decides instead.
+    }
+    return window.innerWidth >= WIDE;
+  });
+  const toggle = () => {
+    setOpen(!open);
+    try {
+      window.localStorage.setItem(REMEMBERED, open ? "folded" : "open");
+    } catch {
+      // Nothing to keep; the choice holds for this page.
+    }
+  };
+  return [open, toggle];
+}
+
 function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: string[] }) {
+  const [open, toggle] = useRail();
+  const around: Around = {
+    deeper: node.goes_deeper,
+    related: node.related,
+    neededBy: node.needed_by,
+  };
+  const rail = aroundCount(around) > 0 && open;
   const sections = [
     ...(node.resources.length > 0 ? [{ id: "learn-it", text: "Learn it" }] : []),
     ...headingsOf(node.body),
   ];
   const minutes = node.minutes + node.questions.length;
   return (
-    <main className="mx-auto grid max-w-[1440px] gap-10 px-4 py-[30px] sm:px-9 lg:grid-cols-[200px_minmax(0,720px)_290px] lg:justify-between">
+    <main
+      data-rail={rail ? "open" : "folded"}
+      className={`grid gap-x-10 gap-y-10 px-4 py-[30px] sm:px-9 ${
+        rail
+          ? "lg:grid-cols-[200px_minmax(0,1fr)_290px]"
+          : "lg:grid-cols-[200px_minmax(0,1fr)_44px]"
+      }`}
+    >
       <Contents sections={sections} />
-      <article className="flex min-w-0 max-w-[720px] flex-col gap-5">
+      <article
+        className={`mx-auto flex w-full min-w-0 flex-col gap-5 ${rail ? "max-w-[800px]" : "max-w-[920px]"}`}
+      >
         <div className="flex flex-col gap-2">
           <nav aria-label="Breadcrumb" className="text-[13px] text-ink-3">
             {node.region.name} › {node.title}
@@ -152,13 +195,7 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
         <LearnIt resources={node.resources} />
         <Body body={node.body} questions={node.questions} />
       </article>
-      <Aside
-        deeper={node.goes_deeper}
-        related={node.related}
-        neededBy={node.needed_by}
-        goals={goals}
-        known={known}
-      />
+      <Aside around={around} goals={goals} known={known} open={open} onToggle={toggle} />
     </main>
   );
 }
@@ -194,11 +231,11 @@ export function NodePage() {
         <RouteStrip id={id} goals={goals} known={known} route={route.data} />
       ) : null}
       {node.isPending ? (
-        <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-9">
+        <main className="px-4 py-6 sm:px-9">
           <p className="text-[15px] text-ink-2">Loading the page…</p>
         </main>
       ) : node.isError ? (
-        <main className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-6 sm:px-9">
+        <main className="flex flex-col gap-3 px-4 py-6 sm:px-9">
           <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
             {sentenceOf(node.error)}
           </p>

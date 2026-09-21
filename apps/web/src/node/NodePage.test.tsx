@@ -49,7 +49,10 @@ function open(path: string) {
   );
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.localStorage.clear();
+});
 
 describe("the Node page", () => {
   it("names the node, its region, its level and its time", async () => {
@@ -124,7 +127,7 @@ describe("the Node page", () => {
     );
   });
 
-  it("shows the side column's groups with each neighbour's level and time", async () => {
+  it("shows the neighbours with each one's level and time, in a rail around the node", async () => {
     const deeperCard = {
       id: "pufferfish-index",
       title: "The pufferfish index",
@@ -135,36 +138,33 @@ describe("the Node page", () => {
     answering([{ ...DE_BRUIJN, goes_deeper: [deeperCard] }]);
     open("/node/de-bruijn-graphs?goal=salmon");
     await screen.findByRole("heading", { level: 1 });
-    await userEvent.click(screen.getByRole("button", { name: "Goes deeper · 1" }));
     const deeper = screen.getByRole("list", { name: "Goes deeper" });
     const row = within(deeper).getByRole("link", { name: /The pufferfish index/ });
     expect(row).toHaveAttribute("href", "/node/pufferfish-index?goal=salmon");
     expect(row).toHaveTextContent("Advanced · 14 min");
-    expect(screen.getByRole("button", { name: /Needed by · \d/ })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Needed by" })).toBeInTheDocument();
   });
 
-  it("keeps each group folded until it is opened, saying how many it holds", async () => {
+  it("folds the rail away to give the body its width, and brings it back", async () => {
     answering();
-    open("/node/de-bruijn-graphs");
+    const { container } = open("/node/de-bruijn-graphs");
     await screen.findByRole("heading", { level: 1 });
-    const count = DE_BRUIJN.needed_by.length;
-    const toggle = screen.getByRole("button", { name: `Needed by · ${count}` });
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("list", { name: "Needed by" })).toBeNull();
-    await userEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(
-      within(screen.getByRole("list", { name: "Needed by" })).getAllByRole("link"),
-    ).toHaveLength(count);
-    await userEvent.click(toggle);
-    expect(screen.queryByRole("list", { name: "Needed by" })).toBeNull();
+    const total = DE_BRUIJN.needed_by.length;
+    // Narrower than a wide screen, the rail starts folded.
+    const show = screen.getByRole("button", { name: `Around this node · ${total}` });
+    expect(show).toHaveAttribute("aria-expanded", "false");
+    expect(container.querySelector("main")).toHaveAttribute("data-rail", "folded");
+    await userEvent.click(show);
+    expect(container.querySelector("main")).toHaveAttribute("data-rail", "open");
+    await userEvent.click(screen.getByRole("button", { name: "Fold the rail" }));
+    expect(container.querySelector("main")).toHaveAttribute("data-rail", "folded");
   });
 
   it("leaves out a group with nothing in it", async () => {
     answering([{ ...DE_BRUIJN, related: [] }]);
     open("/node/de-bruijn-graphs");
     await screen.findByRole("heading", { level: 1 });
-    expect(screen.queryByRole("button", { name: /Related/ })).toBeNull();
+    expect(screen.queryByRole("list", { name: "Related" })).toBeNull();
   });
 
   it("marks the goal in Needed by", async () => {
@@ -177,8 +177,7 @@ describe("the Node page", () => {
       },
     ]);
     open("/node/read-mapping?goal=salmon");
-    await userEvent.click(await screen.findByRole("button", { name: "Needed by · 1" }));
-    const needed = screen.getByRole("list", { name: "Needed by" });
+    const needed = await screen.findByRole("list", { name: "Needed by" });
     expect(within(needed).getByRole("link", { name: /Salmon/ })).toHaveTextContent("your goal");
   });
 });
