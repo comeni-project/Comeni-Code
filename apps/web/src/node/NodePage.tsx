@@ -16,6 +16,7 @@ import { type Around, Aside, aroundCount } from "./Aside";
 import { Body } from "./Body";
 import { headingsOf } from "./body";
 import { withRoute } from "./embed";
+import { FirstSteps } from "./FirstSteps";
 import { LearnIt } from "./LearnIt";
 import { RouteStrip } from "./RouteStrip";
 import { LevelTag } from "./tags";
@@ -115,6 +116,9 @@ function Needs({ node, goals, known }: { node: NodeOut; goals: string[]; known: 
     </div>
   );
 }
+
+/** The level whose page takes the First steps form (T10.2, M3P6.2). */
+export const FIRST_STEPS = "first-steps";
 
 /** Past this width there is room for the rail and a full body at once, so it starts open. */
 const WIDE = 1536;
@@ -219,6 +223,11 @@ export function NodePage() {
     retry: false,
   });
 
+  // What comes after this stop, in the order the weaver gave (M3P6.2).
+  const stops = route.data?.stops ?? [];
+  const at = stops.findIndex((stop) => stop.id === id);
+  const nextStop = at >= 0 ? stops[at + 1] : undefined;
+
   // A link from one node to another is a new page: start it at the top.
   useEffect(() => {
     if (id !== "") window.scrollTo?.(0, 0);
@@ -228,7 +237,13 @@ export function NodePage() {
     <div className="min-h-screen">
       <TopBar />
       {goals.length > 0 && !route.isError ? (
-        <RouteStrip id={id} goals={goals} known={known} route={route.data} />
+        <RouteStrip
+          id={id}
+          goals={goals}
+          known={known}
+          route={route.data}
+          big={node.data?.level === FIRST_STEPS}
+        />
       ) : null}
       {node.isPending ? (
         <main className="px-4 py-6 sm:px-9">
@@ -246,6 +261,9 @@ export function NodePage() {
             .
           </p>
         </main>
+      ) : // A First steps node is the same node in another interface (T10.2, M3P6.2).
+      node.data.level === FIRST_STEPS ? (
+        <FirstSteps node={node.data} goals={goals} known={known} next={nextStop} />
       ) : (
         <Page node={node.data} goals={goals} known={known} />
       )}

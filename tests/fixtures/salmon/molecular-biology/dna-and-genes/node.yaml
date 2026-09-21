@@ -9,6 +9,7 @@ resources:
     provider: khan-academy
     url: https://www.khanacademy.org/science/high-school-biology/hs-molecular-genetics/hs-discovery-and-structure-of-dna/v/dna-deoxyribonucleic-acid
     video: youtube:AmOO4j0E408
+    part: 0:00–13:01
     covers: What DNA is made of, and how its four bases pair along the two strands.
     licence: YouTube embed
     display: embed
