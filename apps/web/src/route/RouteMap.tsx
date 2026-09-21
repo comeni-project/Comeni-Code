@@ -1,4 +1,5 @@
-// The route drawn as the canvas's metro map (spec M3P4R.3).
+// The route drawn as the canvas's metro map (spec M3P4R.3), at the canvas's line weights: 7 for a
+// line, 2.2 for a connector, rings of 6.5, 8.5 and 12.5.
 //
 // Everything visible is SVG, labels included, so the drawing scales as one piece and a label
 // never slides over its neighbour. Each stop also gets a real HTML button laid over it, so it can
@@ -77,8 +78,8 @@ function Mark({ placed }: { placed: Placed }) {
   if (placed.goal && placed.label === "right") {
     return (
       <g data-mark="goal" data-stop={id}>
-        <circle cx={x} cy={y} r={14} className="fill-surface stroke-ink" strokeWidth={3.5} />
-        <rect x={x - 5} y={y - 5} width={10} height={10} className="fill-line" />
+        <circle cx={x} cy={y} r={12.5} className="fill-surface stroke-ink" strokeWidth={3.2} />
+        <rect x={x - 4.5} y={y - 4.5} width={9} height={9} className="fill-line" />
       </g>
     );
   }
@@ -88,9 +89,9 @@ function Mark({ placed }: { placed: Placed }) {
       data-stop={id}
       cx={x}
       cy={y}
-      r={10}
+      r={8.5}
       className="fill-surface stroke-ink"
-      strokeWidth={3}
+      strokeWidth={2.6}
     />
   ) : (
     <circle
@@ -98,9 +99,9 @@ function Mark({ placed }: { placed: Placed }) {
       data-stop={id}
       cx={x}
       cy={y}
-      r={7.5}
+      r={6.5}
       className="fill-surface stroke-ink-3"
-      strokeWidth={2.2}
+      strokeWidth={2}
     />
   );
 }
@@ -154,8 +155,8 @@ export function RouteMap({
           <title>{`${drawn.stops.length} stops on ${drawn.lines.length} lines`}</title>
           {drawn.links.map((link) => (
             <g key={link} className="fill-none" strokeLinejoin="round">
-              <path d={link} className="stroke-surface" strokeWidth={8} />
-              <path d={link} className="stroke-line" strokeWidth={2.5} />
+              <path d={link} className="stroke-surface" strokeWidth={7} />
+              <path d={link} className="stroke-line" strokeWidth={2.2} />
             </g>
           ))}
           {drawn.runs.map((run) => (
@@ -163,7 +164,7 @@ export function RouteMap({
               key={run}
               d={run}
               className="fill-none stroke-line"
-              strokeWidth={8}
+              strokeWidth={7}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -173,7 +174,7 @@ export function RouteMap({
               data-selected={chosen.id}
               cx={chosen.x}
               cy={chosen.y}
-              r={(chosen.goal ? 14 : chosen.meets ? 10 : 7.5) + 8}
+              r={(chosen.goal ? 12.5 : chosen.meets ? 8.5 : 6.5) + 7}
               className="fill-none stroke-sel"
               strokeWidth={2}
               strokeDasharray="4 4"
