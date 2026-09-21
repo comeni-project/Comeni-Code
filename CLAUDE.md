@@ -11,9 +11,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
 path) is in progress — parts 1 to 4 of six are built.** M3 part 4 built the **Route page** (L4)
-at `/route?goal=…`: the woven route as a metro map — a line per region, a column per depth — with
-the selected stop explaining why it is there, and the L4 board redrawn to the fixtures' 17 stops.
-M3 part 3 gave the app a **router** and its **first screen**: `/` is the Start page (L1) — ask,
+at `/route?goal=…`: the woven route as the canvas's metro map — a line per region around the
+goal's, branching at 45° and meeting in a diamond at the goal — with the selected stop explaining
+why it is there. On 2026-09-21 it was redrawn after the operator compared it with the published
+canvas; **screens are compared with the published canvas in a browser, never with a board
+regenerated in the same change.** M3 part 3 gave the app a **router** and its **first screen**: `/` is the Start page (L1) — ask,
 confirm a target, see the route preview — with the health page moved to `/health`. M3 part 2 added **search without a model**:
 `code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
 `GET /api/search`. M3 part 1 gave a node its outside **resources** (checked against a
@@ -274,7 +276,7 @@ push through.
 ## Environment
 
 Fedora Linux. `gh` is authenticated for `comeni-project`. Docker, Node and `uv` are installed.
-There is no Chrome, so to look at a page use `firefox --headless --screenshot`. If the system
+Claude in Chrome is installed, so look at pages in Chrome, with the published canvas open in another tab; `firefox --headless --screenshot` is the fallback. If the system
 Python lacks PyYAML, use `/home/gibli/Documents/GitHub/Comeni-Labs/.venv/bin/python`.
 
 ## Layout

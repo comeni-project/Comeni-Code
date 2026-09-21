@@ -6,10 +6,14 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-20-m3-part-4-route-page.md`](2026-09-20-m3-part-4-route-page.md)**: **M3 part 4 is
-> built** — `/route?goal=salmon` draws the woven route as a metro map (a line per region, a column
-> per depth), the selected stop says why it is there, and the L4 board is redrawn to the fixtures'
-> 17 stops. Before it,
+> [`2026-09-21-m3-part-4-map-redraw.md`](2026-09-21-m3-part-4-map-redraw.md)**: **part 4 reopened**
+> — the map had been checked against a board fitted to the code, so the boards are the published
+> canvas again and the Route and Start pages now draw its metro map: lines branching at 45°,
+> running parallel and meeting in a diamond at the goal. Screens are compared with the *published*
+> canvas in a browser. Before it,
+> [`2026-09-20-m3-part-4-route-page.md`](2026-09-20-m3-part-4-route-page.md) says **M3 part 4 is
+> built** — `/route?goal=salmon` draws the woven route with the selected stop saying why it is
+> there. Before it,
 > [`2026-09-20-m3-part-3-spine-and-start.md`](2026-09-20-m3-part-3-spine-and-start.md) says **M3
 > part 3 is built** — the app has a router, a typed fetch client and its **first screen**, the
 > Start page at `/`: ask, confirm a target, see the route preview. Before it,
