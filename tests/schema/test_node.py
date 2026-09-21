@@ -265,7 +265,9 @@ def test_the_designed_optional_paths_are_refused_until_wired() -> None:
 # M3 part 1: resources and try questions belong to the node (spec M3P1.1).
 
 PROVIDERS = {
-    "khan-academy": Provider("khan-academy", "Khan Academy", ("YouTube embed",), embed=True),
+    "khan-academy": Provider(
+        "khan-academy", "Khan Academy", ("YouTube embed",), embed=True, players=("youtube",)
+    ),
 }
 
 RESOURCES = """resources:
@@ -277,6 +279,7 @@ RESOURCES = """resources:
     licence: YouTube embed
     display: embed
     level: introductory
+    video: youtube:Jnk_4Maf5Fk
 """
 
 TRY = """try:

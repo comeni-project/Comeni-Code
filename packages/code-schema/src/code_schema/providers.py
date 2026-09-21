@@ -10,6 +10,7 @@ registry", which is not the same as an empty one.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,9 @@ from code_schema.problems import Problem
 from code_schema.yaml_lines import Lines, load_mapping
 
 REGISTRY = "providers.yaml"
+
+# The players the page knows how to play, each with the form of its video ids (spec M3P5.3).
+PLAYERS = {"youtube": re.compile(r"[A-Za-z0-9_-]{11}")}
 
 _id = slug(noun="provider id")
 _name = one_line(max_len=80)
@@ -30,6 +34,7 @@ class Provider:
     name: str
     licences: tuple[str, ...]
     embed: bool
+    players: tuple[str, ...] = ()
 
 
 def _licences_problem(value: object) -> str | None:
@@ -41,6 +46,19 @@ def _licences_problem(value: object) -> str | None:
         if (wrong := _licence(entry)) is not None:
             return wrong
     return None
+
+
+def player_problem(value: object) -> str | None:
+    """A player the page can play, named as PLAYERS names it."""
+    if isinstance(value, str) and value in PLAYERS:
+        return None
+    return f"{value} is not a player ({', '.join(PLAYERS)})"
+
+
+def _players_problem(value: object) -> str | None:
+    if not isinstance(value, list):
+        return "must be a list of players"
+    return next((wrong for entry in value if (wrong := player_problem(entry)) is not None), None)
 
 
 def _embed_problem(value: object) -> str | None:
@@ -96,6 +114,16 @@ def parse_providers(
             )
             if found is not None
         ]
+        players = entry.get("players", [])
+        if (wrong_players := _players_problem(players)) is not None:
+            wrong.append(
+                Problem(
+                    file=file,
+                    field="players",
+                    line=lines.of(entry, "players"),
+                    message=wrong_players,
+                )
+            )
         if wrong:
             problems += wrong
             continue
@@ -118,6 +146,7 @@ def parse_providers(
             name=name,
             licences=tuple(str(licence) for licence in licences),
             embed=embed,
+            players=tuple(str(player) for player in players),
         )
     return providers, problems
 

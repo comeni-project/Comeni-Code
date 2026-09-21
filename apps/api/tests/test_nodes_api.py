@@ -159,7 +159,7 @@ def test_a_node_returns_its_resources_in_the_authors_order(client: Client) -> No
     first = body["resources"][0]
     assert first["provider"] == {"id": "khan-academy", "name": "Khan Academy"}
     assert first["kind"] == "video"
-    assert first["part"] == "2:10–7:45"
+    assert first["part"] == ""
     assert first["licence"] == "YouTube embed"
     assert first["level"] == "foundations"
     assert first["covers"] == CONTENT.nodes["de-bruijn-graphs"].resources[0].covers

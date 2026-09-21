@@ -159,7 +159,9 @@ def test_link_order_is_the_authors() -> None:
 # M3 part 1: resources and questions are written back too (spec M3P1.2, M3P1.3).
 
 PROVIDERS = {
-    "khan-academy": Provider("khan-academy", "Khan Academy", ("YouTube embed",), embed=True),
+    "khan-academy": Provider(
+        "khan-academy", "Khan Academy", ("YouTube embed",), embed=True, players=("youtube",)
+    ),
     "openstax": Provider("openstax", "OpenStax", ("CC BY 4.0",), embed=False),
 }
 
@@ -176,6 +178,7 @@ TAUGHT = replace(
             display="embed",
             level=Level.INTRODUCTORY,
             part="2:10–7:45",
+            video="youtube:Jnk_4Maf5Fk",
         ),
         Resource(
             kind="reading",
@@ -212,6 +215,7 @@ resources:
   - kind: video
     provider: khan-academy
     url: https://www.youtube.com/watch?v=abc
+    video: youtube:Jnk_4Maf5Fk
     part: 2:10–7:45
     covers: Why overlapping reads are assembled through their k-mers.
     licence: YouTube embed
