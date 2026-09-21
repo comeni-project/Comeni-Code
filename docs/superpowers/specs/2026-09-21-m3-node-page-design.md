@@ -1,6 +1,6 @@
 # M3 part 5 — the Node page
 
-**Status: proposed 2026-09-21.** The fifth of phase M3's six parts (architecture spec R4). The
+**Status: agreed 2026-09-21.** The fifth of phase M3's six parts (architecture spec R4). The
 parts list is in [`2026-09-20-m3-in-parts.md`](../../notes/journal/2026-09-20-m3-in-parts.md).
 Part 1 gave a node its resources and try questions
 ([spec](2026-09-20-m3-resources-and-questions-design.md)), and part 4 links here from the
@@ -13,7 +13,7 @@ selected stop's *Open page* ([spec](2026-09-20-m3-route-page-design.md),
 - how the body's Markdown and its try questions are drawn.
 
 The operator decided the embed and the route strip question by question on 2026-09-21, and
-approved the page's structure. **The reference is the published canvas**
+approved the page's structure and then the spec as written. **The reference is the published canvas**
 (https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa), L5 *de Bruijn graphs*, open in Chrome
 while each piece is built (M3P4R.1), not only at the end.
 
