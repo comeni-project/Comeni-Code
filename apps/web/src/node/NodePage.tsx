@@ -194,11 +194,11 @@ export function NodePage() {
         <RouteStrip id={id} goals={goals} known={known} route={route.data} />
       ) : null}
       {node.isPending ? (
-        <p className="mx-auto max-w-[1440px] px-4 py-6 text-[15px] text-ink-2 sm:px-9">
-          Loading the page…
-        </p>
+        <main className="mx-auto max-w-[1440px] px-4 py-6 sm:px-9">
+          <p className="text-[15px] text-ink-2">Loading the page…</p>
+        </main>
       ) : node.isError ? (
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-6 sm:px-9">
+        <main className="mx-auto flex max-w-[1440px] flex-col gap-3 px-4 py-6 sm:px-9">
           <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
             {sentenceOf(node.error)}
           </p>
@@ -208,7 +208,7 @@ export function NodePage() {
             </Link>
             .
           </p>
-        </div>
+        </main>
       ) : (
         <Page node={node.data} goals={goals} known={known} />
       )}

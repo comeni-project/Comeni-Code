@@ -69,7 +69,7 @@ const COMPONENTS: Components = {
     <code
       className={
         className === undefined
-          ? "rounded-[5px] bg-bg px-1 py-px font-mono text-[0.9em] text-ink [pre_&]:bg-transparent [pre_&]:p-0 [pre_&]:text-[1em]"
+          ? "rounded-[5px] border border-border bg-surface px-1 py-px font-mono text-[0.9em] text-ink [pre_&]:border-0 [pre_&]:bg-transparent [pre_&]:p-0 [pre_&]:text-[1em]"
           : "font-mono"
       }
     >

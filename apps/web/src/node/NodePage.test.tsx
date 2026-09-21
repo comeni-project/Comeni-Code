@@ -206,6 +206,7 @@ describe("the Node page's states", () => {
     answering();
     open("/node/nope");
     expect(await screen.findByText(/No topic with id 'nope'/)).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveTextContent("No topic with id 'nope'");
     expect(screen.getByRole("link", { name: /Start/ })).toHaveAttribute("href", "/");
   });
 
