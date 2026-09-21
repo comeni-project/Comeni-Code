@@ -57,6 +57,15 @@ the title on the left, then *level · N min* on the right. On a route, the goal'
 *Needed by* says *your goal*. Every row links to its node and keeps the route in the URL. An
 empty group is left out.
 
+*After the operator's review:* each group starts **folded**, as a button naming it and its count
+(*Needed by · 3*), and opens to its rows. With every group open by default the column competed
+with the node itself. The column is sticky beside the body.
+
+*Also after the review:* the article's text, boxes and cards share **one measure**, a 720 px
+column, where the board capped paragraphs at 66ch inside an 800 px one. The board's caps left
+every paragraph short of the boxes above it, and a lone resource card at half width, so a lone
+card now takes the full width.
+
 *Found while building:* the node endpoint's cards had no time, so they gain `minutes`, as
 `SideCardOut`, a subclass of `NeighbourOut`, at no extra query. The route's own cards are shared
 with `GET /api/routes` and stay as they were. *Rejected:* adding `minutes` to `NeighbourOut`,

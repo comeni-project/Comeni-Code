@@ -110,7 +110,7 @@ export function LearnIt({ resources }: { resources: ResourceOut[] }) {
       >
         Learn it
       </h2>
-      <p className="max-w-[52ch] text-[15px] leading-[1.65] text-ink-2">
+      <p className="text-[15px] leading-[1.65] text-ink-2">
         Read our explanation below, or watch first. Each outside resource was picked by a reviewer
         for the part of this page it covers.
       </p>
@@ -118,7 +118,7 @@ export function LearnIt({ resources }: { resources: ResourceOut[] }) {
         <Played key={resource.url} resource={resource} src={src} />
       ))}
       {linked.length > 0 ? (
-        <div className="grid gap-2.5 sm:grid-cols-2">
+        <div className={`grid gap-2.5 ${linked.length > 1 ? "sm:grid-cols-2" : ""}`}>
           {linked.map((resource) => (
             <Linked key={resource.url} resource={resource} />
           ))}

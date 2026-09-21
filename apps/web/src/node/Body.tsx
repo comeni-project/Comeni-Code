@@ -34,9 +34,7 @@ const COMPONENTS: Components = {
   h1: ({ children }) => <Section>{children}</Section>,
   h2: ({ children }) => <Section>{children}</Section>,
   h3: ({ children }) => <h3 className="text-[18px] font-semibold text-ink">{children}</h3>,
-  p: ({ children }) => (
-    <p className="max-w-[66ch] text-[15px] leading-[1.65] text-ink-2">{children}</p>
-  ),
+  p: ({ children }) => <p className="text-[15px] leading-[1.65] text-ink-2">{children}</p>,
   strong: ({ children }) => <strong className="font-semibold text-ink">{children}</strong>,
   a: ({ href, children }) => {
     const outside = href?.startsWith("http") ?? false;
@@ -51,12 +49,12 @@ const COMPONENTS: Components = {
     );
   },
   ul: ({ children }) => (
-    <ul className="flex max-w-[66ch] list-disc flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
+    <ul className="flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="flex max-w-[66ch] list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
+    <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[15px] leading-[1.6] text-ink-2">
       {children}
     </ol>
   ),

@@ -98,3 +98,12 @@ and was checked against the published canvas in Chrome as each piece landed.
 - **A command chain ending in `| tail` hides the exit code.** One commit this session went in
   with two failing tests that way (amended before any push). Take the exit code from the check
   itself.
+
+## Then: the operator's review of the page
+
+| Asked | Done |
+|---|---|
+| *Goes deeper*, *Related* and *Needed by* open by default felt odd | each group is folded behind a button with its count (*Needed by · 3*), and the column is sticky |
+| The paragraphs on *Mapping reads to a reference* looked oddly formatted | the paragraphs were capped at 66ch inside an 800 px column, so they stopped short of the boxes, and the Learn it sentence was capped at 52ch. The article is now one 720 px measure that text and boxes share, and a lone resource card takes the full width |
+
+Both are recorded in M3P5.2. The audit passes all 108 node cases again.

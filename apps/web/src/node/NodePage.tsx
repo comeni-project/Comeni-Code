@@ -122,9 +122,9 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
   ];
   const minutes = node.minutes + node.questions.length;
   return (
-    <main className="mx-auto grid max-w-[1440px] gap-10 px-4 py-[30px] sm:px-9 lg:grid-cols-[200px_minmax(0,1fr)_290px]">
+    <main className="mx-auto grid max-w-[1440px] gap-10 px-4 py-[30px] sm:px-9 lg:grid-cols-[200px_minmax(0,720px)_290px] lg:justify-between">
       <Contents sections={sections} />
-      <article className="flex min-w-0 max-w-[800px] flex-col gap-5">
+      <article className="flex min-w-0 max-w-[720px] flex-col gap-5">
         <div className="flex flex-col gap-2">
           <nav aria-label="Breadcrumb" className="text-[13px] text-ink-3">
             {node.region.name} › {node.title}
