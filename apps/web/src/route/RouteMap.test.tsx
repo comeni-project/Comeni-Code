@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { RouteMap } from "./RouteMap";
@@ -42,5 +42,26 @@ describe("the map", () => {
     const drawing = screen.getByRole("img", { name: /17 stops/ });
     expect(drawing).toHaveAccessibleName(/5 lines/);
     expect(drawing).toHaveAccessibleName(/ending at Salmon/);
+  });
+
+  it("draws each title on the map, wrapped", () => {
+    map();
+    const drawing = screen.getByRole("img", { name: /17 stops/ });
+    expect(within(drawing).getByText("Reads that map to")).toBeInTheDocument();
+    expect(within(drawing).getByText("several places")).toBeInTheDocument();
+  });
+
+  it("draws the canvas's three marks", () => {
+    const { container } = render(<RouteMap route={SALMON} selected={null} onSelect={vi.fn()} />);
+    expect(container.querySelectorAll('[data-mark="goal"]')).toHaveLength(1);
+    expect(
+      container.querySelector('[data-mark="meets"][data-stop="dna-and-genes"]'),
+    ).not.toBeNull();
+    expect(container.querySelector('[data-mark="stop"][data-stop="likelihood"]')).not.toBeNull();
+  });
+
+  it("rings the selected stop", () => {
+    const { container } = render(<RouteMap route={SALMON} selected="k-mers" onSelect={vi.fn()} />);
+    expect(container.querySelector('[data-selected="k-mers"]')).not.toBeNull();
   });
 });

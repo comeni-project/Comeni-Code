@@ -1,10 +1,97 @@
-// The route drawn as lines meeting at the goal (spec M3P4.2).
+// The route drawn as the canvas's metro map (spec M3P4R.3).
 //
-// The paths are SVG; the stops are real HTML buttons laid over it, so a stop can be reached with
-// the keyboard and named for a screen reader. One colour for every line — W10 gives one meaning
-// per colour — and the lines are named in the page's rail above the map, as the board does it.
+// Everything visible is SVG, labels included, so the drawing scales as one piece and a label
+// never slides over its neighbour. Each stop also gets a real HTML button laid over it, so it can
+// be reached with the keyboard and named for a screen reader. One colour for every line — W10
+// gives one meaning per colour — and the lines are named in the page's rail, as the board does.
 import type { RouteOut } from "../api/schema";
-import { layout } from "./layout";
+import { layout, type Placed, wrapTitle } from "./layout";
+
+const NAME = 17; // a stop's title, in map units
+const META = 14; // its minutes
+const LEADING = NAME + 2;
+/** Below this scale the text gets too small to read, so the map scrolls instead. */
+const SMALLEST = 0.55;
+
+const halo = { paintOrder: "stroke", strokeLinejoin: "round" } as const;
+
+function Label({ placed, title, minutes }: { placed: Placed; title: string; minutes: number }) {
+  const { x, y } = placed;
+  if (placed.label === "right") {
+    return (
+      <g style={halo} className="stroke-surface" strokeWidth={6}>
+        <text x={x + 26} y={y - 2} className="fill-ink font-mono" fontSize={20} fontWeight={700}>
+          {title}
+        </text>
+        <text x={x + 26} y={y + 18} className="fill-btn font-mono" fontSize={META}>
+          your goal
+        </text>
+      </g>
+    );
+  }
+  const lines = wrapTitle(title);
+  const weight = placed.meets ? 600 : 500;
+  const below = placed.label === "below";
+  const nameY = (index: number) =>
+    below ? y + 32 + index * LEADING : y - 38 - (lines.length - 1 - index) * LEADING;
+  return (
+    <g style={halo} className="stroke-surface" strokeWidth={6} textAnchor="middle">
+      {lines.map((line, index) => (
+        <text
+          key={line}
+          x={x}
+          y={nameY(index)}
+          className="fill-ink font-sans"
+          fontSize={NAME}
+          fontWeight={weight}
+        >
+          {line}
+        </text>
+      ))}
+      <text
+        x={x}
+        y={below ? y + 32 + lines.length * LEADING : y - 20}
+        className="fill-ink-3 font-mono"
+        fontSize={META}
+      >
+        {minutes} min
+      </text>
+    </g>
+  );
+}
+
+function Mark({ placed }: { placed: Placed }) {
+  const { x, y, id } = placed;
+  if (placed.goal && placed.label === "right") {
+    return (
+      <g data-mark="goal" data-stop={id}>
+        <circle cx={x} cy={y} r={14} className="fill-surface stroke-ink" strokeWidth={3.5} />
+        <rect x={x - 5} y={y - 5} width={10} height={10} className="fill-line" />
+      </g>
+    );
+  }
+  return placed.meets || placed.goal ? (
+    <circle
+      data-mark="meets"
+      data-stop={id}
+      cx={x}
+      cy={y}
+      r={10}
+      className="fill-surface stroke-ink"
+      strokeWidth={3}
+    />
+  ) : (
+    <circle
+      data-mark="stop"
+      data-stop={id}
+      cx={x}
+      cy={y}
+      r={7.5}
+      className="fill-surface stroke-ink-3"
+      strokeWidth={2.2}
+    />
+  );
+}
 
 export function RouteMap({
   route,
@@ -16,78 +103,83 @@ export function RouteMap({
   onSelect: (id: string) => void;
 }) {
   const drawn = layout(route);
+  const { box } = drawn;
   const stops = new Map(route.stops.map((stop) => [stop.id, stop]));
   const goalTitles = route.stops
     .filter((stop) => route.goals.includes(stop.id))
     .map((stop) => stop.title)
     .join(", ");
+  const chosen = drawn.stops.find((placed) => placed.id === selected);
 
   return (
     <div className="overflow-x-auto">
       <div
-        className="relative min-w-[720px]"
-        style={{ aspectRatio: `${drawn.box.width} / ${drawn.box.height}` }}
+        className="relative"
+        style={{ aspectRatio: `${box.width} / ${box.height}`, minWidth: box.width * SMALLEST }}
       >
         <svg
-          viewBox={`${drawn.box.x} ${drawn.box.y} ${drawn.box.width} ${drawn.box.height}`}
+          viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
           className="absolute inset-0 h-full w-full"
           role="img"
           aria-label={`${drawn.stops.length} stops on ${drawn.lines.length} lines, ending at ${goalTitles}`}
         >
           <title>{`${drawn.stops.length} stops on ${drawn.lines.length} lines`}</title>
+          {drawn.links.map((link) => (
+            <g key={link} className="fill-none" strokeLinejoin="round">
+              <path d={link} className="stroke-surface" strokeWidth={8} />
+              <path d={link} className="stroke-line" strokeWidth={2.5} />
+            </g>
+          ))}
           {drawn.runs.map((run) => (
             <path
               key={run}
               d={run}
               className="fill-none stroke-line"
-              strokeWidth={7}
+              strokeWidth={8}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           ))}
-          {drawn.links.map((link) => (
-            <path
-              key={link}
-              d={link}
-              className="fill-none stroke-line"
-              strokeWidth={2.5}
-              strokeLinejoin="round"
+          {chosen === undefined ? null : (
+            <circle
+              data-selected={chosen.id}
+              cx={chosen.x}
+              cy={chosen.y}
+              r={(chosen.goal ? 14 : chosen.meets ? 10 : 7.5) + 8}
+              className="fill-none stroke-sel"
+              strokeWidth={2}
+              strokeDasharray="4 4"
             />
+          )}
+          {drawn.stops.map((placed) => (
+            <Mark key={placed.id} placed={placed} />
           ))}
+          {drawn.stops.map((placed) => {
+            const stop = stops.get(placed.id);
+            return stop === undefined ? null : (
+              <Label key={placed.id} placed={placed} title={stop.title} minutes={stop.minutes} />
+            );
+          })}
         </svg>
 
         {drawn.stops.map((placed) => {
           const stop = stops.get(placed.id);
           if (stop === undefined) return null;
-          const chosen = placed.id === selected;
           return (
             <button
               key={placed.id}
               type="button"
               onClick={() => onSelect(placed.id)}
-              aria-current={chosen ? "true" : undefined}
+              aria-current={placed.id === selected ? "true" : undefined}
               aria-label={`${stop.title} · ${stop.minutes} min · ${stop.region.name}${
                 placed.goal ? " · your goal" : ""
               }`}
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
+              className="absolute size-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-pill hover:bg-sel-soft/60 focus-visible:outline-2 focus-visible:outline-sel"
               style={{
-                left: `${((placed.x - drawn.box.x) / drawn.box.width) * 100}%`,
-                top: `${((placed.y - drawn.box.y) / drawn.box.height) * 100}%`,
+                left: `${((placed.x - box.x) / box.width) * 100}%`,
+                top: `${((placed.y - box.y) / box.height) * 100}%`,
               }}
-            >
-              <span className="max-w-36 text-center text-[12px] leading-tight font-medium text-ink">
-                {stop.title}
-              </span>
-              <span
-                aria-hidden="true"
-                className={`rounded-pill border-2 bg-surface ${
-                  chosen ? "border-sel" : "border-ink"
-                } ${placed.goal ? "size-4" : "size-3"}`}
-              />
-              <span className="font-mono text-[11px] text-ink-3">
-                {placed.goal ? "your goal" : `${stop.minutes} min`}
-              </span>
-            </button>
+            />
           );
         })}
       </div>
