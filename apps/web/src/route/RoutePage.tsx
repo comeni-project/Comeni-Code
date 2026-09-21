@@ -29,7 +29,10 @@ function Facts({ route }: { route: RouteOut }) {
         <span className="text-[13px] text-ink-2">{shownTime(route.minutes)}</span>
       </div>
       {/* Neutral bars: a full teal bar would read as done, and nothing is settled yet (T7). */}
-      <ul data-rail className="flex min-w-0 flex-1 flex-wrap gap-5 border-border border-l pl-6">
+      <ul
+        data-rail
+        className="flex min-w-64 flex-1 flex-wrap gap-5 sm:border-border sm:border-l sm:pl-6"
+      >
         {lines.map((line) => (
           <li key={line.region.id} className="flex min-w-32 flex-1 flex-col gap-[5px]">
             <span className="flex justify-between gap-3 text-[12.5px]">
@@ -107,7 +110,7 @@ export function RoutePage() {
   return (
     <div className="min-h-screen">
       <TopBar />
-      <main className="mx-auto flex max-w-[1440px] flex-col gap-[18px] px-9 py-6">
+      <main className="mx-auto flex max-w-[1440px] flex-col gap-[18px] px-4 py-6 sm:px-9">
         {goals.length === 0 ? (
           <section className="flex flex-col gap-2">
             <h1 className="text-[30px] font-semibold tracking-[-0.02em]">No goal yet</h1>
