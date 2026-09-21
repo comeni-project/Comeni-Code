@@ -57,9 +57,9 @@ const progress = (done, cur, total) => `<div style="display:flex;align-items:cen
 // ── the network (transit view of every woven track) ─────────────
 const TY = 250, TX = (i) => 60 + 100 * i;
 const ROUTE = [
-  ['DNA and genes', 15, 'settled', 'thr'], ['Gene expression', 10, 'stale'], ['RNA-seq reads and libraries', 12, 'settled'], ['Short-read sequencing', 12, 'settled', 'thr'],
-  ['FASTQ and quality scores', 15, 'settled', 'inter'], ['Mapping reads to a reference', 10, 'next'], ['k-mers', 10, 'next'], ['de Bruijn graphs', 12, 'open', 'inter'],
-  ['Sequence alignment and scores', 15, 'open', 'inter'], ['Selective alignment', 15, 'missing'], ['The EM algorithm', 20, 'open', 'thr'], ['Salmon', 25, 'open', 'goal'],
+  ['DNA and genes', 15, 'settled', 'thr'], ['Gene expression', 10, 'stale'], ['RNA-seq experiments', 12, 'settled'], ['Sequencing reads', 12, 'settled', 'thr'],
+  ['FASTQ on disk', 15, 'settled', 'inter'], ['Reference transcriptome', 10, 'next'], ['k-mers', 10, 'next'], ['de Bruijn graphs', 12, 'open', 'inter'],
+  ['Sequence alignment', 15, 'open', 'inter'], ['Selective alignment', 15, 'missing'], ['Expectation–maximisation', 20, 'open', 'thr'], ['Salmon', 25, 'open', 'goal'],
 ];
 const OTHERS = [
   { name: 'Learn STAR', d: `M460 250 L540 330 H1170 M860 330 V250`, stops: [[620, 330, 'Reference genome'], [720, 330, 'Coordinates'], [1000, 330, 'Splice-aware alignment'], [1130, 330, 'STAR']], lx: 1190, ly: 334 },
@@ -150,9 +150,9 @@ function start() {
           <span style="font-size:12.5px;color:${c.ink3}">Built by following what each page needs, back from Salmon · columns can be done in any order</span>
         </div>
         <div style="display:flex;align-items:baseline;gap:22px">
-          <span style="font-size:26px;font-weight:600;letter-spacing:-.02em">17 stops</span>
-          <span style="font-size:15px;color:${c.ink2}">about 3 h 4 min</span>
-          ${levelTag('First steps → Intermediate')}
+          <span style="font-size:26px;font-weight:600;letter-spacing:-.02em">13 nodes</span>
+          <span style="font-size:15px;color:${c.ink2}">about 3 h 10 min</span>
+          ${levelTag('First steps → Advanced')}
           ${greyTag('1 not written yet — requested, you can follow it')}
         </div>
         <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:8px 12px">${routeMetro({ sel: null, fresh: true })}</div>
@@ -194,56 +194,38 @@ function kmerFigure(scale = 1) {
 }
 
 // ── the route as a metro map: lines split from the start and merge into the goal ──
-// The Salmon route as the fixtures hold it (M1P4.2): 17 stops in five regions, at the
-// coordinates apps/web/src/route/layout.ts computes for them — a line is a region, a column is a
-// stop's depth in the route's needs, so the board and the page agree on geometry (M3P4.4).
-//
-// `selal` is not one of the 17: it is a node nobody has written yet, kept so the board still
-// shows that state, which M7's requests will produce.
+const MX = [60, 280, 500, 720, 940, 1160];
 const MS = {
-  dna: ['DNA and genes', 110, 54, 'settled', 10, 'top', 'inter'],
-  expr: ['Gene expression', 320, 54, 'settled', 10, 'top'],
-  splice: ['Splicing', 530, 54, 'stale', 10, 'top'],
-  tx: ['Transcripts and isoforms', 740, 54, 'ahead', 10, 'top', 'inter'],
-  srs: ['Short-read sequencing', 320, 162, 'settled', 10, 'top', 'inter'],
-  fastq: ['FASTQ and quality scores', 530, 162, 'settled', 8, 'top'],
-  rnaseq: ['RNA-seq reads and libraries', 740, 162, 'ahead', 12, 'top', 'inter'],
-  kmers: ['k-mers', 320, 270, 'ready', 8, 'top', 'inter'],
-  align: ['Sequence alignment and scores', 320, 316, 'ready', 12, 'bot'],
-  map: ['Mapping reads to a reference', 530, 270, 'current', 12, 'top', 'inter'],
-  selal: ['Selective alignment', 740, 270, 'missing', 15, 'top'],
-  multi: ['Reads that map to several places', 950, 270, 'ahead', 10, 'top'],
-  prob: ['Probability', 110, 424, 'ready', 10, 'top'],
-  like: ['Likelihood', 320, 424, 'ahead', 10, 'top'],
-  mix: ['Mixture models', 530, 424, 'ahead', 12, 'top'],
-  em: ['The EM algorithm', 740, 424, 'ahead', 15, 'top', 'inter'],
-  tpm: ['What TPM measures', 950, 532, 'ahead', 10, 'top'],
-  salmon: ['Salmon', 1160, 532, 'goal', 15, 'goal'],
+  cells: ['Living things carry instructions', -110, 290, 'settled', 10, 'mid'],
+  dna: ['DNA and genes', MX[0], 290, 'settled', 15, 'mid', 'inter'],
+  expr: ['Gene expression', MX[1], 150, 'stale', 10, 'top'],
+  reads: ['Sequencing reads', MX[1], 290, 'settled', 12, 'mid', 'inter'],
+  kmers: ['k-mers', MX[1], 430, 'ready', 10, 'bot', 'inter'],
+  rnaseq: ['RNA-seq experiments', MX[2], 150, 'settled', 12, 'top', 'inter'],
+  fastq: ['FASTQ on disk', MX[2], 290, 'settled', 15, 'mid'],
+  dbg: ['de Bruijn graphs', MX[2], 430, 'ahead', 12, 'bot', 'thr'],
+  reftx: ['Reference transcriptome', MX[3], 80, 'current', 10, 'top'],
+  em: ['Expectation–maximisation', MX[3], 150, 'ready', 20, 'top'],
+  align: ['Sequence alignment', MX[3], 290, 'ready', 15, 'mid'],
+  selal: ['Selective alignment', MX[4], 290, 'missing', 15, 'mid', 'inter'],
+  salmon: ['Salmon', MX[5], 290, 'goal', 25, 'goal'],
 };
-// One run per region, left to right along its own row, then on to the goal.
 const MLINES = [
-  ['M 110 54 H 320 H 530 H 740 L 1160 532', 0],
-  ['M 320 162 H 530 H 740 H 790 L 1160 532', 0],
-  ['M 320 270 H 530 H 740 H 950 L 1160 532', 0, 'M 530 270 H 950'],
-  ['M 110 424 H 320 H 530 H 740 H 1052 L 1160 532', 0],
-  ['M 950 532 H 1160', 0],
+  // main lines (thick)
+  ['M-110 290 H1160', 0, 'M940 290 H1160'],
+  ['M60 290 H140 L280 150 H720 H1020 L1160 290', 0],
+  ['M560 150 L630 80 H950 L1020 150', 0],
+  ['M60 290 H140 L280 430 H1020 L1160 290', 0],
 ];
-// Thin connectors: a need that crosses from one line to another.
 const MLINKS = [
-  ['M 110 54 H 212 L 320 162'],
-  ['M 320 54 H 632 L 740 162'],
-  ['M 110 54 L 320 270'],
-  ['M 110 54 L 320 316'],
-  ['M 320 162 H 422 L 530 270'],
-  ['M 320 316 H 484 L 530 270'],
-  ['M 740 54 L 950 270'],
-  ['M 740 54 L 950 532'],
-  ['M 740 162 L 950 532'],
-  ['M 740 54 L 1160 532'],
+  // thin connectors: a need that isn't along a line
+  ['M280 290 H360 L500 150'],
+  ['M360 290 L500 430'],
+  ['M280 430 H340 L410 500 H730 L940 290', 1],
 ];
-function routeMetro({ sel = 'map', fresh = false, h = 600 } = {}) {
+function routeMetro({ sel = 'reftx', fresh = false, h = 530 } = {}) {
   const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 12}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
-  let s = `<svg viewBox="40 0 1290 ${h}" width="100%" style="display:block">`;
+  let s = `<svg viewBox="-240 0 1560 ${h}" width="100%" style="display:block">`;
   MLINES.forEach(([d, , dashed]) => {
     s += `<path d="${d}" style="fill:none;stroke:${c.line};stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path>`;
     if (dashed) s += `<path d="${dashed}" style="fill:none;stroke:${c.surface};stroke-width:3;stroke-dasharray:6 6"></path>`;
@@ -291,15 +273,15 @@ function home() {
     <div style="${panel(c)};padding:20px 26px;display:flex;align-items:center;gap:28px">
       <div style="display:flex;flex-direction:column;gap:6px;flex:1">
         <span style="${label(c)}">Continue where you left off</span>
-        ${h1('Mapping reads to a reference', 28)}
-        <span style="font-size:13.5px;color:${c.ink2}">Learn Salmon · 2 of 5 questions answered on this page · about 7 min left</span>
+        ${h1('Reference transcriptome', 28)}
+        <span style="font-size:13.5px;color:${c.ink2}">Learn Salmon · 2 of 5 questions answered on this page · about 6 min left</span>
       </div>
       ${primary(c, 'Continue', ic.arrow)}
     </div>
 
     <section style="${panel(c)};display:flex;flex-direction:column">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid ${c.border}">
-        <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:17px;font-weight:600">Learn Salmon</span><span style="font-size:13px;color:${c.ink2}">4 of 17 settled · 4 ready now · about 2 h 26 min left</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:17px;font-weight:600">Learn Salmon</span><span style="font-size:13px;color:${c.ink2}">6 of 13 settled · 4 ready now · about 2 h 20 min left</span></div>
         <div style="display:flex;align-items:center;gap:14px"><a style="font-size:13px;font-weight:500">Switch route ▾</a>${secondary(c, 'Open route')}</div>
       </div>
       <div style="padding:10px 22px 4px">${routeMetro()}</div>
@@ -307,7 +289,7 @@ function home() {
     </section>
 
     <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:18px">
-      ${card(`<span style="font-size:15px;font-weight:600">Ready for you</span>${ready('k-mers', '10 min · Learn Salmon')}${ready('Sequence alignment and scores', '15 min · Learn Salmon')}${ready('Gene expression', 'Quick review due', 'stale')}`)}
+      ${card(`<span style="font-size:15px;font-weight:600">Ready for you</span>${ready('k-mers', '10 min · Learn Salmon')}${ready('Sequence alignment', '15 min · Learn Salmon')}${ready('Gene expression', 'Quick review due', 'stale')}`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:15px;font-weight:600">Review</span>${secondary(c, 'Start')}</div>
         <span style="font-size:13.5px;color:${c.ink2};line-height:1.5">8 questions from pages you’ve read · about 6 min. Tomorrow’s set is picked for you; nothing piles up.</span>
         <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid ${c.border}"><span style="font-size:13px;color:${c.ink2}">Or test yourself on a route</span><a style="font-size:13px;font-weight:600">Test yourself</a></div>`)}
@@ -340,17 +322,17 @@ function route() {
       <div style="display:flex;flex-direction:column;gap:8px">
         <span style="font-size:13px;color:${c.ink3}">Home › Your routes</span>
         ${h1('Learn Salmon', 36)}
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${levelTag('First steps → Intermediate · starts at Foundations for you')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
-        <span style="font-size:16px;color:${c.ink};max-width:70ch;line-height:1.5"><b style="font-weight:600">At the end you can</b> estimate how much of each transcript a sample holds by mapping RNA-seq reads to the transcriptome, and explain every step Salmon takes to get there.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${levelTag('First steps → Advanced · starts at Introductory for you')}${greyTag('Ends in a Comeni Labs pipeline')}</div>
+        <span style="font-size:16px;color:${c.ink};max-width:70ch;line-height:1.5"><b style="font-weight:600">At the end you can</b> estimate transcript expression from your own RNA-seq reads with Salmon, and explain each step it takes.</span>
       </div>
       <div style="display:flex;gap:10px;align-items:center;padding-top:26px">${seg(c, ['Map', 'List'], 0)}${secondary(c, 'Test yourself')}${secondary(c, 'Change goal')}</div>
     </div>
 
     <div style="${panel(c)};padding:14px 20px;display:flex;align-items:center;gap:28px">
-      <div style="display:flex;flex-direction:column;gap:2px;min-width:190px"><span style="font-size:22px;font-weight:600">13 stops to go</span><span style="font-size:13px;color:${c.ink2}">about 2 h 26 min · 4 of 17 settled</span></div>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:190px"><span style="font-size:22px;font-weight:600">7 stops to go</span><span style="font-size:13px;color:${c.ink2}">about 2 h 20 min · 6 of 13 settled</span></div>
       <div style="display:flex;flex-direction:column;gap:2px;min-width:200px;padding-left:24px;border-left:1px solid ${c.border}"><span style="font-size:14px;font-weight:600">About 5 days</span><span style="font-size:12.5px;color:${c.ink2}">at your usual 30 min a day</span></div>
       <div style="display:flex;gap:20px;flex:1;padding-left:24px;border-left:1px solid ${c.border}">
-        ${lineProg('Molecular biology', 2, 4, '2 to go')}${lineProg('Sequencing', 2, 3, '1 to go')}${lineProg('Sequence analysis', 0, 4, 'blocked at 3', c.ink3)}${lineProg('Statistics', 0, 4, '4 to go')}${lineProg('Transcriptomics', 0, 2, '2 to go')}
+        ${lineProg('Data line', 2, 4, '2 to go')}${lineProg('Reads line', 2, 4, 'blocked at 4', c.ink3)}${lineProg('Index line', 0, 2, '2 to go')}
       </div>
     </div>
 
@@ -359,23 +341,23 @@ function route() {
         ${routeMetro()}
         ${routeLegend}
         <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-top:6px;border-radius:9px;background:${c.bg}">
-          <span style="font-size:13px;line-height:1.5;color:${c.ink2};flex:1"><b style="color:${c.ink};font-weight:600">How it fits together.</b> Molecular biology says what a transcript is; sequencing turns one into reads; sequence analysis puts those reads back onto transcripts; statistics shares out the reads that fit more than one. All five lines meet at Salmon.</span>${amberTag('AI-written · not yet reviewed')}
+          <span style="font-size:13px;line-height:1.5;color:${c.ink2};flex:1"><b style="color:${c.ink};font-weight:600">How it fits together.</b> The data line says what your reads and transcripts are; the reads line gets them onto transcripts; the index line builds the graph Salmon searches. All three meet at Salmon.</span>${amberTag('AI-written · not yet reviewed')}
         </div>
       </section>
       <aside style="${panel(c)};padding:18px;display:flex;flex-direction:column;gap:12px">
         <div style="display:flex;justify-content:space-between;align-items:center"><span style="${label(c)}">Selected stop</span>${blueTag('In progress')}</div>
-        <span style="font-size:20px;font-weight:600;line-height:1.2">Mapping reads to a reference</span>
-        <span style="font-size:14px;line-height:1.5">Mapping finds where in a reference each read could have come from, by looking up its k-mers and checking the candidate places with an alignment.</span>
+        <span style="font-size:20px;font-weight:600;line-height:1.2">Reference transcriptome</span>
+        <span style="font-size:14px;line-height:1.5">Explain why Salmon compares reads with a list of transcripts rather than with a genome.</span>
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px">
-          ${kv('Level', 'Introductory')}${kv('Time', '12 min · 7 left')}${kv('Questions', '2 of 5 answered')}${kv('Needs', `Short-read sequencing ${ic.check(c.ink2)}, k-mers, Sequence alignment and scores`)}${kv('Unlocks', 'Reads that map to several places, Salmon')}${kv('Proved by', 'Place reads on transcripts · rung 2')}
+          ${kv('Level', 'Introductory')}${kv('Time', '10 min · 6 left')}${kv('Questions', '2 of 5 answered')}${kv('Needs', `RNA-seq experiments ${ic.check(c.ink2)}`)}${kv('Unlocks', 'Salmon')}${kv('Proved by', 'Build a transcript index · rung 2')}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:9px;background:${c.lineSoft}">
           <span style="font-size:12px;font-weight:600">Why it’s on this route</span>
-          <span style="font-size:13px;line-height:1.5">Salmon first finds which transcripts each read could have come from.</span>
+          <span style="font-size:13px;line-height:1.5">Salmon indexes transcripts, not a genome — this is the list it searches.</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:9px;background:${c.bg}">
-          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:600;color:${c.ink2}">Coming from Short-read sequencing</span>${amberTag()}</div>
-          <span style="font-size:13px;line-height:1.5;font-style:italic;color:${c.ink2}">You have millions of short reads and no idea where they came from. This stop is how a mapper finds out.</span>
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:600;color:${c.ink2}">Coming from RNA-seq experiments</span>${amberTag()}</div>
+          <span style="font-size:13px;line-height:1.5;font-style:italic;color:${c.ink2}">Your reads are copies of transcripts. Salmon compares them with a list of known transcripts — that list is this stop.</span>
         </div>
         <div style="margin-top:auto;display:flex;gap:8px">${primary(c, 'Continue', '')}${secondary(c, 'Open page')}</div>
       </aside>
@@ -384,18 +366,18 @@ function route() {
     <div style="display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:18px">
       ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Next up</span><span style="font-size:12px;color:${c.ink3}">4 ready · any order</span></div>
         <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
-          ${next('Mapping reads to a reference', '7 min left', 'Sequence analysis · you started it', true)}
-          ${next('k-mers', '8 min', 'Sequence analysis · unlocks 2 stops')}
-          ${next('Sequence alignment and scores', '12 min', 'Sequence analysis · unlocks 1 stop')}
-          ${next('Probability', '10 min', 'Statistics · the whole line waits on it')}
+          ${next('Reference transcriptome', '6 min left', 'Data line · you started it', true)}
+          ${next('Expectation–maximisation', '20 min', 'Data line · how reads are shared')}
+          ${next('Sequence alignment', '15 min', 'Reads line')}
+          ${next('k-mers', '10 min', 'Index line · unlocks 2 stops')}
         </div>
         <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;border:1.5px dashed ${c.sel};background:${c.selSoft}">
-          <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:13.5px;font-weight:600">Step back suggested · k-mers</span><span style="font-size:12.5px;color:${c.ink2}">After your answer on Mapping reads to a reference. An 8-minute detour; the route order doesn’t change.</span></div>
+          <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:13.5px;font-weight:600">Step back suggested · k-mers</span><span style="font-size:12.5px;color:${c.ink2}">After your answer on de Bruijn graphs. A 10-minute detour; the route order doesn’t change.</span></div>
           ${secondary(c, 'Take the detour')}</div>`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Milestones</span><span style="font-size:12px;color:${c.ink3}">a problem proves each line</span></div>
-        ${milestone('P', 'Split reads between two isoforms', 'Statistics · rung 2 · after The EM algorithm', 'open')}
-        ${milestone('P', 'Count the k-mers of a read', 'Sequence analysis · rung 1 · after k-mers', 'open')}
-        ${milestone('P', 'Place reads on transcripts', 'Sequence analysis · waiting for Selective alignment to be written · follow', 'blocked')}
+        ${milestone('P', 'Split reads between two isoforms', 'Data line · rung 2 · after Expectation–maximisation', 'open')}
+        ${milestone('P', 'Rebuild a sequence from its k-mers', 'Index line · rung 3 · after de Bruijn graphs', 'open')}
+        ${milestone('P', 'Place reads on transcripts', 'Reads line · waiting for Selective alignment to be written · follow', 'blocked')}
         ${milestone('Labs', 'Run salmon quant on your own reads', 'The end of the route · a ready pipeline in Comeni Labs', 'end')}`)}
     </div>
   </main>`);
@@ -502,7 +484,7 @@ function node() {
           <p style="margin:6px 0 0;font-size:17px;font-weight:500;line-height:1.45">Build a de Bruijn graph from a set of reads, read sequences off it, recognise the marks errors leave in it, and explain why assemblers and indexes use it instead of comparing reads.</p>
         </div></div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px"><span style="font-size:13px;font-weight:600;margin-right:4px">Before this, all of:</span>
-        ${['k-mers', 'Short-read sequencing'].map(n => `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;border:1px solid ${c.border2};background:${c.surface};font-size:13px">${ic.check(c.ink2)}${n}</span>`).join('')}</div>
+        ${['k-mers', 'Sequencing reads'].map(n => `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;border:1px solid ${c.border2};background:${c.surface};font-size:13px">${ic.check(c.ink2)}${n}</span>`).join('')}</div>
       <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:10px;background:${c.lineSoft}">
         <span style="font-size:14px;line-height:1.55;flex:1"><b style="font-weight:600">On your route to Salmon:</b> Salmon’s index stores every k-mer of the transcriptome in a compacted version of this graph, so a read’s k-mers can be looked up in one step.</span>${amberTag()}
       </div>
@@ -714,7 +696,7 @@ function explore() {
         <div style="${panel(c)};overflow:hidden">
           <div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 150px 190px 110px 100px;gap:16px;padding:9px 16px;font-size:12px;color:${c.ink3}"><span>Track</span><span>Your progress</span><span>Left for you</span><span>Learners</span><span></span></div>
           ${row('Quality control of a sequencing run', 'Method', 'Sequencing · Foundations → Intermediate', 5, 6, '1 node · about 15 min', '1,204')}
-          ${row('Learn Salmon', 'Tool', 'Quantification · Transcriptomics · First steps → Intermediate', 4, 17, '13 stops · about 2 h 26 min', '412', true)}
+          ${row('Learn Salmon', 'Tool', 'Quantification · Algorithms · First steps → Advanced', 6, 13, '7 nodes · about 2 h 20 min', '412', true)}
           ${row('Learn STAR', 'Tool', 'Alignment · First steps → Advanced', 5, 11, '6 nodes · about 1 h 50 min', '318')}
           ${row('Differential expression with DESeq2', 'Tool', 'Statistics · Quantification · Foundations → Advanced', 6, 14, '8 nodes · about 3 h', '287')}
           ${row('Assemble a bacterial genome', 'Method', 'Assembly · Algorithms · Foundations → Advanced', 5, 13, '8 nodes · about 3 h 20 min', '96')}
@@ -863,7 +845,7 @@ function requests() {
   const rows = [
     ['node', 'Selective alignment', 'New node · needs Sequence alignment, k-mers', 'Quantification', 23, 3, '4 d', { focus: 1 }],
     ['group', 'Annotation files (GTF/GFF)', 'One new node · 4 requests grouped', 'Reference', 11, 4, '2 d', { sel: 1, group: '“GTF files” +3 similar' }],
-    ['node', 'Unique molecular identifiers', 'New node · needs Short-read sequencing', 'Single-cell', 9, 2, '3 d', { sel: 1 }],
+    ['node', 'Unique molecular identifiers', 'New node · needs Sequencing reads', 'Single-cell', 9, 2, '3 d', { sel: 1 }],
     ['group', 'Expression units: TPM and counts', 'One new node · 3 requests grouped', 'Quantification', 5, 2, '6 d', { group: '“TPM” +2 similar' }],
     ['node', 'Batch effects', 'Merge into Experimental design?', 'Statistics', 7, 1, '12 d', { merge: 1 }],
     ['node', 'Phasing', 'New node · needs Calling variants', 'Variants', 4, 1, '9 d', { sel: 1 }],
@@ -873,7 +855,7 @@ function requests() {
     ['goal', '“nanopore basecalling”', 'New target node · no region yet', '—', 6, 0, '5 h'],
     ['goal', '“CRISPR screen analysis”', 'Needs 6 new nodes · propose as a set', '—', 3, 0, '3 d'],
     ['node', 'Soft clipping', 'Merge into BAM and CIGAR?', 'Alignment', 2, 0, '20 d', { merge: 1 }],
-    ['node', 'Mapping quality', 'New node · needs Sequence alignment and scores', 'Alignment', 2, 0, '8 d'],
+    ['node', 'Mapping quality', 'New node · needs Sequence alignment', 'Alignment', 2, 0, '8 d'],
   ];
   const row = ([t, title, prop, region, asked, blocks, age, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 14px;height:44px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : o.sel ? `background:${c.bg}` : ''}">
     ${qBox(o.sel)}${typeIcon(t === 'group' ? 'node' : t)}
@@ -922,7 +904,7 @@ function requests() {
         <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:9px;border:1px solid ${c.border}">
           <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12.5px;font-weight:600">Model suggests</span>${amberTag('unchecked')}</div>
           <span style="font-size:13px;line-height:1.5;color:${c.ink2}">Claim: <i>“Explain how Salmon places a read on the transcripts it could come from without a full alignment.”</i></span>
-          <span style="font-size:13px;color:${c.ink2}">Needs, all of: ${mono('Sequence alignment and scores')}, ${mono('k-mers')}</span>
+          <span style="font-size:13px;color:${c.ink2}">Needs, all of: ${mono('Sequence alignment')}, ${mono('k-mers')}</span>
           <span style="font-size:12.5px;color:${c.ink3}">No similar node found.</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12.5px;font-weight:600">Blocked routes</span>
@@ -1013,11 +995,9 @@ function implementing() {
 }
 // ── S9 Weave review — texts pinned where learners will read them ─
 function weaveReview() {
-  // Each pin sits just before the stop its text introduces, on the map's own coordinates.
   const pins = [
-    [1, 260, 54, 'ok'], [2, 470, 54, 'ok'], [3, 680, 54, 'wait'], [4, 260, 162, 'ok'],
-    [5, 470, 162, 'flag'], [6, 680, 162, 'wait'], [7, 470, 270, 'sel'], [8, 260, 270, 'wait'],
-    [9, 890, 270, 'wait'], [10, 890, 532, 'wait'], [11, 1100, 532, 'wait'],
+    [1, 210, 222, 'ok'], [2, 205, 290, 'ok'], [3, 430, 290, 'ok'], [4, 390, 150, 'wait'], [5, 430, 212, 'wait'], [6, 598, 113, 'flag'],
+    [7, 390, 430, 'sel'], [8, 432, 366, 'wait'], [9, 615, 150, 'wait'], [10, 610, 290, 'wait'], [11, 830, 290, 'wait'],
   ];
   const pin = ([n, x, y, st]) => {
     if (st === 'sel') return `<circle cx="${x}" cy="${y}" r="21" style="fill:none;stroke:${c.sel};stroke-width:2;stroke-dasharray:3 3"></circle><circle cx="${x}" cy="${y}" r="14" style="fill:${c.sel}"></circle><text x="${x}" y="${y + 5}" text-anchor="middle" style="font-family:${MONO};font-size:13px;font-weight:600;fill:#FFFFFF">${n}</text>`;
@@ -1318,7 +1298,7 @@ function graph() {
   ego += E('M576 312 V470', 'deeper') + E('M600 312 V450 H760 V470', 'deeper');
   ego += E('M576 268 V104', 'related') + E('M600 268 V130 H760 V104', 'related');
   ego += nodeBox(20, 290, 'DNA and genes', { faded: 1, meta: 'needed by both' });
-  ego += nodeBox(242, 216, 'k-mers', { meta: 'approved' }) + nodeBox(242, 290, 'Short-read sequencing', { meta: 'approved' }) + nodeBox(242, 380, 'Sequencing errors', { proposed: 1, meta: 'proposed · not written yet' });
+  ego += nodeBox(242, 216, 'k-mers', { meta: 'approved' }) + nodeBox(242, 290, 'Sequencing reads', { meta: 'approved' }) + nodeBox(242, 380, 'Sequencing errors', { proposed: 1, meta: 'proposed · not written yet' });
   ego += nodeBox(486, 290, 'de Bruijn graphs', { center: 1, meta: 'Algorithms · threshold: no', w: 180 });
   ego += nodeBox(736, 170, 'Salmon', { meta: 'goal of 3 routes' }) + nodeBox(736, 290, 'Contigs', { meta: '12 min' }) + nodeBox(736, 410, 'Assemble a genome', { meta: 'track goal' });
   ego += nodeBox(486, 492, 'Compacted dBG', { meta: 'goes deeper' }) + nodeBox(676, 492, 'Eulerian paths', { meta: 'goes deeper' });
@@ -1360,7 +1340,7 @@ function graph() {
       <aside style="display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
         <div style="${panel(c)};padding:14px;display:flex;flex-direction:column;gap:10px">
           <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14.5px;font-weight:600">Needs of de Bruijn graphs</span>${seg(c, ['All of', 'Any of'], 0)}</div>
-          ${[['k-mers', 'approved'], ['Short-read sequencing', 'approved']].map(([n, s]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:8px;border:1px solid ${c.border}"><span style="font-size:13px">${n}</span><span style="font-size:11.5px;color:${c.ink3}">${s}</span></div>`).join('')}
+          ${[['k-mers', 'approved'], ['Sequencing reads', 'approved']].map(([n, s]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:8px;border:1px solid ${c.border}"><span style="font-size:13px">${n}</span><span style="font-size:11.5px;color:${c.ink3}">${s}</span></div>`).join('')}
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:8px;border:1.5px dashed ${c.sel};background:${c.selSoft}"><span style="font-size:13px;font-weight:600">+ Sequencing errors</span><span style="font-size:11.5px;color:${c.sel}">your change</span></div>
           <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600">Why it’s needed</span><div style="padding:8px 10px;border-radius:8px;border:1px solid ${c.border2};font-size:12.5px;line-height:1.45">Tips and bubbles only make sense once you know how sequencing errors look.</div></div>
         </div>
@@ -1617,7 +1597,7 @@ function models() {
 
 // ── L2 Placement — the first station of the tutor loop ─────────
 function placement() {
-  const cand = [['DNA and genes', 'known'], ['Gene expression', 'known'], ['Splicing', 'known'], ['Short-read sequencing', 'now'], ['FASTQ and quality scores', 'wait'], ['RNA-seq reads and libraries', 'wait'], ['k-mers', 'wait'], ['Sequence alignment and scores', 'wait'], ['Mapping reads to a reference', 'wait'], ['The EM algorithm', 'learn']];
+  const cand = [['Living things carry instructions', 'known'], ['DNA and genes', 'known'], ['Gene expression', 'known'], ['Sequencing reads', 'now'], ['FASTQ on disk', 'wait'], ['RNA-seq experiments', 'wait'], ['k-mers', 'wait'], ['Reference transcriptome', 'wait'], ['Sequence alignment', 'wait'], ['Expectation–maximisation', 'learn']];
   const candRow = ([n, st]) => {
     const tag = st === 'known' ? `<span style="font-size:12px;color:${c.ink2}">you know this · dropped</span>` : st === 'learn' ? `<span style="font-size:12px;color:${c.sel}">stays on your route</span>` : st === 'now' ? blueTag('asking now') : `<span style="font-size:12px;color:${c.ink3}">not asked yet</span>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid ${c.border}">${dot(st === 'known' ? 'settled' : st === 'now' || st === 'learn' ? 'next' : 'open')}<span style="font-size:13.5px;flex:1;${st === 'known' ? `text-decoration:line-through;color:${c.ink3}` : ''}">${n}</span>${tag}</div>`;
@@ -1627,7 +1607,7 @@ function placement() {
   <main style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:36px;padding:40px 56px;min-height:0">
     <section style="display:flex;flex-direction:column;gap:20px;max-width:760px">
       <div style="display:flex;flex-direction:column;gap:6px">
-        <span style="${label(c)}">Checking: Short-read sequencing</span>
+        <span style="${label(c)}">Checking: Sequencing reads</span>
         ${h1('A sequencer returns 20 million reads of 150 bases from one RNA sample. What is each read?', 28)}
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
@@ -1743,7 +1723,7 @@ function skeletons() {
     ['6.5 Regulation of gene expression', 'Gene expression', 'merge', 3.6, { needs: '' }],
     ['6.6 Gene expression and specialization', 'Cell-type expression', 'new', 3.1, { needs: 'Gene expression' }],
     ['6.7 Mutations', 'Mutations and variants', 'new', 4.0, { needs: 'DNA replication' }],
-    ['6.8 Biotechnology', 'Short-read sequencing', 'existing', 3.9, {}],
+    ['6.8 Biotechnology', 'Sequencing reads', 'existing', 3.9, {}],
   ];
   const row = ([item, stub, m, v, o]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 14px;height:50px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : o.sel ? `background:${c.bg}` : ''}">
     ${qBox(o.sel)}<span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item}</span>
@@ -1780,7 +1760,7 @@ function skeletons() {
             ${[['DNA and genes', 'transcription copies a gene’s sequence'], ['Gene expression', 'splicing changes what is expressed']].map(([n, r]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;background:${c.bg}"><span style="font-family:${MONO};font-size:12.5px">${n}</span><span style="font-size:12px;color:${c.ink2}">${r}</span></div>`).join('')}
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">${levelTag('Foundations · from the outline’s stage')}${greyTag('region: Biology')}${greyTag('on the Salmon route')}</div>
-          <span style="font-size:12px;color:${c.ink3};line-height:1.45">Also needed by: Mapping reads to a reference (existing) — the proposed link is shown for review.</span>`)}
+          <span style="font-size:12px;color:${c.ink3};line-height:1.45">Also needed by: Reference transcriptome (existing) — the proposed link is shown for review.</span>`)}
         ${card(`<span style="font-size:14.5px;font-weight:600">Coverage check · by a person</span>
           <span style="font-size:12.5px;color:${c.ink2};line-height:1.5">Compare these nodes with reference courses and record gaps as requests. Khan Academy is read here by people, never fed to the model.</span>
           ${[['Khan Academy · AP Biology, gene expression unit', 'checked by [Reviewer A] · 2 gaps recorded'], ['OpenStax Biology 2e · ch. 15–16', 'not checked yet']].map(([t, st]) => `<div style="display:flex;flex-direction:column;gap:1px;padding:7px 10px;border-radius:8px;border:1px solid ${c.border}"><span style="font-size:13px">${t}</span><span style="font-size:11.5px;color:${c.ink3}">${st}</span></div>`).join('')}`)}
@@ -1823,8 +1803,8 @@ function quality() {
         ${fix(amberTag('resource'), '[Khan Academy] Genome assembly · 2:10–7:45', 'Marked “didn’t help” by 9 learners on the Salmon route — the part may be too long.', 'Edit resource')}
         ${fix(redTag('broken link'), 'Galaxy Training · Mapping tutorial', 'Hidden from learners since 15 Sep; the page moved.', 'Replace link')}
         ${fix(greyTag('check'), 'How many 5-mers…', 'Everyone answers right without reading — it may not test anything.', 'Open check')}
-        ${fix(greyTag('exam pool'), 'FASTQ and quality scores · question 3', 'Learners who know the page get it wrong as often as those who don’t — it doesn’t separate them.', 'Open pool')}
-        ${fix(greyTag('route'), 'Learn Salmon · The EM algorithm', 'Where most learners stop. Time on page is 3× the estimate.', 'Open node')}`, 'min-height:0')}
+        ${fix(greyTag('exam pool'), 'FASTQ on disk · question 3', 'Learners who know the page get it wrong as often as those who don’t — it doesn’t separate them.', 'Open pool')}
+        ${fix(greyTag('route'), 'Learn Salmon · Expectation–maximisation', 'Where most learners stop. Time on page is 3× the estimate.', 'Open node')}`, 'min-height:0')}
     </div>`;
   return studio('Quality', inner, 1680, 880);
 }
@@ -1885,7 +1865,7 @@ II5+#</pre>
 }
 
 function examResults() {
-  const res = { dna: 'confirmed', expr: 'shaky', srs: 'confirmed', fastq: 'confirmed', kmers: 'notyet' };
+  const res = { dna: 'confirmed', expr: 'shaky', reads: 'confirmed', rnaseq: 'confirmed', fastq: 'notyet' };
   const pill = (x, y, st) => {
     const [txt, bg, fg, w] = st === 'confirmed' ? ['confirmed', c.surface, c.ink2, 78] : st === 'shaky' ? ['shaky', c.measSoft, c.meas, 52] : ['not yet', c.openSoft, c.open, 60];
     return `<rect x="${x - w / 2}" y="${y}" width="${w}" height="20" rx="10" style="fill:${bg};stroke:${st === 'confirmed' ? c.border2 : bg};stroke-width:1"></rect><text x="${x}" y="${y + 14}" text-anchor="middle" style="font-family:${UI};font-size:11.5px;font-weight:600;fill:${fg}">${txt}</text>`;
@@ -1919,11 +1899,11 @@ function examResults() {
     </section>
     <section style="${panel(c)};overflow:hidden">
       <div style="display:grid;grid-template-columns:minmax(0, 1fr) 90px 70px minmax(0, 1.4fr) 170px;gap:14px;padding:10px 16px;font-size:11.5px;color:${c.ink3}"><span>Page</span><span>Result</span><span>Right</span><span>What the wrong answers point at</span><span></span></div>
-      ${nodeRow('FASTQ and quality scores', 'notyet', '0 of 2', 'Both answers read quality characters as numbers. The step back goes to <b style="color:' + c.ink + ';font-weight:600">Short-read sequencing</b> → base quality.', primary(c, 'Step back', ''))}
+      ${nodeRow('FASTQ on disk', 'notyet', '0 of 2', 'Both answers read quality characters as numbers. The step back goes to <b style="color:' + c.ink + ';font-weight:600">Sequencing reads</b> → base quality.', primary(c, 'Step back', ''))}
       ${nodeRow('Gene expression', 'shaky', '2 of 3', 'Mixed up transcripts and genes once. Added to review in 1 day.', secondary(c, 'Open page'))}
       ${nodeRow('DNA and genes', 'confirmed', '2 of 2', '—', '')}
-      ${nodeRow('Short-read sequencing', 'confirmed', '3 of 3', '—', '')}
-      ${nodeRow('RNA-seq reads and libraries', 'confirmed', '2 of 2', '—', '')}
+      ${nodeRow('Sequencing reads', 'confirmed', '3 of 3', '—', '')}
+      ${nodeRow('RNA-seq experiments', 'confirmed', '2 of 2', '—', '')}
     </section>
     <span style="font-size:12.5px;color:${c.ink3}">A self-test isn’t a certificate and has no overall grade. Your answers are kept as evidence for what the route shows you.</span>
   </main>`);
