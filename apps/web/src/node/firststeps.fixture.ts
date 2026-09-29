@@ -3,7 +3,8 @@
 //   uv run python apps/api/manage.py rebuild_index --root tests/fixtures/salmon
 //   curl -s "http://127.0.0.1:8090/api/nodes/dna-and-genes"
 //
-// The Salmon route's first stop, and a First steps node: a video to watch and one question.
+// The Salmon route's first stop, and a First steps node: a linked video and one question. Khan
+// Academy is linked, never embedded (issue 76), so it offers no Watch; tests that do embed one.
 import type { NodeOut } from "../api/schema";
 
 export const DNA: NodeOut = {
@@ -60,11 +61,11 @@ export const DNA: NodeOut = {
         name: "Khan Academy",
       },
       url: "https://www.khanacademy.org/science/high-school-biology/hs-molecular-genetics/hs-discovery-and-structure-of-dna/v/dna-deoxyribonucleic-acid",
-      video: "youtube:AmOO4j0E408",
+      video: null,
       part: "0:00–13:01",
       covers: "What DNA is made of, and how its four bases pair along the two strands.",
-      licence: "YouTube embed",
-      display: "embed",
+      licence: "Khan Academy terms",
+      display: "link",
       level: "foundations",
     },
   ],

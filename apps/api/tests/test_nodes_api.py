@@ -61,6 +61,24 @@ def get(client: Client, node_id: str) -> Any:
     return client.get(f"/api/nodes/{node_id}")
 
 
+def with_an_embedded_video(root: Path) -> None:
+    """The fixtures link every video (issue 76); a copy embeds one, so the path stays tested."""
+    registry = root / "providers.yaml"
+    registry.write_text(
+        registry.read_text()
+        + "  - id: open-video\n    name: Open video\n    licences: [CC BY 4.0]\n"
+        + "    embed: true\n    players: [youtube]\n"
+    )
+    node = root / "algorithms" / "de-bruijn-graphs" / "node.yaml"
+    text = node.read_text().replace("provider: khan-academy", "provider: open-video", 1)
+    text = text.replace(
+        "    licence: Khan Academy terms\n    display: link\n",
+        "    video: youtube:Jnk_4Maf5Fk\n    licence: CC BY 4.0\n    display: embed\n",
+        1,
+    )
+    node.write_text(text)
+
+
 def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
     rebuild_index(FIXTURES)
     salmon: Node = CONTENT.nodes["salmon"]
@@ -165,16 +183,25 @@ def test_the_schema_lists_the_node_route(client: Client) -> None:
 def test_a_node_returns_its_resources_in_the_authors_order(client: Client) -> None:
     rebuild_index(FIXTURES)
     body = get(client, "de-bruijn-graphs").json()
-    assert [resource["display"] for resource in body["resources"]] == ["embed", "link", "link"]
+    assert [resource["display"] for resource in body["resources"]] == ["link", "link", "link"]
     first = body["resources"][0]
     assert first["provider"] == {"id": "khan-academy", "name": "Khan Academy"}
     assert first["kind"] == "video"
     assert first["part"] == ""
-    assert first["video"] == "youtube:Jnk_4Maf5Fk"
-    assert body["resources"][1]["video"] is None
-    assert first["licence"] == "YouTube embed"
+    assert first["video"] is None  # Khan Academy is linked, never embedded (issue 76)
+    assert first["licence"] == "Khan Academy terms"
     assert first["level"] == "foundations"
     assert first["covers"] == CONTENT.nodes["de-bruijn-graphs"].resources[0].covers
+
+
+def test_an_embedded_resource_names_the_video_it_plays(client: Client, tmp_path: Path) -> None:
+    root = tmp_path / "content"
+    shutil.copytree(FIXTURES, root)
+    with_an_embedded_video(root)
+    rebuild_index(root)
+    first = get(client, "de-bruijn-graphs").json()["resources"][0]
+    assert (first["provider"]["id"], first["display"]) == ("open-video", "embed")
+    assert first["video"] == "youtube:Jnk_4Maf5Fk"
 
 
 def test_a_number_question_comes_with_its_hints_and_rationale(client: Client) -> None:
