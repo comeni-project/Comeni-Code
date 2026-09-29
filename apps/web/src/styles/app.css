@@ -9,3 +9,14 @@
     @apply bg-bg font-sans text-ink antialiased;
   }
 }
+
+/* A panel lifted off the page. Light panels separate from the grey page by themselves; dark
+   panels sit one step above a near-black page and read flat, so dark mode adds the identity's
+   own float shadow and a faint light edge along the top. */
+@utility elevated {
+  @variant dark {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      var(--float);
+  }
+}

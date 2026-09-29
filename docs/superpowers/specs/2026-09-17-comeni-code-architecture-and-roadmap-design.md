@@ -127,6 +127,9 @@ decided part by part (R5).
 - *2026-09-19 (M2 parts list, journal): the reference route is the Salmon fixtures' **17 stops**
   (M1P4.2), not the board's 13 — M1 part 4 took *de Bruijn graphs* off the route. Its level span
   is **First steps → Intermediate**. The Route board is redrawn in M3's design round.*
+  **Done 2026-09-20 (M3 part 4):** the L4 board draws those 17 stops in their five real regions,
+  at the coordinates the page's layout computes, and every board that quotes this route follows —
+  including the node titles the boards had invented before the fixtures existed.*
 
 ### M3 — Thin learner path
 - A learner can find a target without AI, see its route as a metro map, and read a node.

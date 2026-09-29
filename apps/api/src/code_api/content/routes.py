@@ -24,6 +24,8 @@ class StopOut(Schema):
 
     id: str
     title: str
+    # The panel's first line, and the page's outcome sentence when the stop is the goal (M3P4.1).
+    claim: str
     level: str
     minutes: int
     region: RegionOut
@@ -87,6 +89,7 @@ def route(
         StopOut(
             id=nodes[stop].id,
             title=nodes[stop].title,
+            claim=nodes[stop].claim,
             level=nodes[stop].level,
             minutes=nodes[stop].minutes,
             region=RegionOut(
