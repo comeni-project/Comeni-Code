@@ -9,6 +9,7 @@ how it was reached.
 | [Specs](superpowers/specs/) | The design documents. Each records what was decided and what was rejected. | [the tutor spec](superpowers/specs/2026-09-17-code-as-tutor-design.md) (the current statement of the product), then [the architecture spec](superpowers/specs/2026-09-17-comeni-code-architecture-and-roadmap-design.md) |
 | [Plans](superpowers/plans/) | One implementation plan per part of a phase; finished ones in `archive/`. | the newest plan |
 | [Design](design/) | How the screens are drawn, rebuilt and published. | [design/README.md](design/README.md) |
+| [Reference](reference/) | Every diagnostic code Code reports, generated from its registry. | [reference/diagnostics.md](reference/diagnostics.md) |
 | [Internals](internals/) | How work is run: issues, labels and decisions. | [internals/walking.md](internals/walking.md) |
 | [Notes](notes/) | What is true now, the append-only journal, and the research decisions rest on. | [now.md](notes/now.md); [research](notes/research/) |
 
