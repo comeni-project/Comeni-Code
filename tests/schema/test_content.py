@@ -32,7 +32,7 @@ def test_nodes_are_found_at_any_depth_and_hidden_folders_are_skipped(tmp_path: P
 
 
 def test_regions_yaml_is_required(tmp_path: Path) -> None:
-    assert rendered(tmp_path) == ["regions.yaml: the file is missing"]
+    assert rendered(tmp_path) == ["regions.yaml: CS0601 the file is missing"]
 
 
 def test_an_id_is_unique_across_the_tree(tmp_path: Path) -> None:
@@ -105,7 +105,7 @@ def test_a_resource_without_a_registry_is_a_problem(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     make_node(root, "salmon", links=RESOURCE)
     assert rendered(root) == [
-        "providers.yaml: the file is missing, and salmon/node.yaml cites a provider"
+        "providers.yaml: CS0612 the file is missing, and salmon/node.yaml cites a provider"
     ]
 
 
@@ -122,7 +122,7 @@ def test_a_provider_the_registry_does_not_list_is_named(tmp_path: Path) -> None:
     root = with_providers(content_root(tmp_path))
     make_node(root, "salmon", links=RESOURCE.replace("khan-academy", "khan-acadmy"))
     assert rendered(root) == [
-        "salmon/node.yaml:9: resources: khan-acadmy is not a provider in providers.yaml "
+        "salmon/node.yaml:9: resources: CS0201 khan-acadmy is not a provider in providers.yaml "
         "— did you mean khan-academy?"
     ]
 
@@ -131,7 +131,7 @@ def test_a_broken_registry_is_reported_once(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "providers.yaml").write_text("providers: khan-academy\n", encoding="utf-8")
     make_node(root, "salmon")
-    assert rendered(root) == ["providers.yaml:1: providers: must be a list of providers"]
+    assert rendered(root) == ["providers.yaml:1: providers: CS0606 must be a list of providers"]
 
 
 def test_the_provider_registry_itself_is_not_a_near_miss(tmp_path: Path) -> None:

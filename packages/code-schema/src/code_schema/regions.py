@@ -57,6 +57,7 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
                 file=file,
                 field="regions",
                 line=lines.get("regions"),
+                code="CS0602",
                 message="must be a list of regions",
             )
         ]
@@ -65,7 +66,12 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
     for entry in listed:
         if not isinstance(entry, dict):
             problems.append(
-                Problem(file=file, field="regions", message=f"{shown(entry)} is not a region")
+                Problem(
+                    file=file,
+                    field="regions",
+                    code="CS0603",
+                    message=f"{shown(entry)} is not a region",
+                )
             )
             continue
         identifier, name = entry.get("id"), entry.get("name")
@@ -88,6 +94,7 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
                     file=file,
                     field="id",
                     line=lines.of(entry, "id"),
+                    code="CS0604",
                     message=f"{shown(identifier)} is listed twice",
                 )
             )
@@ -99,5 +106,5 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
 def read_regions(root: Path) -> tuple[dict[str, Region], list[Problem]]:
     path = root / REGISTRY
     if not path.is_file():
-        return {}, [Problem(file=REGISTRY, message="the file is missing")]
+        return {}, [Problem(file=REGISTRY, code="CS0601", message="the file is missing")]
     return parse_regions(path.read_text(encoding="utf-8"))

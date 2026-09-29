@@ -111,7 +111,6 @@ A link target that fails the id check keeps the check's `CS0015` (`CS0105` and `
 | CS0207 | resources | `unknown key \`…\` in a resource (…)` | a resource has a key it cannot have |
 | CS0208 | resources | `a resource has no …` | a resource lacks a required key |
 | CS0209 | resources | `… is not a provider id` | a resource's provider is not an id |
-| CS0210 | resources | `the part …` (a non-video part that is not one line) | a resource's part is not one line |
 | CS0211 | resources | `the part of a video is a timestamp range, such as 2:10–7:45, not …` | a video's part is not a timestamp range |
 | CS0212 | resources | `the part … ends before it starts` | a video's part ends before it starts |
 | CS0213 | resources | `a video is written player:id, such as youtube:Jnk_4Maf5Fk, not …` | a video is not written player:id |
@@ -121,7 +120,7 @@ A link target that fails the id check keeps the check's `CS0015` (`CS0105` and `
 | CS0217 | resources | `an embedded video names the video it plays, such as video: youtube:<id>` | an embedded video names no video |
 | CS0218 | resources | `… is cited twice in this node` | a node cites one url twice |
 
-"what this resource covers …" keeps the code of the check that failed (`CS0007`–`CS0011`).
+"what this resource covers …" and "the part …" keep the code of the check that failed (`CS0007`–`CS0011`); `CS0210` was removed before publication for that reason.
 
 **`CS0300`–`CS0399` — questions** (`questions.py`)
 

@@ -474,16 +474,6 @@ codes:
     explanation: |
       Providers are named by id, as providers.yaml lists them (M3P1.2).
 
-  CS0210:
-    emitted_by: schema
-    concern: resources
-    says: a resource's part is not one line
-    refuses: true
-    fix: |
-      Write the part — a chapter, a section — on one line.
-    explanation: |
-      The part says which piece of a reading or tutorial the node relies on (M3P1.2).
-
   CS0211:
     emitted_by: schema
     concern: resources

@@ -36,6 +36,7 @@ def test_a_provider_listed_twice_is_a_problem() -> None:
     _, problems = parse_providers(GOOD + again)
     assert [problem.message for problem in problems] == ['"khan-academy" is listed twice']
     assert problems[0].line == 11
+    assert [problem.code for problem in problems] == ["CS0608"]
 
 
 def test_every_field_is_required() -> None:
@@ -45,6 +46,7 @@ def test_every_field_is_required() -> None:
         ("licences", "required field is missing"),
         ("embed", "required field is missing"),
     ]
+    assert [problem.code for problem in problems] == ["CS0605", "CS0605", "CS0605"]
 
 
 def test_licences_must_list_at_least_one() -> None:
@@ -54,6 +56,7 @@ def test_licences_must_list_at_least_one() -> None:
     assert [(problem.field, problem.message) for problem in problems] == [
         ("licences", "must list at least one licence")
     ]
+    assert [problem.code for problem in problems] == ["CS0609"]
 
 
 def test_a_licence_must_be_one_line() -> None:
@@ -61,6 +64,7 @@ def test_a_licence_must_be_one_line() -> None:
         "providers:\n  - id: a\n    name: A\n    licences: [7]\n    embed: true\n"
     )
     assert [problem.message for problem in problems] == ["7 is not text"]
+    assert [problem.code for problem in problems] == ["CS0007"]
 
 
 def test_embed_must_be_true_or_false() -> None:
@@ -68,6 +72,7 @@ def test_embed_must_be_true_or_false() -> None:
         "providers:\n  - id: a\n    name: A\n    licences: [CC BY 4.0]\n    embed: yes please\n"
     )
     assert [problem.message for problem in problems] == ['"yes please" is not true or false']
+    assert [problem.code for problem in problems] == ["CS0611"]
 
 
 def test_an_id_must_be_a_slug() -> None:
@@ -75,6 +80,7 @@ def test_an_id_must_be_a_slug() -> None:
         "providers:\n  - id: Khan Academy\n    name: A\n    licences: [x]\n    embed: true\n"
     )
     assert problems[0].message.startswith('"Khan Academy" is not a provider id')
+    assert [problem.code for problem in problems] == ["CS0015"]
 
 
 def test_the_list_must_be_a_list() -> None:
@@ -82,6 +88,7 @@ def test_the_list_must_be_a_list() -> None:
     assert [(problem.field, problem.message) for problem in problems] == [
         ("providers", "must be a list of providers")
     ]
+    assert [problem.code for problem in problems] == ["CS0606"]
 
 
 def test_a_missing_file_is_no_registry_and_no_problem(tmp_path: Path) -> None:
@@ -106,6 +113,7 @@ def test_a_player_must_be_one_the_page_can_play() -> None:
     assert [(problem.field, problem.message) for problem in problems] == [
         ("players", "vimeo is not a player (youtube)")
     ]
+    assert [problem.code for problem in problems] == ["CS0214"]
 
 
 def test_players_must_be_a_list() -> None:
@@ -114,3 +122,4 @@ def test_players_must_be_a_list() -> None:
         "    players: youtube\n"
     )
     assert [problem.message for problem in problems] == ["must be a list of players"]
+    assert [problem.code for problem in problems] == ["CS0610"]

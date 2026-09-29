@@ -101,6 +101,7 @@ def parse_providers(
                 file=file,
                 field="providers",
                 line=lines.get("providers"),
+                code="CS0606",
                 message="must be a list of providers",
             )
         ]
@@ -109,7 +110,12 @@ def parse_providers(
     for entry in listed:
         if not isinstance(entry, dict):
             problems.append(
-                Problem(file=file, field="providers", message=f"{shown(entry)} is not a provider")
+                Problem(
+                    file=file,
+                    field="providers",
+                    code="CS0607",
+                    message=f"{shown(entry)} is not a provider",
+                )
             )
             continue
         identifier, name = entry.get("id"), entry.get("name")
@@ -148,6 +154,7 @@ def parse_providers(
                     file=file,
                     field="id",
                     line=lines.of(entry, "id"),
+                    code="CS0608",
                     message=f"{shown(identifier)} is listed twice",
                 )
             )

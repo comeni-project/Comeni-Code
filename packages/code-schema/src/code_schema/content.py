@@ -116,6 +116,7 @@ def read_content(root: Path) -> Content:
             problems.append(
                 Problem(
                     file=PROVIDER_REGISTRY,
+                    code="CS0612",
                     message=(
                         f"the file is missing, and {folders[citing[0]]}/{NODE_FILE} "
                         "cites a provider"

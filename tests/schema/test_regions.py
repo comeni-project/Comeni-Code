@@ -34,7 +34,9 @@ def test_a_bad_id_names_its_own_line() -> None:
 def test_a_repeated_id_names_the_repeat() -> None:
     text = GOOD + "  - id: sequence-analysis\n    name: Again\n"
     _, problems = parse_regions(text)
-    assert [str(p) for p in problems] == ['regions.yaml:6: id: "sequence-analysis" is listed twice']
+    assert [str(p) for p in problems] == [
+        'regions.yaml:6: id: CS0604 "sequence-analysis" is listed twice'
+    ]
 
 
 def test_a_missing_name_is_refused() -> None:
@@ -44,18 +46,22 @@ def test_a_missing_name_is_refused() -> None:
 
 def test_regions_must_be_a_list_of_mappings() -> None:
     _, problems = parse_regions("regions: sequence-analysis\n")
-    assert [str(p) for p in problems] == ["regions.yaml:1: regions: must be a list of regions"]
+    assert [str(p) for p in problems] == [
+        "regions.yaml:1: regions: CS0602 must be a list of regions"
+    ]
 
 
 def test_an_entry_that_is_not_a_mapping_is_refused() -> None:
     _, problems = parse_regions("regions:\n  - genomics\n")
-    assert [str(p) for p in problems] == ['regions.yaml: regions: "genomics" is not a region']
+    assert [str(p) for p in problems] == [
+        'regions.yaml: regions: CS0603 "genomics" is not a region'
+    ]
 
 
 def test_read_regions_reports_a_missing_file(tmp_path: Path) -> None:
     regions, problems = read_regions(tmp_path)
     assert regions == {}
-    assert [str(p) for p in problems] == ["regions.yaml: the file is missing"]
+    assert [str(p) for p in problems] == ["regions.yaml: CS0601 the file is missing"]
 
 
 def test_read_regions_reads_the_file(tmp_path: Path) -> None:
