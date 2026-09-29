@@ -16,17 +16,16 @@ from code_schema.diagnostics import diagnostic
 class Problem:
     file: str
     message: str
+    code: str  # declared in diagnostics.yml; required, so no problem goes unnamed (spec M4D.4)
     field: str | None = None
     line: int | None = None
-    code: str | None = None  # required from Task 11 of the M4.1.1 plan
 
     def __post_init__(self) -> None:
-        if self.code is not None:
-            diagnostic(self.code)  # an undeclared code raises UnknownDiagnostic (spec M4D.4)
+        diagnostic(self.code)  # an undeclared code raises UnknownDiagnostic
 
     def __str__(self) -> str:
         where = self.file if self.line is None else f"{self.file}:{self.line}"
-        said = self.message if self.code is None else f"{self.code} {self.message}"
+        said = f"{self.code} {self.message}"
         what = said if self.field is None else f"{self.field}: {said}"
         return f"{where}: {what}"
 

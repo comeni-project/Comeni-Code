@@ -40,8 +40,7 @@ def github_line(problem: Problem) -> str:
         properties.append(f"file={_escape_property(problem.file)}")
         if problem.line is not None:
             properties.append(f"line={problem.line}")
-    if problem.code is not None:
-        properties.append(f"title={problem.code}")
+    properties.append(f"title={problem.code}")
     head = "::error " + ",".join(properties) if properties else "::error"
     return f"{head}::{_escape_data(str(problem))}"
 
