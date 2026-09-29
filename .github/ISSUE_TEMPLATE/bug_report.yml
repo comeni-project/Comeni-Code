@@ -1,12 +1,12 @@
 name: Something is broken
-description: A broken link, a rebuild that fails, or documentation that contradicts itself
+description: A page, a command or a document that does not do what it says
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the report. There is no application yet, so for now this covers the
-        documentation and the design generator.
+        Thanks for the report. Found while walking the app beside the canvas? The **Walk**
+        templates ask for what the fix needs.
 
         **If this is a way learner data or model keys could leak, or content that executes,
         do not file it here** — use
