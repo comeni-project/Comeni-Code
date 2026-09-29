@@ -76,9 +76,28 @@ A change to an invariant is written into a spec before it is built, never only i
 
 ## Where an issue lives
 
-Each phase has a parent issue, and each of its parts is a sub-issue. A walk issue is a sub-issue
-of the part that found it, so the tree stays whole. A protocol decision that becomes a whole piece
-of work gets its own part.
+**The current plan is a tree of GitHub sub-issues**, as Labs keeps its task tree (its #119):
+
+| Level | Title | Example |
+|---|---|---|
+| a phase | `M<phase> — <name>` | `M3 — The thin learner path` (#79) |
+| a part of it, a step | `M<phase>.<part> — <what it does>` | `M3.4 — The Route page` (#83) |
+| a substep, when a step is split | `M<phase>.<part>.<n> — …` | `M3.5.1 — Khan Academy is link only…` (#87) |
+| work outside a phase | a parent issue, its plan's tasks as `#<parent>.<n> — …` | `#91.3 — Every backticked path…` (#94) |
+
+Each issue's body starts by naming its parent (*Step of M3 (#79).*) and points at its spec, plan or
+pull request. A step gets substeps only when it is split; a phase gets its parts when its parts
+list is approved (R5). A walk finding is a sub-issue of the step that found it, unnumbered, so the
+tree stays whole (#73 and #77 under M3.4); a finding that becomes a piece of work of its own gets
+numbered substeps under it (#76's M3.5.1–M3.5.4). A pull request says which issues it closes, so
+the tree closes itself as work lands; a parent closes when its last child does.
+
+Loose ends with no step yet — a `prediction`, a `deferred` item, an open R8 question — are issues
+of their own, labelled, outside the tree until work picks them up.
+
+`gh api repos/comeni-project/Comeni-Code/issues/<n>/sub_issues` lists a node's children;
+`gh api -X POST …/issues/<parent>/sub_issues -F sub_issue_id=<id>` adds one, where `<id>` is the
+issue's `id` from `gh api …/issues/<n>`, not its number.
 
 ## Labels
 
