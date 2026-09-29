@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiUnreachable, getJson } from "./client";
+import { nodeUrl } from "./nodes";
 import { routeUrl } from "./routes";
 import { searchUrl } from "./search";
 
@@ -61,6 +62,10 @@ describe("the urls", () => {
     expect(searchUrl("why my reads don't map")).toBe(
       "/api/search?q=why+my+reads+don%27t+map&limit=10",
     );
+  });
+
+  it("asks for one node by its id", () => {
+    expect(nodeUrl("de-bruijn-graphs")).toBe("/api/nodes/de-bruijn-graphs");
   });
 
   it("repeats goal for every target", () => {

@@ -133,7 +133,8 @@ def test_de_bruijn_graphs_has_an_embedded_and_two_linked_resources(content: Cont
     node = content.nodes["de-bruijn-graphs"]
     assert [resource.display for resource in node.resources] == ["embed", "link", "link"]
     assert node.resources[0].provider == "khan-academy"
-    assert node.resources[0].part == "2:10–7:45"
+    assert node.resources[0].video == "youtube:Jnk_4Maf5Fk"
+    assert node.resources[0].part == ""  # the real video is 4:41; the board's range was invented
 
 
 def test_another_node_has_a_linked_resource_alone(content: Content) -> None:

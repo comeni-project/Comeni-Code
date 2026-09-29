@@ -3,9 +3,9 @@
 Our explanation comes first and the resources follow it in a fixed *Learn it* section, so a
 resource holds our own sentence and a link — never the resource's text (T4.1).
 
-The registry decides two of the rules: which licences a provider may carry, and whether it may be
-embedded. `providers=None` means the content folder has no registry, so those two rules are
-skipped and `read_content` reports the missing file once.
+The registry decides three of the rules: which licences a provider may carry, whether it may be
+embedded, and through which players (M3P5.3). `providers=None` means the content folder has no
+registry, so those rules are skipped and `read_content` reports the missing file once.
 """
 
 from __future__ import annotations
@@ -16,15 +16,15 @@ from dataclasses import dataclass
 from code_schema.fields import https_url, one_line, one_of, one_sentence, seconds, shown
 from code_schema.levels import Level
 from code_schema.problems import Problem
-from code_schema.providers import REGISTRY, Provider
+from code_schema.providers import PLAYERS, REGISTRY, Provider, player_problem
 from code_schema.yaml_lines import Lines
 
 RESOURCE_FIELD = "resources"
 KINDS = ("video", "reading", "tutorial", "exercise")
 DISPLAYS = ("embed", "link")
 
-_KEYS = ("kind", "provider", "url", "part", "covers", "licence", "display", "level")
-_REQUIRED = tuple(key for key in _KEYS if key != "part")
+_KEYS = ("kind", "provider", "url", "video", "part", "covers", "licence", "display", "level")
+_REQUIRED = tuple(key for key in _KEYS if key not in ("part", "video"))
 
 _kind = one_of(KINDS, noun="kind of resource")
 _url = https_url()
@@ -45,6 +45,7 @@ class Resource:
     display: str
     level: Level
     part: str = ""
+    video: str = ""
 
 
 def _range_problem(part: str) -> str | None:
@@ -58,11 +59,24 @@ def _range_problem(part: str) -> str | None:
     return None
 
 
+def _video_problem(video: object) -> str | None:
+    """A video to play is `player:id`, with an id in that player's form (M3P5.3)."""
+    player, colon, identifier = str(video).partition(":")
+    if not isinstance(video, str) or not colon:
+        return f"a video is written player:id, such as youtube:Jnk_4Maf5Fk, not {shown(video)}"
+    if (wrong := player_problem(player)) is not None:
+        return wrong
+    if not PLAYERS[player].fullmatch(identifier):
+        return f"{identifier} is not a {player} video id"
+    return None
+
+
 def _registry_problems(
     entry: dict[object, object],
     provider: str,
     licence: str,
     display: str,
+    video: str,
     providers: dict[str, Provider],
 ) -> list[tuple[str, str]]:
     """The rules only providers.yaml can decide, each as (key, message)."""
@@ -89,6 +103,9 @@ def _registry_problems(
                 "— use display: link",
             )
         )
+    player = video.partition(":")[0]
+    if video and player not in known.players:
+        found.append(("video", f"{known.name} is not embedded through {player}"))
     return found
 
 
@@ -160,6 +177,25 @@ def parse_resources(
                 problems.append(problem(wrong, lines.of(entry, "part")))
                 sound = False
 
+        video = entry.get("video", "")
+        if "video" in entry:
+            if (wrong := _video_problem(video)) is not None:
+                problems.append(problem(wrong, lines.of(entry, "video")))
+                sound = False
+            elif entry.get("kind") in KINDS and entry.get("kind") != "video":
+                problems.append(
+                    problem("only a video names a video to play", lines.of(entry, "video"))
+                )
+                sound = False
+        elif entry.get("kind") == "video" and entry.get("display") == "embed":
+            problems.append(
+                problem(
+                    "an embedded video names the video it plays, such as video: youtube:<id>",
+                    lines.of(entry, "display"),
+                )
+            )
+            sound = False
+
         if not sound:
             continue
         kind, url = str(entry["kind"]), str(entry["url"])
@@ -167,7 +203,9 @@ def parse_resources(
         level, covers = Level(str(entry["level"])), str(entry["covers"])
 
         if providers is not None:
-            found = _registry_problems(entry, str(provider), licence, display, providers)
+            found = _registry_problems(
+                entry, str(provider), licence, display, str(video), providers
+            )
             problems += [
                 problem(message, lines.of(entry, key) or entry_line) for key, message in found
             ]
@@ -188,6 +226,7 @@ def parse_resources(
                 display=display,
                 level=level,
                 part=str(part),
+                video=str(video),
             )
         )
     return tuple(resources), problems

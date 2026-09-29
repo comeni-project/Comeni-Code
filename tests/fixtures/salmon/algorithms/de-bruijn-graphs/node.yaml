@@ -13,7 +13,7 @@ resources:
   - kind: video
     provider: khan-academy
     url: https://www.khanacademy.org/science/ap-biology/gene-expression-and-regulation/biotechnology/v/dna-sequencing
-    part: 2:10–7:45
+    video: youtube:Jnk_4Maf5Fk
     covers: How a sequencer returns short overlapping pieces, which is what these graphs put back together.
     licence: YouTube embed
     display: embed

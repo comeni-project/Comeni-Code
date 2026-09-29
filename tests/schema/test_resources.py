@@ -8,7 +8,9 @@ from code_schema.resources import parse_resources
 from code_schema.yaml_lines import load_mapping
 
 PROVIDERS = {
-    "khan-academy": Provider("khan-academy", "Khan Academy", ("YouTube embed",), embed=True),
+    "khan-academy": Provider(
+        "khan-academy", "Khan Academy", ("YouTube embed",), embed=True, players=("youtube",)
+    ),
     "openstax": Provider("openstax", "OpenStax", ("CC BY 4.0",), embed=False),
 }
 
@@ -21,6 +23,7 @@ VIDEO = """resources:
     licence: YouTube embed
     display: embed
     level: introductory
+    video: youtube:Jnk_4Maf5Fk
 """
 
 READING = """  - kind: reading
@@ -131,7 +134,7 @@ def test_an_unknown_key_is_a_problem() -> None:
     _, problems = parse(VIDEO + "    note: hello\n")
     assert messages(problems) == [
         "unknown key `note` in a resource "
-        "(kind, provider, url, part, covers, licence, display, level)"
+        "(kind, provider, url, video, part, covers, licence, display, level)"
     ]
 
 
@@ -189,3 +192,63 @@ def test_without_a_registry_no_provider_is_unknown() -> None:
         VIDEO.replace("provider: khan-academy", "provider: nowhere"), providers=None
     )
     assert problems == []
+
+
+def test_an_embedded_video_names_the_video_it_plays() -> None:
+    resources, problems = parse(VIDEO)
+    assert problems == []
+    assert resources[0].video == "youtube:Jnk_4Maf5Fk"
+
+
+def test_a_linked_resource_names_no_video() -> None:
+    resources, problems = parse(VIDEO + READING)
+    assert problems == []
+    assert resources[1].video == ""
+
+
+def test_an_embedded_video_without_its_video_is_a_problem() -> None:
+    _, problems = parse(VIDEO.replace("    video: youtube:Jnk_4Maf5Fk\n", ""))
+    assert messages(problems) == [
+        "an embedded video names the video it plays, such as video: youtube:<id>"
+    ]
+    assert problems[0].line == 8
+
+
+def test_a_linked_video_needs_no_video() -> None:
+    linked = VIDEO.replace("display: embed", "display: link")
+    _, problems = parse(linked.replace("    video: youtube:Jnk_4Maf5Fk\n", ""))
+    assert problems == []
+
+
+def test_only_a_video_names_a_video() -> None:
+    _, problems = parse(VIDEO + READING + "    video: youtube:Jnk_4Maf5Fk\n")
+    assert messages(problems) == ["only a video names a video to play"]
+    assert problems[0].line == 19
+
+
+def test_a_video_is_written_player_colon_id() -> None:
+    _, problems = parse(VIDEO.replace("youtube:Jnk_4Maf5Fk", "Jnk_4Maf5Fk"))
+    assert messages(problems) == [
+        'a video is written player:id, such as youtube:Jnk_4Maf5Fk, not "Jnk_4Maf5Fk"'
+    ]
+    assert problems[0].line == 10
+
+
+def test_an_unknown_player_is_a_problem() -> None:
+    _, problems = parse(VIDEO.replace("youtube:Jnk_4Maf5Fk", "vimeo:123"))
+    assert messages(problems) == ["vimeo is not a player (youtube)"]
+
+
+def test_a_malformed_id_is_a_problem() -> None:
+    _, problems = parse(VIDEO.replace("youtube:Jnk_4Maf5Fk", "youtube:short"))
+    assert messages(problems) == ["short is not a youtube video id"]
+
+
+def test_a_player_the_provider_does_not_list_is_a_problem() -> None:
+    providers = dict(PROVIDERS)
+    providers["khan-academy"] = Provider(
+        "khan-academy", "Khan Academy", ("YouTube embed",), embed=True
+    )
+    _, problems = parse(VIDEO, providers=providers)
+    assert messages(problems) == ["Khan Academy is not embedded through youtube"]
+    assert problems[0].line == 10

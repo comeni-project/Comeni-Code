@@ -4,6 +4,7 @@ providers:
     name: Khan Academy
     licences: [YouTube embed]
     embed: true
+    players: [youtube]
   - id: openstax
     name: OpenStax
     licences: [CC BY 4.0]

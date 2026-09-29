@@ -34,9 +34,11 @@ class _IndentedDumper(yaml.SafeDumper):
 
 
 def _resource(resource: Resource) -> dict[str, object]:
-    """The spec's field order (M3P1.2); part only when the author wrote one."""
+    """The spec's field order (M3P1.2, M3P5.3); video and part only when the author wrote them."""
     written: dict[str, object] = {"kind": resource.kind, "provider": resource.provider}
     written["url"] = resource.url
+    if resource.video:
+        written["video"] = resource.video
     if resource.part:
         written["part"] = resource.part
     written["covers"] = resource.covers

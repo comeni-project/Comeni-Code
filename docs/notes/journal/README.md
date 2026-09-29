@@ -6,7 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-21-m3-part-4-map-redraw.md`](2026-09-21-m3-part-4-map-redraw.md)**: **part 4 reopened**
+> [`2026-09-21-m3-part-5-node-page.md`](2026-09-21-m3-part-5-node-page.md)**: **M3 part 5 is
+> built** — `/node/<id>` is the L5 page: *Learn it* with a video that plays in the page (a video
+> resource now names the video behind its page), try questions in the body with hints one at a
+> time, the side column, and a strip saying where the node sits on the route it was opened from.
+> Before it, [`2026-09-21-m3-part-4-map-redraw.md`](2026-09-21-m3-part-4-map-redraw.md): **part 4 reopened**
 > — the map had been checked against a board fitted to the code, so the boards are the published
 > canvas again and the Route and Start pages now draw its metro map: lines branching at 45°,
 > running parallel and meeting in a diamond at the goal. Screens are compared with the *published*
