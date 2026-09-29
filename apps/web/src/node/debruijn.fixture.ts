@@ -18,7 +18,25 @@ export const DE_BRUIJN: NodeOut = {
   },
   level: "intermediate",
   minutes: 15,
-  body: "Take two transcripts and cut them into 4-mers:\n\n```text\nA  ACGTTGCA   ACGT CGTT GTTG TTGC TGCA\nB  ACGTTGAA   ACGT CGTT GTTG TTGA TGAA\n```\n\n{% try kmers-per-read %}\n\nMake each distinct 4-mer a node, and draw an edge from `ACGT` to `CGTT` because the last three\nletters of one are the first three of the other. A and B share the path\n`ACGT → CGTT → GTTG`, stored once, and then it branches.\n\nA stretch with no branches can be merged into one piece, a **unitig**: here `ACGTTG`, then `TTGCA`\nor `TTGAA`. That is a **compacted** de Bruijn graph. Recording which sequences each unitig came from\nmakes it **coloured**. Genome assemblers use these graphs to rebuild a genome from reads; the\ntextbook form for assembly puts (k − 1)-mers on the nodes and k-mers on the edges, which is the\nsame idea.\n\n{% try shared-unitig %}\n\n## Further reading\n\n- [How to apply de Bruijn graphs to genome assembly](https://doi.org/10.1038/nbt.2023) — Compeau, Pevzner and Tesler, 2011\n- [De Bruijn graph](https://en.wikipedia.org/wiki/De_Bruijn_graph) — Wikipedia\n",
+  blocks: [
+    {
+      kind: "text",
+      markdown:
+        "Take two transcripts and cut them into 4-mers:\n\n```text\nA  ACGTTGCA   ACGT CGTT GTTG TTGC TGCA\nB  ACGTTGAA   ACGT CGTT GTTG TTGA TGAA\n```\n\n",
+    },
+    { kind: "try", question: "kmers-per-read" },
+    {
+      kind: "text",
+      markdown:
+        "\nMake each distinct 4-mer a node, and draw an edge from `ACGT` to `CGTT` because the last three\nletters of one are the first three of the other. A and B share the path\n`ACGT → CGTT → GTTG`, stored once, and then it branches.\n\nA stretch with no branches can be merged into one piece, a **unitig**: here `ACGTTG`, then `TTGCA`\nor `TTGAA`. That is a **compacted** de Bruijn graph. Recording which sequences each unitig came from\nmakes it **coloured**. Genome assemblers use these graphs to rebuild a genome from reads; the\ntextbook form for assembly puts (k − 1)-mers on the nodes and k-mers on the edges, which is the\nsame idea.\n\n",
+    },
+    { kind: "try", question: "shared-unitig" },
+    {
+      kind: "text",
+      markdown:
+        "\n## Further reading\n\n- [How to apply de Bruijn graphs to genome assembly](https://doi.org/10.1038/nbt.2023) — Compeau, Pevzner and Tesler, 2011\n- [De Bruijn graph](https://en.wikipedia.org/wiki/De_Bruijn_graph) — Wikipedia\n",
+    },
+  ],
   folder: "algorithms/de-bruijn-graphs",
   needs: [
     {

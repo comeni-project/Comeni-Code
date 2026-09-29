@@ -106,7 +106,13 @@ describe("a First steps node", () => {
     answering([
       {
         ...DNA,
-        body: "Lead.\n\n## What DNA is\n\nText.\n\n## Why it matters\n\nText.\n\n## Further reading\n\n- [A](https://example.org)\n",
+        blocks: [
+          {
+            kind: "text",
+            markdown:
+              "Lead.\n\n## What DNA is\n\nText.\n\n## Why it matters\n\nText.\n\n## Further reading\n\n- [A](https://example.org)\n",
+          },
+        ],
       },
     ]);
     open("/node/dna-and-genes");

@@ -1,49 +1,31 @@
-// A node's body, cut into what the page draws (M3P5.5).
+// A node's blocks, read for what the page draws around them (M3P5.5, M4.1.2).
 //
-// The body is Markdown with one exception: `{% try <id> %}` on a line of its own says where a
-// question is asked (M3P1.3). The page splits on those lines rather than teaching the Markdown
-// renderer a new syntax, so the marker rule lives in one place: the validator, which refuses a
-// marker naming a question the node does not have.
+// The API serves the body as blocks (text, try, callout) that the validator has already read, so
+// the page never looks for directives in Markdown. It still scans text blocks for two things: the
+// second-level headings *On this page* lists, and First steps' reading list.
+import type { CalloutBlockOut, TextBlockOut, TryBlockOut } from "../api/schema";
 
-export type Piece = { kind: "text"; markdown: string } | { kind: "try"; id: string };
+export type Block = TextBlockOut | TryBlockOut | CalloutBlockOut;
 
-const TRY = /^\s*\{%\s*try\s+([a-z0-9-]+)\s*%\}\s*$/;
-const FENCE = /^\s*(```|~~~)/;
+const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const SECOND = /^##\s+(.+?)\s*#*\s*$/;
+const READING = /^##\s+further reading\s*$/i;
 
-/** Each line, with whether it sits inside a fenced block (where nothing is a marker or heading). */
-function* scanned(body: string): Generator<{ line: string; fenced: boolean }> {
+/** Each line of some Markdown, with whether it sits inside a fence (where nothing is a heading). */
+function* scanned(markdown: string): Generator<{ line: string; fenced: boolean }> {
   let fence: string | null = null;
-  for (const line of body.split("\n")) {
-    const opens = FENCE.exec(line)?.[1];
-    if (opens !== undefined && (fence === null || fence === opens)) {
-      fence = fence === null ? opens : null;
+  for (const line of markdown.split("\n")) {
+    const run = FENCE.exec(line)?.[1];
+    if (fence === null && run !== undefined) {
+      fence = run;
+      yield { line, fenced: true };
+    } else if (fence !== null) {
+      if (run !== undefined && run[0] === fence[0] && run.length >= fence.length) fence = null;
       yield { line, fenced: true };
     } else {
-      yield { line, fenced: fence !== null };
+      yield { line, fenced: false };
     }
   }
-}
-
-export function splitBody(body: string): Piece[] {
-  const pieces: Piece[] = [];
-  let text: string[] = [];
-  const flush = () => {
-    const markdown = text.join("\n");
-    if (markdown.trim() !== "") pieces.push({ kind: "text", markdown });
-    text = [];
-  };
-  for (const { line, fenced } of scanned(body)) {
-    const marker = fenced ? null : TRY.exec(line);
-    if (marker?.[1] !== undefined) {
-      flush();
-      pieces.push({ kind: "try", id: marker[1] });
-    } else {
-      text.push(line);
-    }
-  }
-  flush();
-  return pieces;
 }
 
 /** An id for a heading, the same one the page's `h2` carries, so *On this page* can link to it. */
@@ -55,19 +37,37 @@ export function slugOf(text: string): string {
     .replace(/[\s-]+/g, "-");
 }
 
-/** The body without its reading list, and that list: First steps moves it to the footer. */
-export function splitReading(body: string): { body: string; reading: string } {
-  const lines = body.split("\n");
-  const at = lines.findIndex((line) => /^##\s+further reading\s*$/i.test(line));
-  if (at === -1) return { body, reading: "" };
-  return { body: lines.slice(0, at).join("\n"), reading: lines.slice(at + 1).join("\n") };
+/** The blocks without their reading list, and that list: First steps moves it to the footer. */
+export function splitReading(blocks: Block[]): { blocks: Block[]; reading: string } {
+  for (const [at, block] of blocks.entries()) {
+    if (block.kind !== "text") continue;
+    const lines = [...scanned(block.markdown)];
+    const heading = lines.findIndex(({ line, fenced }) => !fenced && READING.test(line));
+    if (heading === -1) continue;
+    const text = (from: number, to?: number) =>
+      lines
+        .slice(from, to)
+        .map(({ line }) => line)
+        .join("\n");
+    const after = blocks
+      .slice(at + 1)
+      .flatMap((later) => (later.kind === "text" ? [later.markdown] : []));
+    return {
+      blocks: [...blocks.slice(0, at), { kind: "text", markdown: text(0, heading) }],
+      reading: [text(heading + 1), ...after].join(""),
+    };
+  }
+  return { blocks, reading: "" };
 }
 
-export function headingsOf(body: string): { id: string; text: string }[] {
+export function headingsOf(blocks: Block[]): { id: string; text: string }[] {
   const found: { id: string; text: string }[] = [];
-  for (const { line, fenced } of scanned(body)) {
-    const text = fenced ? undefined : SECOND.exec(line)?.[1];
-    if (text !== undefined) found.push({ id: slugOf(text.replace(/[`*_]/g, "")), text });
+  for (const block of blocks) {
+    if (block.kind !== "text") continue;
+    for (const { line, fenced } of scanned(block.markdown)) {
+      const text = fenced ? undefined : SECOND.exec(line)?.[1];
+      if (text !== undefined) found.push({ id: slugOf(text.replace(/[`*_]/g, "")), text });
+    }
   }
   return found;
 }

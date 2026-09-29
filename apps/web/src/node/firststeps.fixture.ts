@@ -18,7 +18,19 @@ export const DNA: NodeOut = {
   },
   level: "first-steps",
   minutes: 10,
-  body: "DNA is two strands of nucleotides, each carrying one of four bases — A, C, G and T. The strands\npair A with T and C with G, so either strand says what the other must be. What matters is the\norder of the letters: it is information, the way the order of letters in a sentence is.\n\n{% try base-pairing %}\n\nA gene is a region of DNA whose sequence a cell uses as instructions, most often to make a\nprotein. The human genome has about three billion letters and around 20,000 protein-coding genes.\n\nBecause DNA is text, much of bioinformatics is reading and comparing long strings of four letters.\nEvery later stop on the way to Salmon treats sequences that way.\n\n## Further reading\n\n- [DNA](https://en.wikipedia.org/wiki/DNA) — Wikipedia\n- [Gene](https://en.wikipedia.org/wiki/Gene) — Wikipedia\n",
+  blocks: [
+    {
+      kind: "text",
+      markdown:
+        "DNA is two strands of nucleotides, each carrying one of four bases — A, C, G and T. The strands\npair A with T and C with G, so either strand says what the other must be. What matters is the\norder of the letters: it is information, the way the order of letters in a sentence is.\n\n",
+    },
+    { kind: "try", question: "base-pairing" },
+    {
+      kind: "text",
+      markdown:
+        "\nA gene is a region of DNA whose sequence a cell uses as instructions, most often to make a\nprotein. The human genome has about three billion letters and around 20,000 protein-coding genes.\n\nBecause DNA is text, much of bioinformatics is reading and comparing long strings of four letters.\nEvery later stop on the way to Salmon treats sequences that way.\n\n## Further reading\n\n- [DNA](https://en.wikipedia.org/wiki/DNA) — Wikipedia\n- [Gene](https://en.wikipedia.org/wiki/Gene) — Wikipedia\n",
+    },
+  ],
   folder: "molecular-biology/dna-and-genes",
   needs: [],
   goes_deeper: [],
