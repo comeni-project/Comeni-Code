@@ -38,7 +38,7 @@ The Salmon example is a real one: since version 1.0 Salmon's default index is pu
 built on a compacted coloured de Bruijn graph, so *de Bruijn graphs* genuinely belongs on the route
 to *Salmon*.
 
-*Revised 2026-09-19 ([M1 part 4](2026-09-19-m1-salmon-fixtures-design.md)): under the need rule,
+*Revised 2026-09-19 ([M1 part 4](archive/2026-09-19-m1-salmon-fixtures-design.md)): under the need rule,
 de Bruijn graphs is not on the route to Salmon but one goes-deeper link away, through The
 pufferfish index. Salmon's claim can be understood without knowing how its index is built.*
 
@@ -93,7 +93,7 @@ reader's question it answers**, *related* is narrowed to the peer test and cappe
 neighbours that are derived rather than authored are named. A kind exists only if it changes a
 route, answers a question no other kind answers, or feeds a health check.*
 
-*Revised again 2026-09-18 (operator, M1 part 2 — [spec](2026-09-18-m1-links-in-the-schema-design.md)):
+*Revised again 2026-09-18 (operator, M1 part 2 — [spec](archive/2026-09-18-m1-links-in-the-schema-design.md)):
 **every link carries a reason**, not only *needs*; *needs* is **a list of entries, not *all of* /
 *any of* groups**; and two **optional paths** — alternatives and detours — are designed here but
 not wired in v1 (below).*
@@ -645,7 +645,7 @@ worded states fix.
 Reference values (light / dark): ground `#F4F5F8` / `#12141B`; surface `#FFFFFF` / `#1A1D27`;
 ink `#171A26` / `#E8EAF2`; route `#0F9D7A` / `#2FC79B`; primary button `#0B7F63` / `#2FC79B`;
 next `#2F6FEB` / `#6EA2FF`; measured `#9A5B00` (text) / `#F0B840`; needs-you `#C92F36` / `#FF6E73`.
-The full set is in `.design/tokens.json` (moved from `_identity.mjs` by [M0 part 6](2026-09-17-m0-identity-tokens-design.md)), which the boards and the web app both read. Adopting this in Labs is a separate
+The full set is in `.design/tokens.json` (moved from `_identity.mjs` by [M0 part 6](archive/2026-09-17-m0-identity-tokens-design.md)), which the boards and the web app both read. Adopting this in Labs is a separate
 decision for Labs; Code adopts it now.
 
 ---

@@ -9,33 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phases M0 (Skeleton), M1 (content core), M2 (the weaver) and M3 (the thin learner
-path) are done; M4 (Studio core) is next and has not been split into parts yet.** M3 part 6 gave
-a **First steps** node its own form of the Node page (T10.2) — one column, larger type, the
-video offered behind *Read · Watch*, one large question at a time, and *Next on your route* —
-and closed M3 against R4's *done when* (see the newest journal entry, which records one
-deviation: *Read / Watch* exists on the First steps page only). M3 part 5 built the **Node page** (L5)
-at `/node/<id>`: *Learn it* with a video that plays in the page (a video resource names the video
-behind its page, `video: youtube:<id>`, checked against the provider's `players`), try questions
-in the body with hints and a rationale, the side column, and a strip saying where the node sits
-on the route it was opened from (`?goal=` travels in the URL). M3 part 4 built the **Route page** (L4)
-at `/route?goal=…`: the woven route as the canvas's metro map — a line per region around the
-goal's, branching at 45° and meeting in a diamond at the goal — with the selected stop explaining
-why it is there. On 2026-09-21 it was redrawn after the operator compared it with the published
-canvas; **screens are compared with the published canvas in a browser, never with a board
-regenerated in the same change.** M3 part 3 gave the app a **router** and its **first screen**: `/` is the Start page (L1) — ask,
-confirm a target, see the route preview — with the health page moved to `/health`. M3 part 2 added **search without a model**:
-`code_weaver.find` ranks topics for typed words, reached by `code-weaver find` and
-`GET /api/search`. M3 part 1 gave a node its outside **resources** (checked against a
-`providers.yaml` registry) and its inline **try questions** with hints and a rationale, placed in
-`body.md` by `{% try <id> %}` markers, through the index to `GET /api/nodes/{node_id}`. M2 built `code_weaver` — a route over *needs* links with each stop's reasons, a
-known set and a level span — reachable through `code-weaver route` and `GET /api/routes`. M1 built the
-node format, its links, `code-schema validate`, 26 Salmon fixture nodes in `tests/fixtures/salmon/`,
-the index (`code_api.content`, filled all or nothing by `manage.py rebuild_index`) and
-`GET /api/nodes/{node_id}`. The Python workspace and the Django project (`apps/api`, with `/api/health`, `/api/openapi.json` and
-`/api/docs`) exist; the web app (`apps/web`) shows the Start page at `/`, the health page at `/health` and the
-identity specimen at `/identity`; `docker compose up -d --wait` runs the whole stack; and `main` here and
-in `comeni-code-content` takes only green pull requests.
+**Where the work is: [`docs/notes/now.md`](docs/notes/now.md)**, then any entry in
+[`docs/notes/journal/`](docs/notes/journal/) (those are not compacted yet). This file holds what
+stays true between tasks; history is in the journal, never here. It is held to 300 lines by
+`tests/repo/test_doc_sizes.py`.
 
 **First-time setup** (from the repository root, where every command runs):
 
@@ -52,19 +29,10 @@ development, keep only `postgres redis` in Compose and run the API, worker, beat
 natively (below). **`docker compose down -v` deletes the development database;** to stop just the
 app services, `docker compose rm -sf migrate api worker beat web`.
 
-**Node 24 for the web app** (it refuses other versions). On Fedora, `nodejs24` installs `node-24`,
-`npm-24` and `npx-24` beside the default Node 22, and `npm-24` still runs under whatever `node` is
-first on `PATH`, so give Node 24 its own directory:
-
-```
-sudo dnf install nodejs24
-mkdir -p ~/.local/node24/bin
-ln -sf /usr/bin/node-24 ~/.local/node24/bin/node
-ln -sf /usr/bin/npm-24 ~/.local/node24/bin/npm
-ln -sf /usr/bin/npx-24 ~/.local/node24/bin/npx
-export PATH="$HOME/.local/node24/bin:$PATH"   # add to your shell profile; check: node --version
-cd apps/web && npm ci && cd ../..
-```
+**Node 24 for the web app**: `engine-strict` refuses any other, so put Node 24 first on `PATH`
+and check with `node --version`, then `cd apps/web && npm ci`. On Fedora, `nodejs24` installs
+`node-24`, `npm-24` and `npx-24` beside Node 22; link them as `node`, `npm` and `npx` in
+`~/.local/node24/bin` and put that directory first on `PATH`.
 
 **Commands** (CI runs exactly these):
 
@@ -85,7 +53,6 @@ uv run pytest                       # all tests
 uv run code-schema validate ../comeni-code-content   # the node format, as content CI checks it
 uv run code-weaver route salmon --root tests/fixtures/salmon   # weave a route; exit 0/1/2
 uv run code-weaver find "why my reads don't map" --root tests/fixtures/salmon   # the candidates a goal is picked from
-uv run pytest tests/guards/test_purity_static.py::test_every_package_is_declared   # one test
 ```
 
 **Web commands** (in `apps/web`, on Node 24):
@@ -114,16 +81,17 @@ variables). Tests marked `django_db` need Postgres running, and tests that use R
 **Read first, in this order:**
 
 1. This file.
-2. [`docs/notes/journal/`](docs/notes/journal/): its README (the rules and the box naming the
-   entry to read), then the newest entry.
+2. [`docs/notes/now.md`](docs/notes/now.md), then any entry still in `docs/notes/journal/`.
 3. **The tutor spec, `docs/superpowers/specs/2026-09-17-code-as-tutor-design.md`: the current
    statement of the product** (T-sections): Code as the tutor on top of existing material,
    outside resources, skeletons, step backs, evidence, block scores, and what is deferred.
-4. The architecture spec, `docs/superpowers/specs/2026-09-17-…-architecture-and-roadmap-design.md`,
-   which you build from: R1 stack, R2 repository shape, R3 content flow, R4 phases M0–M9 with
-   *done when*, R5 how a phase is built, R7 what part specs decide, R8 open questions.
+4. The architecture spec,
+   `docs/superpowers/specs/2026-09-17-comeni-code-architecture-and-roadmap-design.md`, which you
+   build from: R1 stack, R2 repository shape, R3 content flow, R4 phases M0–M9 with *done when*,
+   R5 how a phase is built, R7 what part specs decide, R8 open questions.
 5. As needed: the 2026-09-16 spec (W-sections: weaving, pages, AI, identity) and the 2026-09-02
-   spec. **The newest spec wins** where they disagree. The research behind the tutor spec is in
+   spec. **The newest spec wins** where they disagree. Finished part specs and plans are in
+   `docs/superpowers/specs/archive/` and `docs/superpowers/plans/archive/`; the research is in
    `docs/notes/research/`.
 6. [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) for commit and pull-request style.
 
@@ -212,8 +180,8 @@ never the learner; stages of education such as "AP" are for authors' writing gui
   gateway, arriving at M5.
 - **Pure packages** in `packages/` (`code-schema`, `code-weaver`; later `code-figures`,
   `code-problems`) import no Django, no HTTP client and no model library.
-- **Content:** drafts are stored in Postgres. Approved content is stored as files in
-  `comeni-project/comeni-code-content` (sibling checkout `../comeni-code-content`), one folder per
+- **Content:** drafts are stored in Postgres. Approved content is stored as files in the
+  comeni-project/comeni-code-content repository (sibling checkout `../comeni-code-content`), one folder per
   node: `node.yaml`, a MyST `body.md` and YAML data files. Content lands through a pull request
   that auto-merges when its CI is green. A worker follows that repo's `main` and rebuilds the
   index. **Tests use `tests/fixtures/` and never read the real content repo.**
@@ -244,48 +212,50 @@ push through.
 
 ## Working here
 
+- **Every defect gets a GitHub issue first**, mechanical ones too. *Mechanical* (the code is wrong
+  against what was agreed): fix test-first, close citing the commit. *Protocol* (a rule or a
+  promise needs deciding): options to the operator, the choice commented on the issue and labelled
+  `decided`, then built. The loop, the labels and the decision comment are in
+  [`docs/internals/walking.md`](docs/internals/walking.md). **Unsure means protocol.**
+- **The task tree is issues:** a parent issue per phase, each part a sub-issue. The parts list is
+  still argued in a journal entry (R5).
 - **Decisions go in specs**, with the alternatives rejected. Edit an older spec only to point at
-  the newer decision.
-- **Sessions go in the journal**, append-only; update the box at the top of its README.
+  the newer decision. Finished part specs and plans move to an `archive` folder beside the live ones.
+- **Sessions go in the journal**, append-only. **Compact it** when a part or phase closes, or at
+  five pending entries, by [`docs/notes/compaction.md`](docs/notes/compaction.md). Never point at
+  an entry by name; point at `now.md` and the journal directory.
+- **Guards must be watched failing** against the defect they guard before they are trusted.
 - **Screens are generated.** Change `.design/build_pages.mjs`, `.design/_identity.mjs` or
   `.design/tokens.json`, then run `node .design/build_pages.mjs`. Never hand-edit a `.dc.html`.
 - **Token values live only in `.design/tokens.json`.** After changing one, also run
   `npm run tokens` in `apps/web`; a test fails until the committed `tokens.css` matches.
-- **No mega plans.** When a phase starts, split it into parts; each part gets a short spec, then a
-  specific plan, then test-first code, then a journal entry (architecture spec R5).
+- **Screens are compared with the published canvas in a browser**, at the page's real width, in
+  light at 1440 as well as dark — never with a board regenerated in the same change. The canvas
+  is at https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa.
 - **Research is cited** in the spec that uses it.
-- **Commits** follow the house style: `docs(spec): …`, `design: …`, then `feat`/`fix`/… once there
-  is code. One logical change per commit; the body says why.
+- **Commits** follow the house style: `docs(spec): …`, `design: …`, `feat`/`fix`/… for code. One
+  logical change per commit; the body says why.
 - **Branch for work** (`feat/…`, `docs/…`, `ci/…`); never commit to `main`. Merges go through
   pull requests. Commit and push only when asked, or when the approved plan says to.
 - **`main` takes only pull requests with green checks, in this repository and the content
   repository, for everyone** (rulesets in `.github/rulesets/main.json`, no bypass). Required checks
   are named in the ruleset: renaming a CI job means changing the ruleset in the same change. Wait
   for checks with their exit code (`gh pr checks --watch > log; rc=$?`), never through a pipe.
-- **Attribution:** end commits with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`,
-  and pull-request descriptions with
+- **Attribution:** end commits with a `Co-Authored-By:` line naming the Claude model in use
+  (`noreply@anthropic.com`), and pull-request descriptions with
   `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 - **Confirm outward-facing actions first:** GitHub settings (rulesets, merge settings and other
   repository settings), creating repositories, publishing.
-- **The design canvas** is at https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa. From M3, each
-  screen is compared with its board.
 - **Do not build Labs features here**, and do not build Code inside Labs. **No code is shared
   between the two repositories** — philosophy, layout and identity only.
-- **Pure packages stay pure.** `packages/` imports no Django, HTTP client or model library; a
-  test will enforce it from M0.
-
-## Pending questions
-
-- **A sign-in shared with Labs:** OIDC with Code as the provider, or a separate identity service.
-  Labs recorded this on 2026-09-17
-  (`../Comeni-Labs/docs/notes/journal/2026-09-17-labs-in-the-hybrid-identity.md`). It does not
-  block M0. Add it to R8 of the architecture spec the next time that spec is edited.
+- **Pure packages stay pure.** `packages/` imports no Django, HTTP client or model library;
+  `tests/guards/` enforces it.
 
 ## Environment
 
-Fedora Linux. `gh` is authenticated for `comeni-project`. Docker, Node and `uv` are installed.
-Claude in Chrome is installed, so look at pages in Chrome, with the published canvas open in another tab; `firefox --headless --screenshot` is the fallback. If the system
-Python lacks PyYAML, use `/home/gibli/Documents/GitHub/Comeni-Labs/.venv/bin/python`.
+Linux. `gh` is authenticated for `comeni-project`; Docker, Node and `uv` are installed. Claude in
+Chrome is installed, so look at pages in Chrome with the published canvas open in another tab;
+`firefox --headless --screenshot` is the fallback.
 
 ## Layout
 
@@ -306,14 +276,16 @@ Dockerfile.api            the API image: migrate, api (gunicorn), worker and bea
 ops/                      nginx config for the web image, and stack-check.sh
 docs/index.md             documentation map
 docs/design/              how screens are made
-docs/notes/journal/       session records, append-only
+docs/internals/           how work is run: walking.md (issues, labels, decisions)
+docs/notes/now.md         what is true now; read first
+docs/notes/journal/       session records, append-only; archive/ holds compacted ones
 docs/notes/research/      studies decisions were built on (the Khan Academy report)
-docs/superpowers/specs/   design documents
-docs/superpowers/plans/   one plan per part
+docs/superpowers/specs/   design documents; archive/ holds finished part specs
+docs/superpowers/plans/   one plan per part; archive/ holds finished ones
 packages/code-schema/     pure: the node format (fields, links, resources, questions, markers), its validation messages, the canonical writer
 packages/code-weaver/     pure: Graph, weave, find, and the route and find commands (M2, M3 part 2)
 tests/guards/             purity guards, their helpers and planted fixtures
-tests/repo/               repository checks (relative links)
+tests/repo/               repository checks: links, doc sizes, doc paths, app dependencies
 tests/fixtures/salmon/    26 real nodes and providers.yaml, no background to Salmon; the weaver and the API load them
 tests/schema/             code-schema's tests; nodes are built in tmp_path or read from fixtures, never from content
 tests/weaver/             code-weaver's tests; `fixture_graph` fills a Graph from the Salmon fixtures
