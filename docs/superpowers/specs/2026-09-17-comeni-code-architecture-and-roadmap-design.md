@@ -148,6 +148,11 @@ decided part by part (R5).
   blocks enter here **read-only** — the authoring UI is M4's workbench. A node's **body stays
   Markdown**; W5.1's block document arrives with that workbench. The Route board is redrawn from
   13 stops to 17 in part 4.*
+- *2026-09-29 (operator, issues #76 and #89): Khan Academy is linked, never embedded, so the
+  fixtures' two embedded videos become links. The page still embeds from an allowed provider; the
+  resource that shows it is **content**, and content and page polish wait for the end of the MVP,
+  when the app is built and the pages stop changing. Until then this line's embedded resource is
+  deferred, not missing.*
 
 ### M4 — Studio core
 - The team signs in with roles; an author drafts a node, checks run, a reviewer approves, and it

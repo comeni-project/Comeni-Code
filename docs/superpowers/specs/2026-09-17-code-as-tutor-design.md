@@ -125,8 +125,9 @@ then the resources. On a node page they also appear in the side column.
 
 - **Always link.** Linking is always allowed.
 - **Embed** only when the provider's terms allow it and the licence is recorded:
-  - Khan Academy videos through their YouTube embeds, non-commercially and with attribution;
   - OpenStax, Galaxy Training and Carpentries material under CC BY 4.0.
+- **Khan Academy is linked, never embedded** (operator, 2026-09-29, issue #76). This replaces the
+  earlier line allowing its videos through their YouTube embeds.
 - An embedded player is a component drawn in our identity. It always shows the provider, the part
   and the licence.
 - If an embed breaks, the link remains. A resource whose link fails the scheduled check is hidden
@@ -178,11 +179,11 @@ A skeletons page (S18) holds this flow.
 | OpenStax Biology 2e (CC BY 4.0) | outline and adaptable text, attributed | resources, embedded or linked |
 | Galaxy Training Network (CC BY 4.0) | outline and adaptable text, attributed | resources |
 | The Carpentries (CC BY 4.0) | outline and adaptable text, attributed | resources |
-| **Khan Academy** (CC BY-NC-SA for most content; videos not openly licensed; terms forbid scraping and use to build AI) | **none** | **reading its course layout as a reference, citing it; linking and embedding its videos and exercises as resources** |
+| **Khan Academy** (CC BY-NC-SA for most content; videos not openly licensed; terms forbid scraping and use to build AI) | **none** | **reading its course layout as a reference, citing it; linking its videos and exercises as resources — never embedding them** |
 
-The terms page could not be read by an automated reader when the research was done. **A person
-reads Khan Academy's current terms once before the first Khan Academy resource is embedded**,
-and records the date in the journal.
+*2026-09-29 (operator, issue #76): Khan Academy is never embedded.* The line this replaces allowed
+embedding once a person had read its terms; that reading is no longer needed, because nothing is
+embedded from it.
 
 ---
 
@@ -563,7 +564,8 @@ The findings that drive this document:
 ## T14. Open questions
 
 1. **Values of x, N and the agreement threshold,** to be set from the first reviews.
-2. **Which providers are on the embed allow-list** after the terms are read (T5.3).
+2. **Which providers are on the embed allow-list** after the terms are read (T5.3). *Khan
+   Academy: never (2026-09-29, #76). The others in T4.2 stand.*
 3. **Whether *didn't help* on a resource should reorder resources automatically,** or only flag
    them for a person.
 4. **How far down the Foundations start goes** for the Salmon route: whole AP units, or only the
