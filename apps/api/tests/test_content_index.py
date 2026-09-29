@@ -49,6 +49,24 @@ def copy_of_fixtures(tmp_path: Path) -> Path:
     return root
 
 
+def with_an_embedded_video(root: Path) -> None:
+    """The fixtures link every video (issue 76); a copy embeds one, so the path stays tested."""
+    registry = root / "providers.yaml"
+    registry.write_text(
+        registry.read_text()
+        + "  - id: open-video\n    name: Open video\n    licences: [CC BY 4.0]\n"
+        + "    embed: true\n    players: [youtube]\n"
+    )
+    node = root / "algorithms" / "de-bruijn-graphs" / "node.yaml"
+    text = node.read_text().replace("provider: khan-academy", "provider: open-video", 1)
+    text = text.replace(
+        "    licence: Khan Academy terms\n    display: link\n",
+        "    video: youtube:Jnk_4Maf5Fk\n    licence: CC BY 4.0\n    display: embed\n",
+        1,
+    )
+    node.write_text(text)
+
+
 def test_the_fixtures_rebuild_into_the_index() -> None:
     content = read_content(FIXTURES)
     links = sum(
@@ -218,11 +236,10 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     ]
     node = Node.objects.get(id="de-bruijn-graphs")
     resources = list(node.resources.order_by("position"))
-    assert [resource.display for resource in resources] == ["embed", "link", "link"]
+    assert [resource.display for resource in resources] == ["link", "link", "link"]
     assert resources[0].provider_id == "khan-academy"
     assert resources[0].part == ""
-    assert resources[0].video == "youtube:Jnk_4Maf5Fk"
-    assert resources[1].video == ""
+    assert resources[0].video == ""  # Khan Academy is linked, never embedded (issue 76)
     questions = list(node.questions.order_by("position"))
     assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
     assert questions[0].kind == "number"
@@ -230,6 +247,16 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     assert questions[0].options == []
     assert questions[0].hints and questions[0].rationale
     assert questions[1].options[0] == {"text": "ACGTTG", "right": True}
+
+
+def test_an_embedded_video_is_stored_with_the_video_it_plays(tmp_path: Path) -> None:
+    root = copy_of_fixtures(tmp_path)
+    with_an_embedded_video(root)
+    rebuild_index(root)
+    resource = Node.objects.get(id="de-bruijn-graphs").resources.order_by("position").first()
+    assert resource is not None
+    assert (resource.provider_id, resource.display) == ("open-video", "embed")
+    assert resource.video == "youtube:Jnk_4Maf5Fk"
 
 
 def test_a_node_with_no_resources_has_none() -> None:

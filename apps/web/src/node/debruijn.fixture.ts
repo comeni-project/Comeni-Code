@@ -3,7 +3,8 @@
 //   uv run python apps/api/manage.py rebuild_index --root tests/fixtures/salmon
 //   curl -s "http://127.0.0.1:8090/api/nodes/de-bruijn-graphs"
 //
-// The node the L5 board draws, with an embedded video, two linked resources and two questions.
+// The node the L5 board draws: a linked video, two linked resources and two questions. Khan
+// Academy is linked, never embedded (issue 76); tests that play a video embed one themselves.
 import type { NodeOut } from "../api/schema";
 
 export const DE_BRUIJN: NodeOut = {
@@ -54,12 +55,12 @@ export const DE_BRUIJN: NodeOut = {
         name: "Khan Academy",
       },
       url: "https://www.khanacademy.org/science/ap-biology/gene-expression-and-regulation/biotechnology/v/dna-sequencing",
-      video: "youtube:Jnk_4Maf5Fk",
+      video: null,
       part: "",
       covers:
         "How a sequencer returns short overlapping pieces, which is what these graphs put back together.",
-      licence: "YouTube embed",
-      display: "embed",
+      licence: "Khan Academy terms",
+      display: "link",
       level: "foundations",
     },
     {

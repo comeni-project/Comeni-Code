@@ -2,9 +2,8 @@
 providers:
   - id: khan-academy
     name: Khan Academy
-    licences: [YouTube embed]
-    embed: true
-    players: [youtube]
+    licences: [Khan Academy terms]
+    embed: false
   - id: openstax
     name: OpenStax
     licences: [CC BY 4.0]

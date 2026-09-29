@@ -59,19 +59,36 @@ describe("a First steps node", () => {
     expect(screen.getByRole("region", { name: "What you’ll be able to do" })).toBeInTheDocument();
   });
 
-  it("offers the video rather than playing it straight away", async () => {
+  it("links its Khan Academy video, and offers nothing to watch here (issue 76)", async () => {
     answering();
+    open("/node/dna-and-genes");
+    expect(await screen.findByText("Try it · question 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Watch/ })).toBeNull();
+    expect(screen.queryByText(/Prefer to watch\?/)).toBeNull();
+    expect(document.querySelector("iframe")).toBeNull();
+  });
+
+  it("offers an embeddable video rather than playing it straight away", async () => {
+    // The fixture links its video (issue 76); a provider that allows embedding is offered.
+    const [video, ...rest] = DNA.resources;
+    const offered = {
+      ...(video as NonNullable<typeof video>),
+      provider: { id: "open-video", name: "Open video" },
+      video: "youtube:AmOO4j0E408",
+      display: "embed",
+    };
+    answering([{ ...DNA, resources: [offered, ...rest] }, DE_BRUIJN]);
     open("/node/dna-and-genes");
     const watch = await screen.findByRole("button", { name: "Watch · 13 min" });
     expect(screen.getByText(/Prefer to watch\?/)).toBeInTheDocument();
-    expect(screen.queryByTitle(/Khan Academy:/)).toBeNull();
+    expect(screen.queryByTitle(/Open video:/)).toBeNull();
     await userEvent.click(watch);
-    expect(screen.getByTitle(/Khan Academy:/)).toHaveAttribute(
+    expect(screen.getByTitle(/Open video:/)).toHaveAttribute(
       "src",
       "https://www.youtube-nocookie.com/embed/AmOO4j0E408?start=0&end=781",
     );
     await userEvent.click(screen.getByRole("button", { name: "Read" }));
-    expect(screen.queryByTitle(/Khan Academy:/)).toBeNull();
+    expect(screen.queryByTitle(/Open video:/)).toBeNull();
   });
 
   it("asks its question in the large form, and answers it", async () => {

@@ -129,19 +129,34 @@ def test_kallisto_and_salmon_are_peers(content: Content) -> None:
 # M3 part 1: what parts 5 and 6 draw (spec M3P1.5).
 
 
-def test_de_bruijn_graphs_has_an_embedded_and_two_linked_resources(content: Content) -> None:
+def test_khan_academy_is_linked_never_embedded(content: Content) -> None:
+    """The operator's decision on issue 76 (tutor spec T4.2, T5.3): link it, never play it."""
+    khan = content.providers["khan-academy"]
+    assert (khan.embed, khan.players) == (False, ())
+    cited = [
+        resource
+        for node in content.nodes.values()
+        for resource in node.resources
+        if resource.provider == "khan-academy"
+    ]
+    assert cited, "the fixtures still link Khan Academy somewhere"
+    assert {(resource.display, resource.video) for resource in cited} == {("link", "")}
+
+
+def test_de_bruijn_graphs_links_a_video_and_two_readings(content: Content) -> None:
+    # Its video was embedded until issue 76: Khan Academy is linked, never embedded. An embedded
+    # resource returns with content, at the end of the MVP (issue 89).
     node = content.nodes["de-bruijn-graphs"]
-    assert [resource.display for resource in node.resources] == ["embed", "link", "link"]
-    assert node.resources[0].provider == "khan-academy"
-    assert node.resources[0].video == "youtube:Jnk_4Maf5Fk"
+    assert [resource.display for resource in node.resources] == ["link", "link", "link"]
+    assert (node.resources[0].provider, node.resources[0].kind) == ("khan-academy", "video")
     assert node.resources[0].part == ""  # the real video is 4:41; the board's range was invented
 
 
-def test_the_routes_first_stop_offers_a_video_and_asks_one_question(content: Content) -> None:
+def test_the_routes_first_stop_links_a_video_and_asks_one_question(content: Content) -> None:
     node = content.nodes["dna-and-genes"]
     assert node.level.value == "first-steps"
     video = node.resources[0]
-    assert (video.kind, video.display, video.video) == ("video", "embed", "youtube:AmOO4j0E408")
+    assert (video.kind, video.provider, video.display) == ("video", "khan-academy", "link")
     assert [question.id for question in node.questions] == ["base-pairing"]
     assert node.questions[0].kind == "choice"
 
