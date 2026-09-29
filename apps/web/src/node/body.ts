@@ -55,6 +55,14 @@ export function slugOf(text: string): string {
     .replace(/[\s-]+/g, "-");
 }
 
+/** The body without its reading list, and that list: First steps moves it to the footer. */
+export function splitReading(body: string): { body: string; reading: string } {
+  const lines = body.split("\n");
+  const at = lines.findIndex((line) => /^##\s+further reading\s*$/i.test(line));
+  if (at === -1) return { body, reading: "" };
+  return { body: lines.slice(0, at).join("\n"), reading: lines.slice(at + 1).join("\n") };
+}
+
 export function headingsOf(body: string): { id: string; text: string }[] {
   const found: { id: string; text: string }[] = [];
   for (const { line, fenced } of scanned(body)) {

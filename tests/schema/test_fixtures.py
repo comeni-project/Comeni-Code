@@ -137,6 +137,15 @@ def test_de_bruijn_graphs_has_an_embedded_and_two_linked_resources(content: Cont
     assert node.resources[0].part == ""  # the real video is 4:41; the board's range was invented
 
 
+def test_the_routes_first_stop_offers_a_video_and_asks_one_question(content: Content) -> None:
+    node = content.nodes["dna-and-genes"]
+    assert node.level.value == "first-steps"
+    video = node.resources[0]
+    assert (video.kind, video.display, video.video) == ("video", "embed", "youtube:AmOO4j0E408")
+    assert [question.id for question in node.questions] == ["base-pairing"]
+    assert node.questions[0].kind == "choice"
+
+
 def test_another_node_has_a_linked_resource_alone(content: Content) -> None:
     node = content.nodes["read-mapping"]
     assert [resource.display for resource in node.resources] == ["link"]

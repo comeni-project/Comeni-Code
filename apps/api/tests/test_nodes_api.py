@@ -203,7 +203,7 @@ def test_a_choice_question_comes_with_its_options(client: Client) -> None:
 
 def test_a_node_with_neither_returns_empty_lists(client: Client) -> None:
     rebuild_index(FIXTURES)
-    body = get(client, "dna-and-genes").json()
+    body = get(client, "probability").json()
     assert body["resources"] == []
     assert body["questions"] == []
 

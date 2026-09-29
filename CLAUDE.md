@@ -9,8 +9,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 [comeni-registry](https://github.com/comeni-project/comeni-registry). Labs' own `CLAUDE.md` says
 *"Comeni-Code is a separate repo: the learning platform. Do not build it here"*; this is that repo.
 
-**Status: phases M0 (Skeleton), M1 (content core) and M2 (the weaver) done; M3 (the thin learner
-path) is in progress — parts 1 to 5 of six are built.** M3 part 5 built the **Node page** (L5)
+**Status: phases M0 (Skeleton), M1 (content core), M2 (the weaver) and M3 (the thin learner
+path) are done; M4 (Studio core) is next and has not been split into parts yet.** M3 part 6 gave
+a **First steps** node its own form of the Node page (T10.2) — one column, larger type, the
+video offered behind *Read · Watch*, one large question at a time, and *Next on your route* —
+and closed M3 against R4's *done when* (see the newest journal entry, which records one
+deviation: *Read / Watch* exists on the First steps page only). M3 part 5 built the **Node page** (L5)
 at `/node/<id>`: *Learn it* with a video that plays in the page (a video resource names the video
 behind its page, `video: youtube:<id>`, checked against the provider's `players`), try questions
 in the body with hints and a rationale, the side column, and a strip saying where the node sits

@@ -6,7 +6,11 @@ reads the newest entry first and is productive in five minutes.
 ## Reading it
 
 > **The newest entry is
-> [`2026-09-21-m3-part-5-node-page.md`](2026-09-21-m3-part-5-node-page.md)**: **M3 part 5 is
+> [`2026-09-21-m3-part-6-first-steps.md`](2026-09-21-m3-part-6-first-steps.md)**: **M3 part 6 is
+> built and phase M3 is done** — a *First steps* node reads in its own form (one column, larger
+> type, the video offered rather than played, one large question, and what comes next), and M3's
+> *done when* is checked line by line in the running stack. Before it,
+> [`2026-09-21-m3-part-5-node-page.md`](2026-09-21-m3-part-5-node-page.md) says **M3 part 5 is
 > built** — `/node/<id>` is the L5 page: *Learn it* with a video that plays in the page (a video
 > resource now names the video behind its page), try questions in the body with hints one at a
 > time, the side column, and a strip saying where the node sits on the route it was opened from.

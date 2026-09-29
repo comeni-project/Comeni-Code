@@ -38,8 +38,17 @@ function isRight(question: QuestionOut, given: string): boolean {
   return Math.abs(value - question.answer) <= (question.tolerance ?? 0) + 1e-9;
 }
 
-export function TryQuestion({ question, number }: { question: QuestionOut; number: number }) {
-  const [open, setOpen] = useState(false);
+export function TryQuestion({
+  question,
+  number,
+  big = false,
+}: {
+  question: QuestionOut;
+  number: number;
+  big?: boolean;
+}) {
+  // First steps asks one question at a time, in the open (T10.2): there is nothing to unfold.
+  const [open, setOpen] = useState(big);
   const [given, setGiven] = useState("");
   const [picked, setPicked] = useState<string | null>(null);
   const [wrong, setWrong] = useState(0);
@@ -87,32 +96,51 @@ export function TryQuestion({ question, number }: { question: QuestionOut; numbe
   }
 
   return (
-    <section className="my-1 flex flex-col gap-3.5 rounded-[14px] border-2 border-sel bg-surface px-5 py-[18px]">
-      <div className="flex items-center gap-3">
-        {badge}
-        <span className="min-w-0 flex-1 text-[16px] font-semibold">{question.ask}</span>
-        <span className="shrink-0 text-[12px] text-ink-3">{meta}</span>
-        <button
-          type="button"
-          aria-expanded={true}
-          aria-label="Try it"
-          onClick={() => setOpen(false)}
-          className="shrink-0 p-1 text-sel"
-        >
-          <Chevron up />
-        </button>
-      </div>
+    <section
+      className={`flex flex-col border-2 border-sel bg-surface ${
+        big
+          ? "my-2 gap-3.5 rounded-[18px] px-7 py-[26px]"
+          : "my-1 gap-3.5 rounded-[14px] px-5 py-[18px]"
+      }`}
+    >
+      {big ? (
+        <>
+          <span className="text-[15px] font-semibold text-sel">Try it · question {number}</span>
+          <span className="text-[24px] leading-[1.35] font-semibold">{question.ask}</span>
+        </>
+      ) : (
+        <div className="flex items-center gap-3">
+          {badge}
+          <span className="min-w-0 flex-1 text-[16px] font-semibold">{question.ask}</span>
+          <span className="shrink-0 text-[12px] text-ink-3">{meta}</span>
+          <button
+            type="button"
+            aria-expanded={true}
+            aria-label="Try it"
+            onClick={() => setOpen(false)}
+            className="shrink-0 p-1 text-sel"
+          >
+            <Chevron up />
+          </button>
+        </div>
+      )}
 
       {question.kind === "choice" ? (
-        <div className="grid gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
+        <div
+          className={
+            big
+              ? "grid gap-3 sm:grid-cols-2"
+              : "grid gap-2.5 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]"
+          }
+        >
           {(question.options ?? []).map((option) => {
             const chosen = picked === option.text;
             const tone =
               chosen && option.right
-                ? "border-2 border-btn bg-line-soft"
+                ? `${big ? "border-[2.5px]" : "border-2"} border-btn bg-line-soft`
                 : chosen
-                  ? "border-2 border-open bg-open-soft"
-                  : "border border-border-2 bg-surface text-ink-3 hover:border-sel hover:text-ink";
+                  ? `${big ? "border-[2.5px]" : "border-2"} border-open bg-open-soft`
+                  : `${big ? "border-[1.5px]" : "border"} border-border-2 bg-surface hover:border-sel ${big ? "" : "text-ink-3 hover:text-ink"}`;
             return (
               <button
                 key={option.text}
@@ -123,10 +151,19 @@ export function TryQuestion({ question, number }: { question: QuestionOut; numbe
                   setPicked(option.text);
                   check(option.text);
                 }}
-                className={`flex items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 text-left font-mono text-[14.5px] ${tone}`}
+                className={`flex items-center gap-3.5 text-left ${
+                  big
+                    ? "rounded-[14px] px-5 py-[18px] text-[19px]"
+                    : "gap-2.5 rounded-[10px] px-3.5 py-2.5 font-mono text-[14.5px]"
+                } ${tone}`}
               >
                 {chosen && option.right ? (
-                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <svg
+                    width={big ? 20 : 14}
+                    height={big ? 20 : 14}
+                    viewBox="0 0 14 14"
+                    aria-hidden="true"
+                  >
                     <path
                       d="M2.5 7.5l3 3 6-7"
                       className="fill-none stroke-btn"
@@ -134,6 +171,12 @@ export function TryQuestion({ question, number }: { question: QuestionOut; numbe
                       strokeLinecap="round"
                     />
                   </svg>
+                ) : big ? (
+                  // The board gives a First steps answer an empty circle to aim at.
+                  <span
+                    aria-hidden="true"
+                    className={`size-5 shrink-0 rounded-full border-2 ${chosen ? "border-open" : "border-border-2"}`}
+                  />
                 ) : null}
                 {option.text}
               </button>
@@ -185,7 +228,11 @@ export function TryQuestion({ question, number }: { question: QuestionOut; numbe
             <button
               type="button"
               onClick={() => setHints(hints + 1)}
-              className="rounded-lg border border-border-2 bg-surface px-2.5 py-1 font-medium text-ink hover:border-sel"
+              className={`rounded-lg border border-border-2 bg-surface font-medium text-ink hover:border-sel ${
+                big
+                  ? "rounded-xl border-[1.5px] px-[18px] py-3 text-[16px] text-ink-2"
+                  : "px-2.5 py-1"
+              }`}
             >
               Show a hint
             </button>
@@ -217,14 +264,20 @@ export function TryQuestion({ question, number }: { question: QuestionOut; numbe
       ) : null}
 
       {done ? (
-        <div className="flex flex-col gap-1 rounded-[10px] bg-line-soft px-3.5 py-3">
-          <p className="text-[14px] font-semibold">
+        <div
+          className={`flex flex-col gap-1 bg-line-soft ${
+            big ? "rounded-[14px] px-[18px] py-4" : "rounded-[10px] px-3.5 py-3"
+          }`}
+        >
+          <p className={big ? "text-[19px] font-semibold" : "text-[14px] font-semibold"}>
             <span className="text-btn">
               {right ? `Right — ${answer}.` : `The answer is ${answer}.`}
             </span>{" "}
             <span className="font-medium text-ink-2">Why:</span>
           </p>
-          <p className="text-[13.5px] leading-[1.55] text-ink">{question.rationale}</p>
+          <p className={`leading-[1.55] text-ink ${big ? "text-[17px]" : "text-[13.5px]"}`}>
+            {question.rationale}
+          </p>
         </div>
       ) : null}
     </section>
