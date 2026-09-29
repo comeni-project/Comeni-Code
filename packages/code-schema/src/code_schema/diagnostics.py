@@ -66,5 +66,19 @@ def diagnostic(code: str) -> Diagnostic:
 
 
 def closest(code: str) -> str | None:
+    """The declared code a typo most likely meant.
+
+    Two neighbouring characters swapped is the commonest slip with numbers, and difflib's ratio
+    handles it badly — for the spec's own example it offered a code in another band — so a single
+    swap is tried first (spec M4D.5; the test pins the example).
+    """
+    swapped = sorted(
+        candidate
+        for i in range(len(code) - 1)
+        if (candidate := code[:i] + code[i + 1] + code[i] + code[i + 2 :]) in DIAGNOSTICS
+        and candidate != code
+    )
+    if swapped:
+        return swapped[0]
     found = difflib.get_close_matches(code, sorted(DIAGNOSTICS), n=1, cutoff=0.5)
     return found[0] if found else None

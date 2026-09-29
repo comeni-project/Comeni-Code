@@ -58,6 +58,11 @@ def test_an_undeclared_code_raises_and_a_close_one_is_offered() -> None:
     assert closest("CS0210") in DIAGNOSTICS
 
 
+def test_two_swapped_digits_find_the_code_meant() -> None:
+    # Spec M4D.5's own example: CS0210 is not a code, and the reader meant CS0201.
+    assert closest("CS0210") == "CS0201"
+
+
 def test_load_refuses_an_entry_missing_a_field() -> None:
     text = (
         "bands:\n  - {first: CS0001, last: CS0099, concern: fields}\n"
