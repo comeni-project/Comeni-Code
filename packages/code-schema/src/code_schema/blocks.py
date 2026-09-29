@@ -28,7 +28,7 @@ _LATER = {
 _OPEN = re.compile(r"^:::\{([^}]*)\}(?: (.*))?$")
 _CLOSE = re.compile(r"^:::\s*$")
 _OPTION = re.compile(r"^:[A-Za-z][\w-]*:")
-_FENCE = re.compile(r"^\s*(```|~~~)")
+_FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 _MARKDOC = re.compile(r"^\s*\{%.*%\}\s*$")
 _OLD_TRY = re.compile(r"^\s*\{%\s*try\s+([a-z0-9-]+)\s*%\}\s*$")
 
@@ -58,6 +58,46 @@ def _content(line: str) -> str:
     return line.rstrip("\r\n")
 
 
+def _code_lines(lines: Sequence[str]) -> list[bool]:
+    """Which lines are code: a fence line or inside one, by CommonMark's rules.
+
+    A fence closes only on its own character, at least as long, with nothing after it; a backtick
+    fence's info string holds no backtick; four spaces of indent open no fence.
+    """
+    code: list[bool] = []
+    fence: str | None = None
+    for raw in lines:
+        found = _FENCE.match(_content(raw))
+        if fence is None:
+            if found and not (found.group(1)[0] == "`" and "`" in found.group(2)):
+                fence = found.group(1)
+            code.append(fence is not None)
+        else:
+            code.append(True)
+            if (
+                found
+                and found.group(1)[0] == fence[0]
+                and len(found.group(1)) >= len(fence)
+                and not found.group(2).strip()
+            ):
+                fence = None
+    return code
+
+
+def _first_difference(body: str, written: str) -> tuple[int, str]:
+    """The first line where the body and its write-back differ, and why, for CS0415."""
+    ours, theirs = body.splitlines(keepends=True), written.splitlines(keepends=True)
+    for number, (line, back) in enumerate(zip(ours, theirs, strict=False), start=1):
+        if line != back:
+            if _content(line) == _content(back):
+                if not line.endswith(("\n", "\r")):
+                    return number, f"line {number} needs a line ending after it"
+                return number, f"line {number} ends differently from the rest of body.md"
+            return number, f"line {number} is written back as `{_content(back)}`; write it so"
+    number = min(len(ours), len(theirs)) + 1
+    return number, f"line {number} is not written back"
+
+
 def parse_blocks(
     body: str, *, file: str
 ) -> tuple[tuple[Block, ...], tuple[int, ...], list[Problem]]:
@@ -68,7 +108,7 @@ def parse_blocks(
     problems: list[Problem] = []
     text: list[str] = []
     text_start = 1
-    fence: str | None = None
+    code = _code_lines(lines)
     index = 0
 
     def problem(code: str, message: str, line: int) -> None:
@@ -91,12 +131,7 @@ def parse_blocks(
         line = _content(raw)
         number = index + 1
         index += 1
-        opens = _FENCE.match(line)
-        if opens is not None and (fence is None or fence == opens.group(1)):
-            fence = opens.group(1) if fence is None else None
-            keep(raw, number)
-            continue
-        if fence is not None:
+        if code[number - 1]:
             keep(raw, number)
             continue
         if _MARKDOC.match(line):
@@ -115,16 +150,28 @@ def parse_blocks(
         name, argument = opened.group(1), (opened.group(2) or "").strip()
         flush()
         closing = next(
-            (at for at in range(index, len(lines)) if _CLOSE.match(_content(lines[at]))), None
+            (
+                at
+                for at in range(index, len(lines))
+                if not code[at] and _CLOSE.match(_content(lines[at]))
+            ),
+            None,
         )
         if closing is None:
             problem("CS0408", f":::{{{name}}} is never closed with :::", number)
             return tuple(blocks), tuple(starts), problems
         inner = lines[index:closing]
         index = closing + 1
-        nested = next((at for at, each in enumerate(inner) if _OPEN.match(_content(each))), None)
+        nested = next(
+            (
+                at
+                for at, each in enumerate(inner, start=closing - len(inner))
+                if not code[at] and _OPEN.match(_content(each))
+            ),
+            None,
+        )
         if nested is not None:
-            problem("CS0406", "a directive cannot hold another directive", number + 1 + nested)
+            problem("CS0406", "a directive cannot hold another directive", nested + 1)
             continue
         if inner and _OPTION.match(_content(inner[0])):
             problem("CS0407", f":::{{{name}}} takes no options", number + 1)
@@ -159,6 +206,9 @@ def parse_blocks(
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
     flush()
+    if not problems and (written := write_blocks(blocks)) != body:
+        at, said = _first_difference(body, written)
+        problem("CS0415", said, at)
     return tuple(blocks), tuple(starts), problems
 
 

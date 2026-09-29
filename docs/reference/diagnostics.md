@@ -748,6 +748,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** The body moved from Markdoc-style `{% %}` markers to MyST fences in M4.1.2, as R1 chose; an old line is refused with a pointer rather than drawn as braces (spec M4B.2).
 
+#### CS0415 — a body its blocks would not write back unchanged
+
+*Refuses.*
+
+**Fix.** Write directive lines exactly as `:::{name} argument` and `:::`, with no extra spaces, nothing between a try's two lines, one line ending throughout, and a line ending after the last `:::`.
+
+**Why.** Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have

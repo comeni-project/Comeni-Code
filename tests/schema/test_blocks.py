@@ -93,3 +93,70 @@ def test_the_old_marker_points_at_the_new_one() -> None:
     assert problems[0].message == (
         "{% try base-pairing %} is written :::{try} base-pairing then ::: on the next line"
     )
+
+
+# Checkpoint review of M4.1.2: code fences follow CommonMark, callouts included.
+
+
+def test_a_fenced_close_inside_a_callout_does_not_close_it() -> None:
+    body = ":::{caveat} T\n```\n:::\n```\n:::\n"
+    blocks, _, problems = parse(body)
+    assert (blocks, problems) == ((Callout("caveat", "T", "```\n:::\n```\n"),), [])
+
+
+def test_a_fenced_directive_inside_a_callout_is_not_nested() -> None:
+    body = ":::{caveat} T\n```\n:::{try} x\n```\n:::\n"
+    blocks, _, problems = parse(body)
+    assert (blocks, problems) == ((Callout("caveat", "T", "```\n:::{try} x\n```\n"),), [])
+
+
+def test_an_unclosed_fence_inside_a_callout_leaves_it_unclosed() -> None:
+    _, _, problems = parse(":::{caveat} T\n```\n:::\n")
+    assert [problem.code for problem in problems] == ["CS0408"]
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "````\n```\n:::{try} x\n:::\n````\n",  # a shorter fence does not close a longer one
+        "```py\nx\n```py\n:::{try} y\n:::\n",  # a fence with an info string never closes one
+        "~~~\n```\n:::{try} x\n:::\n~~~\n",  # nor does the other character
+    ],
+)
+def test_a_directive_stays_text_until_its_fence_really_closes(body: str) -> None:
+    blocks, _, problems = parse(body)
+    assert (blocks, problems) == ((Text(body),), [])
+
+
+def test_a_line_indented_four_spaces_opens_no_fence() -> None:
+    blocks, _, problems = parse("    ```\n:::{try} y\n:::\n")
+    assert (blocks, problems) == ((Text("    ```\n"), Try("y")), [])
+
+
+# Checkpoint review of M4.1.2: a body is accepted only if its blocks write it back unchanged.
+
+
+@pytest.mark.parametrize(
+    ("body", "line"),
+    [
+        (":::{try} x  \n:::\n", 1),
+        (":::{try} x\n:::  \n", 2),
+        (":::{caveat} T  \nm\n:::\n", 1),
+        (":::{caveat}  T\nm\n:::\n", 1),
+        (":::{try} x\n\n:::\n", 2),
+        ("A\n:::{try} x\n:::", 3),
+        (":::{caveat} T\nm\n:::", 3),
+        (":::{try} x\r\n:::\r\n", 1),
+        ("A\n:::{try} x\r\n:::\r\nB\n", 2),
+    ],
+)
+def test_a_body_its_blocks_would_not_write_back_is_refused(body: str, line: int) -> None:
+    blocks, _, problems = parse(body)
+    assert [(problem.code, problem.line) for problem in problems] == [("CS0415", line)]
+
+
+def test_every_accepted_body_writes_back_unchanged() -> None:
+    for body in (BODY, BODY.replace("\n", "\r\n"), ":::{caveat}\nm\n:::\n", "no newline"):
+        blocks, _, problems = parse(body)
+        assert problems == []
+        assert write_blocks(blocks) == body
