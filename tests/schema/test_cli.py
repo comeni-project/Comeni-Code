@@ -56,7 +56,9 @@ def test_a_folder_named_like_another_nodes_prefix_is_not_counted_twice(
 
 def test_a_missing_root_exits_2(tmp_path: Path, capsys: Captured) -> None:
     assert main(["validate", str(tmp_path / "nowhere")]) == 2
-    assert capsys.readouterr().err == f"code-schema: no such folder: {tmp_path / 'nowhere'}\n"
+    assert (
+        capsys.readouterr().err == f"code-schema: CS0701 no such folder: {tmp_path / 'nowhere'}\n"
+    )
 
 
 def test_github_format_prints_workflow_commands(tmp_path: Path, capsys: Captured) -> None:

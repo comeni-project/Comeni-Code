@@ -71,7 +71,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     root: Path = arguments.root
     if not root.is_dir():
-        print(f"code-schema: no such folder: {root}", file=sys.stderr)
+        print(f"code-schema: CS0701 no such folder: {root}", file=sys.stderr)
         return 2
     content = read_content(root)
     for problem in content.problems:

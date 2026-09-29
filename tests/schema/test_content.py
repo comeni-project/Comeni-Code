@@ -40,7 +40,7 @@ def test_an_id_is_unique_across_the_tree(tmp_path: Path) -> None:
     make_node(root, "sequence-analysis/salmon")
     make_node(root, "tools/salmon")
     assert rendered(root) == [
-        "tools/salmon/: salmon is already a node at sequence-analysis/salmon/ "
+        "tools/salmon/: CS0705 salmon is already a node at sequence-analysis/salmon/ "
         "— ids are unique across the tree"
     ]
 
@@ -49,21 +49,23 @@ def test_a_near_miss_of_node_yaml_is_caught(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "salmon").mkdir()
     (root / "salmon" / "node.yml").write_text(node_yaml(), encoding="utf-8")
-    assert rendered(root) == ["salmon/: node.yml is not read — did you mean node.yaml?"]
+    assert rendered(root) == ["salmon/: CS0703 node.yml is not read — did you mean node.yaml?"]
 
 
 def test_a_body_without_node_yaml_is_caught(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "salmon").mkdir()
     (root / "salmon" / "body.md").write_text("A body.\n", encoding="utf-8")
-    assert rendered(root) == ["salmon/: has body.md but no node.yaml — a node folder holds both"]
+    assert rendered(root) == [
+        "salmon/: CS0702 has body.md but no node.yaml — a node folder holds both"
+    ]
 
 
 def test_the_content_root_is_not_a_node(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "node.yaml").write_text(node_yaml(), encoding="utf-8")
     assert rendered(root) == [
-        "node.yaml: the content root is not a node — node folders go inside it"
+        "node.yaml: CS0704 the content root is not a node — node folders go inside it"
     ]
 
 

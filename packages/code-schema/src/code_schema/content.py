@@ -52,13 +52,18 @@ def _near_misses(root: Path, node_folders: list[Path]) -> list[Problem]:
             problems.append(
                 Problem(
                     file=where,
+                    code="CS0702",
                     message=f"has {BODY_FILE} but no {NODE_FILE} — a node folder holds both",
                 )
             )
         for name in names:
             if difflib.get_close_matches(name, [NODE_FILE], n=1, cutoff=0.8):
                 problems.append(
-                    Problem(file=where, message=f"{name} is not read — did you mean {NODE_FILE}?")
+                    Problem(
+                        file=where,
+                        code="CS0703",
+                        message=f"{name} is not read — did you mean {NODE_FILE}?",
+                    )
                 )
     return problems
 
@@ -73,6 +78,7 @@ def read_content(root: Path) -> Content:
         problems.append(
             Problem(
                 file=NODE_FILE,
+                code="CS0704",
                 message="the content root is not a node — node folders go inside it",
             )
         )
@@ -94,6 +100,7 @@ def read_content(root: Path) -> Content:
             problems.append(
                 Problem(
                     file=f"{relative}/",
+                    code="CS0705",
                     message=(
                         f"{folder.name} is already a node at {folders[folder.name]}/ "
                         "— ids are unique across the tree"
