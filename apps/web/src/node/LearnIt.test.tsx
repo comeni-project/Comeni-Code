@@ -77,6 +77,17 @@ describe("Learn it", () => {
     );
   });
 
+  it("offers to watch first only when a video plays in the page (issue 116)", () => {
+    const { unmount } = render(<LearnIt resources={DE_BRUIJN.resources} />);
+    expect(
+      screen.getByText(/^Read our explanation below\. Each outside resource/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/watch first/)).toBeNull();
+    unmount();
+    render(<LearnIt resources={[EMBEDDED, READING]} />);
+    expect(screen.getByText(/^Read our explanation below, or watch first\./)).toBeInTheDocument();
+  });
+
   it("marks a reading shown here when it may be embedded", () => {
     render(<LearnIt resources={[{ ...READING, display: "embed" }]} />);
     expect(screen.getByText("CC BY 4.0 · shown here")).toBeInTheDocument();

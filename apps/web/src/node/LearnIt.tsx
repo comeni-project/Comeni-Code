@@ -111,8 +111,11 @@ export function LearnIt({ resources }: { resources: ResourceOut[] }) {
         Learn it
       </h2>
       <p className="text-[15px] leading-[1.65] text-ink-2">
-        Read our explanation below, or watch first. Each outside resource was picked by a reviewer
-        for the part of this page it covers.
+        {/* Watching is offered only when something plays here (issue 116). */}
+        {played.length > 0
+          ? "Read our explanation below, or watch first."
+          : "Read our explanation below."}{" "}
+        Each outside resource was picked by a reviewer for the part of this page it covers.
       </p>
       {played.map(({ resource, src }) => (
         <Played key={resource.url} resource={resource} src={src} />
