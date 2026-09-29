@@ -29,6 +29,8 @@ class Node(models.Model):
     level = models.TextField(choices=[(level.value, level.value) for level in Level])
     minutes = models.PositiveIntegerField()
     body = models.TextField()
+    # The body as blocks, in order (spec M4B.5): {"kind": "text" | "try" | "callout", ...}.
+    blocks = models.JSONField(default=list)
     # The node's folder, relative to the content root: for "edit on GitHub" later.
     folder = models.TextField()
 

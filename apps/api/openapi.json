@@ -1,6 +1,35 @@
 {
   "components": {
     "schemas": {
+      "CalloutBlockOut": {
+        "properties": {
+          "callout": {
+            "title": "Callout",
+            "type": "string"
+          },
+          "kind": {
+            "const": "callout",
+            "title": "Kind",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "callout",
+          "title",
+          "markdown"
+        ],
+        "title": "CalloutBlockOut",
+        "type": "object"
+      },
       "CheckOut": {
         "properties": {
           "duration_ms": {
@@ -103,9 +132,30 @@
       },
       "NodeOut": {
         "properties": {
-          "body": {
-            "title": "Body",
-            "type": "string"
+          "blocks": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "callout": "#/components/schemas/CalloutBlockOut",
+                  "text": "#/components/schemas/TextBlockOut",
+                  "try": "#/components/schemas/TryBlockOut"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/TryBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/CalloutBlockOut"
+                }
+              ]
+            },
+            "title": "Blocks",
+            "type": "array"
           },
           "claim": {
             "title": "Claim",
@@ -184,7 +234,7 @@
           "region",
           "level",
           "minutes",
-          "body",
+          "blocks",
           "folder",
           "needs",
           "goes_deeper",
@@ -602,6 +652,45 @@
           "needed_by"
         ],
         "title": "StopOut",
+        "type": "object"
+      },
+      "TextBlockOut": {
+        "properties": {
+          "kind": {
+            "const": "text",
+            "title": "Kind",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "markdown"
+        ],
+        "title": "TextBlockOut",
+        "type": "object"
+      },
+      "TryBlockOut": {
+        "description": "Where a try question sits; the question itself is in `questions`.",
+        "properties": {
+          "kind": {
+            "const": "try",
+            "title": "Kind",
+            "type": "string"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "question"
+        ],
+        "title": "TryBlockOut",
         "type": "object"
       }
     }
