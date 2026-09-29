@@ -130,18 +130,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = parser.parse_args(argv)
 
     if arguments.command == "find" and not arguments.words.strip():
-        print("code-weaver: a search needs a word", file=sys.stderr)
+        print("code-weaver: CW0101 a search needs a word", file=sys.stderr)
         return 2
 
     root: Path = arguments.root
     if not root.is_dir():
-        print(f"code-weaver: no such folder: {root}", file=sys.stderr)
+        print(f"code-weaver: CW0008 no such folder: {root}", file=sys.stderr)
         return 2
     content = read_content(root)
     if content.problems:
         problems = _plural(len(content.problems), "problem")
         print(
-            f"code-weaver: {problems} in the content; run code-schema validate {root}",
+            f"code-weaver: CW0007 {problems} in the content; run code-schema validate {root}",
             file=sys.stderr,
         )
         return 1
@@ -160,7 +160,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         woven = weave(graph, arguments.goals, known=known)
     except UnknownGoal as unknown:
-        print(f"code-weaver: not in the content: {', '.join(unknown.ids)}", file=sys.stderr)
+        print(
+            f"code-weaver: {unknown.code} not in the content: {', '.join(unknown.ids)}",
+            file=sys.stderr,
+        )
         return 2
     held = {topic for topic in known if topic in content.nodes} - set(woven.goals)
     for line in report(content, woven, len(held)):
