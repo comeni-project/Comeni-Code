@@ -167,7 +167,9 @@ PROVIDERS = {
 
 TAUGHT = replace(
     NODE,
-    body="Salmon reads a transcriptome.\n\n{% try kmer-count %}\n\n{% try node-or-edge %}\n",
+    body=(
+        "Salmon reads a transcriptome.\n\n:::{try} kmer-count\n:::\n\n:::{try} node-or-edge\n:::\n"
+    ),
     resources=(
         Resource(
             kind="video",

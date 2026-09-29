@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
+from code_schema.blocks import Block, Try, parse_blocks
 from code_schema.fields import (
     Spec,
     exactly,
@@ -26,7 +27,6 @@ from code_schema.fields import (
 # Re-exported: every earlier part imports Level from here (M1P1.3).
 from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
-from code_schema.markers import find_markers
 from code_schema.problems import Problem
 from code_schema.providers import Provider
 from code_schema.questions import TRY_FIELD, Question, parse_questions
@@ -52,6 +52,8 @@ class Node:
     related: tuple[Link, ...] = ()
     resources: tuple[Resource, ...] = ()
     questions: tuple[Question, ...] = ()
+    # The body read as blocks (M4.1.2). Derived from body, so equality compares body alone.
+    blocks: tuple[Block, ...] = field(default=(), compare=False)
 
 
 def fields(regions: Collection[str]) -> tuple[Spec, ...]:
@@ -146,10 +148,13 @@ def parse_node(
     if TRY_FIELD in data:
         questions, question_problems = parse_questions(data[TRY_FIELD], lines=lines, file=file)
         problems += question_problems
-    if not question_problems:
-        # A question that did not parse has no marker to check, and one cascade is enough.
-        problems += _marker_problems(
-            body, questions, lines=lines, data=data, file=file, body_file=f"{folder}{BODY_FILE}"
+    body_file = f"{folder}{BODY_FILE}"
+    blocks, starts, block_problems = parse_blocks(body, file=body_file)
+    problems += block_problems
+    if not question_problems and not block_problems:
+        # A question that did not parse has no placement to check, and one cascade is enough.
+        problems += _placement_problems(
+            blocks, starts, questions, lines=lines, data=data, file=file, body_file=body_file
         )
 
     if problems:
@@ -174,6 +179,7 @@ def parse_node(
             level=Level(level),
             minutes=minutes,
             body=body,
+            blocks=blocks,
             needs=links["needs"],
             goes_deeper=links["goes-deeper"],
             related=links["related"],
@@ -184,8 +190,9 @@ def parse_node(
     )
 
 
-def _marker_problems(
-    body: str,
+def _placement_problems(
+    blocks: tuple[Block, ...],
+    starts: tuple[int, ...],
     questions: tuple[Question, ...],
     *,
     lines: Lines,
@@ -193,40 +200,32 @@ def _marker_problems(
     file: str,
     body_file: str,
 ) -> list[Problem]:
-    """A question is asked where its marker is, so the two lists must match exactly (M3P1.3)."""
-    markers, others = find_markers(body)
-    problems = [
-        Problem(
-            file=body_file,
-            line=line,
-            code="CS0402",
-            message=f"{text} is not read — only {{% try %}} markers are, until M6",
-        )
-        for text, line in others
-    ]
-
+    """A question is asked where its `:::{try}` block is, so the two must match exactly (M4B.3)."""
+    problems: list[Problem] = []
     asked = {question.id for question in questions}
     seen: set[str] = set()
-    for marker in markers:
-        if marker.id not in asked:
+    for block, line in zip(blocks, starts, strict=True):
+        if not isinstance(block, Try):
+            continue
+        if block.question not in asked:
             problems.append(
                 Problem(
                     file=body_file,
-                    line=marker.line,
+                    line=line,
                     code="CS0403",
-                    message=f"{{% try {marker.id} %}} names no question in {NODE_FILE}",
+                    message=f"`:::{{try}} {block.question}` names no question in {NODE_FILE}",
                 )
             )
-        elif marker.id in seen:
+        elif block.question in seen:
             problems.append(
                 Problem(
                     file=body_file,
-                    line=marker.line,
+                    line=line,
                     code="CS0404",
-                    message=f"{{% try {marker.id} %}} appears twice in {BODY_FILE}",
+                    message=f"`:::{{try}} {block.question}` appears twice in {BODY_FILE}",
                 )
             )
-        seen.add(marker.id)
+        seen.add(block.question)
 
     entries = data.get(TRY_FIELD)
     written = entries if isinstance(entries, list) else []
@@ -243,7 +242,7 @@ def _marker_problems(
                 field=TRY_FIELD,
                 line=None if entry is None else lines.of(entry, "id"),
                 code="CS0405",
-                message=(f"{question.id} has no {{% try {question.id} %}} in {BODY_FILE}"),
+                message=f"{question.id} has no :::{{try}} {question.id} in {BODY_FILE}",
             )
         )
     return problems

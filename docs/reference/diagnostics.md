@@ -646,6 +646,8 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
+**Retired** 2026-09-29 — the body moved to MyST fences (M4.1.2); a Markdoc-style line is now CS0414
+
 **Fix.** Remove the line, or use a marker the body reads.
 
 **Why.** Markers that are not yet built are refused by name rather than drawn as braces (M3P1.3).

@@ -870,6 +870,7 @@ codes:
     concern: body
     says: a marker line the body does not read
     refuses: true
+    retired: "2026-09-29 — the body moved to MyST fences (M4.1.2); a Markdoc-style line is now CS0414"
     fix: |
       Remove the line, or use a marker the body reads.
     explanation: |

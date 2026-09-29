@@ -7,6 +7,11 @@ Transcript A is 1,000 bases long with 100 reads; B is 2,000 bases with 100 reads
 0.1 and 0.05 reads per base, so A has 666,667 TPM and B has 333,333: A had twice as many
 molecules.
 
+:::{misconception} TPM is not a count of reads
+Equal reads do not mean equal TPM: a transcript twice as long collects about twice the reads from
+the same number of molecules, and TPM divides that length out.
+:::
+
 TPM compares transcripts within a sample. Comparing samples is the job of methods built on counts,
 such as DESeq2.
 

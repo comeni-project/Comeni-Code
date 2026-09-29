@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from code_schema.blocks import Text, Try
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
@@ -298,7 +299,7 @@ TRY = """try:
     rationale: A read of length L has L − k + 1 k-mers.
 """
 
-ASKED = "Prose.\n\n{% try kmer-count %}\n"
+ASKED = "Prose.\n\n:::{try} kmer-count\n:::\n"
 
 
 def parse_with_providers(text: str, body: str = BODY) -> tuple[Node | None, list[Problem]]:
@@ -329,9 +330,9 @@ def test_a_node_without_them_has_empty_tuples() -> None:
 
 
 def test_a_marker_with_no_question_is_a_problem() -> None:
-    _, problems = parse(GOOD, "Prose.\n\n{% try ghost %}\n")
+    _, problems = parse(GOOD, "Prose.\n\n:::{try} ghost\n:::\n")
     assert [(problem.file, problem.line, problem.message) for problem in problems] == [
-        ("salmon/body.md", 3, "{% try ghost %} names no question in node.yaml")
+        ("salmon/body.md", 3, "`:::{try} ghost` names no question in node.yaml")
     ]
     assert [problem.code for problem in problems] == ["CS0403"]
 
@@ -339,26 +340,35 @@ def test_a_marker_with_no_question_is_a_problem() -> None:
 def test_a_question_with_no_marker_is_a_problem() -> None:
     _, problems = parse(GOOD + TRY)
     assert [(problem.file, problem.message) for problem in problems] == [
-        ("salmon/node.yaml", "kmer-count has no {% try kmer-count %} in body.md")
+        ("salmon/node.yaml", "kmer-count has no :::{try} kmer-count in body.md")
     ]
     assert [problem.code for problem in problems] == ["CS0405"]
 
 
 def test_two_markers_for_one_question_is_a_problem() -> None:
-    body = "A.\n\n{% try kmer-count %}\n\nB.\n\n{% try kmer-count %}\n"
+    body = "A.\n\n:::{try} kmer-count\n:::\n\nB.\n\n:::{try} kmer-count\n:::\n"
     _, problems = parse(GOOD + TRY, body)
     assert [(problem.line, problem.message) for problem in problems] == [
-        (7, "{% try kmer-count %} appears twice in body.md")
+        (8, "`:::{try} kmer-count` appears twice in body.md")
     ]
     assert [problem.code for problem in problems] == ["CS0404"]
 
 
-def test_another_marker_is_refused_by_name() -> None:
-    _, problems = parse(GOOD, 'Prose.\n\n{% figure component="x" %}\n')
-    assert [problem.message for problem in problems] == [
-        '{% figure component="x" %} is not read — only {% try %} markers are, until M6'
-    ]
-    assert [problem.code for problem in problems] == ["CS0402"]
+def test_an_old_marker_is_refused_with_a_pointer() -> None:
+    _, problems = parse(GOOD, "Prose.\n\n{% try kmer-count %}\n")
+    assert [(problem.code, problem.line) for problem in problems] == [("CS0414", 3)]
+
+
+def test_a_block_problem_is_reported_by_the_node() -> None:
+    _, problems = parse(GOOD, "Prose.\n\n:::{figure} x\n:::\n")
+    assert [(problem.file, problem.code) for problem in problems] == [("salmon/body.md", "CS0413")]
+
+
+def test_a_node_carries_its_blocks() -> None:
+    node, problems = parse_with_providers(GOOD + TRY, ASKED)
+    assert problems == []
+    assert node is not None
+    assert node.blocks == (Text("Prose.\n\n"), Try("kmer-count"))
 
 
 def test_a_broken_question_does_not_also_report_its_marker() -> None:
