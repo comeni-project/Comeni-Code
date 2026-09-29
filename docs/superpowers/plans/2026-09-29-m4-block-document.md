@@ -1,6 +1,6 @@
 # M4.1.2 — The block document, thin — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** `body.md` is read as typed blocks — `text`, `try`, `callout` — by one parser in
 `code-schema`, and those blocks travel through the index and the node API to the page, which drops
@@ -81,7 +81,7 @@ In `diagnostics.yml`, `CS0400`–`CS0499` (body):
   — the blocks, the line each starts on (1-based, for Task 2's placement messages), and the problems
   (each with `file`, `line`, `code`; `field` None); `write_blocks(blocks: Sequence[Block]) -> str`.
 
-- [ ] **Step 1: Write the failing tests** — `tests/schema/test_blocks.py`:
+- [x] **Step 1: Write the failing tests** — `tests/schema/test_blocks.py`:
 
 ```python
 """A body as typed blocks (spec M4B.2–M4B.4)."""
@@ -180,9 +180,9 @@ def test_the_old_marker_points_at_the_new_one() -> None:
     )
 ```
 
-- [ ] **Step 2: Run** `uv run pytest tests/schema/test_blocks.py -q` — Expected: FAIL, `No module named 'code_schema.blocks'`.
+- [x] **Step 2: Run** `uv run pytest tests/schema/test_blocks.py -q` — Expected: FAIL, `No module named 'code_schema.blocks'`.
 
-- [ ] **Step 3: Write `blocks.py`**
+- [x] **Step 3: Write `blocks.py`**
 
 ```python
 """A node's body as typed blocks (spec M4.1.2, M4B).
@@ -367,13 +367,13 @@ def write_blocks(blocks: Sequence[Block]) -> str:
     return "".join(out)
 ```
 
-- [ ] **Step 4: Declare CS0406–CS0414** in `diagnostics.yml` with the *says* of the table above,
+- [x] **Step 4: Declare CS0406–CS0414** in `diagnostics.yml` with the *says* of the table above,
   `concern: body`, `refuses: true`, a `fix` naming the syntax to write, and an `explanation` citing
   M4B.2–M4B.3.
 
-- [ ] **Step 5: Run** `uv run pytest tests/schema/test_blocks.py tests/schema/test_diagnostics.py -q` — Expected: PASS. (The registry guards in `tests/repo` pass once `blocks.py` writes each code.)
+- [x] **Step 5: Run** `uv run pytest tests/schema/test_blocks.py tests/schema/test_diagnostics.py -q` — Expected: PASS. (The registry guards in `tests/repo` pass once `blocks.py` writes each code.)
 
-- [ ] **Step 6: Commit** — `feat(schema): a body read as text, try and callout blocks — M4.1.2`
+- [x] **Step 6: Commit** — `feat(schema): a body read as text, try and callout blocks — M4.1.2`
 
 ### Task 2: A node carries its blocks; the fixtures move to MyST
 
@@ -387,7 +387,7 @@ def write_blocks(blocks: Sequence[Block]) -> str:
 
 **Interfaces:** Consumes Task 1's `parse_blocks`, `Try`. Produces `Node.blocks: tuple[Block, ...]`.
 
-- [ ] **Step 1: Failing tests** — in `test_node.py`, the marker tests move to fences:
+- [x] **Step 1: Failing tests** — in `test_node.py`, the marker tests move to fences:
   `"Prose.\n\n:::{try} ghost\n:::\n"` → `(CS0403, "`:::{try} ghost` names no question in node.yaml", line 3)`;
   `"A.\n\n:::{try} kmer-count\n:::\n\nB.\n\n:::{try} kmer-count\n:::\n"` → `CS0404` on line 8;
   `GOOD + TRY` with no placement → `CS0405`, message `"kmer-count has no :::{try} kmer-count in body.md"`;
@@ -414,8 +414,8 @@ def test_the_tpm_node_carries_a_misconception() -> None:
     assert [block.kind for block in node.blocks if isinstance(block, Callout)] == ["misconception"]
 ```
 
-- [ ] **Step 2: Run** `uv run pytest tests/schema -q` — Expected: FAIL (no `Node.blocks`; old markers still read).
-- [ ] **Step 3: Implement.** `parse_node` calls `parse_blocks(body, file=body_file)`, adds its problems,
+- [x] **Step 2: Run** `uv run pytest tests/schema -q` — Expected: FAIL (no `Node.blocks`; old markers still read).
+- [x] **Step 3: Implement.** `parse_node` calls `parse_blocks(body, file=body_file)`, adds its problems,
   and passes `blocks` to `Node`. `_placement_problems(blocks, lines, questions, …)` replaces
   `_marker_problems`, with the same three rules and codes, reading placements from `Try` blocks and
   their start lines; messages say `` `:::{try} <id>` names no question in node.yaml ``,
@@ -433,8 +433,8 @@ the same number of molecules, and TPM divides that length out.
 ```
 
   Regenerate the reference page (`uv run code-schema diagnostics --write docs/reference/diagnostics.md`).
-- [ ] **Step 4: Run** `uv run pytest tests -q && uv run code-schema validate tests/fixtures/salmon` — Expected: PASS; `26 nodes, no problems`.
-- [ ] **Step 5: Commit** — `feat(schema): a node carries its blocks; the fixtures use MyST fences — M4.1.2`
+- [x] **Step 4: Run** `uv run pytest tests -q && uv run code-schema validate tests/fixtures/salmon` — Expected: PASS; `26 nodes, no problems`.
+- [x] **Step 5: Commit** — `feat(schema): a node carries its blocks; the fixtures use MyST fences — M4.1.2`
 
 ### Task 3: Blocks in the index and the node API
 
@@ -447,7 +447,7 @@ the same number of molecules, and TPM divides that length out.
 `CalloutBlockOut(kind: Literal["callout"], callout: str, title: str, markdown: str)`; a JSON block is
 the same dict.
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 ```python
 # test_content_index.py
@@ -476,12 +476,12 @@ def test_a_node_serves_its_blocks_and_no_body(client: Client) -> None:
 ```
 
   (Adjust the callout's index to where it falls in `tpm`'s blocks when the fixture is converted.)
-- [ ] **Step 2: Run** `uv run pytest apps/api/tests -q` (Compose's Postgres up) — Expected: FAIL.
-- [ ] **Step 3: Implement** the column and migration (`makemigrations content`), `_node_rows`'
+- [x] **Step 2: Run** `uv run pytest apps/api/tests -q` (Compose's Postgres up) — Expected: FAIL.
+- [x] **Step 3: Implement** the column and migration (`makemigrations content`), `_node_rows`'
   `blocks=[_block_json(block) for block in node.blocks]`, the three `*BlockOut` schemas and
   `blocks=` in the endpoint, removing `body` from `NodeOut`.
-- [ ] **Step 4: Regenerate** `openapi.json` (CLAUDE.md's command); run `uv run pytest apps/api/tests -q` and `makemigrations --check --dry-run` — Expected: PASS, no changes.
-- [ ] **Step 5: Commit** — `feat(api): the index and the node API carry blocks, not the body — M4.1.2`
+- [x] **Step 4: Regenerate** `openapi.json` (CLAUDE.md's command); run `uv run pytest apps/api/tests -q` and `makemigrations --check --dry-run` — Expected: PASS, no changes.
+- [x] **Step 5: Commit** — `feat(api): the index and the node API carry blocks, not the body — M4.1.2`
 
 ### Task 4: The page draws blocks
 
@@ -494,7 +494,7 @@ def test_a_node_serves_its_blocks_and_no_body(client: Client) -> None:
 `TryBlockOut`, `CalloutBlockOut`). Produces `type Block = TextBlockOut | TryBlockOut | CalloutBlockOut`,
 `headingsOf(blocks: Block[])`, `splitReading(blocks: Block[]): { blocks: Block[]; reading: string }`.
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 ```ts
 // body.test.ts
@@ -533,23 +533,33 @@ it("draws a callout with its kind and title", () => {
 
   and in `NodePage.test.tsx` / `FirstSteps.test.tsx`, the existing body tests build `blocks` instead
   of `body`, plus: *a text block that is only blank lines draws nothing*.
-- [ ] **Step 2: Run** in `apps/web` on Node 24 `npx vitest run src/node` — Expected: FAIL.
-- [ ] **Step 3: Implement** — `npm run api-types`; `Body` maps `blocks` (text → `Markdown`, skipping
+- [x] **Step 2: Run** in `apps/web` on Node 24 `npx vitest run src/node` — Expected: FAIL.
+- [x] **Step 3: Implement** — `npm run api-types`; `Body` maps `blocks` (text → `Markdown`, skipping
   blank; try → `TryQuestion`; callout → `Callout`); `Callout.tsx` is a `role="note"` `aside` with an
   accessible name `"<Kind>: <title>"`, a small kind label, the title, and the markdown through the
   same `Markdown` components, in the Learn it card's panel classes (`rounded-xl border border-border
   bg-surface px-4 py-3.5`), no new colour; `NodePage` and `FirstSteps` pass `node.blocks`; capture
   the two node fixtures again from the audit stack.
-- [ ] **Step 4: Run** `npm run lint && npm run typecheck && npm test && npm run build` — Expected: PASS.
-- [ ] **Step 5: Commit** — `feat(web): the node pages draw blocks, and a callout — M4.1.2`
+- [x] **Step 4: Run** `npm run lint && npm run typecheck && npm test && npm run build` — Expected: PASS.
+- [x] **Step 5: Commit** — `feat(web): the node pages draw blocks, and a callout — M4.1.2`
 
 ### Task 5: Walk it, and close
 
-- [ ] Rebuild the audit stack's web image and index; walk `/node/de-bruijn-graphs?goal=salmon`,
+- [x] Rebuild the audit stack's web image and index; walk `/node/de-bruijn-graphs?goal=salmon`,
   `/node/dna-and-genes?goal=salmon` and `/node/tpm?goal=salmon` at 1440 light and dark and 360: the
   pages look as before; the callout draws. Record what was seen on #129.
-- [ ] Journal entry; tick this plan with its execution record; PR `Closes #129`; ask before merging.
+- [x] Journal entry; tick this plan with its execution record; PR `Closes #129`; ask before merging.
 
 ## Execution record
 
-(Filled in as tasks complete.)
+Executed inline on 2026-09-29, with a fresh reviewer after Task 2 and at the end.
+
+- Task 1: blocks, `parse_blocks`, `write_blocks`, CS0406–CS0414 — `d128f8f`.
+- Task 2: `Node.blocks`, the fixtures in fences, `markers.py` removed — `51310f4`.
+- Checkpoint review (Tasks 1–2): three Important findings fixed test-first in `868eba3` (fences by
+  CommonMark's rules, callouts included; CS0415 for a body that would not write back unchanged);
+  seven minors deferred, listed in the PR.
+- Task 3: the index's blocks column and the node API — `2d914bd`.
+- Task 4: the web draws blocks, `Callout.tsx`, `prose.tsx` — `332b6a4`.
+- Task 5: walked in Chrome on the audit stack (tpm at 1440 light and dark and at 360; de Bruijn
+  graphs and DNA and genes at 1440); recorded on #129.
