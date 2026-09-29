@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from code_schema.fields import one_line, shown, slug
+from code_schema.fields import Wrong, one_line, shown, slug
 from code_schema.problems import Problem
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -26,14 +26,22 @@ class Region:
 
 
 def _entry_problem(
-    entry: dict[object, object], key: str, check_result: str | None, lines: Lines, file: str
+    entry: dict[object, object], key: str, check_result: Wrong | None, lines: Lines, file: str
 ) -> Problem | None:
     if key not in entry:
         # A missing key has no line of its own; the entry's first line is the nearest place.
         line = next(iter(lines.of(entry, str(k)) for k in entry), None)
-        return Problem(file=file, field=key, line=line, message="required field is missing")
+        return Problem(
+            file=file, field=key, line=line, code="CS0605", message="required field is missing"
+        )
     if check_result is not None:
-        return Problem(file=file, field=key, line=lines.of(entry, key), message=check_result)
+        return Problem(
+            file=file,
+            field=key,
+            line=lines.of(entry, key),
+            code=check_result.code,
+            message=check_result.message,
+        )
     return None
 
 
@@ -49,6 +57,7 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
                 file=file,
                 field="regions",
                 line=lines.get("regions"),
+                code="CS0602",
                 message="must be a list of regions",
             )
         ]
@@ -57,7 +66,12 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
     for entry in listed:
         if not isinstance(entry, dict):
             problems.append(
-                Problem(file=file, field="regions", message=f"{shown(entry)} is not a region")
+                Problem(
+                    file=file,
+                    field="regions",
+                    code="CS0603",
+                    message=f"{shown(entry)} is not a region",
+                )
             )
             continue
         identifier, name = entry.get("id"), entry.get("name")
@@ -80,6 +94,7 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
                     file=file,
                     field="id",
                     line=lines.of(entry, "id"),
+                    code="CS0604",
                     message=f"{shown(identifier)} is listed twice",
                 )
             )
@@ -91,5 +106,5 @@ def parse_regions(text: str, *, file: str = REGISTRY) -> tuple[dict[str, Region]
 def read_regions(root: Path) -> tuple[dict[str, Region], list[Problem]]:
     path = root / REGISTRY
     if not path.is_file():
-        return {}, [Problem(file=REGISTRY, message="the file is missing")]
+        return {}, [Problem(file=REGISTRY, code="CS0601", message="the file is missing")]
     return parse_regions(path.read_text(encoding="utf-8"))

@@ -32,7 +32,7 @@ def test_nodes_are_found_at_any_depth_and_hidden_folders_are_skipped(tmp_path: P
 
 
 def test_regions_yaml_is_required(tmp_path: Path) -> None:
-    assert rendered(tmp_path) == ["regions.yaml: the file is missing"]
+    assert rendered(tmp_path) == ["regions.yaml: CS0601 the file is missing"]
 
 
 def test_an_id_is_unique_across_the_tree(tmp_path: Path) -> None:
@@ -40,7 +40,7 @@ def test_an_id_is_unique_across_the_tree(tmp_path: Path) -> None:
     make_node(root, "sequence-analysis/salmon")
     make_node(root, "tools/salmon")
     assert rendered(root) == [
-        "tools/salmon/: salmon is already a node at sequence-analysis/salmon/ "
+        "tools/salmon/: CS0705 salmon is already a node at sequence-analysis/salmon/ "
         "— ids are unique across the tree"
     ]
 
@@ -49,21 +49,23 @@ def test_a_near_miss_of_node_yaml_is_caught(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "salmon").mkdir()
     (root / "salmon" / "node.yml").write_text(node_yaml(), encoding="utf-8")
-    assert rendered(root) == ["salmon/: node.yml is not read — did you mean node.yaml?"]
+    assert rendered(root) == ["salmon/: CS0703 node.yml is not read — did you mean node.yaml?"]
 
 
 def test_a_body_without_node_yaml_is_caught(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "salmon").mkdir()
     (root / "salmon" / "body.md").write_text("A body.\n", encoding="utf-8")
-    assert rendered(root) == ["salmon/: has body.md but no node.yaml — a node folder holds both"]
+    assert rendered(root) == [
+        "salmon/: CS0702 has body.md but no node.yaml — a node folder holds both"
+    ]
 
 
 def test_the_content_root_is_not_a_node(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "node.yaml").write_text(node_yaml(), encoding="utf-8")
     assert rendered(root) == [
-        "node.yaml: the content root is not a node — node folders go inside it"
+        "node.yaml: CS0704 the content root is not a node — node folders go inside it"
     ]
 
 
@@ -85,7 +87,7 @@ def test_node_problems_are_collected_with_paths_from_the_root(tmp_path: Path) ->
     root = content_root(tmp_path)
     make_node(root, "sequence-analysis/salmon", level="expert")
     assert rendered(root) == [
-        'sequence-analysis/salmon/node.yaml:5: level: "expert" is not a level '
+        'sequence-analysis/salmon/node.yaml:5: level: CS0012 "expert" is not a level '
         "(first-steps, foundations, introductory, intermediate, advanced)"
     ]
 
@@ -105,7 +107,7 @@ def test_a_resource_without_a_registry_is_a_problem(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     make_node(root, "salmon", links=RESOURCE)
     assert rendered(root) == [
-        "providers.yaml: the file is missing, and salmon/node.yaml cites a provider"
+        "providers.yaml: CS0612 the file is missing, and salmon/node.yaml cites a provider"
     ]
 
 
@@ -122,7 +124,7 @@ def test_a_provider_the_registry_does_not_list_is_named(tmp_path: Path) -> None:
     root = with_providers(content_root(tmp_path))
     make_node(root, "salmon", links=RESOURCE.replace("khan-academy", "khan-acadmy"))
     assert rendered(root) == [
-        "salmon/node.yaml:9: resources: khan-acadmy is not a provider in providers.yaml "
+        "salmon/node.yaml:9: resources: CS0201 khan-acadmy is not a provider in providers.yaml "
         "— did you mean khan-academy?"
     ]
 
@@ -131,7 +133,7 @@ def test_a_broken_registry_is_reported_once(tmp_path: Path) -> None:
     root = content_root(tmp_path)
     (root / "providers.yaml").write_text("providers: khan-academy\n", encoding="utf-8")
     make_node(root, "salmon")
-    assert rendered(root) == ["providers.yaml:1: providers: must be a list of providers"]
+    assert rendered(root) == ["providers.yaml:1: providers: CS0606 must be a list of providers"]
 
 
 def test_the_provider_registry_itself_is_not_a_near_miss(tmp_path: Path) -> None:

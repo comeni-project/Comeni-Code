@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import pytest
+
 from code_schema.problems import Problem
 from code_schema.providers import Provider
 from code_schema.resources import parse_resources
@@ -49,6 +51,10 @@ def messages(problems: list[Problem]) -> list[str]:
     return [problem.message for problem in problems]
 
 
+def codes(problems: list[Problem]) -> list[str | None]:
+    return [problem.code for problem in problems]
+
+
 def test_a_video_resource_is_read() -> None:
     resources, problems = parse(VIDEO)
     assert problems == []
@@ -72,6 +78,7 @@ def test_an_unknown_provider_suggests_the_closest() -> None:
     assert messages(problems) == [
         "khan-acadmy is not a provider in providers.yaml — did you mean khan-academy?"
     ]
+    assert codes(problems) == ["CS0201"]
 
 
 def test_a_licence_the_provider_does_not_list_is_a_problem() -> None:
@@ -80,6 +87,7 @@ def test_a_licence_the_provider_does_not_list_is_a_problem() -> None:
         "the resource from Khan Academy carries CC BY-NC-SA, which Khan Academy does not list"
     ]
     assert problems[0].line == 7
+    assert codes(problems) == ["CS0202"]
 
 
 def test_an_embed_a_provider_does_not_allow_is_a_problem() -> None:
@@ -87,11 +95,13 @@ def test_an_embed_a_provider_does_not_allow_is_a_problem() -> None:
     assert messages(problems) == [
         "the resource from OpenStax asks for an embed it does not allow — use display: link"
     ]
+    assert codes(problems) == ["CS0203"]
 
 
 def test_a_reversed_timestamp_range_is_a_problem() -> None:
     _, problems = parse(VIDEO.replace("part: 2:10–7:45", "part: 7:45–2:10"))
     assert messages(problems) == ["the part 7:45–2:10 ends before it starts"]
+    assert codes(problems) == ["CS0212"]
 
 
 def test_a_video_part_that_is_not_a_range_is_a_problem() -> None:
@@ -99,6 +109,7 @@ def test_a_video_part_that_is_not_a_range_is_a_problem() -> None:
     assert messages(problems) == [
         'the part of a video is a timestamp range, such as 2:10–7:45, not "the middle"'
     ]
+    assert codes(problems) == ["CS0211"]
 
 
 def test_an_hour_long_range_is_read() -> None:
@@ -128,6 +139,7 @@ def test_a_part_is_optional() -> None:
 def test_the_same_url_twice_in_one_node_is_a_problem() -> None:
     _, problems = parse(VIDEO + VIDEO.split("\n", 1)[1])
     assert messages(problems) == ["https://www.youtube.com/watch?v=abc is cited twice in this node"]
+    assert codes(problems) == ["CS0218"]
 
 
 def test_an_unknown_key_is_a_problem() -> None:
@@ -136,6 +148,7 @@ def test_an_unknown_key_is_a_problem() -> None:
         "unknown key `note` in a resource "
         "(kind, provider, url, video, part, covers, licence, display, level)"
     ]
+    assert codes(problems) == ["CS0207"]
 
 
 def test_every_required_field_is_named_when_missing() -> None:
@@ -148,11 +161,13 @@ def test_every_required_field_is_named_when_missing() -> None:
         "a resource has no display",
         "a resource has no level",
     ]
+    assert codes(problems) == ["CS0208", "CS0208", "CS0208", "CS0208", "CS0208", "CS0208"]
 
 
 def test_a_url_must_be_https() -> None:
     _, problems = parse(VIDEO.replace("https://", "http://"))
     assert messages(problems) == ["the url must start with https://"]
+    assert codes(problems) == ["CS0018"]
 
 
 def test_a_kind_must_be_one_of_the_four() -> None:
@@ -160,31 +175,37 @@ def test_a_kind_must_be_one_of_the_four() -> None:
     assert messages(problems) == [
         '"podcast" is not a kind of resource (video, reading, tutorial, exercise)'
     ]
+    assert codes(problems) == ["CS0012"]
 
 
 def test_a_display_must_be_embed_or_link() -> None:
     _, problems = parse(VIDEO.replace("display: embed", "display: inline"))
     assert messages(problems) == ['"inline" is not a display (embed, link)']
+    assert codes(problems) == ["CS0012"]
 
 
 def test_covers_is_one_sentence() -> None:
     _, problems = parse(VIDEO.replace("their k-mers.", "their k-mers"))
     assert messages(problems) == ["what this resource covers must end with . ? or !"]
+    assert codes(problems) == ["CS0011"]
 
 
 def test_the_list_must_be_a_list() -> None:
     _, problems = parse("resources: a video\n")
     assert messages(problems) == ["must be a list of resources"]
+    assert codes(problems) == ["CS0205"]
 
 
 def test_an_empty_list_is_written_by_leaving_the_field_out() -> None:
     _, problems = parse("resources: []\n")
     assert messages(problems) == ["an empty list is written by leaving the field out"]
+    assert codes(problems) == ["CS0019"]
 
 
 def test_without_a_registry_the_other_rules_still_run() -> None:
     _, problems = parse(VIDEO.replace("https://", "ftp://"), providers=None)
     assert messages(problems) == ["the url must start with https://"]
+    assert codes(problems) == ["CS0018"]
 
 
 def test_without_a_registry_no_provider_is_unknown() -> None:
@@ -212,6 +233,7 @@ def test_an_embedded_video_without_its_video_is_a_problem() -> None:
         "an embedded video names the video it plays, such as video: youtube:<id>"
     ]
     assert problems[0].line == 8
+    assert codes(problems) == ["CS0217"]
 
 
 def test_a_linked_video_needs_no_video() -> None:
@@ -224,6 +246,7 @@ def test_only_a_video_names_a_video() -> None:
     _, problems = parse(VIDEO + READING + "    video: youtube:Jnk_4Maf5Fk\n")
     assert messages(problems) == ["only a video names a video to play"]
     assert problems[0].line == 19
+    assert codes(problems) == ["CS0216"]
 
 
 def test_a_video_is_written_player_colon_id() -> None:
@@ -232,16 +255,19 @@ def test_a_video_is_written_player_colon_id() -> None:
         'a video is written player:id, such as youtube:Jnk_4Maf5Fk, not "Jnk_4Maf5Fk"'
     ]
     assert problems[0].line == 10
+    assert codes(problems) == ["CS0213"]
 
 
 def test_an_unknown_player_is_a_problem() -> None:
     _, problems = parse(VIDEO.replace("youtube:Jnk_4Maf5Fk", "vimeo:123"))
     assert messages(problems) == ["vimeo is not a player (youtube)"]
+    assert codes(problems) == ["CS0214"]
 
 
 def test_a_malformed_id_is_a_problem() -> None:
     _, problems = parse(VIDEO.replace("youtube:Jnk_4Maf5Fk", "youtube:short"))
     assert messages(problems) == ["short is not a youtube video id"]
+    assert codes(problems) == ["CS0215"]
 
 
 def test_a_player_the_provider_does_not_list_is_a_problem() -> None:
@@ -252,3 +278,38 @@ def test_a_player_the_provider_does_not_list_is_a_problem() -> None:
     _, problems = parse(VIDEO, providers=providers)
     assert messages(problems) == ["Khan Academy is not embedded through youtube"]
     assert problems[0].line == 10
+    assert codes(problems) == ["CS0204"]
+
+
+def test_a_composed_message_keeps_the_code_of_the_check_that_failed() -> None:
+    empty = VIDEO.replace(
+        "covers: Why overlapping reads are assembled through their k-mers.", 'covers: ""'
+    )
+    _, problems = parse(empty)
+    assert [(problem.code, problem.message) for problem in problems] == [
+        ("CS0008", "what this resource covers must not be empty")
+    ]
+
+
+# Checkpoint 2 (M4.1.1): the resource codes no other test names, and "the part …" composed.
+@pytest.mark.parametrize(
+    ("text", "code", "said"),
+    [
+        ("resources:\n  - just text\n", "CS0206", '"just text" is not a resource'),
+        (
+            VIDEO.replace("provider: khan-academy", "provider: 7"),
+            "CS0209",
+            "7 is not a provider id",
+        ),
+        (
+            "resources:\n" + READING.replace("part: §17.1", 'part: ""'),
+            "CS0008",
+            "the part must not be empty",
+        ),
+    ],
+)
+def test_each_resource_code_labels_its_message(text: str, code: str, said: str) -> None:
+    _, problems = parse(text)
+    assert any(problem.code == code and said in problem.message for problem in problems), [
+        (problem.code, problem.message) for problem in problems
+    ]

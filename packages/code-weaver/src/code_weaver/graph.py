@@ -8,7 +8,14 @@ from dataclasses import dataclass
 
 
 class GraphError(ValueError):
-    """The graph is wrong. The message lists every problem, one per line, in a fixed order."""
+    """The graph is wrong. Every problem, as (code, message), in a fixed order; printed one per
+    line as `CODE message`. The codes are CW codes declared in code-schema's registry (spec M4D.4);
+    they are written here as literals so the weaver imports nothing outside the standard library.
+    """
+
+    def __init__(self, problems: Sequence[tuple[str, str]]) -> None:
+        self.problems = tuple(problems)
+        super().__init__("\n".join(f"{code} {message}" for code, message in self.problems))
 
 
 @dataclass(frozen=True)
@@ -32,35 +39,35 @@ class Graph:
         self, topics: Iterable[Topic], regions: Sequence[str], levels: Sequence[str]
     ) -> None:
         by_id: dict[str, Topic] = {}
-        duplicates: list[str] = []
+        duplicates: list[tuple[str, str]] = []
         for topic in topics:
             if topic.id in by_id:
-                duplicates.append(f"duplicate id: {topic.id}")
+                duplicates.append(("CW0001", f"duplicate id: {topic.id}"))
             else:
                 by_id[topic.id] = topic
         known = set(regions)
         problems = duplicates
         problems += [
-            f"{t.id}: region {t.region} is not in the region list"
+            ("CW0002", f"{t.id}: region {t.region} is not in the region list")
             for t in by_id.values()
             if t.region not in known
         ]
         known_levels = set(levels)
         problems += [
-            f"{t.id}: level {t.level} is not in the level list"
+            ("CW0003", f"{t.id}: level {t.level} is not in the level list")
             for t in by_id.values()
             if t.level not in known_levels
         ]
         problems += [
-            f"{t.id}: needs {need.node}, which is not in the graph"
+            ("CW0004", f"{t.id}: needs {need.node}, which is not in the graph")
             for t in by_id.values()
             for need in t.needs
             if need.node not in by_id
         ]
         edges = {t.id: [n.node for n in t.needs if n.node in by_id] for t in by_id.values()}
-        problems += [f"needs cycle: {' → '.join(ring)}" for ring in _rings(edges)]
+        problems += [("CW0005", f"needs cycle: {' → '.join(ring)}") for ring in _rings(edges)]
         if problems:
-            raise GraphError("\n".join(problems))
+            raise GraphError(problems)
         self.topics: Mapping[str, Topic] = by_id
         self.regions: tuple[str, ...] = tuple(regions)
         self.levels: tuple[str, ...] = tuple(levels)

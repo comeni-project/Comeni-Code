@@ -45,21 +45,21 @@ def test_the_line_of_each_link_is_returned() -> None:
 def test_the_field_must_be_a_list() -> None:
     _, problems = run("needs: k-mers\n")
     assert problems == [
-        "salmon/node.yaml:1: needs: must be a list of links, each with a node and a reason"
+        "salmon/node.yaml:1: needs: CS0101 must be a list of links, each with a node and a reason"
     ]
 
 
 def test_an_empty_list_is_written_by_leaving_the_field_out() -> None:
     _, problems = run("needs: []\n")
     assert problems == [
-        "salmon/node.yaml:1: needs: an empty list is written by leaving the field out"
+        "salmon/node.yaml:1: needs: CS0019 an empty list is written by leaving the field out"
     ]
 
 
 def test_an_entry_must_be_a_mapping() -> None:
     _, problems = run("needs:\n  - k-mers\n")
     assert problems == [
-        'salmon/node.yaml:1: needs: "k-mers" is not a link — '
+        'salmon/node.yaml:1: needs: CS0102 "k-mers" is not a link — '
         "write node: and reason: on separate lines"
     ]
 
@@ -67,48 +67,50 @@ def test_an_entry_must_be_a_mapping() -> None:
 def test_an_unknown_key_in_a_link_names_its_line() -> None:
     _, problems = run("needs:\n  - node: k-mers\n    reason: Salmon indexes k-mers.\n    why: x\n")
     assert problems == [
-        "salmon/node.yaml:4: needs: unknown key `why` in a link (a link has node and reason)"
+        "salmon/node.yaml:4: needs: CS0103 unknown key `why` in a link (a link has node and reason)"
     ]
 
 
 def test_a_link_needs_a_node() -> None:
     _, problems = run("needs:\n  - reason: Salmon indexes k-mers.\n")
-    assert problems == ["salmon/node.yaml:2: needs: a link has no node"]
+    assert problems == ["salmon/node.yaml:2: needs: CS0104 a link has no node"]
 
 
 def test_the_node_is_a_slug() -> None:
     _, problems = run("needs:\n  - node: K-mers\n    reason: Salmon indexes k-mers.\n")
     assert problems == [
-        'salmon/node.yaml:2: needs: "K-mers" is not a node id '
+        'salmon/node.yaml:2: needs: CS0015 "K-mers" is not a node id '
         "(lower case, digits and single hyphens)"
     ]
 
 
 def test_a_link_needs_a_reason() -> None:
     _, problems = run("needs:\n  - node: k-mers\n")
-    assert problems == ["salmon/node.yaml:2: needs: the link to k-mers has no reason"]
+    assert problems == ["salmon/node.yaml:2: needs: CS0106 the link to k-mers has no reason"]
 
 
 def test_the_reason_is_one_sentence_and_names_its_own_line() -> None:
     _, problems = run(GOOD + "  - node: k-mers\n    reason: Salmon indexes k-mers\n")
-    assert problems == ["salmon/node.yaml:7: needs: the reason for k-mers must end with . ? or !"]
+    assert problems == [
+        "salmon/node.yaml:7: needs: CS0011 the reason for k-mers must end with . ? or !"
+    ]
 
 
 def test_a_reason_that_is_not_text() -> None:
     _, problems = run("needs:\n  - node: k-mers\n    reason: 12\n")
-    assert problems == ["salmon/node.yaml:3: needs: the reason for k-mers is not text"]
+    assert problems == ["salmon/node.yaml:3: needs: CS0007 the reason for k-mers is not text"]
 
 
 def test_a_node_listed_twice_names_the_first_line() -> None:
     _, problems = run(GOOD + "  - node: what-tpm-measures\n    reason: Again.\n")
     assert problems == [
-        "salmon/node.yaml:6: needs: what-tpm-measures is listed twice (first on line 2)"
+        "salmon/node.yaml:6: needs: CS0109 what-tpm-measures is listed twice (first on line 2)"
     ]
 
 
 def test_a_node_does_not_link_to_itself() -> None:
     _, problems = run("related:\n  - node: salmon\n    reason: Itself.\n", kind="related")
-    assert problems == ["salmon/node.yaml:2: related: salmon links to itself"]
+    assert problems == ["salmon/node.yaml:2: related: CS0108 salmon links to itself"]
 
 
 def test_related_holds_at_most_four() -> None:
@@ -117,7 +119,8 @@ def test_related_holds_at_most_four() -> None:
     )
     _, problems = run("related:\n" + peers, kind="related")
     assert problems == [
-        "salmon/node.yaml:10: related: 5 peers, at most 4 — a node with more is probably two nodes"
+        "salmon/node.yaml:10: related: CS0110 5 peers, at most 4 — "
+        "a node with more is probably two nodes"
     ]
 
 

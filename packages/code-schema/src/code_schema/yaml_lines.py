@@ -76,17 +76,27 @@ def load_mapping(text: str, *, file: str) -> tuple[dict[str, object] | None, Lin
         mark = getattr(error, "problem_mark", None)
         detail = getattr(error, "problem", None) or "could not be parsed"
         line = None if mark is None else mark.line + 1
-        return None, Lines(), [Problem(file=file, line=line, message=f"not valid YAML ({detail})")]
+        return (
+            None,
+            Lines(),
+            [Problem(file=file, line=line, code="CS0001", message=f"not valid YAML ({detail})")],
+        )
     finally:
         loader.dispose()
 
     if data is None:
-        return None, loader.lines, [Problem(file=file, message="the file is empty")]
+        return None, loader.lines, [Problem(file=file, code="CS0002", message="the file is empty")]
     if not isinstance(data, dict):
         kind = "a list" if isinstance(data, list) else "a single value"
         return (
             None,
             loader.lines,
-            [Problem(file=file, message=f"the file must be a mapping of fields, not {kind}")],
+            [
+                Problem(
+                    file=file,
+                    code="CS0003",
+                    message=f"the file must be a mapping of fields, not {kind}",
+                )
+            ],
         )
     return data, loader.lines, []

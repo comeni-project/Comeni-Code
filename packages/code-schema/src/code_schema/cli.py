@@ -12,7 +12,9 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from code_schema.content import Content, read_content
+from code_schema.diagnostics import BANDS, DIAGNOSTICS, closest
 from code_schema.problems import Problem
+from code_schema.reference import render
 
 
 def _plural(count: int, noun: str) -> str:
@@ -30,13 +32,15 @@ def _escape_property(text: str) -> str:
 def github_line(problem: Problem) -> str:
     """A GitHub workflow command, so the problem shows on its line of the pull request's diff.
 
-    A problem about a folder has no file to annotate and is printed without properties.
+    A problem about a folder has no file to annotate, so it carries only its code, as the title
+    GitHub shows (spec M4D.4).
     """
     properties: list[str] = []
     if not problem.file.endswith("/"):
         properties.append(f"file={_escape_property(problem.file)}")
         if problem.line is not None:
             properties.append(f"line={problem.line}")
+    properties.append(f"title={problem.code}")
     head = "::error " + ",".join(properties) if properties else "::error"
     return f"{head}::{_escape_data(str(problem))}"
 
@@ -57,6 +61,23 @@ def summary(content: Content) -> str:
     return f"{problems} in {len(affected)} of {nodes}"
 
 
+def explain(code: str) -> int:
+    """Print what a code says, how to fix it and why; 2 when it is not a code (spec M4D.5)."""
+    wanted = code.upper()
+    if wanted not in DIAGNOSTICS:
+        guess = closest(wanted)
+        hint = f" — did you mean {guess}?" if guess else ""
+        print(f"code-schema: {wanted} is not a code{hint}", file=sys.stderr)
+        return 2
+    entry = DIAGNOSTICS[wanted]
+    print(f"{entry.code} — {entry.says}")
+    if entry.retired:
+        print(f"Retired {entry.retired}")
+    print(f"\nFix: {' '.join(entry.fix.split())}")
+    print(f"\nWhy: {' '.join(entry.explanation.split())}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """0 no problems, 1 problems, 2 the command was used wrongly."""
     parser = argparse.ArgumentParser(prog="code-schema", description="Comeni Code's node schema.")
@@ -64,11 +85,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     validate = commands.add_parser("validate", help="check every node in a content folder")
     validate.add_argument("root", type=Path, help="the content root, which holds regions.yaml")
     validate.add_argument("--format", choices=("text", "github"), default="text")
+    explaining = commands.add_parser("explain", help="what a diagnostic code means")
+    explaining.add_argument("code", help="a code such as CS0201")
+    listing = commands.add_parser("diagnostics", help="write the reference page of every code")
+    listing.add_argument("--write", type=Path, required=True, metavar="PATH")
     arguments = parser.parse_args(argv)
+
+    if arguments.command == "explain":
+        return explain(arguments.code)
+    if arguments.command == "diagnostics":
+        arguments.write.write_text(render(DIAGNOSTICS, BANDS), encoding="utf-8")
+        return 0
 
     root: Path = arguments.root
     if not root.is_dir():
-        print(f"code-schema: no such folder: {root}", file=sys.stderr)
+        print(f"code-schema: CS0701 no such folder: {root}", file=sys.stderr)
         return 2
     content = read_content(root)
     for problem in content.problems:

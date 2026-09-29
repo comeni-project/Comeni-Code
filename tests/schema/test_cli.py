@@ -29,7 +29,7 @@ def test_problems_exit_1_are_printed_and_counted(tmp_path: Path, capsys: Capture
     make_node(root, "k-mers", title="K-mers")
     assert main(["validate", str(root)]) == 1
     assert capsys.readouterr().out.splitlines() == [
-        'salmon/node.yaml:5: level: "expert" is not a level '
+        'salmon/node.yaml:5: level: CS0012 "expert" is not a level '
         "(first-steps, foundations, introductory, intermediate, advanced)",
         "1 problem in 1 of 2 nodes",
     ]
@@ -56,7 +56,9 @@ def test_a_folder_named_like_another_nodes_prefix_is_not_counted_twice(
 
 def test_a_missing_root_exits_2(tmp_path: Path, capsys: Captured) -> None:
     assert main(["validate", str(tmp_path / "nowhere")]) == 2
-    assert capsys.readouterr().err == f"code-schema: no such folder: {tmp_path / 'nowhere'}\n"
+    assert (
+        capsys.readouterr().err == f"code-schema: CS0701 no such folder: {tmp_path / 'nowhere'}\n"
+    )
 
 
 def test_github_format_prints_workflow_commands(tmp_path: Path, capsys: Captured) -> None:
@@ -64,22 +66,45 @@ def test_github_format_prints_workflow_commands(tmp_path: Path, capsys: Captured
     make_node(root, "salmon", level="expert")
     assert main(["validate", str(root), "--format", "github"]) == 1
     first = capsys.readouterr().out.splitlines()[0]
-    assert first.startswith("::error file=salmon/node.yaml,line=5::salmon/node.yaml:5: level: ")
+    assert first.startswith(
+        "::error file=salmon/node.yaml,line=5,title=CS0012::salmon/node.yaml:5: level: CS0012 "
+    )
 
 
 def test_github_lines_are_escaped() -> None:
-    problem = Problem(file="a,b/node.yaml", line=3, field="needs", message="50% done\nnext")
+    problem = Problem(
+        file="a,b/node.yaml", line=3, field="needs", code="CS0101", message="50% done\nnext"
+    )
     assert github_line(problem) == (
-        "::error file=a%2Cb/node.yaml,line=3::a,b/node.yaml:3: needs: 50%25 done%0Anext"
+        "::error file=a%2Cb/node.yaml,line=3,title=CS0101::"
+        "a,b/node.yaml:3: needs: CS0101 50%25 done%0Anext"
     )
 
 
 def test_a_folder_problem_has_no_file_property() -> None:
-    assert github_line(Problem(file="salmon/", message="body.md is missing")) == (
-        "::error::salmon/: body.md is missing"
+    assert github_line(Problem(file="salmon/", code="CS0021", message="body.md is missing")) == (
+        "::error title=CS0021::salmon/: CS0021 body.md is missing"
     )
 
 
 def test_a_file_problem_without_a_line_has_no_line_property() -> None:
-    problem = Problem(file="regions.yaml", message="the file is missing")
-    assert github_line(problem) == "::error file=regions.yaml::regions.yaml: the file is missing"
+    problem = Problem(file="regions.yaml", code="CS0601", message="the file is missing")
+    assert github_line(problem) == (
+        "::error file=regions.yaml,title=CS0601::regions.yaml: CS0601 the file is missing"
+    )
+
+
+def test_an_annotation_carries_the_code_as_its_title() -> None:
+    problem = Problem(
+        file="n/node.yaml",
+        line=3,
+        code="CS0005",
+        field="title",
+        message="required field is missing",
+    )
+    assert github_line(problem).startswith("::error file=n/node.yaml,line=3,title=CS0005::")
+
+
+def test_an_annotation_about_a_folder_still_carries_its_code() -> None:
+    problem = Problem(file="n/", code="CS0021", message="node.yaml is missing")
+    assert github_line(problem).startswith("::error title=CS0021::")

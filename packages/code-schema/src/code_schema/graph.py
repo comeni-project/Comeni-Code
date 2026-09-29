@@ -34,11 +34,12 @@ def graph_problems(
     problems: list[Problem] = []
     ids = sorted(folders)
 
-    def at(node: Node, kind: str, target: str, message: str) -> Problem:
+    def at(node: Node, kind: str, target: str, code: str, message: str) -> Problem:
         return Problem(
             file=f"{folders[node.id]}/{NODE_FILE}",
             field=kind,
             line=link_lines.get(node.id, {}).get((kind, target)),
+            code=code,
             message=message,
         )
 
@@ -49,7 +50,7 @@ def graph_problems(
                 message = f"{target} is not a node"
                 if close := difflib.get_close_matches(target, ids, n=1):
                     message += f" — closest is `{close[0]}`"
-                problems.append(at(node, kind, target, message))
+                problems.append(at(node, kind, target, "CS0501", message))
                 continue
             other = nodes.get(target)
             if other is None:
@@ -60,6 +61,7 @@ def graph_problems(
                         node,
                         kind,
                         target,
+                        "CS0502",
                         f"{target} does not list {node.id} back "
                         f"— add it to {folders[target]}/{NODE_FILE}",
                     )
@@ -70,6 +72,7 @@ def graph_problems(
                         node,
                         kind,
                         target,
+                        "CS0503",
                         f"{target} is {other.level.value}, below {node.id} ({node.level.value})",
                     )
                 )
@@ -187,6 +190,7 @@ def _cycles(
                     file=f"{folders[start]}/{NODE_FILE}",
                     field=kind,
                     line=link_lines.get(start, {}).get((kind, ring[1])),
+                    code="CS0504",
                     message=message,
                 )
             )

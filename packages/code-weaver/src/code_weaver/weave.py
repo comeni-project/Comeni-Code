@@ -13,6 +13,8 @@ from code_weaver.graph import Graph
 class UnknownGoal(LookupError):
     """Goal ids that are not in the graph: a bad request, not a bad graph."""
 
+    code = "CW0006"
+
     def __init__(self, ids: Sequence[str]) -> None:
         self.ids = tuple(ids)
         super().__init__(f"not in the graph: {', '.join(self.ids)}")

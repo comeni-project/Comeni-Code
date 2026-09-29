@@ -146,14 +146,15 @@ def test_an_id_not_in_the_index_is_404(client: Client, node_id: str) -> None:
     response = get(client, node_id)
     assert response.status_code == 404
     assert response.json() == {
-        "detail": f"No topic with id '{node_id}'. It may have been removed or renamed."
+        "detail": f"No topic with id '{node_id}'. It may have been removed or renamed.",
+        "code": "CA0002",
     }
 
 
 def test_no_index_yet_is_503(client: Client) -> None:
     response = get(client, "salmon")
     assert response.status_code == 503
-    assert response.json() == {"detail": "The index has not been built yet."}
+    assert response.json() == {"detail": "The index has not been built yet.", "code": "CA0001"}
 
 
 def test_refused_builds_are_no_index(client: Client, tmp_path: Path) -> None:

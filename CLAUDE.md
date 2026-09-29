@@ -53,6 +53,8 @@ uv run pytest                       # all tests
 uv run code-schema validate ../comeni-code-content   # the node format, as content CI checks it
 uv run code-weaver route salmon --root tests/fixtures/salmon   # weave a route; exit 0/1/2
 uv run code-weaver find "why my reads don't map" --root tests/fixtures/salmon   # the candidates a goal is picked from
+uv run code-schema explain CS0201   # what a diagnostic code means, how to fix it, and why
+uv run code-schema diagnostics --write docs/reference/diagnostics.md   # after editing diagnostics.yml
 ```
 
 **Web commands** (in `apps/web`, on Node 24):

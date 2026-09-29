@@ -24,7 +24,7 @@ OPTIONS = (2, 5)
 
 _KEYS = ("id", "kind", "ask", "options", "answer", "unit", "tolerance", "hints", "rationale")
 _OPTION_KEYS = ("text", "right")
-_LATER_KINDS = {"figure": "a figure question arrives with figures in M6"}
+_LATER_KINDS = {"figure": ("CS0306", "a figure question arrives with figures in M6")}
 
 _id = slug(noun="question id")
 _kind = one_of(KINDS, noun="kind of question")
@@ -78,32 +78,37 @@ def _parse_options(
 ) -> tuple[tuple[Option, ...], bool]:
     """The options of a choice question, and whether they are sound."""
     if not isinstance(value, list):
-        problem(f"the options of {question} must be a list")
+        problem("CS0322", f"the options of {question} must be a list")
         return (), False
     options: list[Option] = []
     sound = True
     for entry in value:
         if not isinstance(entry, dict):
-            problem(f"{shown(entry)} is not an option — write text: and, on the right one, right:")
+            problem(
+                "CS0323",
+                f"{shown(entry)} is not an option — write text: and, on the right one, right:",
+            )
             sound = False
             continue
         for key in entry:
             if key not in _OPTION_KEYS:
                 problem(
-                    f"unknown key `{key}` in an option (text, right)", lines.of(entry, str(key))
+                    "CS0324",
+                    f"unknown key `{key}` in an option (text, right)",
+                    lines.of(entry, str(key)),
                 )
                 sound = False
         text, right = entry.get("text"), entry.get("right", False)
         if "text" not in entry:
-            problem(f"an option of {question} has no text")
+            problem("CS0325", f"an option of {question} has no text")
             sound = False
             continue
         if (wrong := _option(text)) is not None:
-            problem(f"an option of {question} {wrong}", lines.of(entry, "text"))
+            problem(wrong.code, f"an option of {question} {wrong.message}", lines.of(entry, "text"))
             sound = False
             continue
         if not isinstance(right, bool):
-            problem(f"{shown(right)} is not true or false", lines.of(entry, "right"))
+            problem("CS0326", f"{shown(right)} is not true or false", lines.of(entry, "right"))
             sound = False
             continue
         options.append(Option(text=str(text), right=right))
@@ -113,15 +118,15 @@ def _parse_options(
     count = len(options)
     if not OPTIONS[0] <= count <= OPTIONS[1]:
         word = "option" if count == 1 else "options"
-        problem(f"the question {question} has {count} {word} (a choice offers 2 to 5)")
+        problem("CS0327", f"the question {question} has {count} {word} (a choice offers 2 to 5)")
         return (), False
     right_count = sum(option.right for option in options)
     if right_count == 0:
-        problem(f"the question {question} has no right option")
+        problem("CS0328", f"the question {question} has no right option")
         return (), False
     if right_count > 1:
         word = "two" if right_count == 2 else str(right_count)
-        problem(f"the question {question} has {word} right options")
+        problem("CS0329", f"the question {question} has {word} right options")
         return (), False
     return tuple(options), True
 
@@ -134,12 +139,13 @@ class _Problem:
         self._file = file
         self._field_line = field_line
 
-    def __call__(self, message: str, line: int | None = None) -> None:
+    def __call__(self, code: str, message: str, line: int | None = None) -> None:
         self._problems.append(
             Problem(
                 file=self._file,
                 field=TRY_FIELD,
                 line=self._field_line if line is None else line,
+                code=code,
                 message=message,
             )
         )
@@ -154,10 +160,10 @@ def parse_questions(
     problem = _Problem(problems, file=file, field_line=field_line)
 
     if not isinstance(value, list):
-        problem("must be a list of questions")
+        problem("CS0301", "must be a list of questions")
         return (), problems
     if not value:
-        problem("an empty list is written by leaving the field out")
+        problem("CS0019", "an empty list is written by leaving the field out")
         return (), problems
 
     questions: list[Question] = []
@@ -165,17 +171,18 @@ def parse_questions(
 
     for entry in value:
         if not isinstance(entry, dict):
-            problem(f"{shown(entry)} is not a question")
+            problem("CS0302", f"{shown(entry)} is not a question")
             continue
         entry_line = next((lines.of(entry, str(key)) for key in entry), field_line)
 
-        def here(message: str, line: int | None = entry_line) -> None:
-            problem(message, line)
+        def here(code: str, message: str, line: int | None = entry_line) -> None:
+            problem(code, message, line)
 
         sound = True
         for key in entry:
             if key not in _KEYS:
                 here(
+                    "CS0303",
                     f"unknown key `{key}` in a question ({', '.join(_KEYS)})",
                     lines.of(entry, str(key)),
                 )
@@ -183,30 +190,32 @@ def parse_questions(
 
         identifier = entry.get("id")
         if "id" not in entry:
-            here("a question has no id")
+            here("CS0304", "a question has no id")
             continue
         if (wrong := _id(identifier)) is not None:
-            here(wrong, lines.of(entry, "id"))
+            here(wrong.code, wrong.message, lines.of(entry, "id"))
             continue
         name = str(identifier)
 
         kind = entry.get("kind")
         if "kind" not in entry:
-            here(f"the question {name} has no kind (choice, number)")
+            here("CS0305", f"the question {name} has no kind (choice, number)")
             continue
         if isinstance(kind, str) and kind in _LATER_KINDS:
-            here(_LATER_KINDS[kind], lines.of(entry, "kind"))
+            here(*_LATER_KINDS[kind], lines.of(entry, "kind"))
             continue
         if (wrong := _kind(kind)) is not None:
-            here(wrong, lines.of(entry, "kind"))
+            here(wrong.code, wrong.message, lines.of(entry, "kind"))
             continue
         kind = str(kind)
 
         if "ask" not in entry:
-            here(f"the question {name} has no ask")
+            here("CS0307", f"the question {name} has no ask")
             sound = False
         elif (wrong := _ask(entry["ask"])) is not None:
-            here(f"the question asked by {name} {wrong}", lines.of(entry, "ask"))
+            here(
+                wrong.code, f"the question asked by {name} {wrong.message}", lines.of(entry, "ask")
+            )
             sound = False
 
         options: tuple[Option, ...] = ()
@@ -214,13 +223,14 @@ def parse_questions(
         if kind == "choice":
             if "answer" in entry:
                 here(
+                    "CS0308",
                     f"the choice question {name} has an answer "
                     "— a choice is answered by its options",
                     lines.of(entry, "answer"),
                 )
                 sound = False
             if "options" not in entry:
-                here(f"the choice question {name} has no options")
+                here("CS0309", f"the choice question {name} has no options")
                 sound = False
             else:
                 options, ok = _parse_options(
@@ -230,16 +240,17 @@ def parse_questions(
         else:
             if "options" in entry:
                 here(
+                    "CS0310",
                     f"the number question {name} has options "
                     "— a number question is answered with a value",
                     lines.of(entry, "options"),
                 )
                 sound = False
             if "answer" not in entry:
-                here(f"the number question {name} has no answer")
+                here("CS0311", f"the number question {name} has no answer")
                 sound = False
             elif not _is_number(entry["answer"]):
-                here(f"the answer of {name} is not a number", lines.of(entry, "answer"))
+                here("CS0312", f"the answer of {name} is not a number", lines.of(entry, "answer"))
                 sound = False
             else:
                 answer = entry["answer"]
@@ -247,18 +258,23 @@ def parse_questions(
         unit = entry.get("unit", "")
         if "unit" in entry:
             if kind != "number":
-                here(f"the choice question {name} has a unit", lines.of(entry, "unit"))
+                here("CS0313", f"the choice question {name} has a unit", lines.of(entry, "unit"))
                 sound = False
             elif (wrong := _unit(unit)) is not None:
-                here(f"the unit of {name} {wrong}", lines.of(entry, "unit"))
+                here(wrong.code, f"the unit of {name} {wrong.message}", lines.of(entry, "unit"))
                 sound = False
         tolerance = entry.get("tolerance")
         if "tolerance" in entry:
             if kind != "number":
-                here(f"the choice question {name} has a tolerance", lines.of(entry, "tolerance"))
+                here(
+                    "CS0314",
+                    f"the choice question {name} has a tolerance",
+                    lines.of(entry, "tolerance"),
+                )
                 sound = False
             elif not _is_number(tolerance) or float(str(tolerance)) < 0:
                 here(
+                    "CS0315",
                     f"the tolerance of {name} is not a number of 0 or more",
                     lines.of(entry, "tolerance"),
                 )
@@ -266,16 +282,18 @@ def parse_questions(
 
         hints: tuple[str, ...] = ()
         if "hints" not in entry:
-            here(f"the question {name} has no hints")
+            here("CS0316", f"the question {name} has no hints")
             sound = False
         elif not isinstance(entry["hints"], list) or not entry["hints"]:
             here(
+                "CS0317",
                 f"the hints of {name} must be a list, one hint at a time",
                 lines.of(entry, "hints"),
             )
             sound = False
         elif len(entry["hints"]) > MAX_HINTS:
             here(
+                "CS0318",
                 f"the question {name} has {len(entry['hints'])} hints (at most {MAX_HINTS})",
                 lines.of(entry, "hints"),
             )
@@ -284,17 +302,19 @@ def parse_questions(
             wrong_hints = [_hint(hint) for hint in entry["hints"]]
             for found in wrong_hints:
                 if found is not None:
-                    here(f"a hint for {name} {found}", lines.of(entry, "hints"))
+                    here(found.code, f"a hint for {name} {found.message}", lines.of(entry, "hints"))
                     sound = False
             if not any(wrong_hints):
                 hints = tuple(str(hint) for hint in entry["hints"])
 
         rationale = entry.get("rationale", "")
         if "rationale" not in entry:
-            here(f"the question {name} has no rationale")
+            here("CS0320", f"the question {name} has no rationale")
             sound = False
         elif (wrong := _rationale(rationale)) is not None:
-            here(f"the rationale of {name} {wrong}", lines.of(entry, "rationale"))
+            here(
+                wrong.code, f"the rationale of {name} {wrong.message}", lines.of(entry, "rationale")
+            )
             sound = False
 
         if sound:
@@ -307,14 +327,16 @@ def parse_questions(
                     else right.casefold() in hint.casefold()
                 )
                 if gives:
-                    here(f"a hint for {name} contains the answer", lines.of(entry, "hints"))
+                    here(
+                        "CS0319", f"a hint for {name} contains the answer", lines.of(entry, "hints")
+                    )
                     sound = False
                     break
 
         if not sound:
             continue
         if name in seen:
-            here(f"{name} is asked twice in this node", lines.of(entry, "id"))
+            here("CS0321", f"{name} is asked twice in this node", lines.of(entry, "id"))
             continue
         seen.add(name)
         questions.append(

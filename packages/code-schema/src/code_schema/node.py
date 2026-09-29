@@ -87,9 +87,11 @@ def parse_node(
     problems: list[Problem] = []
 
     if (wrong := _node_id(node_id)) is not None:
-        problems.append(Problem(file=folder, message=wrong))
+        problems.append(Problem(file=folder, code=wrong.code, message=wrong.message))
     if not body.strip():
-        problems.append(Problem(file=f"{folder}{BODY_FILE}", message="the file is empty"))
+        problems.append(
+            Problem(file=f"{folder}{BODY_FILE}", code="CS0401", message="the file is empty")
+        )
 
     data, lines, load_problems = load_mapping(node_yaml, file=file)
     problems += load_problems
@@ -112,14 +114,22 @@ def parse_node(
                 # A typo of a required field is one mistake, so it is one problem.
                 message += f" ({close[0]} is required and missing)"
                 missing.remove(close[0])
-        problems.append(Problem(file=file, line=lines.get(key), message=message))
+        problems.append(Problem(file=file, line=lines.get(key), code="CS0004", message=message))
     for name in missing:
-        problems.append(Problem(file=file, field=name, message="required field is missing"))
+        problems.append(
+            Problem(file=file, field=name, code="CS0005", message="required field is missing")
+        )
 
     for spec in specs:
         if spec.name in data and (wrong := spec.check(data[spec.name])) is not None:
             problems.append(
-                Problem(file=file, field=spec.name, line=lines.get(spec.name), message=wrong)
+                Problem(
+                    file=file,
+                    field=spec.name,
+                    line=lines.get(spec.name),
+                    code=wrong.code,
+                    message=wrong.message,
+                )
             )
 
     links = _parse_all_links(data, node_id=node_id, lines=lines, file=file, problems=problems)
@@ -189,6 +199,7 @@ def _marker_problems(
         Problem(
             file=body_file,
             line=line,
+            code="CS0402",
             message=f"{text} is not read — only {{% try %}} markers are, until M6",
         )
         for text, line in others
@@ -202,6 +213,7 @@ def _marker_problems(
                 Problem(
                     file=body_file,
                     line=marker.line,
+                    code="CS0403",
                     message=f"{{% try {marker.id} %}} names no question in {NODE_FILE}",
                 )
             )
@@ -210,6 +222,7 @@ def _marker_problems(
                 Problem(
                     file=body_file,
                     line=marker.line,
+                    code="CS0404",
                     message=f"{{% try {marker.id} %}} appears twice in {BODY_FILE}",
                 )
             )
@@ -229,6 +242,7 @@ def _marker_problems(
                 file=file,
                 field=TRY_FIELD,
                 line=None if entry is None else lines.of(entry, "id"),
+                code="CS0405",
                 message=(f"{question.id} has no {{% try {question.id} %}} in {BODY_FILE}"),
             )
         )
@@ -265,6 +279,7 @@ def _parse_all_links(
                     file=file,
                     field=kind,
                     line=line,
+                    code="CS0111",
                     message=(
                         f"{link.node} is also under {other_kind}{at} — "
                         "a node is one kind of neighbour, not two"
@@ -306,6 +321,7 @@ def read_node(
         problems.append(
             Problem(
                 file=where,
+                code="CS0020",
                 message=(
                     f"holds another node ({nested[0]}/{NODE_FILE}); a node folder holds one node"
                 ),
@@ -313,7 +329,7 @@ def read_node(
         )
     for name in (NODE_FILE, BODY_FILE):
         if not (folder / name).is_file():
-            problems.append(Problem(file=where, message=f"{name} is missing"))
+            problems.append(Problem(file=where, code="CS0021", message=f"{name} is missing"))
     if problems:
         return None, problems
 
@@ -321,7 +337,7 @@ def read_node(
     body, body_error = _read_text(folder / BODY_FILE)
     for name, error in ((NODE_FILE, node_error), (BODY_FILE, body_error)):
         if error is not None:
-            problems.append(Problem(file=f"{where}{name}", message=error))
+            problems.append(Problem(file=f"{where}{name}", code="CS0022", message=error))
     if node_yaml is None or body is None:
         return None, problems
 

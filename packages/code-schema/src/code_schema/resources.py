@@ -13,7 +13,15 @@ from __future__ import annotations
 import difflib
 from dataclasses import dataclass
 
-from code_schema.fields import https_url, one_line, one_of, one_sentence, seconds, shown
+from code_schema.fields import (
+    Wrong,
+    https_url,
+    one_line,
+    one_of,
+    one_sentence,
+    seconds,
+    shown,
+)
 from code_schema.levels import Level
 from code_schema.problems import Problem
 from code_schema.providers import PLAYERS, REGISTRY, Provider, player_problem
@@ -48,26 +56,32 @@ class Resource:
     video: str = ""
 
 
-def _range_problem(part: str) -> str | None:
+def _range_problem(part: str) -> Wrong | None:
     """A video's part is a range the player can start and stop at, so it has to parse."""
     halves = part.replace("–", "-").split("-")
     bounds = [seconds(half.strip()) for half in halves] if len(halves) == 2 else []
     if len(bounds) != 2 or bounds[0] is None or bounds[1] is None:
-        return f"the part of a video is a timestamp range, such as 2:10–7:45, not {shown(part)}"
+        return Wrong(
+            "CS0211",
+            f"the part of a video is a timestamp range, such as 2:10–7:45, not {shown(part)}",
+        )
     if bounds[1] <= bounds[0]:
-        return f"the part {part} ends before it starts"
+        return Wrong("CS0212", f"the part {part} ends before it starts")
     return None
 
 
-def _video_problem(video: object) -> str | None:
+def _video_problem(video: object) -> Wrong | None:
     """A video to play is `player:id`, with an id in that player's form (M3P5.3)."""
     player, colon, identifier = str(video).partition(":")
     if not isinstance(video, str) or not colon:
-        return f"a video is written player:id, such as youtube:Jnk_4Maf5Fk, not {shown(video)}"
+        return Wrong(
+            "CS0213",
+            f"a video is written player:id, such as youtube:Jnk_4Maf5Fk, not {shown(video)}",
+        )
     if (wrong := player_problem(player)) is not None:
         return wrong
     if not PLAYERS[player].fullmatch(identifier):
-        return f"{identifier} is not a {player} video id"
+        return Wrong("CS0215", f"{identifier} is not a {player} video id")
     return None
 
 
@@ -78,19 +92,20 @@ def _registry_problems(
     display: str,
     video: str,
     providers: dict[str, Provider],
-) -> list[tuple[str, str]]:
-    """The rules only providers.yaml can decide, each as (key, message)."""
+) -> list[tuple[str, str, str]]:
+    """The rules only providers.yaml can decide, each as (key, code, message)."""
     known = providers.get(provider)
     if known is None:
         message = f"{provider} is not a provider in {REGISTRY}"
         if close := difflib.get_close_matches(provider, sorted(providers), n=1):
             message += f" — did you mean {close[0]}?"
-        return [("provider", message)]
-    found: list[tuple[str, str]] = []
+        return [("provider", "CS0201", message)]
+    found: list[tuple[str, str, str]] = []
     if licence not in known.licences:
         found.append(
             (
                 "licence",
+                "CS0202",
                 f"the resource from {known.name} carries {licence}, "
                 f"which {known.name} does not list",
             )
@@ -99,13 +114,14 @@ def _registry_problems(
         found.append(
             (
                 "display",
+                "CS0203",
                 f"the resource from {known.name} asks for an embed it does not allow "
                 "— use display: link",
             )
         )
     player = video.partition(":")[0]
     if video and player not in known.players:
-        found.append(("video", f"{known.name} is not embedded through {player}"))
+        found.append(("video", "CS0204", f"{known.name} is not embedded through {player}"))
     return found
 
 
@@ -115,13 +131,13 @@ def parse_resources(
     """One resources: field. Never raises; returns the sound resources and every problem."""
     field_line = lines.get(RESOURCE_FIELD)
 
-    def problem(message: str, line: int | None = field_line) -> Problem:
-        return Problem(file=file, field=RESOURCE_FIELD, line=line, message=message)
+    def problem(code: str, message: str, line: int | None = field_line) -> Problem:
+        return Problem(file=file, field=RESOURCE_FIELD, line=line, code=code, message=message)
 
     if not isinstance(value, list):
-        return (), [problem("must be a list of resources")]
+        return (), [problem("CS0205", "must be a list of resources")]
     if not value:
-        return (), [problem("an empty list is written by leaving the field out")]
+        return (), [problem("CS0019", "an empty list is written by leaving the field out")]
 
     resources: list[Resource] = []
     problems: list[Problem] = []
@@ -129,7 +145,7 @@ def parse_resources(
 
     for entry in value:
         if not isinstance(entry, dict):
-            problems.append(problem(f"{shown(entry)} is not a resource"))
+            problems.append(problem("CS0206", f"{shown(entry)} is not a resource"))
             continue
         entry_line = next((lines.of(entry, str(key)) for key in entry), field_line)
 
@@ -138,6 +154,7 @@ def parse_resources(
             if key not in _KEYS:
                 problems.append(
                     problem(
+                        "CS0207",
                         f"unknown key `{key}` in a resource ({', '.join(_KEYS)})",
                         lines.of(entry, str(key)),
                     )
@@ -145,7 +162,7 @@ def parse_resources(
                 sound = False
         for key in _REQUIRED:
             if key not in entry:
-                problems.append(problem(f"a resource has no {key}", entry_line))
+                problems.append(problem("CS0208", f"a resource has no {key}", entry_line))
                 sound = False
 
         for key, check in (
@@ -156,40 +173,51 @@ def parse_resources(
             ("level", _level),
         ):
             if key in entry and (wrong := check(entry[key])) is not None:
-                problems.append(problem(wrong, lines.of(entry, key)))
+                problems.append(problem(wrong.code, wrong.message, lines.of(entry, key)))
                 sound = False
         if "covers" in entry and (wrong := _covers(entry["covers"])) is not None:
             problems.append(
-                problem(f"what this resource covers {wrong}", lines.of(entry, "covers"))
+                problem(
+                    wrong.code,
+                    f"what this resource covers {wrong.message}",
+                    lines.of(entry, "covers"),
+                )
             )
             sound = False
         provider = entry.get("provider")
         if "provider" in entry and not isinstance(provider, str):
-            problems.append(problem(f"{shown(provider)} is not a provider id", entry_line))
+            problems.append(
+                problem("CS0209", f"{shown(provider)} is not a provider id", entry_line)
+            )
             sound = False
 
         part = entry.get("part", "")
         if "part" in entry:
             if (wrong := _section(part)) is not None:
-                problems.append(problem(f"the part {wrong}", lines.of(entry, "part")))
+                problems.append(
+                    problem(wrong.code, f"the part {wrong.message}", lines.of(entry, "part"))
+                )
                 sound = False
             elif entry.get("kind") == "video" and (wrong := _range_problem(str(part))) is not None:
-                problems.append(problem(wrong, lines.of(entry, "part")))
+                problems.append(problem(wrong.code, wrong.message, lines.of(entry, "part")))
                 sound = False
 
         video = entry.get("video", "")
         if "video" in entry:
             if (wrong := _video_problem(video)) is not None:
-                problems.append(problem(wrong, lines.of(entry, "video")))
+                problems.append(problem(wrong.code, wrong.message, lines.of(entry, "video")))
                 sound = False
             elif entry.get("kind") in KINDS and entry.get("kind") != "video":
                 problems.append(
-                    problem("only a video names a video to play", lines.of(entry, "video"))
+                    problem(
+                        "CS0216", "only a video names a video to play", lines.of(entry, "video")
+                    )
                 )
                 sound = False
         elif entry.get("kind") == "video" and entry.get("display") == "embed":
             problems.append(
                 problem(
+                    "CS0217",
                     "an embedded video names the video it plays, such as video: youtube:<id>",
                     lines.of(entry, "display"),
                 )
@@ -207,13 +235,16 @@ def parse_resources(
                 entry, str(provider), licence, display, str(video), providers
             )
             problems += [
-                problem(message, lines.of(entry, key) or entry_line) for key, message in found
+                problem(code, message, lines.of(entry, key) or entry_line)
+                for key, code, message in found
             ]
             if found:
                 continue
 
         if url in first_seen:
-            problems.append(problem(f"{url} is cited twice in this node", lines.of(entry, "url")))
+            problems.append(
+                problem("CS0218", f"{url} is cited twice in this node", lines.of(entry, "url"))
+            )
             continue
         first_seen[url] = lines.of(entry, "url")
         resources.append(

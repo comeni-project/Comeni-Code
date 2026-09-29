@@ -1,7 +1,9 @@
 """One check per rule in spec M1P1.3.
 
-A check returns the message when a value is wrong and None when it is right, so the table in
-node.py stays a list of rows. Nothing coerces: "12" is as wrong as "twelve", because a coerced
+A check returns what went wrong — a `Wrong`, its diagnostic code and its message — when a value
+is wrong, and None when it is right, so the table in node.py stays a list of rows. A check is
+shared across fields, so its code says what kind of value was wrong and the problem's field says
+where (spec M4D.4). Nothing coerces: "12" is as wrong as "twelve", because a coerced
 value means the file and the object disagree and the writer would rewrite the file.
 """
 
@@ -12,7 +14,16 @@ import re
 from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass
 
-Check = Callable[[object], str | None]
+
+@dataclass(frozen=True)
+class Wrong:
+    """What a check found wrong: its diagnostic code and its message."""
+
+    code: str
+    message: str
+
+
+Check = Callable[[object], Wrong | None]
 
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -36,24 +47,27 @@ class Spec:
 
 
 def exactly(expected: object) -> Check:
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if value == expected and type(value) is type(expected):
             return None
-        return f"this node is schema {shown(value)}; this validator understands {shown(expected)}"
+        return Wrong(
+            "CS0006",
+            f"this node is schema {shown(value)}; this validator understands {shown(expected)}",
+        )
 
     return check
 
 
 def one_line(max_len: int) -> Check:
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if not isinstance(value, str):
-            return f"{shown(value)} is not text"
+            return Wrong("CS0007", f"{shown(value)} is not text")
         if not value.strip():
-            return "must not be empty"
+            return Wrong("CS0008", "must not be empty")
         if "\n" in value:
-            return "must be one line"
+            return Wrong("CS0009", "must be one line")
         if len(value) > max_len:
-            return f"is longer than {max_len} characters ({len(value)})"
+            return Wrong("CS0010", f"is longer than {max_len} characters ({len(value)})")
         return None
 
     return check
@@ -63,41 +77,43 @@ def one_sentence(max_len: int) -> Check:
     """One line ending in terminal punctuation. Counting sentences is a rule we cannot keep."""
     line = one_line(max_len)
 
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if (wrong := line(value)) is not None:
             return wrong
         if isinstance(value, str) and value.rstrip().endswith((".", "?", "!")):
             return None
-        return "must end with . ? or !"
+        return Wrong("CS0011", "must end with . ? or !")
 
     return check
 
 
 def one_of(allowed: Sequence[str], *, noun: str) -> Check:
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if isinstance(value, str) and value in allowed:
             return None
-        return f"{shown(value)} is not a {noun} ({', '.join(allowed)})"
+        return Wrong("CS0012", f"{shown(value)} is not a {noun} ({', '.join(allowed)})")
 
     return check
 
 
 def whole_number(minimum: int) -> Check:
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if not isinstance(value, int) or isinstance(value, bool):
-            return f"{shown(value)} is not a whole number"
+            return Wrong("CS0013", f"{shown(value)} is not a whole number")
         if value < minimum:
-            return f"{shown(value)} is not at least {minimum}"
+            return Wrong("CS0014", f"{shown(value)} is not at least {minimum}")
         return None
 
     return check
 
 
 def slug(*, noun: str) -> Check:
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if isinstance(value, str) and SLUG.match(value):
             return None
-        return f"{shown(value)} is not a {noun} (lower case, digits and single hyphens)"
+        return Wrong(
+            "CS0015", f"{shown(value)} is not a {noun} (lower case, digits and single hyphens)"
+        )
 
     return check
 
@@ -106,13 +122,13 @@ def in_registry(names: Collection[str], *, noun: str, registry: str) -> Check:
     """A value listed in a registry file, with the closest listed name when it is not."""
     ordered = sorted(names)
 
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if isinstance(value, str) and value in names:
             return None
         message = f"{shown(value)} is not a {noun} — {registry} lists {len(ordered)}"
         if isinstance(value, str) and (close := difflib.get_close_matches(value, ordered, n=1)):
             message += f", closest is `{close[0]}`"
-        return message
+        return Wrong("CS0016", message)
 
     return check
 
@@ -124,13 +140,13 @@ _TIMESTAMP = re.compile(r"^(\d{1,2}:)?\d{1,2}:\d{2}$")
 def https_url() -> Check:
     """A link we would open. http:// is refused rather than upgraded: nothing here coerces."""
 
-    def check(value: object) -> str | None:
+    def check(value: object) -> Wrong | None:
         if not isinstance(value, str) or not value.strip():
-            return f"{shown(value)} is not a url"
+            return Wrong("CS0017", f"{shown(value)} is not a url")
         if not value.startswith("https://"):
-            return "the url must start with https://"
+            return Wrong("CS0018", "the url must start with https://")
         if not _URL.match(value):
-            return f"{shown(value)} is not a url"
+            return Wrong("CS0017", f"{shown(value)} is not a url")
         return None
 
     return check

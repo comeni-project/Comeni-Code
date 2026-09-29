@@ -26,7 +26,11 @@ export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
 }
+/**
+ * An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).
+ */
 export interface Message {
+  code: string;
   detail: string;
 }
 /**

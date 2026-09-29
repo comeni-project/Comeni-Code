@@ -12,7 +12,7 @@ from code_weaver.graph import Graph, GraphError
 
 
 def _refuse(content: object) -> Graph:
-    raise GraphError("needs cycle: a → b → a")
+    raise GraphError([("CW0005", "needs cycle: a → b → a")])
 
 
 Captured = pytest.CaptureFixture[str]
@@ -67,7 +67,7 @@ def test_a_missing_folder_exits_2(capsys: Captured, tmp_path: Path) -> None:
     missing = tmp_path / "not-there"
     code, lines, err = route(capsys, "salmon", "--root", str(missing))
     assert (code, lines) == (2, [])
-    assert err == f"code-weaver: no such folder: {missing}\n"
+    assert err == f"code-weaver: CW0008 no such folder: {missing}\n"
 
 
 def test_content_problems_name_the_validator(capsys: Captured, tmp_path: Path) -> None:
@@ -75,7 +75,7 @@ def test_content_problems_name_the_validator(capsys: Captured, tmp_path: Path) -
     make_node(root, "broken", links="needs:\n  - node: nowhere\n")
     code, lines, err = route(capsys, "broken", "--root", str(root))
     assert (code, lines) == (1, [])
-    assert err.startswith("code-weaver: ")
+    assert err.startswith("code-weaver: CW0007 ")
     assert err.endswith(f"in the content; run code-schema validate {root}\n")
 
 
@@ -88,13 +88,13 @@ def test_a_refused_graph_prints_its_message(
     monkeypatch.setattr(cli, "graph_of", _refuse)
     code, lines, err = route(capsys, "a", "--root", str(root))
     assert (code, lines) == (1, [])
-    assert err == "needs cycle: a → b → a\n"
+    assert err == "CW0005 needs cycle: a → b → a\n"
 
 
 def test_an_unknown_goal_exits_2(capsys: Captured) -> None:
     code, lines, err = route(capsys, "zzz", "--root", str(FIXTURES))
     assert (code, lines) == (2, [])
-    assert err == "code-weaver: not in the content: zzz\n"
+    assert err == "code-weaver: CW0006 not in the content: zzz\n"
 
 
 def test_a_long_title_and_reason_are_cut(capsys: Captured, tmp_path: Path) -> None:
@@ -171,14 +171,14 @@ def test_a_limit_outside_the_range_is_argparses_own_exit(capsys: Captured) -> No
 def test_an_empty_query_exits_2(capsys: Captured) -> None:
     code, lines, err = look(capsys, "   ", "--root", str(FIXTURES))
     assert (code, lines) == (2, [])
-    assert err == "code-weaver: a search needs a word\n"
+    assert err == "code-weaver: CW0101 a search needs a word\n"
 
 
 def test_a_missing_folder_exits_2_when_looking(capsys: Captured, tmp_path: Path) -> None:
     missing = tmp_path / "not-there"
     code, lines, err = look(capsys, "salmon", "--root", str(missing))
     assert (code, lines) == (2, [])
-    assert err == f"code-weaver: no such folder: {missing}\n"
+    assert err == f"code-weaver: CW0008 no such folder: {missing}\n"
 
 
 def test_broken_content_exits_1_when_looking(capsys: Captured, tmp_path: Path) -> None:
