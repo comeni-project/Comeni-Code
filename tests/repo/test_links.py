@@ -1,6 +1,10 @@
 """Relative Markdown links point at files that exist (spec P1.5).
 
 External URLs and `#anchor` fragments are not checked: no network, no flakes.
+
+**Files under an `archive/` folder are not checked** (docs compaction spec, C5). An archived
+journal entry, spec or plan is a record: its links were right where it was written, and editing it
+to follow the move would break append-only. Live files that link into an archive are still checked.
 """
 
 import re
@@ -39,11 +43,16 @@ def broken_links(path: Path, root: Path) -> list[str]:
     return missing
 
 
+def checked(name: str) -> bool:
+    """Whether a tracked file's links are checked: everything outside an `archive/` folder."""
+    return "archive" not in Path(name).parts[:-1]
+
+
 def tracked_markdown() -> list[Path]:
     listed = subprocess.run(
         ["git", "ls-files", "-z", "*.md"], cwd=ROOT, capture_output=True, text=True, check=True
     ).stdout
-    return [ROOT / name for name in listed.split("\0") if name]
+    return [ROOT / name for name in listed.split("\0") if name and checked(name)]
 
 
 def test_there_is_markdown_to_check() -> None:
@@ -53,6 +62,21 @@ def test_there_is_markdown_to_check() -> None:
 @pytest.mark.parametrize("path", tracked_markdown(), ids=lambda p: str(p.relative_to(ROOT)))
 def test_relative_links_resolve(path: Path) -> None:
     assert broken_links(path, ROOT) == []
+
+
+def test_archived_files_are_skipped_and_live_ones_are_not() -> None:
+    names = [
+        "docs/notes/journal/archive/2026-09-17-m0-in-parts.md",
+        "docs/superpowers/specs/archive/2026-09-20-m3-search-design.md",
+        "docs/notes/journal/2026-09-30-a-new-entry.md",
+        "docs/notes/now.md",
+        "docs/archived-thoughts.md",
+    ]
+    assert [name for name in names if checked(name)] == [
+        "docs/notes/journal/2026-09-30-a-new-entry.md",
+        "docs/notes/now.md",
+        "docs/archived-thoughts.md",
+    ]
 
 
 def test_link_targets_skip_urls_anchors_and_code() -> None:
