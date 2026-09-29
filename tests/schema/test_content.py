@@ -85,7 +85,7 @@ def test_node_problems_are_collected_with_paths_from_the_root(tmp_path: Path) ->
     root = content_root(tmp_path)
     make_node(root, "sequence-analysis/salmon", level="expert")
     assert rendered(root) == [
-        'sequence-analysis/salmon/node.yaml:5: level: "expert" is not a level '
+        'sequence-analysis/salmon/node.yaml:5: level: CS0012 "expert" is not a level '
         "(first-steps, foundations, introductory, intermediate, advanced)"
     ]
 

@@ -14,7 +14,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from code_schema.fields import one_line, shown, slug
+from code_schema.fields import Wrong, one_line, shown, slug
 from code_schema.problems import Problem
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -37,43 +37,53 @@ class Provider:
     players: tuple[str, ...] = ()
 
 
-def _licences_problem(value: object) -> str | None:
+def _licences_problem(value: object) -> Wrong | None:
     if not isinstance(value, list):
-        return "must be a list of licences"
+        return Wrong("CS0609", "must be a list of licences")
     if not value:
-        return "must list at least one licence"
+        return Wrong("CS0609", "must list at least one licence")
     for entry in value:
         if (wrong := _licence(entry)) is not None:
             return wrong
     return None
 
 
-def player_problem(value: object) -> str | None:
+def player_problem(value: object) -> Wrong | None:
     """A player the page can play, named as PLAYERS names it."""
     if isinstance(value, str) and value in PLAYERS:
         return None
-    return f"{value} is not a player ({', '.join(PLAYERS)})"
+    return Wrong("CS0214", f"{value} is not a player ({', '.join(PLAYERS)})")
 
 
-def _players_problem(value: object) -> str | None:
+def _players_problem(value: object) -> Wrong | None:
     if not isinstance(value, list):
-        return "must be a list of players"
+        return Wrong("CS0610", "must be a list of players")
     return next((wrong for entry in value if (wrong := player_problem(entry)) is not None), None)
 
 
-def _embed_problem(value: object) -> str | None:
-    return None if isinstance(value, bool) else f"{shown(value)} is not true or false"
+def _embed_problem(value: object) -> Wrong | None:
+    if isinstance(value, bool):
+        return None
+    return Wrong("CS0611", f"{shown(value)} is not true or false")
 
 
 def _entry_problem(
-    entry: dict[object, object], key: str, check_result: str | None, lines: Lines, file: str
+    entry: dict[object, object], key: str, check_result: Wrong | None, lines: Lines, file: str
 ) -> Problem | None:
     if key not in entry:
         # A missing key has no line of its own; the entry's first line is the nearest place.
         line = next(iter(lines.of(entry, str(k)) for k in entry), None)
-        return Problem(file=file, field=key, line=line, message="required field is missing")
+        return Problem(
+            file=file, field=key, line=line, code="CS0605", message="required field is missing"
+        )
     if check_result is not None:
-        return Problem(file=file, field=key, line=lines.of(entry, key), message=check_result)
+        return Problem(
+            file=file,
+            field=key,
+            line=lines.of(entry, key),
+            code=check_result.code,
+            message=check_result.message,
+        )
     return None
 
 
@@ -121,7 +131,8 @@ def parse_providers(
                     file=file,
                     field="players",
                     line=lines.of(entry, "players"),
-                    message=wrong_players,
+                    code=wrong_players.code,
+                    message=wrong_players.message,
                 )
             )
         if wrong:

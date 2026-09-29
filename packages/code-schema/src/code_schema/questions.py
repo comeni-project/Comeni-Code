@@ -99,7 +99,7 @@ def _parse_options(
             sound = False
             continue
         if (wrong := _option(text)) is not None:
-            problem(f"an option of {question} {wrong}", lines.of(entry, "text"))
+            problem(f"an option of {question} {wrong.message}", lines.of(entry, "text"))
             sound = False
             continue
         if not isinstance(right, bool):
@@ -186,7 +186,7 @@ def parse_questions(
             here("a question has no id")
             continue
         if (wrong := _id(identifier)) is not None:
-            here(wrong, lines.of(entry, "id"))
+            here(wrong.message, lines.of(entry, "id"))
             continue
         name = str(identifier)
 
@@ -198,7 +198,7 @@ def parse_questions(
             here(_LATER_KINDS[kind], lines.of(entry, "kind"))
             continue
         if (wrong := _kind(kind)) is not None:
-            here(wrong, lines.of(entry, "kind"))
+            here(wrong.message, lines.of(entry, "kind"))
             continue
         kind = str(kind)
 
@@ -206,7 +206,7 @@ def parse_questions(
             here(f"the question {name} has no ask")
             sound = False
         elif (wrong := _ask(entry["ask"])) is not None:
-            here(f"the question asked by {name} {wrong}", lines.of(entry, "ask"))
+            here(f"the question asked by {name} {wrong.message}", lines.of(entry, "ask"))
             sound = False
 
         options: tuple[Option, ...] = ()
@@ -250,7 +250,7 @@ def parse_questions(
                 here(f"the choice question {name} has a unit", lines.of(entry, "unit"))
                 sound = False
             elif (wrong := _unit(unit)) is not None:
-                here(f"the unit of {name} {wrong}", lines.of(entry, "unit"))
+                here(f"the unit of {name} {wrong.message}", lines.of(entry, "unit"))
                 sound = False
         tolerance = entry.get("tolerance")
         if "tolerance" in entry:
@@ -284,7 +284,7 @@ def parse_questions(
             wrong_hints = [_hint(hint) for hint in entry["hints"]]
             for found in wrong_hints:
                 if found is not None:
-                    here(f"a hint for {name} {found}", lines.of(entry, "hints"))
+                    here(f"a hint for {name} {found.message}", lines.of(entry, "hints"))
                     sound = False
             if not any(wrong_hints):
                 hints = tuple(str(hint) for hint in entry["hints"])
@@ -294,7 +294,7 @@ def parse_questions(
             here(f"the question {name} has no rationale")
             sound = False
         elif (wrong := _rationale(rationale)) is not None:
-            here(f"the rationale of {name} {wrong}", lines.of(entry, "rationale"))
+            here(f"the rationale of {name} {wrong.message}", lines.of(entry, "rationale"))
             sound = False
 
         if sound:

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from code_schema.fields import one_sentence, shown, slug
+from code_schema.fields import Wrong, one_sentence, shown, slug
 from code_schema.problems import Problem
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -27,10 +27,10 @@ class Link:
     reason: str
 
 
-def _reason_problem(value: object) -> str | None:
+def _reason_problem(value: object) -> Wrong | None:
     """Phrased to follow "the reason for <node>"."""
     if not isinstance(value, str):
-        return "is not text"
+        return Wrong("CS0007", "is not text")
     return _sentence(value)
 
 
@@ -79,7 +79,8 @@ def parse_links(
             continue
         wrong = _node_id(target)
         if wrong is not None or not isinstance(target, str):
-            problems.append(problem(wrong or f"{shown(target)} is not a node id", node_line))
+            said = wrong.message if wrong is not None else f"{shown(target)} is not a node id"
+            problems.append(problem(said, node_line))
             continue
 
         reason = entry.get("reason")
@@ -87,7 +88,9 @@ def parse_links(
             problems.append(problem(f"the link to {target} has no reason", node_line))
             sound = False
         elif (wrong := _reason_problem(reason)) is not None:
-            problems.append(problem(f"the reason for {target} {wrong}", lines.of(entry, "reason")))
+            problems.append(
+                problem(f"the reason for {target} {wrong.message}", lines.of(entry, "reason"))
+            )
             sound = False
 
         if target == node_id:

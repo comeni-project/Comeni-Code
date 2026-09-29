@@ -13,7 +13,15 @@ from __future__ import annotations
 import difflib
 from dataclasses import dataclass
 
-from code_schema.fields import https_url, one_line, one_of, one_sentence, seconds, shown
+from code_schema.fields import (
+    Wrong,
+    https_url,
+    one_line,
+    one_of,
+    one_sentence,
+    seconds,
+    shown,
+)
 from code_schema.levels import Level
 from code_schema.problems import Problem
 from code_schema.providers import PLAYERS, REGISTRY, Provider, player_problem
@@ -48,26 +56,32 @@ class Resource:
     video: str = ""
 
 
-def _range_problem(part: str) -> str | None:
+def _range_problem(part: str) -> Wrong | None:
     """A video's part is a range the player can start and stop at, so it has to parse."""
     halves = part.replace("–", "-").split("-")
     bounds = [seconds(half.strip()) for half in halves] if len(halves) == 2 else []
     if len(bounds) != 2 or bounds[0] is None or bounds[1] is None:
-        return f"the part of a video is a timestamp range, such as 2:10–7:45, not {shown(part)}"
+        return Wrong(
+            "CS0211",
+            f"the part of a video is a timestamp range, such as 2:10–7:45, not {shown(part)}",
+        )
     if bounds[1] <= bounds[0]:
-        return f"the part {part} ends before it starts"
+        return Wrong("CS0212", f"the part {part} ends before it starts")
     return None
 
 
-def _video_problem(video: object) -> str | None:
+def _video_problem(video: object) -> Wrong | None:
     """A video to play is `player:id`, with an id in that player's form (M3P5.3)."""
     player, colon, identifier = str(video).partition(":")
     if not isinstance(video, str) or not colon:
-        return f"a video is written player:id, such as youtube:Jnk_4Maf5Fk, not {shown(video)}"
+        return Wrong(
+            "CS0213",
+            f"a video is written player:id, such as youtube:Jnk_4Maf5Fk, not {shown(video)}",
+        )
     if (wrong := player_problem(player)) is not None:
         return wrong
     if not PLAYERS[player].fullmatch(identifier):
-        return f"{identifier} is not a {player} video id"
+        return Wrong("CS0215", f"{identifier} is not a {player} video id")
     return None
 
 
@@ -156,11 +170,11 @@ def parse_resources(
             ("level", _level),
         ):
             if key in entry and (wrong := check(entry[key])) is not None:
-                problems.append(problem(wrong, lines.of(entry, key)))
+                problems.append(problem(wrong.message, lines.of(entry, key)))
                 sound = False
         if "covers" in entry and (wrong := _covers(entry["covers"])) is not None:
             problems.append(
-                problem(f"what this resource covers {wrong}", lines.of(entry, "covers"))
+                problem(f"what this resource covers {wrong.message}", lines.of(entry, "covers"))
             )
             sound = False
         provider = entry.get("provider")
@@ -171,16 +185,16 @@ def parse_resources(
         part = entry.get("part", "")
         if "part" in entry:
             if (wrong := _section(part)) is not None:
-                problems.append(problem(f"the part {wrong}", lines.of(entry, "part")))
+                problems.append(problem(f"the part {wrong.message}", lines.of(entry, "part")))
                 sound = False
             elif entry.get("kind") == "video" and (wrong := _range_problem(str(part))) is not None:
-                problems.append(problem(wrong, lines.of(entry, "part")))
+                problems.append(problem(wrong.message, lines.of(entry, "part")))
                 sound = False
 
         video = entry.get("video", "")
         if "video" in entry:
             if (wrong := _video_problem(video)) is not None:
-                problems.append(problem(wrong, lines.of(entry, "video")))
+                problems.append(problem(wrong.message, lines.of(entry, "video")))
                 sound = False
             elif entry.get("kind") in KINDS and entry.get("kind") != "video":
                 problems.append(

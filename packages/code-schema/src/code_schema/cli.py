@@ -30,13 +30,16 @@ def _escape_property(text: str) -> str:
 def github_line(problem: Problem) -> str:
     """A GitHub workflow command, so the problem shows on its line of the pull request's diff.
 
-    A problem about a folder has no file to annotate and is printed without properties.
+    A problem about a folder has no file to annotate, so it carries only its code, as the title
+    GitHub shows (spec M4D.4).
     """
     properties: list[str] = []
     if not problem.file.endswith("/"):
         properties.append(f"file={_escape_property(problem.file)}")
         if problem.line is not None:
             properties.append(f"line={problem.line}")
+    if problem.code is not None:
+        properties.append(f"title={problem.code}")
     head = "::error " + ",".join(properties) if properties else "::error"
     return f"{head}::{_escape_data(str(problem))}"
 

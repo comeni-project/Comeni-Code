@@ -26,7 +26,7 @@ def test_a_bad_id_names_its_own_line() -> None:
     text = GOOD + "  - id: Cell Biology\n    name: Cell biology\n"
     _, problems = parse_regions(text)
     assert [str(p) for p in problems] == [
-        'regions.yaml:6: id: "Cell Biology" is not a region id '
+        'regions.yaml:6: id: CS0015 "Cell Biology" is not a region id '
         "(lower case, digits and single hyphens)"
     ]
 
@@ -39,7 +39,7 @@ def test_a_repeated_id_names_the_repeat() -> None:
 
 def test_a_missing_name_is_refused() -> None:
     _, problems = parse_regions("regions:\n  - id: genomics\n")
-    assert [str(p) for p in problems] == ["regions.yaml:2: name: required field is missing"]
+    assert [str(p) for p in problems] == ["regions.yaml:2: name: CS0605 required field is missing"]
 
 
 def test_regions_must_be_a_list_of_mappings() -> None:

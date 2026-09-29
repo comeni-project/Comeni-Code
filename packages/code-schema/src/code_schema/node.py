@@ -87,7 +87,7 @@ def parse_node(
     problems: list[Problem] = []
 
     if (wrong := _node_id(node_id)) is not None:
-        problems.append(Problem(file=folder, message=wrong))
+        problems.append(Problem(file=folder, code=wrong.code, message=wrong.message))
     if not body.strip():
         problems.append(Problem(file=f"{folder}{BODY_FILE}", message="the file is empty"))
 
@@ -119,7 +119,13 @@ def parse_node(
     for spec in specs:
         if spec.name in data and (wrong := spec.check(data[spec.name])) is not None:
             problems.append(
-                Problem(file=file, field=spec.name, line=lines.get(spec.name), message=wrong)
+                Problem(
+                    file=file,
+                    field=spec.name,
+                    line=lines.get(spec.name),
+                    code=wrong.code,
+                    message=wrong.message,
+                )
             )
 
     links = _parse_all_links(data, node_id=node_id, lines=lines, file=file, problems=problems)
