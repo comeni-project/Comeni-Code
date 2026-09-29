@@ -1,8 +1,19 @@
 // @vitest-environment node
 // The map's geometry, against the route the API really answers (spec M3P4R.2, M3P4.5).
 import { describe, expect, it } from "vitest";
-import { COLUMN, GOAL_CHAR, type Layout, layout, ROW, wrapTitle } from "./layout";
+import type { RouteOut } from "../api/schema";
+import {
+  type Box,
+  COLUMN,
+  GOAL_CHAR,
+  type Layout,
+  labelBox,
+  layout,
+  ROW,
+  wrapTitle,
+} from "./layout";
 import { SALMON, SALMON_KNOWN } from "./salmon.fixture";
+import { SHAPES } from "./shapes.fixture";
 
 const at = (drawn: Layout) => new Map(drawn.stops.map((stop) => [stop.id, stop]));
 const laneOf = (drawn: Layout) => new Map(drawn.lines.map((line) => [line.region.id, line.lane]));
@@ -24,6 +35,18 @@ const hops = (path: string) => {
   const points = corners(path);
   return points.slice(1).map((to, index) => ({ from: points[index] as Point, to }));
 };
+
+/** Points along a path every few units, to find what it passes through. */
+const samples = (path: string) =>
+  hops(path).flatMap(({ from, to }) => {
+    const steps = Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / 4);
+    return Array.from({ length: steps }, (_, k) => ({
+      x: from.x + ((to.x - from.x) * k) / steps,
+      y: from.y + ((to.y - from.y) * k) / steps,
+    }));
+  });
+const inside = (point: Point, box: Box) =>
+  point.x > box.x && point.x < box.x + box.width && point.y > box.y && point.y < box.y + box.height;
 
 describe("where the stops go", () => {
   it("draws every stop once, on a line per region the route touches", () => {
@@ -57,7 +80,18 @@ describe("where the stops go", () => {
       if (needed.length === 0) continue;
       const deepest = Math.max(...needed.map((need) => placed.get(need)?.depth ?? 0));
       expect(placed.get(id)?.depth).toBe(deepest + 1);
-      expect(placed.get(id)?.x).toBe((deepest + 1) * COLUMN);
+    }
+  });
+
+  it("gives a column one x, at least a COLUMN past the one before (issue 77: wider to fit a climb)", () => {
+    const drawn = layout(SALMON);
+    const columns = new Map<number, Set<number>>();
+    for (const stop of drawn.stops)
+      columns.set(stop.depth, (columns.get(stop.depth) ?? new Set()).add(stop.x));
+    const xs = [...columns.entries()].sort(([a], [b]) => a - b).map(([, x]) => [...x]);
+    for (const x of xs) expect(x).toHaveLength(1);
+    for (const [index, [x]] of xs.slice(1).entries()) {
+      expect((x ?? 0) - (xs[index]?.[0] ?? 0)).toBeGreaterThanOrEqual(COLUMN);
     }
   });
 
@@ -124,15 +158,28 @@ describe("where the stops go", () => {
     expect(placed.get("likelihood")?.meets).toBe(false);
   });
 
-  it("labels a stop on the side away from the middle", () => {
+  it("labels a stop centred on the side away from the middle, unless a line crosses it there", () => {
     const drawn = layout(SALMON);
     const lanes = laneOf(drawn);
-    const region = new Map(SALMON.stops.map((stop) => [stop.id, stop.region.id]));
-    for (const stop of drawn.stops) {
-      const lane = lanes.get(region.get(stop.id) ?? "") ?? 0;
-      const expected = stop.goal ? "right" : lane > 0 ? "below" : "above";
-      expect(stop.label, stop.id).toBe(expected);
+    const stops = new Map(SALMON.stops.map((stop) => [stop.id, stop]));
+    const points = [...drawn.runs, ...drawn.links].flatMap(samples);
+    let moved = 0;
+    for (const placed of drawn.stops) {
+      const stop = stops.get(placed.id);
+      if (placed.goal || stop === undefined) {
+        expect(placed.label).toBe("right");
+        continue;
+      }
+      const away = (lanes.get(stop.region.id) ?? 0) > 0 ? "below" : "above";
+      if (placed.label === away && placed.align === "middle") continue;
+      moved += 1;
+      const box = labelBox({ ...placed, label: away, align: "middle" }, stop.title, stop.minutes);
+      expect(
+        points.some((point) => inside(point, box)),
+        placed.id,
+      ).toBe(true);
     }
+    expect(moved).toBeLessThan(drawn.stops.length / 2);
   });
 
   it("lays out the shortened route when something is known", () => {
@@ -174,6 +221,7 @@ describe("the lines", () => {
     const drawn = layout(SALMON);
     const goal = at(drawn).get("salmon");
     expect(drawn.runs).toHaveLength(drawn.lines.length);
+    expect(drawn.lines.every((line) => line.run !== null)).toBe(true);
     for (const run of drawn.runs) expect(corners(run).at(-1)).toEqual({ x: goal?.x, y: goal?.y });
   });
 
@@ -181,7 +229,7 @@ describe("the lines", () => {
     const drawn = layout(SALMON);
     const placed = at(drawn);
     const start = (region: string) =>
-      corners(drawn.runs[drawn.lines.findIndex((line) => line.region.id === region)] ?? "")[0];
+      corners(drawn.lines.find((line) => line.region.id === region)?.run ?? "")[0];
     const point = (id: string) => ({ x: placed.get(id)?.x, y: placed.get(id)?.y });
     expect(start("sequencing")).toEqual(point("dna-and-genes"));
     expect(start("sequence-analysis")).toEqual(point("dna-and-genes"));
@@ -211,19 +259,6 @@ describe("the thin connectors", () => {
       // The last hop is the turn itself, unless the connector never leaves its row.
       const level = corners(link).every((point) => point.y === last.to.y);
       expect(level || last.from.y !== last.to.y, link).toBe(true);
-    }
-  });
-
-  it("run steeper than 45° only where 45° cannot fit", () => {
-    for (const link of layout(SALMON).links) {
-      for (const { from, to } of hops(link)) {
-        const [dx, dy] = [Math.abs(to.x - from.x), Math.abs(to.y - from.y)];
-        if (dy > dx) {
-          const points = corners(link);
-          const [first, last] = [points[0] as Point, points.at(-1) as Point];
-          expect(Math.abs(last.y - first.y), link).toBeGreaterThan(last.x - first.x);
-        }
-      }
     }
   });
 
@@ -272,5 +307,69 @@ describe("a title on the map", () => {
       "several places",
     ]);
     expect(wrapTitle("k-mers")).toEqual(["k-mers"]);
+  });
+});
+
+// Issue 77: the geometry was fitted to Salmon. These hold for every shape the weaver can give.
+describe("any route, not only Salmon's", () => {
+  const routes = Object.entries({ SALMON, SALMON_KNOWN, ...SHAPES });
+
+  const overlap = (a: Box, b: Box) =>
+    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const labels = (route: RouteOut, drawn: Layout) => {
+    const stops = new Map(route.stops.map((stop) => [stop.id, stop]));
+    return drawn.stops.map((placed) => {
+      const stop = stops.get(placed.id);
+      return { id: placed.id, box: labelBox(placed, stop?.title ?? "", stop?.minutes ?? 0) };
+    });
+  };
+
+  it.each(routes)("%s: every line and connector runs level or at 45°, rightwards", (_, route) => {
+    const drawn = layout(route);
+    for (const path of [...drawn.runs, ...drawn.links]) {
+      for (const { from, to } of hops(path)) {
+        const [dx, dy] = [to.x - from.x, Math.abs(to.y - from.y)];
+        expect(dy === 0 || dx === dy, path).toBe(true);
+        expect(dx, path).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+
+  it.each(routes)("%s: no line or connector passes through a label", (_, route) => {
+    const drawn = layout(route);
+    const boxes = labels(route, drawn);
+    const crossed = [...drawn.runs, ...drawn.links].flatMap((path) =>
+      boxes
+        .filter(({ box }) => samples(path).some((point) => inside(point, box)))
+        .map(({ id }) => id),
+    );
+    expect(crossed).toEqual([]);
+  });
+
+  it.each(routes)("%s: no label covers another label or a stop", (_, route) => {
+    const drawn = layout(route);
+    const boxes = labels(route, drawn);
+    const clashes: string[] = [];
+    for (const [index, a] of boxes.entries()) {
+      for (const b of boxes.slice(index + 1))
+        if (overlap(a.box, b.box)) clashes.push(`${a.id} × ${b.id}`);
+      for (const stop of drawn.stops) {
+        const mark = { x: stop.x - 10, y: stop.y - 10, width: 20, height: 20 };
+        if (stop.id !== a.id && overlap(a.box, mark)) clashes.push(`${a.id} × ${stop.id}`);
+      }
+    }
+    expect(clashes).toEqual([]);
+  });
+
+  it.each(routes)("%s: a line drawn only by its goals has no run of its own", (_, route) => {
+    const drawn = layout(route);
+    const goals = new Set(route.goals);
+    for (const line of drawn.lines) {
+      const own = line.stops.some((id) => !goals.has(id));
+      expect(line.run !== null, line.region.id).toBe(own);
+    }
+    expect(drawn.runs).toEqual(
+      drawn.lines.flatMap((line) => (line.run === null ? [] : [line.run])),
+    );
   });
 });

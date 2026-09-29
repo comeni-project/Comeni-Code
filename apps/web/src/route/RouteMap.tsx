@@ -7,11 +7,11 @@
 // gives one meaning per colour — and the lines are named in the page's rail, as the board does.
 import { useEffect, useRef } from "react";
 import type { RouteOut } from "../api/schema";
-import { GOAL_WRAP, layout, type Placed, wrapTitle } from "./layout";
+import { GOAL_WRAP, LABEL, layout, type Placed, wrapTitle } from "./layout";
 
-const NAME = 17; // a stop's title, in map units
-const META = 14; // its minutes
-const LEADING = NAME + 2;
+const NAME = LABEL.name;
+const META = LABEL.meta;
+const LEADING = LABEL.leading;
 /** Below this scale the text gets too small to read, so the map scrolls instead. */
 const SMALLEST = 0.55;
 /** Above this a short route would draw its text huge, so the map stops growing and centres. */
@@ -37,9 +37,9 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
           <text
             key={line}
             x={x + 26}
-            y={y - 2 - (lines.length - 1 - index) * 22}
+            y={y - 2 - (lines.length - 1 - index) * LABEL.goalLeading}
             className="fill-ink font-mono"
-            fontSize={20}
+            fontSize={LABEL.goalName}
             fontWeight={700}
           >
             {line}
@@ -53,15 +53,19 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
   }
   const lines = wrapTitle(title);
   const weight = placed.meets ? 600 : 500;
+  const anchor = placed.align;
+  const textX = anchor === "start" ? x - LABEL.nudge : anchor === "end" ? x + LABEL.nudge : x;
   const below = placed.label === "below";
   const nameY = (index: number) =>
-    below ? y + 36 + index * LEADING : y - 44 - (lines.length - 1 - index) * LEADING;
+    below
+      ? y + LABEL.below + index * LEADING
+      : y - LABEL.above - (lines.length - 1 - index) * LEADING;
   return (
-    <g style={halo} className="stroke-canvas" strokeWidth={6} textAnchor="middle">
+    <g style={halo} className="stroke-canvas" strokeWidth={6} textAnchor={anchor}>
       {lines.map((line, index) => (
         <text
           key={line}
-          x={x}
+          x={textX}
           y={nameY(index)}
           className="fill-ink font-sans"
           fontSize={NAME}
@@ -71,8 +75,8 @@ function Label({ placed, title, minutes }: { placed: Placed; title: string; minu
         </text>
       ))}
       <text
-        x={x}
-        y={below ? y + 36 + lines.length * LEADING : y - 26}
+        x={textX}
+        y={below ? y + LABEL.below + lines.length * LEADING : y - LABEL.metaAbove}
         className="fill-ink-3 font-mono"
         fontSize={META}
       >
