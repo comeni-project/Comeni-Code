@@ -78,10 +78,10 @@ def route(
     except UnknownGoal as unknown:
         # Only a miss pays for this query.
         if not IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).exists():
-            return Status(503, Message(detail="The index has not been built yet."))
+            return Status(503, Message(detail="The index has not been built yet.", code="CA0001"))
         missing = ", ".join(f"'{goal_id}'" for goal_id in unknown.ids)
         detail = f"No topic with id {missing}. It may have been removed or renamed."
-        return Status(404, Message(detail=detail))
+        return Status(404, Message(detail=detail, code="CA0002"))
     held = [
         topic for topic in dict.fromkeys(held_ids) if topic in nodes and topic not in woven.goals
     ]

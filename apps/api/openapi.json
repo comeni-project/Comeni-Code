@@ -54,14 +54,20 @@
         "type": "object"
       },
       "Message": {
+        "description": "An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).",
         "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
           "detail": {
             "title": "Detail",
             "type": "string"
           }
         },
         "required": [
-          "detail"
+          "detail",
+          "code"
         ],
         "title": "Message",
         "type": "object"

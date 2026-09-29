@@ -66,7 +66,7 @@ def test_a_blank_query_is_422(client: Client) -> None:
     rebuild_index(FIXTURES)
     response = search(client, "   ")
     assert response.status_code == 422
-    assert response.json() == {"detail": "A search needs a word."}
+    assert response.json() == {"detail": "A search needs a word.", "code": "CA0003"}
 
 
 def test_no_query_at_all_is_422(client: Client) -> None:
@@ -83,7 +83,7 @@ def test_a_limit_outside_the_range_is_422(client: Client, limit: object) -> None
 def test_an_empty_index_is_503(client: Client) -> None:
     response = search(client, "salmon")
     assert response.status_code == 503
-    assert response.json() == {"detail": "The index has not been built yet."}
+    assert response.json() == {"detail": "The index has not been built yet.", "code": "CA0001"}
 
 
 def test_a_search_costs_one_query(

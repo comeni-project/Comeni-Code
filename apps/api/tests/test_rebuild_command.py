@@ -77,7 +77,8 @@ def test_a_refusal_exits_1_and_changes_nothing(tmp_path: Path) -> None:
     with pytest.raises(SystemExit) as caught:
         call_command("rebuild_index", "--root", str(broken), stdout=StringIO(), stderr=err)
     assert caught.value.code == 1
-    assert err.getvalue().splitlines() == [f"Refused: {len(problems)} problems", *problems]
+    assert err.getvalue().splitlines() == [f"CA0006 Refused: {len(problems)} problems", *problems]
+    assert all(" CS0" in line for line in problems)
     assert dump() == before
 
 
@@ -85,7 +86,9 @@ def test_no_folder_exits_2(settings: Settings) -> None:
     run("--root", str(FIXTURES))
     before = dump()
     settings.CODE_CONTENT_ROOT = None
-    with pytest.raises(CommandError, match="set CODE_CONTENT_ROOT or pass --root") as caught:
+    with pytest.raises(
+        CommandError, match="^CA0004 set CODE_CONTENT_ROOT or pass --root"
+    ) as caught:
         run()
     assert caught.value.returncode == 2
     assert (IndexBuild.objects.count(), dump()) == (1, before)
@@ -97,7 +100,7 @@ def test_a_path_that_is_not_a_folder_exits_2(tmp_path: Path, name: str) -> None:
     run("--root", str(FIXTURES))
     before = dump()
     path = tmp_path / name
-    with pytest.raises(CommandError, match="is not a folder") as caught:
+    with pytest.raises(CommandError, match="^CA0005 .* is not a folder") as caught:
         run("--root", str(path))
     assert caught.value.returncode == 2
     assert str(path) in str(caught.value)

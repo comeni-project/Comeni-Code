@@ -91,7 +91,10 @@ class NodeOut(Schema):
 
 
 class Message(Schema):
+    """An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4)."""
+
     detail: str
+    code: str
 
 
 def _card(node: Node, reason: str) -> SideCardOut:
@@ -140,9 +143,9 @@ def node(request: HttpRequest, node_id: str) -> Status[NodeOut] | Status[Message
     if found is None:
         # Only a miss pays for this query.
         if not IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).exists():
-            return Status(503, Message(detail="The index has not been built yet."))
+            return Status(503, Message(detail="The index has not been built yet.", code="CA0001"))
         detail = f"No topic with id '{node_id}'. It may have been removed or renamed."
-        return Status(404, Message(detail=detail))
+        return Status(404, Message(detail=detail, code="CA0002"))
     out: dict[str, list[SideCardOut]] = {kind: [] for kind in Link.Kind.values}
     for link in found.links_out.select_related("target").order_by("kind", "position"):
         out[link.kind].append(_card(link.target, link.reason))

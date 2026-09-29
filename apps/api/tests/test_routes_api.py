@@ -131,7 +131,8 @@ def test_an_unknown_goal_is_404(client: Client, index: None) -> None:
     code, body = route(client, "goal=no-such-topic")
     assert code == 404
     assert body == {
-        "detail": "No topic with id 'no-such-topic'. It may have been removed or renamed."
+        "detail": "No topic with id 'no-such-topic'. It may have been removed or renamed.",
+        "code": "CA0002",
     }
 
 
@@ -143,7 +144,7 @@ def test_no_goal_is_422(client: Client, index: None) -> None:
 def test_an_empty_index_is_503(client: Client) -> None:
     code, body = route(client, "goal=salmon")
     assert code == 503
-    assert body == {"detail": "The index has not been built yet."}
+    assert body == {"detail": "The index has not been built yet.", "code": "CA0001"}
 
 
 def test_a_route_costs_three_queries(

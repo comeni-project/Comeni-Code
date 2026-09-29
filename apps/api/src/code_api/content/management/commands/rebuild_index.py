@@ -24,13 +24,13 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         root: Path | None = options["root"] or settings.CODE_CONTENT_ROOT
         if root is None:
-            raise CommandError("set CODE_CONTENT_ROOT or pass --root", returncode=2)
+            raise CommandError("CA0004 set CODE_CONTENT_ROOT or pass --root", returncode=2)
         # read_content would stop on a missing folder with a traceback; say what is wrong instead.
         if not root.is_dir():
-            raise CommandError(f"{root} is not a folder", returncode=2)
+            raise CommandError(f"CA0005 {root} is not a folder", returncode=2)
         build = rebuild_index(root, commit=options["commit"])
         if build.outcome == IndexBuild.Outcome.REFUSED:
-            self.stderr.write(f"Refused: {len(build.problems)} problems")
+            self.stderr.write(f"CA0006 Refused: {len(build.problems)} problems")
             for problem in build.problems:
                 self.stderr.write(problem)
             # A refusal is an outcome, not a misuse: exit 1 without CommandError's prefix.

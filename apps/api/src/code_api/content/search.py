@@ -49,7 +49,7 @@ def search(
     limit: Annotated[int, Query(ge=1, le=50)] = 10,
 ) -> Status[SearchOut] | Status[Message]:
     if not q.strip():
-        return Status(422, Message(detail=BLANK))
+        return Status(422, Message(detail=BLANK, code="CA0003"))
     rows = {
         node.id: node
         for node in Node.objects.select_related("region").only(
@@ -63,7 +63,7 @@ def search(
     )
     if not found.ids and not IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).exists():
         # Only a miss pays for this query, as on the node endpoint (M1P6.4).
-        return Status(503, Message(detail="The index has not been built yet."))
+        return Status(503, Message(detail="The index has not been built yet.", code="CA0001"))
     return Status(
         200,
         SearchOut(
