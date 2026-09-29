@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import pytest
+
 from code_schema.problems import Problem
 from code_schema.providers import Provider
 from code_schema.resources import parse_resources
@@ -286,4 +288,28 @@ def test_a_composed_message_keeps_the_code_of_the_check_that_failed() -> None:
     _, problems = parse(empty)
     assert [(problem.code, problem.message) for problem in problems] == [
         ("CS0008", "what this resource covers must not be empty")
+    ]
+
+
+# Checkpoint 2 (M4.1.1): the resource codes no other test names, and "the part …" composed.
+@pytest.mark.parametrize(
+    ("text", "code", "said"),
+    [
+        ("resources:\n  - just text\n", "CS0206", '"just text" is not a resource'),
+        (
+            VIDEO.replace("provider: khan-academy", "provider: 7"),
+            "CS0209",
+            "7 is not a provider id",
+        ),
+        (
+            "resources:\n" + READING.replace("part: §17.1", 'part: ""'),
+            "CS0008",
+            "the part must not be empty",
+        ),
+    ],
+)
+def test_each_resource_code_labels_its_message(text: str, code: str, said: str) -> None:
+    _, problems = parse(text)
+    assert any(problem.code == code and said in problem.message for problem in problems), [
+        (problem.code, problem.message) for problem in problems
     ]

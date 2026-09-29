@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import pytest
+
 from code_schema.problems import Problem
 from code_schema.questions import parse_questions
 from code_schema.yaml_lines import load_mapping
@@ -200,6 +202,7 @@ def test_an_id_must_be_a_slug() -> None:
 def test_an_unknown_key_is_a_problem() -> None:
     _, problems = parse(NUMBER + "    note: hello\n")
     assert messages(problems)[0].startswith("unknown key `note` in a question")
+    assert codes(problems)[0] == "CS0303"
 
 
 def test_the_list_must_be_a_list() -> None:
@@ -212,3 +215,83 @@ def test_an_empty_list_is_written_by_leaving_the_field_out() -> None:
     _, problems = parse("try: []\n")
     assert messages(problems) == ["an empty list is written by leaving the field out"]
     assert codes(problems) == ["CS0019"]
+
+
+# Checkpoint 2 (M4.1.1): every code a question can carry is pinned to the message it labels,
+# composed sentences included, so swapping two codes fails a test.
+PINNED = [
+    ("try:\n  - just text\n", "CS0302", '"just text" is not a question'),
+    (NUMBER + "    note: hello\n", "CS0303", "unknown key `note` in a question"),
+    (NUMBER.replace("  - id: kmer-count\n    kind", "  - kind"), "CS0304", "a question has no id"),
+    (NUMBER.replace("    kind: number\n", ""), "CS0305", "has no kind"),
+    (
+        NUMBER.replace("    ask: How many 5-mers does a 100-base read contain?\n", ""),
+        "CS0307",
+        "no ask",
+    ),
+    (
+        NUMBER.replace("answer: 96", "answer: many"),
+        "CS0312",
+        "the answer of kmer-count is not a number",
+    ),
+    (CHOICE + "    unit: bases\n", "CS0313", "has a unit"),
+    (CHOICE + "    tolerance: 1\n", "CS0314", "has a tolerance"),
+    (NUMBER + "    tolerance: -1\n", "CS0315", "is not a number of 0 or more"),
+    (
+        NUMBER.replace(
+            "    hints:\n"
+            "      - Every position where a window of width k still fits gives one k-mer.\n",
+            "    hints: one hint\n",
+        ),
+        "CS0317",
+        "must be a list, one hint at a time",
+    ),
+    (
+        CHOICE.replace(
+            "    options:\n      - text: An edge\n        right: true\n      - text: A node\n",
+            "    options: both\n",
+        ),
+        "CS0322",
+        "the options of node-or-edge must be a list",
+    ),
+    (CHOICE.replace("      - text: A node\n", "      - A node\n"), "CS0323", "is not an option"),
+    (
+        CHOICE.replace("      - text: A node\n", "      - text: A node\n        why: x\n"),
+        "CS0324",
+        "in an option",
+    ),
+    (CHOICE.replace("      - text: A node\n", "      - right: false\n"), "CS0325", "has no text"),
+    (
+        CHOICE.replace("        right: true\n", "        right: yes please\n"),
+        "CS0326",
+        "is not true or false",
+    ),
+    # Composed sentences keep the code of the check that failed.
+    (
+        NUMBER.replace("a 100-base read contain?", "a 100-base read contain"),
+        "CS0011",
+        "the question asked by kmer-count",
+    ),
+    (NUMBER + '    unit: ""\n', "CS0008", "the unit of kmer-count must not be empty"),
+    (NUMBER.replace("gives one k-mer.", "gives one k-mer"), "CS0011", "a hint for kmer-count"),
+    (
+        NUMBER.replace("rationale: A read of length L has L − k + 1 k-mers.", 'rationale: ""'),
+        "CS0008",
+        "the rationale of kmer-count must not be empty",
+    ),
+    (
+        CHOICE.replace("      - text: A node\n", '      - text: ""\n'),
+        "CS0008",
+        "an option of node-or-edge must not be empty",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("text", "code", "said"), PINNED, ids=[f"{c}:{s[:24]}" for _, c, s in PINNED]
+)
+def test_each_question_code_labels_its_message(text: str, code: str, said: str) -> None:
+    _, problems = parse(text)
+    assert any(problem.code == code and said in problem.message for problem in problems), [
+        (problem.code, problem.message) for problem in problems
+    ]

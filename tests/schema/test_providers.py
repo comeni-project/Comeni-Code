@@ -123,3 +123,10 @@ def test_players_must_be_a_list() -> None:
     )
     assert [problem.message for problem in problems] == ["must be a list of players"]
     assert [problem.code for problem in problems] == ["CS0610"]
+
+
+def test_an_entry_that_is_not_a_provider_has_its_code() -> None:
+    _, problems = parse_providers("providers:\n  - openstax\n")
+    assert [(problem.code, problem.message) for problem in problems] == [
+        ("CS0607", '"openstax" is not a provider')
+    ]
