@@ -341,16 +341,6 @@ codes:
       Every link carries a reason: it is what the learner reads instead of a bare chip, and what a
       reviewer judges the link by (M1P2.2, operator 2026-09-18).
 
-  CS0107:
-    emitted_by: schema
-    concern: links
-    says: a link's reason is not a sentence
-    refuses: true
-    fix: |
-      Write the reason as one line of text ending in . ? or !
-    explanation: |
-      A reason is read as a sentence on the page (M1P2.2).
-
   CS0108:
     emitted_by: schema
     concern: links

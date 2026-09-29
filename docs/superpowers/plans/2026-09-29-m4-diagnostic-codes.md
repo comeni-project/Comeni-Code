@@ -91,7 +91,6 @@ field checks are shared, so these codes also appear on resources, questions and 
 | CS0104 | links | `a link has no node` | a link names no node |
 | CS0105 | links | `… is not a node id` (when the slug check has nothing better) | a link's target is not a node id |
 | CS0106 | links | `the link to … has no reason` | a link has no reason |
-| CS0107 | links | `the reason for … <is not text / check's words>` | a link's reason is not a sentence |
 | CS0108 | links | `… links to itself` | a node links to itself |
 | CS0109 | links | `… is listed twice…` | a node is linked twice under one kind |
 | CS0110 | links | `n peers, at most 4 — a node with more is probably two nodes` | a node has more than four peers |
