@@ -4,8 +4,11 @@ Read-only: the index is written only by `rebuild_index`. Three queries per node,
 size. An id not in the index is a normal case (M1P5.3): 404, or 503 when no build was ever applied.
 """
 
+from typing import Annotated, Any, Literal
+
 from django.http import HttpRequest
 from ninja import Router, Schema, Status
+from pydantic import Field
 
 from code_api.content.models import IndexBuild, Link, Node, Question, Resource
 
@@ -73,6 +76,28 @@ class QuestionOut(Schema):
     rationale: str
 
 
+class TextBlockOut(Schema):
+    kind: Literal["text"]
+    markdown: str
+
+
+class TryBlockOut(Schema):
+    """Where a try question sits; the question itself is in `questions`."""
+
+    kind: Literal["try"]
+    question: str
+
+
+class CalloutBlockOut(Schema):
+    kind: Literal["callout"]
+    callout: str
+    title: str
+    markdown: str
+
+
+BlockOut = Annotated[TextBlockOut | TryBlockOut | CalloutBlockOut, Field(discriminator="kind")]
+
+
 class NodeOut(Schema):
     id: str
     title: str
@@ -80,7 +105,7 @@ class NodeOut(Schema):
     region: RegionOut
     level: str
     minutes: int
-    body: str
+    blocks: list[BlockOut]
     folder: str
     needs: list[SideCardOut]
     goes_deeper: list[SideCardOut]
@@ -115,6 +140,16 @@ def _resource(resource: Resource) -> ResourceOut:
         display=resource.display,
         level=resource.level,
     )
+
+
+def _block(block: dict[str, Any]) -> TextBlockOut | TryBlockOut | CalloutBlockOut:
+    match block["kind"]:
+        case "text":
+            return TextBlockOut(**block)
+        case "try":
+            return TryBlockOut(**block)
+        case _:
+            return CalloutBlockOut(**block)
 
 
 def _question(question: Question) -> QuestionOut:
@@ -163,7 +198,7 @@ def node(request: HttpRequest, node_id: str) -> Status[NodeOut] | Status[Message
             region=RegionOut(id=found.region.id, name=found.region.name),
             level=found.level,
             minutes=found.minutes,
-            body=found.body,
+            blocks=[_block(block) for block in found.blocks],
             folder=found.folder,
             needs=out[Link.Kind.NEEDS],
             goes_deeper=out[Link.Kind.GOES_DEEPER],

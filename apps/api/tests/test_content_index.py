@@ -36,7 +36,7 @@ def dump() -> tuple[list[Any], ...]:
         sorted(Region.objects.values_list("id", "name", "position")),
         sorted(
             Node.objects.values_list(
-                "id", "title", "claim", "region_id", "level", "minutes", "body", "folder"
+                "id", "title", "claim", "region_id", "level", "minutes", "body", "blocks", "folder"
             )
         ),
         sorted(Link.objects.values_list("source_id", "kind", "position", "target_id", "reason")),
@@ -288,3 +288,15 @@ def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:
     assert build.outcome == IndexBuild.Outcome.REFUSED
     assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
     assert Provider.objects.count() == 3
+
+
+# M4.1.2: the index keeps each node's body as blocks (spec M4B.5).
+
+
+def test_a_rebuild_stores_each_nodes_blocks() -> None:
+    rebuild_index(FIXTURES)
+    stored = Node.objects.get(id="de-bruijn-graphs").blocks
+    assert [block["kind"] for block in stored] == ["text", "try", "text", "try", "text"]
+    assert stored[1] == {"kind": "try", "question": "kmers-per-read"}
+    callout = Node.objects.get(id="tpm").blocks[1]
+    assert (callout["kind"], callout["callout"]) == ("callout", "misconception")

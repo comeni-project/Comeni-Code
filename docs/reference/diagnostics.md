@@ -646,6 +646,8 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
+**Retired** 2026-09-29 — the body moved to MyST fences (M4.1.2); a Markdoc-style line is now CS0414
+
 **Fix.** Remove the line, or use a marker the body reads.
 
 **Why.** Markers that are not yet built are refused by name rather than drawn as braces (M3P1.3).
@@ -673,6 +675,86 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Place the question in body.md where it should be asked, or remove it from node.yaml.
 
 **Why.** A question in node.yaml that the body never places would never be asked (M3P1.3).
+
+#### CS0406 — a directive inside a directive
+
+*Refuses.*
+
+**Fix.** Close the outer directive before opening the next; directives sit at the top level of body.md.
+
+**Why.** Nesting is not read in M4: the first kind of block that needs it brings it (spec M4B.3).
+
+#### CS0407 — a directive with options
+
+*Refuses.*
+
+**Fix.** Remove the `:key: value` line; no directive takes options yet.
+
+**Why.** Options are part of MyST, but none of the wired blocks has one, so a line that looks like an option is refused rather than read as prose (spec M4B.3).
+
+#### CS0408 — a directive is never closed
+
+*Refuses.*
+
+**Fix.** Close the directive with `:::` on a line of its own.
+
+**Why.** An unclosed fence would silently swallow the rest of the body into one block (spec M4B.3).
+
+#### CS0409 — a question placement with a body
+
+*Refuses.*
+
+**Fix.** Write `:::{try} <id>` and `:::` on the next line, with nothing between; the question lives in node.yaml.
+
+**Why.** A `try` block only places a question; its text, hints and rationale are fields of node.yaml (spec M4B.2).
+
+#### CS0410 — a question placement names no question
+
+*Refuses.*
+
+**Fix.** Write the question's id after `:::{try}`.
+
+**Why.** A placement says which question is asked here (spec M4B.2).
+
+#### CS0411 — a callout with no body
+
+*Refuses.*
+
+**Fix.** Write the callout's text between its opening line and `:::`, or remove it.
+
+**Why.** A callout with nothing in it draws an empty box (spec M4B.3).
+
+#### CS0412 — a directive this format does not have
+
+*Refuses.*
+
+**Fix.** Use `try`, `misconception`, `caveat` or `convention` — the closest is suggested.
+
+**Why.** The body reads only its own directives; anything else would be drawn as text or lost (spec M4B.3, invariant 6).
+
+#### CS0413 — a kind of block that is designed, not built
+
+*Refuses.*
+
+**Fix.** Leave the block out until the phase the message names.
+
+**Why.** Figures, math, images, examples, problems and claims are designed (W5.1) and arrive with the phase that builds them; until then they are refused by name rather than silently ignored (spec M4B.1).
+
+#### CS0414 — a Markdoc-style tag line
+
+*Refuses.*
+
+**Fix.** Write the directive as a MyST colon fence: `:::{try} <id>` then `:::` on the next line.
+
+**Why.** The body moved from Markdoc-style `{% %}` markers to MyST fences in M4.1.2, as R1 chose; an old line is refused with a pointer rather than drawn as braces (spec M4B.2).
+
+#### CS0415 — a body its blocks would not write back unchanged
+
+*Refuses.*
+
+**Fix.** Write directive lines exactly as `:::{name} argument` and `:::`, with no extra spaces, nothing between a try's two lines, one line ending throughout, and a line ending after the last `:::`.
+
+**Why.** Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
 
 ### CS0500–CS0599 · graph
 

@@ -870,6 +870,7 @@ codes:
     concern: body
     says: a marker line the body does not read
     refuses: true
+    retired: "2026-09-29 — the body moved to MyST fences (M4.1.2); a Markdoc-style line is now CS0414"
     fix: |
       Remove the line, or use a marker the body reads.
     explanation: |
@@ -905,6 +906,106 @@ codes:
       Place the question in body.md where it should be asked, or remove it from node.yaml.
     explanation: |
       A question in node.yaml that the body never places would never be asked (M3P1.3).
+
+  CS0406:
+    emitted_by: schema
+    concern: body
+    says: a directive inside a directive
+    refuses: true
+    fix: |
+      Close the outer directive before opening the next; directives sit at the top level of body.md.
+    explanation: |
+      Nesting is not read in M4: the first kind of block that needs it brings it (spec M4B.3).
+
+  CS0407:
+    emitted_by: schema
+    concern: body
+    says: a directive with options
+    refuses: true
+    fix: |
+      Remove the `:key: value` line; no directive takes options yet.
+    explanation: |
+      Options are part of MyST, but none of the wired blocks has one, so a line that looks like an option is refused rather than read as prose (spec M4B.3).
+
+  CS0408:
+    emitted_by: schema
+    concern: body
+    says: a directive is never closed
+    refuses: true
+    fix: |
+      Close the directive with `:::` on a line of its own.
+    explanation: |
+      An unclosed fence would silently swallow the rest of the body into one block (spec M4B.3).
+
+  CS0409:
+    emitted_by: schema
+    concern: body
+    says: a question placement with a body
+    refuses: true
+    fix: |
+      Write `:::{try} <id>` and `:::` on the next line, with nothing between; the question lives in node.yaml.
+    explanation: |
+      A `try` block only places a question; its text, hints and rationale are fields of node.yaml (spec M4B.2).
+
+  CS0410:
+    emitted_by: schema
+    concern: body
+    says: a question placement names no question
+    refuses: true
+    fix: |
+      Write the question's id after `:::{try}`.
+    explanation: |
+      A placement says which question is asked here (spec M4B.2).
+
+  CS0411:
+    emitted_by: schema
+    concern: body
+    says: a callout with no body
+    refuses: true
+    fix: |
+      Write the callout's text between its opening line and `:::`, or remove it.
+    explanation: |
+      A callout with nothing in it draws an empty box (spec M4B.3).
+
+  CS0412:
+    emitted_by: schema
+    concern: body
+    says: a directive this format does not have
+    refuses: true
+    fix: |
+      Use `try`, `misconception`, `caveat` or `convention` — the closest is suggested.
+    explanation: |
+      The body reads only its own directives; anything else would be drawn as text or lost (spec M4B.3, invariant 6).
+
+  CS0413:
+    emitted_by: schema
+    concern: body
+    says: a kind of block that is designed, not built
+    refuses: true
+    fix: |
+      Leave the block out until the phase the message names.
+    explanation: |
+      Figures, math, images, examples, problems and claims are designed (W5.1) and arrive with the phase that builds them; until then they are refused by name rather than silently ignored (spec M4B.1).
+
+  CS0414:
+    emitted_by: schema
+    concern: body
+    says: a Markdoc-style tag line
+    refuses: true
+    fix: |
+      Write the directive as a MyST colon fence: `:::{try} <id>` then `:::` on the next line.
+    explanation: |
+      The body moved from Markdoc-style `{% %}` markers to MyST fences in M4.1.2, as R1 chose; an old line is refused with a pointer rather than drawn as braces (spec M4B.2).
+
+  CS0415:
+    emitted_by: schema
+    concern: body
+    says: a body its blocks would not write back unchanged
+    refuses: true
+    fix: |
+      Write directive lines exactly as `:::{name} argument` and `:::`, with no extra spaces, nothing between a try's two lines, one line ending throughout, and a line ending after the last `:::`.
+    explanation: |
+      Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
 
   # ── CS0500–CS0599 · the graph ───────────────────────────────────────────────────────────────
 

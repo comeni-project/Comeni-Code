@@ -20,7 +20,7 @@ const READ_MAPPING: NodeOut = {
   level: "introductory",
   resources: [],
   questions: [],
-  body: "Reads are placed on a reference.\n",
+  blocks: [{ kind: "text", markdown: "Reads are placed on a reference.\n" }],
 };
 
 /** One stub for both endpoints; a node the map doesn't hold is the API's 404. */
@@ -90,7 +90,12 @@ describe("the Node page", () => {
   });
 
   it("draws the body's headings, and none of its HTML", async () => {
-    answering([{ ...DE_BRUIJN, body: `${DE_BRUIJN.body}\n<script>alert(1)</script>\n` }]);
+    answering([
+      {
+        ...DE_BRUIJN,
+        blocks: [...DE_BRUIJN.blocks, { kind: "text", markdown: "<script>alert(1)</script>\n" }],
+      },
+    ]);
     const { container } = open("/node/de-bruijn-graphs");
     expect(
       await screen.findByRole("heading", { level: 2, name: "Further reading" }),
@@ -110,7 +115,26 @@ describe("the Node page", () => {
     expect(follows(code, first)).toBe(true);
     expect(follows(first, second)).toBe(true);
     expect(follows(second, reading)).toBe(true);
-    expect(screen.queryByText(/\{% try/)).toBeNull();
+    expect(screen.queryByText(/:::\{try\}/)).toBeNull();
+  });
+
+  it("draws a callout where the author put it", async () => {
+    answering([
+      {
+        ...READ_MAPPING,
+        blocks: [
+          { kind: "text", markdown: "Before.\n\n" },
+          { kind: "callout", callout: "caveat", title: "Mind the strand", markdown: "Inside.\n" },
+          { kind: "text", markdown: "\nAfter.\n" },
+        ],
+      },
+    ]);
+    open("/node/read-mapping");
+    const box = await screen.findByRole("note", { name: "Caveat: Mind the strand" });
+    const follows = (a: Node, b: Node) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(follows(screen.getByText("Before."), box)).toBe(true);
+    expect(follows(box, screen.getByText("After."))).toBe(true);
   });
 
   it("lists Learn it and the body's sections on this page", async () => {

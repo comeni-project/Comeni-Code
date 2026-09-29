@@ -21,7 +21,7 @@ from code_api.content.models import (
     Region,
     Resource,
 )
-from code_schema import Content, read_content
+from code_schema import Block, Content, Text, Try, read_content
 from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
 from code_schema.regions import REGISTRY
 
@@ -57,6 +57,19 @@ def _region_rows(content: Content) -> list[Region]:
     ]
 
 
+def _block_json(block: Block) -> dict[str, str]:
+    if isinstance(block, Text):
+        return {"kind": "text", "markdown": block.markdown}
+    if isinstance(block, Try):
+        return {"kind": "try", "question": block.question}
+    return {
+        "kind": "callout",
+        "callout": block.kind,
+        "title": block.title,
+        "markdown": block.markdown,
+    }
+
+
 def _node_rows(content: Content) -> list[Node]:
     return [
         Node(
@@ -67,6 +80,7 @@ def _node_rows(content: Content) -> list[Node]:
             level=node.level.value,
             minutes=node.minutes,
             body=node.body,
+            blocks=[_block_json(block) for block in node.blocks],
             folder=content.folders[node.id],
         )
         for node in content.nodes.values()

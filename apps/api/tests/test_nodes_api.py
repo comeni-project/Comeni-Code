@@ -92,7 +92,7 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         "region": {"id": "transcriptomics", "name": "Transcriptomics"},
         "level": "intermediate",
         "minutes": 15,
-        "body": salmon.body,
+        "blocks": [{"kind": "text", "markdown": salmon.body}],
         "folder": "transcriptomics/salmon",
         "needs": cards(salmon.needs),
         "goes_deeper": cards(salmon.goes_deeper),
@@ -236,7 +236,27 @@ def test_a_node_with_neither_returns_empty_lists(client: Client) -> None:
     assert body["questions"] == []
 
 
-def test_the_body_keeps_the_markers_the_page_splits_on(client: Client) -> None:
+# M4.1.2: a node is served as blocks, and its body is not (spec M4B.5).
+
+
+def test_a_node_serves_its_blocks_and_no_body(client: Client) -> None:
     rebuild_index(FIXTURES)
-    body = get(client, "de-bruijn-graphs").json()
-    assert "{% try kmers-per-read %}" in body["body"]
+    body = get(client, "tpm").json()
+    assert "body" not in body
+    assert [block["kind"] for block in body["blocks"]] == ["text", "callout", "text"]
+    callout = CONTENT.nodes["tpm"].blocks[1]
+    assert body["blocks"][1] == {
+        "kind": "callout",
+        "callout": "misconception",
+        "title": "TPM is not a count of reads",
+        "markdown": getattr(callout, "markdown", None),
+    }
+
+
+def test_a_placed_question_is_a_try_block(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    blocks = get(client, "de-bruijn-graphs").json()["blocks"]
+    assert [block["question"] for block in blocks if block["kind"] == "try"] == [
+        "kmers-per-read",
+        "shared-unitig",
+    ]

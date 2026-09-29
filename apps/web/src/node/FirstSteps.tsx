@@ -111,7 +111,7 @@ export function FirstSteps({
   known: string[];
   next: StopOut | undefined;
 }) {
-  const { body, reading } = splitReading(node.body);
+  const { blocks, reading } = splitReading(node.blocks);
   const video = node.resources.find(
     (resource) => resource.display === "embed" && resource.video !== null,
   );
@@ -134,7 +134,7 @@ export function FirstSteps({
 
         {video !== undefined && src !== null ? <Watch resource={video} src={src} /> : null}
 
-        <Body body={body} questions={node.questions} big />
+        <Body blocks={blocks} questions={node.questions} big />
 
         {next !== undefined ? <Next stop={next} goals={goals} known={known} /> : null}
 
@@ -156,7 +156,9 @@ export function FirstSteps({
                 {resource.part === "" ? "" : ` · ${resource.part}`} · {resource.licence}
               </a>
             ))}
-            {reading.trim() === "" ? null : <Body body={reading} questions={[]} />}
+            {reading.trim() === "" ? null : (
+              <Body blocks={[{ kind: "text", markdown: reading }]} questions={[]} />
+            )}
           </section>
         ) : null}
       </article>

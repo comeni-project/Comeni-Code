@@ -156,7 +156,7 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
   const rail = aroundCount(around) > 0 && open;
   const sections = [
     ...(node.resources.length > 0 ? [{ id: "learn-it", text: "Learn it" }] : []),
-    ...headingsOf(node.body),
+    ...headingsOf(node.blocks),
   ];
   const minutes = node.minutes + node.questions.length;
   return (
@@ -197,7 +197,7 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
         </section>
         <Needs node={node} goals={goals} known={known} />
         <LearnIt resources={node.resources} />
-        <Body body={node.body} questions={node.questions} />
+        <Body blocks={node.blocks} questions={node.questions} />
       </article>
       <Aside around={around} goals={goals} known={known} open={open} onToggle={toggle} />
     </main>

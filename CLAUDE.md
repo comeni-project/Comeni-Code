@@ -271,7 +271,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
 apps/api/                 the Django project, code_api (config/, accounts/, content/ — the index, rebuild_index, /api/nodes, /api/routes, /api/search, health/, api.py, celery.py, redis.py), openapi.json, tests
-apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), route/ (L4, with the map's pure layout), node/ (L5, the body split at its try markers and drawn by react-markdown), health/, identity/, layout/, api/; its Dockerfile builds the nginx image
+apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), route/ (L4, with the map's pure layout), node/ (L5, the body drawn block by block: text by react-markdown, try questions, callouts), health/, identity/, layout/, api/; its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat
 .dockerignore             keeps .env and host builds out of images

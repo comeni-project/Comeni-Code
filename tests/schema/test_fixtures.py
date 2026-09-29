@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from code_schema.blocks import Callout, Try, write_blocks
 from code_schema.cli import main
 from code_schema.content import Content, read_content
 from code_schema.node import Level
@@ -176,7 +177,17 @@ def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> No
 def test_every_question_is_asked_where_its_marker_is(content: Content) -> None:
     node = content.nodes["de-bruijn-graphs"]
     for question in node.questions:
-        assert f"{{% try {question.id} %}}" in node.body
+        assert Try(question.id) in node.blocks
+
+
+def test_every_body_round_trips_through_blocks(content: Content) -> None:
+    for node in content.nodes.values():
+        assert write_blocks(node.blocks) == node.body, node.id
+
+
+def test_the_tpm_node_carries_a_misconception(content: Content) -> None:
+    kinds = [block.kind for block in content.nodes["tpm"].blocks if isinstance(block, Callout)]
+    assert kinds == ["misconception"]
 
 
 def test_every_resource_cites_a_listed_provider(content: Content) -> None:

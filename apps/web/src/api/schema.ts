@@ -1,5 +1,6 @@
 // Generated from apps/api/openapi.json by `npm run api-types`. Do not edit (M0 part 7 spec, P7.2).
 export interface ApiSchemas {
+  CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   HealthOut: HealthOut;
   Message: Message;
@@ -16,6 +17,14 @@ export interface ApiSchemas {
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
+  TextBlockOut: TextBlockOut;
+  TryBlockOut: TryBlockOut;
+}
+export interface CalloutBlockOut {
+  callout: string;
+  kind: "callout";
+  markdown: string;
+  title: string;
 }
 export interface CheckOut {
   duration_ms: number;
@@ -43,7 +52,7 @@ export interface NeighbourOut {
   title: string;
 }
 export interface NodeOut {
-  body: string;
+  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
   claim: string;
   folder: string;
   goes_deeper: SideCardOut[];
@@ -57,6 +66,17 @@ export interface NodeOut {
   related: SideCardOut[];
   resources: ResourceOut[];
   title: string;
+}
+export interface TextBlockOut {
+  kind: "text";
+  markdown: string;
+}
+/**
+ * Where a try question sits; the question itself is in `questions`.
+ */
+export interface TryBlockOut {
+  kind: "try";
+  question: string;
 }
 /**
  * A neighbour on the node page, with its time: the L5 side column's *level · N min*.
