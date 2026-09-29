@@ -40,13 +40,13 @@ def parse_links(
     """One link list. Never raises; returns the valid links, the line of each, and the problems."""
     field_line = lines.get(kind)
 
-    def problem(message: str, line: int | None = field_line) -> Problem:
-        return Problem(file=file, field=kind, line=line, message=message)
+    def problem(code: str, message: str, line: int | None = field_line) -> Problem:
+        return Problem(file=file, field=kind, line=line, code=code, message=message)
 
     if not isinstance(value, list):
-        return (), (), [problem("must be a list of links, each with a node and a reason")]
+        return (), (), [problem("CS0101", "must be a list of links, each with a node and a reason")]
     if not value:
-        return (), (), [problem("an empty list is written by leaving the field out")]
+        return (), (), [problem("CS0019", "an empty list is written by leaving the field out")]
 
     links: list[Link] = []
     link_lines: list[int | None] = []
@@ -56,7 +56,10 @@ def parse_links(
     for entry in value:
         if not isinstance(entry, dict):
             problems.append(
-                problem(f"{shown(entry)} is not a link — write node: and reason: on separate lines")
+                problem(
+                    "CS0102",
+                    f"{shown(entry)} is not a link — write node: and reason: on separate lines",
+                )
             )
             continue
         node_line = lines.of(entry, "node")
@@ -66,6 +69,7 @@ def parse_links(
             if key not in _LINK_KEYS:
                 problems.append(
                     problem(
+                        "CS0103",
                         f"unknown key `{key}` in a link (a link has node and reason)",
                         lines.of(entry, str(key)),
                     )
@@ -75,31 +79,37 @@ def parse_links(
         target = entry.get("node")
         if "node" not in entry:
             entry_line = next((lines.of(entry, str(key)) for key in entry), field_line)
-            problems.append(problem("a link has no node", entry_line))
+            problems.append(problem("CS0104", "a link has no node", entry_line))
             continue
         wrong = _node_id(target)
         if wrong is not None or not isinstance(target, str):
+            # The id check refuses anything that is not a valid id, text or not, so its CS0015 is
+            # the code either way; the fallback only satisfies the type checker.
             said = wrong.message if wrong is not None else f"{shown(target)} is not a node id"
-            problems.append(problem(said, node_line))
+            problems.append(problem("CS0015", said, node_line))
             continue
 
         reason = entry.get("reason")
         if "reason" not in entry:
-            problems.append(problem(f"the link to {target} has no reason", node_line))
+            problems.append(problem("CS0106", f"the link to {target} has no reason", node_line))
             sound = False
         elif (wrong := _reason_problem(reason)) is not None:
             problems.append(
-                problem(f"the reason for {target} {wrong.message}", lines.of(entry, "reason"))
+                problem(
+                    wrong.code,
+                    f"the reason for {target} {wrong.message}",
+                    lines.of(entry, "reason"),
+                )
             )
             sound = False
 
         if target == node_id:
-            problems.append(problem(f"{target} links to itself", node_line))
+            problems.append(problem("CS0108", f"{target} links to itself", node_line))
             continue
         if target in first_seen:
             first = first_seen[target]
             where = "" if first is None else f" (first on line {first})"
-            problems.append(problem(f"{target} is listed twice{where}", node_line))
+            problems.append(problem("CS0109", f"{target} is listed twice{where}", node_line))
             continue
         first_seen[target] = node_line
 
@@ -112,6 +122,7 @@ def parse_links(
         line = lines.of(over, "node") if isinstance(over, dict) else field_line
         problems.append(
             problem(
+                "CS0110",
                 f"{len(value)} peers, at most {MAX_PEERS} — a node with more is probably two nodes",
                 line,
             )

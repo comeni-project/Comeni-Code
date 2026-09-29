@@ -319,16 +319,6 @@ codes:
     explanation: |
       A link without a node points nowhere (M1P2.2).
 
-  CS0105:
-    emitted_by: schema
-    concern: links
-    says: a link's target is not a node id
-    refuses: true
-    fix: |
-      Write the target as a node id: lower case, digits and single hyphens.
-    explanation: |
-      Links name nodes by id, the folder's name (M1P2.2).
-
   CS0106:
     emitted_by: schema
     concern: links

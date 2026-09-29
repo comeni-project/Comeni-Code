@@ -248,7 +248,7 @@ def test_link_problems_and_field_problems_come_in_one_run() -> None:
     assert [str(p) for p in problems] == [
         'salmon/node.yaml:5: level: CS0012 "expert" is not a level '
         "(first-steps, foundations, introductory, intermediate, advanced)",
-        "salmon/node.yaml:9: needs: the reason for what-tpm-measures must end with . ? or !",
+        "salmon/node.yaml:9: needs: CS0011 the reason for what-tpm-measures must end with . ? or !",
     ]
 
 
@@ -263,7 +263,8 @@ def test_the_designed_optional_paths_are_refused_until_wired() -> None:
     )
     _, problems = parse(any_of)
     assert [str(p) for p in problems] == [
-        "salmon/node.yaml:8: needs: unknown key `any-of` in a link (a link has node and reason)"
+        "salmon/node.yaml:8: needs: CS0103 unknown key `any-of` in a link "
+        "(a link has node and reason)"
     ]
 
 

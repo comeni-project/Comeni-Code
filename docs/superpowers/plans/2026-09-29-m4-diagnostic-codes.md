@@ -89,14 +89,13 @@ field checks are shared, so these codes also appear on resources, questions and 
 | CS0102 | links | `… is not a link — write node: and reason: on separate lines` | an entry is not a link |
 | CS0103 | links | `unknown key \`…\` in a link (a link has node and reason)` | a link has a key it cannot have |
 | CS0104 | links | `a link has no node` | a link names no node |
-| CS0105 | links | `… is not a node id` (when the slug check has nothing better) | a link's target is not a node id |
 | CS0106 | links | `the link to … has no reason` | a link has no reason |
 | CS0108 | links | `… links to itself` | a node links to itself |
 | CS0109 | links | `… is listed twice…` | a node is linked twice under one kind |
 | CS0110 | links | `n peers, at most 4 — a node with more is probably two nodes` | a node has more than four peers |
 | CS0111 | node | `… is also under … — a node is one kind of neighbour, not two` | a node is linked under two kinds |
 
-A link target that fails the id check itself keeps the check's `CS0015`.
+A link target that fails the id check keeps the check's `CS0015` (`CS0105` and `CS0107` were removed before publication: each could never be emitted).
 
 **`CS0200`–`CS0299` — resources and providers** (`resources.py`, and `providers.py`'s
 `player_problem`)
