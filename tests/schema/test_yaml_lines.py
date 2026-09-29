@@ -30,13 +30,16 @@ def test_a_syntax_error_becomes_a_problem_with_its_line() -> None:
 def test_a_document_that_is_not_a_mapping_is_a_problem() -> None:
     data, _, problems = load_mapping("- salmon\n", file="salmon/node.yaml")
     assert data is None
-    assert str(problems[0]) == "salmon/node.yaml: the file must be a mapping of fields, not a list"
+    assert (
+        str(problems[0])
+        == "salmon/node.yaml: CS0003 the file must be a mapping of fields, not a list"
+    )
 
 
 def test_an_empty_file_is_a_problem() -> None:
     data, _, problems = load_mapping("", file="salmon/node.yaml")
     assert data is None
-    assert str(problems[0]) == "salmon/node.yaml: the file is empty"
+    assert str(problems[0]) == "salmon/node.yaml: CS0002 the file is empty"
 
 
 def test_each_mapping_in_a_list_keeps_its_own_lines() -> None:
