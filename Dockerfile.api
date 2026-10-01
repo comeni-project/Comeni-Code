@@ -3,7 +3,7 @@
 # Build from the repository root: docker build -f Dockerfile.api .
 # Base images are pinned by digest; Dependabot bumps them (.github/dependabot.yml).
 
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim@sha256:768543c09cfe47d3d08c3cbfffadead2029a96d19c3c05285c8b6c6f637aa3a8 AS build
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim@sha256:8f4ab6a0f2cc074290ba6a136eb016350b2b6b93a2108e07b72724901ad1914f AS build
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 WORKDIR /app
 # Whole folders, never a list of packages: a new workspace member can't be forgotten here.
@@ -20,7 +20,7 @@ RUN CODE_SECRET_KEY=build-time-placeholder-only-never-used-at-run-time-000000000
     CODE_STATIC_ROOT=/app/staticfiles \
     .venv/bin/python apps/api/manage.py collectstatic --noinput
 
-FROM python:3.14-slim-trixie@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
+FROM python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
 RUN useradd --system --uid 10001 --no-create-home code
 WORKDIR /app
 COPY --from=build /app /app
