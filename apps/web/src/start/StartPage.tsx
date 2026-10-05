@@ -2,13 +2,11 @@
 //
 // The stages live in the URL — ?q= for the words, ?goal= for each confirmed target — so the back
 // button steps through them, a refresh keeps them, and a half-finished search is a link.
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { ApiUnreachable } from "../api/client";
-import { fetchRoute } from "../api/routes";
+import { useRoute, useSearch } from "../api/queries";
 import type { ResultOut } from "../api/schema";
-import { fetchSearch } from "../api/search";
+import { ErrorNotice } from "../layout/ErrorNotice";
 import { TopBar } from "../layout/TopBar";
 import { EXAMPLES } from "./examples";
 import { RoutePreview } from "./RoutePreview";
@@ -18,11 +16,6 @@ export const MAX_GOALS = 3;
 /** The Route page part 4 builds, in the vocabulary the API already speaks (M3P3.2). */
 export const routePage = (goals: readonly string[]) =>
   `/route?${new URLSearchParams(goals.map((goal) => ["goal", goal]))}`;
-
-const sentenceOf = (error: Error) =>
-  error instanceof ApiUnreachable && error.status !== undefined
-    ? error.reason
-    : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
 /** A candidate target: a ticked card once chosen, as on the Start board. */
 function Target({
@@ -87,12 +80,7 @@ export function StartPage() {
   // Once a target is chosen the other candidates fold away, as on the board, until asked for.
   const [adding, setAdding] = useState(false);
 
-  const search = useQuery({
-    queryKey: ["search", words],
-    queryFn: ({ signal }) => fetchSearch(words, signal),
-    enabled: words.trim() !== "",
-    retry: false,
-  });
+  const search = useSearch(words);
 
   function ask(next: string) {
     setTyped(next);
@@ -114,12 +102,8 @@ export function StartPage() {
     setParams(next);
   }
 
-  const preview = useQuery({
-    queryKey: ["route", ...goals],
-    queryFn: ({ signal }) => fetchRoute(goals, [], signal),
-    enabled: goals.length > 0,
-    retry: false,
-  });
+  // The route with nothing known: the Route page asks the same question, and reuses this answer.
+  const preview = useRoute(goals, []);
 
   const results = search.data?.results ?? [];
   const offered = [
@@ -199,9 +183,7 @@ export function StartPage() {
               {search.isPending ? (
                 <p className="text-[15px] text-ink-2">Searching…</p>
               ) : search.isError ? (
-                <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-                  {sentenceOf(search.error)}
-                </p>
+                <ErrorNotice error={search.error} />
               ) : results.length === 0 ? (
                 <p className="text-[15px] text-ink-2">
                   Nothing here is about “{search.data.unmatched.join("”, “") || words}” yet. Try
@@ -242,9 +224,7 @@ export function StartPage() {
             {goals.length === 0 ? null : preview.isPending ? (
               <p className="text-[15px] text-ink-2">Weaving your route…</p>
             ) : preview.isError ? (
-              <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-                {sentenceOf(preview.error)}
-              </p>
+              <ErrorNotice error={preview.error} />
             ) : (
               <RoutePreview route={preview.data} href={routePage(goals)} />
             )}

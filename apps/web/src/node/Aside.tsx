@@ -6,7 +6,7 @@
 import { Link } from "react-router";
 import type { SideCardOut } from "../api/schema";
 import { shownLevel } from "../start/format";
-import { withRoute } from "./embed";
+import { withRoute } from "../url";
 
 export interface Around {
   deeper: SideCardOut[];

@@ -1,5 +1,6 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { QuestionOut } from "../api/schema";
 import { Body } from "./Body";
 
 describe("Body", () => {
@@ -15,5 +16,34 @@ describe("Body", () => {
       <Body blocks={[{ kind: "try", question: "gone" }]} questions={[]} />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("keys a question apart from the blocks around it (#134)", () => {
+    // Index keys and a question id such as 2 used to collide, and React said so.
+    const question: QuestionOut = {
+      id: "2",
+      kind: "number",
+      ask: "How many?",
+      options: null,
+      answer: 2,
+      unit: null,
+      tolerance: null,
+      hints: ["Count them."],
+      rationale: "There are two.",
+    };
+    const said = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <Body
+        blocks={[
+          { kind: "text", markdown: "One.\n" },
+          { kind: "text", markdown: "Two.\n" },
+          { kind: "text", markdown: "Three.\n" },
+          { kind: "try", question: "2" },
+        ]}
+        questions={[question]}
+      />,
+    );
+    expect(said.mock.calls.flat().join(" ")).not.toMatch(/same key/);
+    said.mockRestore();
   });
 });

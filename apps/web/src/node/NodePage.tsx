@@ -4,27 +4,20 @@
 // Everything the page knows is in the URL: the node, and the route as goal and known (M3P5.4).
 // What the board also shows — progress, review, the problem, figures, "Not yet reviewed" —
 // needs learner records (T7), problems (M6) or reviewers (M4), and is not drawn.
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
-import { ApiUnreachable } from "../api/client";
-import { fetchNode } from "../api/nodes";
-import { fetchRoute } from "../api/routes";
+import { Link, useParams } from "react-router";
+import { useNode, useRoute } from "../api/queries";
 import type { NodeOut } from "../api/schema";
+import { ErrorNotice } from "../layout/ErrorNotice";
 import { TopBar } from "../layout/TopBar";
+import { useRouteParams, withRoute } from "../url";
 import { type Around, Aside, aroundCount } from "./Aside";
 import { Body } from "./Body";
 import { headingsOf } from "./body";
-import { withRoute } from "./embed";
 import { FirstSteps } from "./FirstSteps";
 import { LearnIt } from "./LearnIt";
 import { RouteStrip } from "./RouteStrip";
 import { LevelTag } from "./tags";
-
-const sentenceOf = (error: Error) =>
-  error instanceof ApiUnreachable && error.status !== undefined
-    ? error.reason
-    : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
 /** The section being read: the last heading above the top quarter of the window. */
 function useReading(ids: string[]) {
@@ -206,22 +199,10 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
 
 export function NodePage() {
   const { id = "" } = useParams();
-  const [params] = useSearchParams();
-  const goals = params.getAll("goal");
-  const known = params.getAll("known");
-
-  const node = useQuery({
-    queryKey: ["node", id],
-    queryFn: ({ signal }) => fetchNode(id, signal),
-    retry: false,
-  });
-  // The Route page's own query, so a node opened from the map reuses the route it drew.
-  const route = useQuery({
-    queryKey: ["route", goals.join(","), known.join(",")],
-    queryFn: ({ signal }) => fetchRoute(goals, known, signal),
-    enabled: goals.length > 0,
-    retry: false,
-  });
+  const { goals, known } = useRouteParams();
+  const node = useNode(id);
+  // The Route page's own question, so a node opened from the map reuses the route it drew.
+  const route = useRoute(goals, known);
 
   // What comes after this stop, in the order the weaver gave (M3P6.2).
   const stops = route.data?.stops ?? [];
@@ -251,9 +232,7 @@ export function NodePage() {
         </main>
       ) : node.isError ? (
         <main className="flex flex-col gap-3 px-4 py-6 sm:px-9">
-          <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-            {sentenceOf(node.error)}
-          </p>
+          <ErrorNotice error={node.error} />
           <p className="text-[15px] text-ink-2">
             <Link to="/" className="text-sel underline">
               Start from what you want to learn

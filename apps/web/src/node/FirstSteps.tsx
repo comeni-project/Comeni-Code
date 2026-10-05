@@ -6,9 +6,10 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import type { NodeOut, ResourceOut, StopOut } from "../api/schema";
+import { withRoute } from "../url";
 import { Body } from "./Body";
 import { splitReading } from "./body";
-import { playerSrc, withRoute } from "./embed";
+import { playerSrc } from "./embed";
 import { LevelTag } from "./tags";
 
 /** The minutes a part covers, for the watch offer: "Watch · 13 min". */

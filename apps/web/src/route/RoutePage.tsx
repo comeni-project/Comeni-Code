@@ -2,24 +2,19 @@
 //
 // Everything is in the URL — goal, known, the selected stop and the view — so a route, a stop and
 // a shortened map are each a link someone can send (M3P3.2).
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { ApiUnreachable } from "../api/client";
-import { fetchRoute } from "../api/routes";
+import { useRoute } from "../api/queries";
 import type { RouteOut } from "../api/schema";
+import { ErrorNotice } from "../layout/ErrorNotice";
 import { TopBar } from "../layout/TopBar";
 import { shownLevel, shownStops, shownTime } from "../start/format";
+import { useRouteParams } from "../url";
 import { layout } from "./layout";
 import { NextUp } from "./NextUp";
 import { RouteList } from "./RouteList";
 import { RouteMap } from "./RouteMap";
 import { StopPanel } from "./StopPanel";
-
-const sentenceOf = (error: Error) =>
-  error instanceof ApiUnreachable && error.status !== undefined
-    ? error.reason
-    : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;
 
 /** Past this many lines the rail folds, so a route across many regions keeps one tidy row. */
 const RAIL_SHOWN = 6;
@@ -99,17 +94,10 @@ function Legend() {
 
 export function RoutePage() {
   const [params, setParams] = useSearchParams();
-  const goals = params.getAll("goal");
-  const known = params.getAll("known");
+  const { goals, known } = useRouteParams();
   const selected = params.get("stop");
   const view = params.get("view") === "list" ? "list" : "map";
-
-  const query = useQuery({
-    queryKey: ["route", goals.join(","), known.join(",")],
-    queryFn: ({ signal }) => fetchRoute(goals, known, signal),
-    enabled: goals.length > 0,
-    retry: false,
-  });
+  const query = useRoute(goals, known);
 
   function select(id: string) {
     const next = new URLSearchParams(params);
@@ -152,9 +140,7 @@ export function RoutePage() {
         ) : query.isPending ? (
           <p className="text-[15px] text-ink-2">Weaving your route…</p>
         ) : query.isError ? (
-          <p className="rounded-control bg-open-soft px-4 py-3 text-[15px] text-open">
-            {sentenceOf(query.error)}
-          </p>
+          <ErrorNotice error={query.error} />
         ) : route === undefined ? null : (
           <>
             <section className="flex flex-wrap items-start justify-between gap-6">

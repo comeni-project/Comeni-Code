@@ -7,8 +7,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import type { RouteOut, StopOut } from "../api/schema";
-import { withRoute } from "../node/embed";
 import { shownLevel } from "../start/format";
+import { withRoute } from "../url";
 import type { Layout } from "./layout";
 
 function Names({
