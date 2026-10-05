@@ -237,9 +237,9 @@ known when its `try` checks are answered and its problem is solved.
 ### T7.1 Self-tests
 
 *Added 2026-09-17, after the operator asked for an exam system before freezing the design.*
-*Superseded in part on 2026-10-05 by the M4.2 spec (`2026-10-05-m4-exam-pools-design.md`): a pool
-is `exam.yaml`, at least 4 questions and more is better (up to 40), and exam answers are not a
-secret in v1, since the content repository is public.*
+*Superseded in part on 2026-10-05 by the M4.2 spec (`archive/2026-10-05-m4-exam-pools-design.md`):
+a pool is `exam.yaml`, at least 4 questions and more is better (up to 40), and exam answers are
+not a secret in v1, since the content repository is public.*
 
 **Any time, a learner can test themselves.** Code builds an exam from the nodes in a chosen
 scope, grades it automatically, and shows the result on the route's map. It is how *known*
