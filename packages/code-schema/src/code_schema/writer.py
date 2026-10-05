@@ -133,7 +133,9 @@ def write_exam_yaml(node: Node) -> str:
 def write_node_folder(node: Node, folder: Path) -> None:
     """Write node.yaml, body.md and, when the node has a pool, exam.yaml (spec M4E.8).
 
-    The body goes back byte for byte: M1 does not look inside it.
+    The body goes back byte for byte: M1 does not look inside it. A node with no pool removes
+    exam.yaml, so write only a node read whole by `read_node`: one from `parse_node` never carries
+    its pool, and writing it would delete a reviewed one (#150).
     """
     folder.mkdir(parents=True, exist_ok=True)
     (folder / NODE_FILE).write_text(write_node_yaml(node), encoding="utf-8", newline="\n")

@@ -14,7 +14,7 @@ exam:
       - text: How many reads mapped to it
         misconception: TPM is not a count of reads
       - text: How long the transcript is
-    rationale: TPM divides each transcript's reads by its length, then scales, so it is a share of molecules.
+    rationale: TPM divides each transcript's reads by its effective length, then scales, so it is a share of molecules.
   - id: twice-as-long
     kind: choice
     ask: Transcripts A and B have the same number of reads, and B is twice as long. Which has the higher TPM?

@@ -187,6 +187,11 @@ def _gives_the_answer(hint: str, answer: Answer) -> bool:
     return right.casefold() in hint.casefold()
 
 
+def _refusals(field: Field) -> int:
+    """How many problems so far refuse; a warning never makes an answer unreadable (M4E.4)."""
+    return sum(problem.refuses for problem in field.problems)
+
+
 def read_answer(
     entry: Entry, name: str, kind: str, field: Field, *, rules: OptionRules = TRY_OPTIONS
 ) -> Answer | None:
@@ -198,7 +203,7 @@ def read_answer(
     still run in the same pass (#149); a caller keeps a question only when the entry is sound.
     """
     written = entry.mapping
-    before = len(field.problems)
+    before = _refusals(field)
     options: tuple[Option, ...] = ()
     value: float | int | None = None
     if kind == "choice":
@@ -244,7 +249,7 @@ def read_answer(
                 key="tolerance",
             )
 
-    if len(field.problems) > before:
+    if _refusals(field) > before:
         return None
     if kind == "choice":
         return ChoiceAnswer(options=options)

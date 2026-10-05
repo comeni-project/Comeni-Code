@@ -297,3 +297,32 @@ def test_a_misconception_that_is_not_text_reads_plainly(tmp_path: Path) -> None:
 
 def test_a_pool_of_forty_is_accepted(tmp_path: Path) -> None:
     assert lines(tmp_path, "exam:\n" + "".join(number(f"q{n}") for n in range(40))) == []
+
+
+# #150: the near miss is the file's name, not any YAML file that looks alike.
+
+
+def test_a_data_file_that_merely_looks_alike_is_not_a_near_miss(tmp_path: Path) -> None:
+    folder = make(tmp_path, None)
+    for name in ("edam.yaml", "team.yaml", "beam.yaml", "example.yaml", "exam-figure.yaml"):
+        (folder / name).write_text("data: 1\n", encoding="utf-8")
+    assert read_content(tmp_path).problems == ()
+
+
+def test_each_spelling_of_exam_yaml_is_a_near_miss(tmp_path: Path) -> None:
+    folder = make(tmp_path, None)
+    for name in ("exam.yml", "exams.yaml", "Exam.yaml"):
+        (folder / name).write_text(POOL, encoding="utf-8")
+    assert sorted(problem.message for problem in read_content(tmp_path).problems) == [
+        "Exam.yaml is not read — did you mean exam.yaml?",
+        "exam.yml is not read — did you mean exam.yaml?",
+        "exams.yaml is not read — did you mean exam.yaml?",
+    ]
+
+
+def test_an_exam_yaml_that_is_not_utf8_is_refused(tmp_path: Path) -> None:
+    folder = make(tmp_path, None)
+    (folder / "exam.yaml").write_bytes(b"exam:\n  - id: caf\xe9\n")
+    node, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert node is None
+    assert [str(problem) for problem in problems] == ["tpm/exam.yaml: CS0022 the file is not UTF-8"]

@@ -298,6 +298,8 @@ def test_a_warning_does_not_refuse_a_build(tmp_path: Path) -> None:
     assert build.outcome == IndexBuild.Outcome.APPLIED
     assert build.problems == []
     assert Node.objects.filter(id="de-bruijn-graphs").exists()
+    # The warned pool is stored all the same (#150).
+    assert ExamQuestion.objects.filter(node_id="de-bruijn-graphs").count() == 3
 
 
 def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:

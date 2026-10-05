@@ -37,6 +37,7 @@ from code_schema.yaml_lines import Lines, load_mapping
 SCHEMA = 1
 NODE_FILE = "node.yaml"
 BODY_FILE = "body.md"
+_EXAM_SPELLINGS = {f"{stem}.{ext}" for stem in ("exam", "exams") for ext in ("yaml", "yml")}
 
 
 @dataclass(frozen=True)
@@ -373,7 +374,11 @@ def read_node(
 
 
 def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:
-    """A file that looks like exam.yaml and is not read: otherwise a pool goes missing silently."""
+    """A spelling of exam.yaml that is not read: otherwise a pool goes missing silently.
+
+    Only the name `exam` or `exams` with a YAML extension, in any case (#150). A fuzzy match would
+    refuse ordinary data files such as `edam.yaml` or `team.yaml`, which node folders may hold.
+    """
     return [
         Problem(
             file=where,
@@ -381,7 +386,5 @@ def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:
             message=f"{path.name} is not read — did you mean {EXAM_FILE}?",
         )
         for path in sorted(folder.iterdir())
-        if path.is_file()
-        and path.name not in (NODE_FILE, BODY_FILE, EXAM_FILE)
-        and difflib.get_close_matches(path.name, [EXAM_FILE], n=1, cutoff=0.8)
+        if path.is_file() and path.name != EXAM_FILE and path.name.casefold() in _EXAM_SPELLINGS
     ]
