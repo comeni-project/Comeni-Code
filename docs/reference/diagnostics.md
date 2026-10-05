@@ -1263,3 +1263,61 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Accept the invite from Code's own page, which sends the token from its csrftoken cookie.
 
 **Why.** Accepting changes the session, so a third-party page must not be able to do it on a visitor's behalf (#163).
+
+### CA0200–CA0299 · drafts
+
+#### CA0201 — no draft, or no open draft, has this id
+
+*Refuses.*
+
+**Fix.** Use a draft id from the list of open drafts.
+
+**Why.** Drafts are named by their public id (M4.4 spec, M4W.1); a discarded draft cannot be changed.
+
+#### CA0202 — the node already has an open draft
+
+*Refuses.*
+
+**Fix.** Edit that draft, or have a contributor or an operator discard it first.
+
+**Why.** One open draft per node, held by the database, so versions of a node are worked on in one place (M4W.1).
+
+#### CA0204 — the index has no node with this id
+
+*Refuses.*
+
+**Fix.** Open it as a new node, with its first fields.
+
+**Why.** A draft of an existing node starts from the index (M4W.2).
+
+#### CA0206 — only a contributor or an operator may discard a draft
+
+*Refuses.*
+
+**Fix.** Ask someone who saved the draft, or an operator.
+
+**Why.** Discarding ends shared work, so it is for those who did it, or an operator (M4W.1).
+
+#### CA0207 — a new node's id is already a node
+
+*Refuses.*
+
+**Fix.** Open a draft of that node instead, or choose another id.
+
+**Why.** A new node's id must be new; ids are unique across the content (M1P3.2).
+
+#### CA0208 — the save's files would not validate
+
+*Refuses.*
+
+**Fix.** Fix each listed problem; each is code-schema's own, with its file and line.
+
+**Why.** Every save is checked by code-schema as CI checks the content repository, and a save with an error stores nothing (M4W.3).
+
+#### CA0209 — no revision has this number
+
+*Refuses.*
+
+**Fix.** Use a number from the draft's history.
+
+**Why.** Revisions are numbered from 1 within their draft (M4W.1).

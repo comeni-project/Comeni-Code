@@ -3,25 +3,40 @@
  * In rank order: each role includes the ones before it.
  */
 export type Role = "author" | "reviewer" | "operator";
+/**
+ * T10.1's five. A level describes a node, never a learner.
+ */
+export type Level = "first-steps" | "foundations" | "introductory" | "intermediate" | "advanced";
 
 export interface ApiSchemas {
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
+  DraftNodeOut: DraftNodeOut;
+  DraftOut: DraftOut;
+  DraftSummaryOut: DraftSummaryOut;
+  FilesOut: FilesOut;
   HealthOut: HealthOut;
   InviteIn: InviteIn;
   InviteOut: InviteOut;
+  Level: Level;
+  LinkOut: LinkOut;
   MeOut: MeOut;
   MemberOut: MemberOut;
   Message: Message;
   NeighbourOut: NeighbourOut;
+  NewNodeIn: NewNodeIn;
   NodeOut: NodeOut;
+  OpenIn: OpenIn;
   OptionOut: OptionOut;
   PendingInviteOut: PendingInviteOut;
+  ProblemOut: ProblemOut;
   ProviderOut: ProviderOut;
   QuestionOut: QuestionOut;
+  RefusedOut: RefusedOut;
   RegionOut: RegionOut;
   ResourceOut: ResourceOut;
   ResultOut: ResultOut;
+  RevisionOut: RevisionOut;
   Role: Role;
   RoleIn: RoleIn;
   RouteOut: RouteOut;
@@ -29,6 +44,10 @@ export interface ApiSchemas {
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
+  StudioExamQuestionOut: StudioExamQuestionOut;
+  StudioOptionOut: StudioOptionOut;
+  StudioQuestionOut: StudioQuestionOut;
+  StudioResourceOut: StudioResourceOut;
   TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
   TryBlockOut: TryBlockOut;
@@ -43,6 +62,113 @@ export interface CheckOut {
   duration_ms: number;
   name: string;
   status: "ok" | "down";
+}
+export interface DraftNodeOut {
+  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
+  claim: string;
+  exam: StudioExamQuestionOut[];
+  goes_deeper: LinkOut[];
+  level: string;
+  minutes: number;
+  needs: LinkOut[];
+  questions: StudioQuestionOut[];
+  region: string;
+  related: LinkOut[];
+  resources: StudioResourceOut[];
+  title: string;
+}
+export interface TextBlockOut {
+  kind: "text";
+  markdown: string;
+}
+/**
+ * Where a try question sits; the question itself is in `questions`.
+ */
+export interface TryBlockOut {
+  kind: "try";
+  question: string;
+}
+export interface StudioExamQuestionOut {
+  answer: number | null;
+  ask: string;
+  id: string;
+  kind: string;
+  level: string | null;
+  options: StudioOptionOut[] | null;
+  rationale: string;
+  tolerance: number | null;
+  unit: string;
+}
+export interface StudioOptionOut {
+  misconception: string;
+  right: boolean;
+  text: string;
+}
+export interface LinkOut {
+  node: string;
+  reason: string;
+}
+/**
+ * A try question; `options` for a choice, `answer` (with unit and tolerance) for a number.
+ */
+export interface StudioQuestionOut {
+  answer: number | null;
+  ask: string;
+  hints: string[];
+  id: string;
+  kind: string;
+  options: StudioOptionOut[] | null;
+  rationale: string;
+  tolerance: number | null;
+  unit: string;
+}
+export interface StudioResourceOut {
+  covers: string;
+  display: string;
+  kind: string;
+  level: string;
+  licence: string;
+  part: string;
+  provider: string;
+  url: string;
+  video: string;
+}
+export interface DraftOut {
+  base_digest: string;
+  contributors: MemberOut[];
+  folder: string;
+  node: DraftNodeOut;
+  node_id: string;
+  public_id: string;
+  revision: number;
+  state: string;
+}
+/**
+ * A member, named by public id; the integer key never leaves the database (M4A.1).
+ */
+export interface MemberOut {
+  email: string;
+  name: string;
+  public_id: string;
+  role: string;
+}
+export interface DraftSummaryOut {
+  base_digest: string;
+  contributors: MemberOut[];
+  folder: string;
+  node_id: string;
+  public_id: string;
+  revision: number;
+  state: string;
+}
+/**
+ * A revision's files, exactly as they would land; `exam_yaml` is empty without a pool.
+ */
+export interface FilesOut {
+  body_md: string;
+  exam_yaml: string;
+  node_yaml: string;
+  number: number;
 }
 export interface HealthOut {
   checks: CheckOut[];
@@ -63,15 +189,6 @@ export interface MeOut {
   user: MemberOut | null;
 }
 /**
- * A member, named by public id; the integer key never leaves the database (M4A.1).
- */
-export interface MemberOut {
-  email: string;
-  name: string;
-  public_id: string;
-  role: string;
-}
-/**
  * An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).
  */
 export interface Message {
@@ -85,6 +202,13 @@ export interface NeighbourOut {
   id: string;
   level: string;
   reason: string;
+  title: string;
+}
+export interface NewNodeIn {
+  claim: string;
+  level: Level;
+  minutes: number;
+  region: string;
   title: string;
 }
 export interface NodeOut {
@@ -102,17 +226,6 @@ export interface NodeOut {
   related: SideCardOut[];
   resources: ResourceOut[];
   title: string;
-}
-export interface TextBlockOut {
-  kind: "text";
-  markdown: string;
-}
-/**
- * Where a try question sits; the question itself is in `questions`.
- */
-export interface TryBlockOut {
-  kind: "try";
-  question: string;
 }
 /**
  * A neighbour on the node page, with its time: the L5 side column's *level · N min*.
@@ -166,11 +279,37 @@ export interface ProviderOut {
   id: string;
   name: string;
 }
+/**
+ * An indexed node's id; or a new node's id with its first fields.
+ */
+export interface OpenIn {
+  new?: NewNodeIn | null;
+  node_id: string;
+}
 export interface PendingInviteOut {
   email: string;
   expires_at: string;
   public_id: string;
   role: string;
+}
+/**
+ * One problem, as `code-schema validate` reports it; `text` is its printed line.
+ */
+export interface ProblemOut {
+  code: string;
+  field: string | null;
+  file: string;
+  line: number | null;
+  message: string;
+  text: string;
+}
+/**
+ * A refused save: why, and every problem its files would have (M4W.3).
+ */
+export interface RefusedOut {
+  code: string;
+  detail: string;
+  problems: ProblemOut[];
 }
 /**
  * A candidate as the Start board's *Is this what you mean?* panel shows it (L1).
@@ -182,6 +321,12 @@ export interface ResultOut {
   minutes: number;
   region: RegionOut;
   title: string;
+}
+export interface RevisionOut {
+  change: string;
+  number: number;
+  saved_at: string;
+  saved_by: MemberOut | null;
 }
 export interface RoleIn {
   role: Role;
