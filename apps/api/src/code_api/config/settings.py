@@ -72,6 +72,7 @@ AUTHENTICATION_BACKENDS = [
 # allauth, headless and browser-only (M4A.3): its JSON API at /_allauth/browser/v1/, none of its
 # HTML pages, and redirects back to the web app, whose screens arrive in M4.8.
 HEADLESS_ONLY = True
+HEADLESS_ADAPTER = "code_api.accounts.adapter.HeadlessAdapter"
 HEADLESS_CLIENTS = ("browser",)
 HEADLESS_FRONTEND_URLS = {
     "account_signup": f"{ENV.web_origin}/join",

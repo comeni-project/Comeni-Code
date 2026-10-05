@@ -6,11 +6,13 @@ allauth's headless sign-up answers 403 itself. A sign-up must use the invite's a
 new user takes its role in the same transaction that spends it.
 """
 
+import dataclasses
 from typing import Any
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.headless.adapter import DefaultHeadlessAdapter
 from allauth.headless.base.response import ForbiddenResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.models import SocialLogin
@@ -86,3 +88,11 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
         except invites.NotPending:
             raise ImmediateHttpResponse(ForbiddenResponse(request)) from None
         return saved
+
+
+class HeadlessAdapter(DefaultHeadlessAdapter):  # type: ignore[misc]
+    """allauth's payloads name a user by `public_id`, never the database key (M4A.1, #162)."""
+
+    def user_as_dataclass(self, user: User) -> Any:
+        payload = super().user_as_dataclass(user)
+        return dataclasses.replace(payload, id=str(user.public_id) if user.pk else None)

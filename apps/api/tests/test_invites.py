@@ -260,3 +260,10 @@ def test_pending_invites_are_found_in_the_database(client: Client) -> None:
     invite(client, email="grace@example.org")
     Invite.objects.filter(email="grace@example.org").update(expires_at=timezone.now())
     assert [pending.email for pending in invites.pending_invites()] == ["ada@example.org"]
+
+
+def test_allauths_responses_name_a_user_by_public_id(client: Client) -> None:
+    # #162: the integer key never leaves the database (M4A.1), allauth's payloads included.
+    user = signed_up(client)
+    session = client.get("/_allauth/browser/v1/auth/session").json()
+    assert session["data"]["user"]["id"] == str(user.public_id)
