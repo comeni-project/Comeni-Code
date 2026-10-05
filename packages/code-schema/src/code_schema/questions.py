@@ -153,7 +153,7 @@ def _parse_options(
             continue
         misconception = item.get("misconception", "")
         if "misconception" in rules.keys and not option.check(
-            "misconception", _option, prefix=f"the misconception of an option of {question} "
+            "misconception", _option, prefix=f"a misconception in {question}: "
         ):
             sound = False
             continue
@@ -193,9 +193,12 @@ def read_answer(
     """A question's answer: options for a choice; a value, unit and tolerance for a number.
 
     Shared by every pool (spec M4E.2), so its rules and messages read the same wherever a question
-    is asked. None when anything in the entry is wrong; the problems are recorded on `entry`.
+    is asked. None when the answer itself is wrong, with the problems recorded on `entry`. An answer
+    that reads cleanly is returned even when another field is wrong, so the pool's own checks on it
+    still run in the same pass (#149); a caller keeps a question only when the entry is sound.
     """
     written = entry.mapping
+    before = len(field.problems)
     options: tuple[Option, ...] = ()
     value: float | int | None = None
     if kind == "choice":
@@ -241,7 +244,7 @@ def read_answer(
                 key="tolerance",
             )
 
-    if not entry.sound:
+    if len(field.problems) > before:
         return None
     if kind == "choice":
         return ChoiceAnswer(options=options)

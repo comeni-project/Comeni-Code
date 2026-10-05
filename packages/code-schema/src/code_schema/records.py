@@ -5,7 +5,8 @@ the list itself, then each entry's unknown keys, missing keys and wrong values, 
 the line it is about. That is here once. What differs — which key ends an entry, which kind refuses
 which key — stays in each parser, in order, as code.
 
-Every problem found in an entry makes it unsound: an entry with a problem is never kept.
+Every problem found in an entry makes it unsound: an entry with a problem is never kept. A
+warning (`Entry.flag`, spec M4E.4) is reported the same way and leaves the entry sound.
 """
 
 from __future__ import annotations

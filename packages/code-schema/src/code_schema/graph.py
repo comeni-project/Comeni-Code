@@ -3,7 +3,7 @@
 Every message points at a line that exists: the missing half of a related link has no line, so
 the message goes on the half that is written. A link to a node that exists but did not parse is
 not checked further — that node's own problems are already reported, and one mistake should not
-appear as five.
+appear as five. A node with only warnings parsed, so its links are checked (spec M4E.4).
 """
 
 from __future__ import annotations

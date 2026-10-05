@@ -269,3 +269,31 @@ def test_an_error_beside_a_warning_still_refuses(tmp_path: Path) -> None:
     node, problems = read_node(make(tmp_path, pool), regions=REGIONS, root=tmp_path)
     assert node is None
     assert [problem.code for problem in problems] == ["CS0813", "CS0312"]
+
+
+# #149: one run reports everything wrong, and the bound of 40 is inclusive.
+
+
+def test_an_earlier_problem_does_not_hide_a_misconception_check(tmp_path: Path) -> None:
+    pool = POOL.replace("    level: foundations\n", "    hints:\n      - Think of the name.\n")
+    pool = pool.replace(
+        "        right: true\n",
+        "        right: true\n        misconception: TPM is not a count of reads\n",
+    )
+    pool = pool.replace(
+        "misconception: TPM is not a count of reads\n      - text: How long",
+        "misconception: nope\n      - text: How long",
+    )
+    _, problems = read_node(make(tmp_path, pool), regions=REGIONS, root=tmp_path)
+    assert [problem.code for problem in problems] == ["CS0807", "CS0810", "CS0809"]
+
+
+def test_a_misconception_that_is_not_text_reads_plainly(tmp_path: Path) -> None:
+    pool = POOL.replace("misconception: TPM is not a count of reads", "misconception: 5")
+    assert lines(tmp_path, pool) == [
+        "tpm/exam.yaml:10: exam: CS0007 a misconception in tpm-or-count: 5 is not text"
+    ]
+
+
+def test_a_pool_of_forty_is_accepted(tmp_path: Path) -> None:
+    assert lines(tmp_path, "exam:\n" + "".join(number(f"q{n}") for n in range(40))) == []
