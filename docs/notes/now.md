@@ -5,16 +5,17 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-09-29** (M4.1 closed). `CLAUDE.md` before the first compaction, with its
-part-by-part status, is `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-05** (M4.1 closed, with M4.1.3). `CLAUDE.md` before the first
+compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
 - **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, sub-issues #119–#127 of #74,
   back end first, screens last; the list and its reasons are in the archived *M4 in parts* entry.
   (2026-09-29)
-- **M4.1 is done** (diagnostic codes, the block document). **M4.2, exam pools, is next but waits
-  for the operator's word.** (2026-09-29)
+- **M4.1 is done** (#119): diagnostic codes, the block document, and a refactor before exam pools
+  (M4.1.3, #138, PR #139). **M4.2, exam pools (#120), is next**, from tutor spec T7.1, on the
+  question union and `code_schema.records`. (2026-09-29, 2026-10-05)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -26,6 +27,9 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
   operator approving the parts list and each spec (R5). A part is built natively with a
   fresh-reviewer checkpoint mid-plan and one over the branch. (2026-09-17, 2026-09-29)
 - **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
+- **A quality pass between parts**, when asked: recommend, don't survey. Work the operator calls
+  mechanical and agreed is built without stopping, still issues first, test first, and a fresh
+  reviewer at the end. (2026-10-05)
 - **The app before the pages**: content and finishing polish wait for the end of the MVP; screens
   still match the original boards as closely as possible. (2026-09-29)
 - **Screens are compared with the published canvas in a browser**, at the page's real width, in
@@ -51,8 +55,11 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
   annotations with `--format github`. (2026-09-18)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
-- **Try questions** are choice or number, with hints (never the answer) and a rationale. Their
-  answer reaches the browser; exam answers must not. (2026-09-20)
+- **Try questions** are `ChoiceQuestion | NumberQuestion`, with hints (never the answer) and a
+  rationale. Their answer reaches the browser; exam answers must not. (2026-09-20, 2026-10-05)
+- **`code_schema.records`** (`Field`, `Entry`) reads every nested list of mappings; links,
+  resources and questions keep their own rules on it. `Node.blocks` is a property over the body,
+  and `block_json` / `block_from_json` are the one block codec. (2026-10-05)
 - `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route from no background to *Salmon* and nine
   nodes beside it. Tests never read the real content repository. (2026-09-19)
 
@@ -64,6 +71,9 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
 - `GET /api/nodes/{id}` (neighbours, *needed by*, resources, questions, and the body as `blocks`,
   never `body`), `/api/routes`, `/api/search`, `/api/health`; 404 for a miss, 503 before any build;
   error bodies carry a `code`. (2026-09-19 to 2026-09-29)
+- **`code_api/content/reads.py` holds every read** (with `unbuilt()` for 503, `missing()` for 404)
+  and `code_api/content/schemas.py` every response schema. The index stores blocks only:
+  migration 0005 dropped `Node.body`. (2026-10-05)
 - **Each request loads the whole index**: fine at 26 nodes; later a graph cached per digest.
   (2026-09-20)
 
@@ -88,6 +98,9 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
   *Around this node* rail. (2026-09-21, 2026-09-29)
 - **A First steps node reads in its own form**: one column, larger type, *Read · Watch*, one large
   question, *Next on your route*. (2026-09-21)
+- **`api/queries.ts` is the only place query keys and hooks are made**; `url.ts` reads and writes
+  route params; `ErrorNotice` is the one error sentence, and an answer that is not JSON reports its
+  status (`HTTP 502`). (2026-10-05)
 - **No page invents learner state**: what needs learner records, problems, connecting text or
   review is absent, not faked. (2026-09-21)
 
@@ -118,6 +131,7 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 - **M4's spec questions**: whether a draft locks its node and how it relates to the index (M4.4);
   webhook or polling (M4.7); which real node lands first (M4.9). (2026-09-29)
+- **Deferred minors**: #131, #134, and M4.1.3's four review minors, listed in PR #139. (2026-10-05)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
 - `providers.yaml` is not in `comeni-code-content` yet. (2026-09-20)
@@ -140,7 +154,12 @@ part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **The content repository still writes `{% try %}`** on an older validator; its pin moves in M4.2,
   before the first landing. (2026-09-29)
 - **An audit stack** (Compose project `code-audit`: Postgres 5434, Redis 6381, web 8091) is kept up
-  for debugging; reach it with `CODE_DATABASE_URL` and `CODE_REDIS_URL`. (2026-09-29)
-- **This machine's Node is 22**: web checks run in the `node:24` image. The published canvas shows
-  *Page not found* on this account. Merged branches are kept: retarget a stacked pull request to
-  `main` before merging. (2026-09-29)
+  for debugging; reach it with `CODE_DATABASE_URL` and `CODE_REDIS_URL`; after a reboot,
+  `docker start code-audit-postgres-1 code-audit-redis-1`. (2026-09-29, 2026-10-05)
+- **This machine's Node is 22**: web checks run in the `node:24` image, one `npm` command per
+  `docker run` (a `sh -c` script is refused by the harness). The published canvas shows *Page not
+  found* here. Merged branches are kept: retarget a stacked pull request first. (2026-09-29)
+- **CI may not start when a pull request opens**: check `gh run list`; closing and reopening it
+  sends the event. (2026-10-05)
+- **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
+  behaviour change. Its purity allowlist has no `functools`; widening it is reviewed. (2026-10-05)
