@@ -1,0 +1,34 @@
+exam:
+  - id: tpm-sums-to
+    kind: number
+    ask: Across all transcripts in one sample, what do the TPM values add up to?
+    answer: 1000000
+    rationale: TPM is each transcript's share of the sample, scaled so the shares add up to a million.
+  - id: tpm-or-count
+    kind: choice
+    ask: What does a transcript's TPM tell you?
+    level: foundations
+    options:
+      - text: Its share of the transcript molecules in the sample
+        right: true
+      - text: How many reads mapped to it
+        misconception: TPM is not a count of reads
+      - text: How long the transcript is
+    rationale: TPM divides each transcript's reads by its length, then scales, so it is a share of molecules.
+  - id: twice-as-long
+    kind: choice
+    ask: Transcripts A and B have the same number of reads, and B is twice as long. Which has the higher TPM?
+    options:
+      - text: A
+        right: true
+      - text: B
+      - text: Neither; equal reads give equal TPM
+        misconception: TPM is not a count of reads
+    rationale: Dividing by length first gives A twice B's rate, so A has twice B's TPM.
+  - id: tpm-of-a
+    kind: number
+    ask: A is 1,000 bases long with 300 reads; B is 3,000 bases long with 300 reads; they are the only transcripts. What is A's TPM?
+    answer: 750000
+    unit: TPM
+    tolerance: 1
+    rationale: Their rates are 0.3 and 0.1 reads per base, so A holds three quarters of the molecules, 750,000 of a million.

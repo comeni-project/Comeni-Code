@@ -3,12 +3,13 @@
 from dataclasses import replace
 from pathlib import Path
 
+from code_schema.exam import ExamQuestion
 from code_schema.links import Link
 from code_schema.node import Level, Node, read_node
 from code_schema.providers import Provider
 from code_schema.questions import ChoiceAnswer, NumberAnswer, Option, TryQuestion
 from code_schema.resources import Resource
-from code_schema.writer import write_node_folder, write_node_yaml
+from code_schema.writer import write_exam_yaml, write_node_folder, write_node_yaml
 
 REGIONS = {"sequence-analysis"}
 
@@ -274,3 +275,80 @@ def test_law_2_holds_for_a_node_that_teaches(tmp_path: Path) -> None:
     assert node is not None
     write_node_folder(node, folder)
     assert (folder / "node.yaml").read_bytes() == (CANONICAL + TAUGHT_YAML).encode()
+
+
+# M4.2: the exam pool is written to exam.yaml in one form (spec M4E.8).
+
+EXAM_CANONICAL = """\
+exam:
+  - id: tpm-or-count
+    kind: choice
+    ask: What does a transcript's TPM tell you?
+    level: foundations
+    options:
+      - text: Its share of the sample, corrected for length
+        right: true
+      - text: How many reads mapped to it
+        misconception: TPM is not a count of reads
+    rationale: TPM divides reads by length first, then scales, so it is a proportion.
+  - id: tpm-sums-to
+    kind: number
+    ask: Across all transcripts in one sample, what do the TPM values add up to?
+    answer: 1000000
+    unit: TPM
+    tolerance: 0
+    rationale: The shares are scaled so they add up to a million.
+"""
+
+CALLOUT = ":::{misconception} TPM is not a count of reads\nEqual reads, unequal TPM.\n:::\n"
+
+EXAMINED = replace(
+    NODE,
+    body=NODE.body + "\n" + CALLOUT,
+    exam=(
+        ExamQuestion(
+            id="tpm-or-count",
+            ask="What does a transcript's TPM tell you?",
+            answer=ChoiceAnswer(
+                options=(
+                    Option(text="Its share of the sample, corrected for length", right=True),
+                    Option(
+                        text="How many reads mapped to it",
+                        misconception="TPM is not a count of reads",
+                    ),
+                )
+            ),
+            level=Level.FOUNDATIONS,
+            rationale="TPM divides reads by length first, then scales, so it is a proportion.",
+        ),
+        ExamQuestion(
+            id="tpm-sums-to",
+            ask="Across all transcripts in one sample, what do the TPM values add up to?",
+            answer=NumberAnswer(value=1000000, unit="TPM", tolerance=0),
+            level=None,
+            rationale="The shares are scaled so they add up to a million.",
+        ),
+    ),
+)
+
+
+def test_the_exam_has_one_form_with_a_fixed_field_order() -> None:
+    assert write_exam_yaml(EXAMINED) == EXAM_CANONICAL
+
+
+def test_a_pool_is_written_back_byte_for_byte(tmp_path: Path) -> None:
+    folder = tmp_path / "salmon"
+    write_node_folder(replace(EXAMINED, exam=()), folder)
+    (folder / "exam.yaml").write_text(EXAM_CANONICAL, encoding="utf-8")
+    node, _ = read_node(folder, regions=REGIONS, root=tmp_path)
+    assert node is not None
+    write_node_folder(node, folder)
+    assert (folder / "exam.yaml").read_bytes() == EXAM_CANONICAL.encode()
+
+
+def test_a_node_without_a_pool_writes_no_exam_and_removes_a_stale_one(tmp_path: Path) -> None:
+    folder = tmp_path / "salmon"
+    write_node_folder(EXAMINED, folder)
+    assert (folder / "exam.yaml").is_file()
+    write_node_folder(NODE, folder)
+    assert not (folder / "exam.yaml").exists()

@@ -11,8 +11,8 @@ from code_schema.blocks import Callout, Try, write_blocks
 from code_schema.cli import main
 from code_schema.content import Content, read_content
 from code_schema.node import Level
-from code_schema.questions import NumberAnswer
-from code_schema.writer import write_node_yaml
+from code_schema.questions import ChoiceAnswer, NumberAnswer
+from code_schema.writer import write_exam_yaml, write_node_yaml
 
 ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
 
@@ -190,6 +190,30 @@ def test_every_body_round_trips_through_blocks(content: Content) -> None:
 def test_the_tpm_node_carries_a_misconception(content: Content) -> None:
     kinds = [block.kind for block in content.nodes["tpm"].blocks if isinstance(block, Callout)]
     assert kinds == ["misconception"]
+
+
+def test_the_tpm_node_carries_an_exam_pool_of_four(content: Content) -> None:
+    # M4.2 (spec M4E.8): choice and number, one misconception, one question at its own level.
+    exam = content.nodes["tpm"].exam
+    assert len(exam) == 4
+    assert {question.kind for question in exam} == {"choice", "number"}
+    assert [question.level for question in exam if question.level] == [Level.FOUNDATIONS]
+    named = [
+        option.misconception
+        for question in exam
+        if isinstance(question.answer, ChoiceAnswer)
+        for option in question.answer.options
+        if option.misconception
+    ]
+    assert named and set(named) == {"TPM is not a count of reads"}
+
+
+def test_every_exam_yaml_is_canonical(content: Content) -> None:
+    pooled = [node_id for node_id, node in content.nodes.items() if node.exam]
+    assert pooled == ["tpm"]
+    for node_id in pooled:
+        written = (ROOT / content.folders[node_id] / "exam.yaml").read_text(encoding="utf-8")
+        assert written == write_exam_yaml(content.nodes[node_id]), node_id
 
 
 def test_every_resource_cites_a_listed_provider(content: Content) -> None:
