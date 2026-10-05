@@ -3,6 +3,8 @@ export interface ApiSchemas {
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   HealthOut: HealthOut;
+  MeOut: MeOut;
+  MemberOut: MemberOut;
   Message: Message;
   NeighbourOut: NeighbourOut;
   NodeOut: NodeOut;
@@ -34,6 +36,18 @@ export interface CheckOut {
 export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
+}
+export interface MeOut {
+  user: MemberOut | null;
+}
+/**
+ * A member, named by public id; the integer key never leaves the database (M4A.1).
+ */
+export interface MemberOut {
+  email: string;
+  name: string;
+  public_id: string;
+  role: string;
 }
 /**
  * An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).

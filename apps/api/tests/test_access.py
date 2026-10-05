@@ -1,0 +1,126 @@
+"""Who may use a Studio route, and what learners need (spec M4A.3, M4A.4). Needs Postgres.
+
+The gated routes here are mounted only by this module's own URL configuration, so no throwaway
+route ships in the API.
+"""
+
+from pathlib import Path
+
+import pytest
+from django.test import Client, override_settings
+from django.urls import path
+from ninja import NinjaAPI
+
+from code_api.accounts.access import install_access_handlers, studio
+from code_api.accounts.models import User
+from code_api.accounts.roles import Role
+from code_api.content.index import rebuild_index
+
+pytestmark = pytest.mark.django_db
+
+FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
+
+gated = NinjaAPI(urls_namespace="access-test")
+install_access_handlers(gated)
+
+
+@gated.get("/review", auth=studio(Role.REVIEWER))
+def review_get(request: object) -> dict[str, str]:
+    return {"ok": "yes"}
+
+
+@gated.post("/review", auth=studio(Role.REVIEWER))
+def review_post(request: object) -> dict[str, str]:
+    return {"ok": "yes"}
+
+
+urlpatterns = [path("gated/", gated.urls)]
+on_gated_routes = override_settings(ROOT_URLCONF=__name__)
+
+
+def member(role: str, email: str = "member@example.org") -> User:
+    return User.objects.create_user(email, role=role)
+
+
+@on_gated_routes
+def test_nobody_signed_in_is_401(client: Client) -> None:
+    response = client.get("/gated/review")
+    assert response.status_code == 401
+    assert response.json()["code"] == "CA0101"
+
+
+@on_gated_routes
+def test_a_lower_role_is_403(client: Client) -> None:
+    client.force_login(member(Role.AUTHOR))
+    response = client.get("/gated/review")
+    assert response.status_code == 403
+    assert response.json() == {
+        "detail": "This needs the reviewer role or above; you are an author.",
+        "code": "CA0102",
+    }
+
+
+@on_gated_routes
+@pytest.mark.parametrize("role", [Role.REVIEWER, Role.OPERATOR])
+def test_the_role_or_above_passes(client: Client, role: Role) -> None:
+    client.force_login(member(role))
+    assert client.get("/gated/review").status_code == 200
+
+
+@on_gated_routes
+def test_a_member_with_no_role_is_403(client: Client) -> None:
+    client.force_login(member(""))
+    assert client.get("/gated/review").json()["code"] == "CA0102"
+
+
+@on_gated_routes
+def test_a_write_needs_the_csrf_token() -> None:
+    client = Client(enforce_csrf_checks=True)
+    client.force_login(member(Role.REVIEWER))
+    assert client.post("/gated/review").status_code == 403
+    token = "a" * 32  # Django accepts a 32-character secret in the cookie and the header alike
+    client.cookies["csrftoken"] = token
+    assert client.post("/gated/review", headers={"X-CSRFToken": token}).status_code == 200
+
+
+@on_gated_routes
+def test_a_deactivated_members_session_stops_working(client: Client) -> None:
+    user = member(Role.OPERATOR)
+    client.force_login(user)
+    assert client.get("/gated/review").status_code == 200
+    user.is_active = False
+    user.save()
+    assert client.get("/gated/review").status_code == 401
+
+
+def test_me_is_null_for_nobody(client: Client) -> None:
+    response = client.get("/api/me")
+    assert response.status_code == 200
+    assert response.json() == {"user": None}
+
+
+def test_me_names_the_signed_in_member(client: Client) -> None:
+    user = User.objects.create_user("ada@example.org", name="Ada", role=Role.AUTHOR)
+    client.force_login(user)
+    assert client.get("/api/me").json() == {
+        "user": {
+            "public_id": str(user.public_id),
+            "email": "ada@example.org",
+            "name": "Ada",
+            "role": "author",
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/api/health",
+        "/api/nodes/tpm",
+        "/api/routes?goal=salmon",
+        "/api/search?q=tpm",
+    ],
+)
+def test_learner_routes_need_no_account(client: Client, url: str) -> None:
+    rebuild_index(FIXTURES)
+    assert client.get(url).status_code not in (401, 403)

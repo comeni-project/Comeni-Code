@@ -1181,3 +1181,21 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Fix the problems listed after this line — each has its own code — and rebuild.
 
 **Why.** A rebuild is all or nothing: content with any problem changes nothing, so a route is never silently shortened by a skipped node (M1P5.2).
+
+### CA0100–CA0199 · accounts
+
+#### CA0101 — a Studio route was asked by nobody signed in
+
+*Refuses.*
+
+**Fix.** Sign in, by email and password or GitHub; an account comes only from an invite.
+
+**Why.** Studio is for the team, and the team signs in (M4.3 spec, M4A.4). Learner routes need no account and never answer this.
+
+#### CA0102 — a Studio route needs a higher role
+
+*Refuses.*
+
+**Fix.** Ask an operator for the role the route names.
+
+**Why.** Roles rank author < reviewer < operator, and each Studio route names the lowest role that may use it (W7.1; M4.3 spec, M4A.1, M4A.4).

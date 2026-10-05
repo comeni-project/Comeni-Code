@@ -29,6 +29,7 @@ bands:
   - {first: CW0001, last: CW0099, concern: routes}
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
+  - {first: CA0100, last: CA0199, concern: accounts}
 
 codes:
 
@@ -1548,3 +1549,27 @@ codes:
     explanation: |
       A rebuild is all or nothing: content with any problem changes nothing, so a route is never
       silently shortened by a skipped node (M1P5.2).
+
+  # ── CA0100–CA0199 · accounts and access ────────────────────────────────────────────────────
+
+  CA0101:
+    emitted_by: api
+    concern: accounts
+    says: a Studio route was asked by nobody signed in
+    refuses: true
+    fix: |
+      Sign in, by email and password or GitHub; an account comes only from an invite.
+    explanation: |
+      Studio is for the team, and the team signs in (M4.3 spec, M4A.4). Learner routes need no
+      account and never answer this.
+
+  CA0102:
+    emitted_by: api
+    concern: accounts
+    says: a Studio route needs a higher role
+    refuses: true
+    fix: |
+      Ask an operator for the role the route names.
+    explanation: |
+      Roles rank author < reviewer < operator, and each Studio route names the lowest role that
+      may use it (W7.1; M4.3 spec, M4A.1, M4A.4).

@@ -87,6 +87,55 @@
         "title": "HealthOut",
         "type": "object"
       },
+      "MeOut": {
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "MemberOut": {
+        "description": "A member, named by public id; the integer key never leaves the database (M4A.1).",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "email",
+          "name",
+          "role"
+        ],
+        "title": "MemberOut",
+        "type": "object"
+      },
       "Message": {
         "description": "An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).",
         "properties": {
@@ -736,6 +785,29 @@
         "summary": "Service health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "description": "Who is signed in, or null. Always 200: signed out is not an error (M4A.3).",
+        "operationId": "code_api_accounts_api_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "accounts"
         ]
       }
     },
