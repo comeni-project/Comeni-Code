@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from schema.content_helpers import content_root, make_node
+from schema.content_helpers import SMALL_POOL, content_root, make_node
 
 from code_schema.cli import github_line, main
 from code_schema.problems import Problem
@@ -108,3 +108,30 @@ def test_an_annotation_carries_the_code_as_its_title() -> None:
 def test_an_annotation_about_a_folder_still_carries_its_code() -> None:
     problem = Problem(file="n/", code="CS0021", message="node.yaml is missing")
     assert github_line(problem).startswith("::error title=CS0021::")
+
+
+# Warnings (spec M4E.4): printed and counted apart; only errors exit 1.
+
+
+def test_a_warning_alone_exits_0(tmp_path: Path, capsys: Captured) -> None:
+    root = content_root(tmp_path)
+    (make_node(root, "salmon") / "exam.yaml").write_text(SMALL_POOL, encoding="utf-8")
+    assert main(["validate", str(root)]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "salmon/exam.yaml:1: exam: CS0813 the pool has 3 questions "
+        "— the node is left out of self-tests until it has 4",
+        "1 node, no problems, 1 warning",
+    ]
+
+
+def test_a_warning_beside_an_error_is_counted_apart(tmp_path: Path, capsys: Captured) -> None:
+    root = content_root(tmp_path)
+    (make_node(root, "salmon") / "exam.yaml").write_text(SMALL_POOL, encoding="utf-8")
+    make_node(root, "k-mers", title="K-mers", level="expert")
+    assert main(["validate", str(root)]) == 1
+    assert capsys.readouterr().out.splitlines()[-1] == "1 problem in 1 of 2 nodes, 1 warning"
+
+
+def test_a_warning_is_a_github_warning() -> None:
+    warning = Problem(file="salmon/exam.yaml", line=1, code="CS0813", message="a small pool")
+    assert github_line(warning).startswith("::warning file=salmon/exam.yaml,line=1,title=CS0813::")

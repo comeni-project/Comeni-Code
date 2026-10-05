@@ -23,6 +23,11 @@ class Problem:
     def __post_init__(self) -> None:
         diagnostic(self.code)  # an undeclared code raises UnknownDiagnostic
 
+    @property
+    def refuses(self) -> bool:
+        """An error, which refuses; else a warning, which never blocks (spec M4E.4)."""
+        return diagnostic(self.code).refuses
+
     def __str__(self) -> str:
         where = self.file if self.line is None else f"{self.file}:{self.line}"
         said = f"{self.code} {self.message}"

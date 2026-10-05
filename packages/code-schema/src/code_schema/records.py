@@ -5,7 +5,8 @@ the list itself, then each entry's unknown keys, missing keys and wrong values, 
 the line it is about. That is here once. What differs — which key ends an entry, which kind refuses
 which key — stays in each parser, in order, as code.
 
-Every problem found in an entry makes it unsound: an entry with a problem is never kept.
+Every problem found in an entry makes it unsound: an entry with a problem is never kept. A
+warning (`Entry.flag`, spec M4E.4) is reported the same way and leaves the entry sound.
 """
 
 from __future__ import annotations
@@ -83,6 +84,11 @@ class Entry:
             line = self.line if key is None else self.at(key)
         self.field.problem(code, message, line)
         self.sound = False
+
+    def flag(self, code: str, message: str, *, key: str | None = None) -> None:
+        """A warning about this entry (spec M4E.4): reported, but the entry stays sound."""
+        line = self.line if key is None else self.at(key)
+        self.field.problem(code, message, line)
 
     def unknown(self, allowed: Sequence[str], code: str, says: Callable[[str], str]) -> None:
         """Every key not allowed, at its own line, in the order written."""

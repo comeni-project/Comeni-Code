@@ -20,33 +20,36 @@ from code_schema.blocks import (
 )
 from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
+from code_schema.exam import ExamQuestion
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
 from code_schema.providers import Provider, parse_providers, read_providers
-from code_schema.questions import ChoiceQuestion, NumberQuestion, Option, Question
+from code_schema.questions import Answer, ChoiceAnswer, NumberAnswer, Option, TryQuestion
 from code_schema.regions import Region, parse_regions, read_regions
 from code_schema.resources import Resource
 from code_schema.writer import write_node_folder, write_node_yaml
 
 __all__ = [
+    "Answer",
     "Block",
     "Callout",
-    "ChoiceQuestion",
+    "ChoiceAnswer",
     "Content",
     "Diagnostic",
+    "ExamQuestion",
     "Level",
     "Link",
     "Node",
-    "NumberQuestion",
+    "NumberAnswer",
     "Option",
     "Problem",
     "Provider",
-    "Question",
     "Region",
     "Resource",
     "Text",
     "Try",
+    "TryQuestion",
     "UnknownDiagnostic",
     "block_from_json",
     "block_json",

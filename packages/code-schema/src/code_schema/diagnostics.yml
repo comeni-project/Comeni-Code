@@ -25,6 +25,7 @@ bands:
   - {first: CS0500, last: CS0599, concern: graph}
   - {first: CS0600, last: CS0699, concern: registries}
   - {first: CS0700, last: CS0799, concern: discovery}
+  - {first: CS0800, last: CS0899, concern: exam}
   - {first: CW0001, last: CW0099, concern: routes}
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
@@ -1225,6 +1226,167 @@ codes:
       Rename one folder; a node's id is its folder's name.
     explanation: |
       Ids are unique across the content, wherever the folders sit (M1P3.2).
+
+  CS0706:
+    emitted_by: schema
+    concern: discovery
+    says: a near miss of exam.yaml
+    refuses: true
+    fix: |
+      Rename the file to exam.yaml.
+    explanation: |
+      exam.yml or exams.yaml would otherwise be skipped silently, and a node would lose its pool
+      without a word (M4E.3).
+
+  # ── CS0800–CS0899 · exam pools ──────────────────────────────────────────────────────────────
+
+  CS0801:
+    emitted_by: schema
+    concern: exam
+    says: exam.yaml holds a key other than exam
+    refuses: true
+    fix: |
+      Remove the key; exam.yaml holds only the exam: list.
+    explanation: |
+      The file is one pool and nothing else, so a typo is a problem rather than ignored (M4E.1).
+
+  CS0802:
+    emitted_by: schema
+    concern: exam
+    says: "exam.yaml has no exam: list"
+    refuses: true
+    fix: |
+      Put the questions under exam:, or delete the file.
+    explanation: |
+      A node's pool is the exam: list in exam.yaml (M4E.1).
+
+  CS0803:
+    emitted_by: schema
+    concern: exam
+    says: "exam: is not a list"
+    refuses: true
+    fix: |
+      Write exam: as a list of questions, each starting with - id:.
+    explanation: |
+      A pool is a list of questions, asked in no fixed order (M4E.1).
+
+  CS0804:
+    emitted_by: schema
+    concern: exam
+    says: the pool is empty
+    refuses: true
+    fix: |
+      Delete exam.yaml; a node without a pool needs no file.
+    explanation: |
+      An empty file says nothing a missing one does not, and a node without exam.yaml is valid
+      (M4E.1).
+
+  CS0805:
+    emitted_by: schema
+    concern: exam
+    says: "an entry in exam: is not a question"
+    refuses: true
+    fix: |
+      Write each question as a mapping starting with - id:.
+    explanation: |
+      Each entry of the pool is one question (M4E.1).
+
+  CS0806:
+    emitted_by: schema
+    concern: exam
+    says: an unknown key in an exam question
+    refuses: true
+    fix: |
+      Use only id, kind, ask, level, options, answer, unit, tolerance and rationale.
+    explanation: |
+      The fields are closed, so a typo is reported rather than ignored (M4E.1).
+
+  CS0807:
+    emitted_by: schema
+    concern: exam
+    says: an exam question has hints
+    refuses: true
+    fix: |
+      Remove the hints; put what they say in the rationale, which the learner sees with the results.
+    explanation: |
+      A self-test gives no hints and no feedback until the end (tutor spec T7.1). Hints belong to
+      try questions, which teach as they ask.
+
+  CS0808:
+    emitted_by: schema
+    concern: exam
+    says: an unknown key in an exam option
+    refuses: true
+    fix: |
+      Use only text, right and misconception.
+    explanation: |
+      The fields are closed, so a typo is reported rather than ignored (M4E.1).
+
+  CS0809:
+    emitted_by: schema
+    concern: exam
+    says: a misconception names no callout
+    refuses: true
+    fix: |
+      Write the exact title of a misconception callout in body.md, or add that callout.
+    explanation: |
+      A wrong answer will step back to the misconception it reveals (tutor spec T6.1), so the
+      name must lead somewhere the learner can read (M4E.1).
+
+  CS0810:
+    emitted_by: schema
+    concern: exam
+    says: the right option names a misconception
+    refuses: true
+    fix: |
+      Move the misconception to the wrong option that reflects it.
+    explanation: |
+      A misconception explains a wrong answer; the right one has nothing to step back to (M4E.1).
+
+  CS0811:
+    emitted_by: schema
+    concern: exam
+    says: an exam question reuses a try question's id
+    refuses: true
+    fix: |
+      Give the exam question an id no question in node.yaml uses.
+    explanation: |
+      Every answer is stored as evidence named by node and question id (tutor spec T7), so one id
+      must name one question across both pools (M4E.3).
+
+  CS0812:
+    emitted_by: schema
+    concern: exam
+    says: a pool holds more than 40 questions
+    refuses: true
+    fix: |
+      Split the node, or keep the best 40 questions.
+    explanation: |
+      40 is a bound, not a target: it catches a draft or a generator that ran away. How many
+      questions an exam asks is the exam builder's business (M4E.3, M4E.7).
+
+  CS0813:
+    emitted_by: schema
+    concern: exam
+    says: a pool has fewer than 4 questions
+    refuses: false
+    fix: |
+      Write more questions until the pool has at least 4; more is better.
+    explanation: |
+      A node with fewer than 4 questions is left out of self-tests, since a result needs evidence
+      from at least 2 questions and retakes should not repeat (tutor spec T7.1, M4E.7). A warning:
+      a pool may be written a question at a time.
+
+  CS0814:
+    emitted_by: schema
+    concern: exam
+    says: a question's level is two or more from the node's
+    refuses: false
+    fix: |
+      Ask at or near the node's level, or move the question to the node it fits.
+    explanation: |
+      A node holds exam questions at or near its own level, and review flags one two or more levels
+      away (tutor spec T10.1). A warning: review decides.
 
   # ── CW0001–CW0099 · routes ──────────────────────────────────────────────────────────────────
 

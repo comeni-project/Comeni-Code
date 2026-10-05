@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from code_schema.blocks import Block, Try, parse_blocks
+from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
     exactly,
@@ -29,13 +30,14 @@ from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.providers import Provider
-from code_schema.questions import TRY_FIELD, Question, parse_questions
+from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
 from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
 from code_schema.yaml_lines import Lines, load_mapping
 
 SCHEMA = 1
 NODE_FILE = "node.yaml"
 BODY_FILE = "body.md"
+_EXAM_SPELLINGS = {f"{stem}.{ext}" for stem in ("exam", "exams") for ext in ("yaml", "yml")}
 
 
 @dataclass(frozen=True)
@@ -51,7 +53,8 @@ class Node:
     goes_deeper: tuple[Link, ...] = ()
     related: tuple[Link, ...] = ()
     resources: tuple[Resource, ...] = ()
-    questions: tuple[Question, ...] = ()
+    questions: tuple[TryQuestion, ...] = ()
+    exam: tuple[ExamQuestion, ...] = ()  # from exam.yaml, beside node.yaml (spec M4E.1)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -149,7 +152,7 @@ def parse_node(
         )
         problems += resource_problems
 
-    questions: tuple[Question, ...] = ()
+    questions: tuple[TryQuestion, ...] = ()
     question_problems: list[Problem] = []
     if TRY_FIELD in data:
         questions, question_problems = parse_questions(data[TRY_FIELD], lines=lines, file=file)
@@ -198,7 +201,7 @@ def parse_node(
 def _placement_problems(
     blocks: tuple[Block, ...],
     starts: tuple[int, ...],
-    questions: tuple[Question, ...],
+    questions: tuple[TryQuestion, ...],
     *,
     lines: Lines,
     data: dict[str, object],
@@ -345,7 +348,7 @@ def read_node(
     if node_yaml is None or body is None:
         return None, problems
 
-    return parse_node(
+    node, problems = parse_node(
         node_yaml,
         body,
         node_id=folder.name,
@@ -353,3 +356,35 @@ def read_node(
         providers=providers,
         file=f"{where}{NODE_FILE}",
     )
+    problems += _near_misses_of_exam(folder, where)
+    exam: tuple[ExamQuestion, ...] = ()
+    if (folder / EXAM_FILE).is_file():
+        exam_text, exam_error = _read_text(folder / EXAM_FILE)
+        if exam_error is not None:
+            problems.append(Problem(file=f"{where}{EXAM_FILE}", code="CS0022", message=exam_error))
+        else:
+            assert exam_text is not None
+            exam, exam_problems = parse_exam(exam_text, file=f"{where}{EXAM_FILE}", node=node)
+            problems += exam_problems
+    problems.sort(key=Problem.sort_key)
+    if node is None or any(problem.refuses for problem in problems):
+        return None, problems
+    # Only warnings, if anything: the node is kept, and its warnings go with it (spec M4E.4).
+    return replace(node, exam=exam), problems
+
+
+def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:
+    """A spelling of exam.yaml that is not read: otherwise a pool goes missing silently.
+
+    Only the name `exam` or `exams` with a YAML extension, in any case (#150). A fuzzy match would
+    refuse ordinary data files such as `edam.yaml` or `team.yaml`, which node folders may hold.
+    """
+    return [
+        Problem(
+            file=where,
+            code="CS0706",
+            message=f"{path.name} is not read — did you mean {EXAM_FILE}?",
+        )
+        for path in sorted(folder.iterdir())
+        if path.is_file() and path.name != EXAM_FILE and path.name.casefold() in _EXAM_SPELLINGS
+    ]

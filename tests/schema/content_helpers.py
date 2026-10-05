@@ -65,3 +65,17 @@ RESOURCE = """resources:
 def with_providers(root: Path) -> Path:
     (root / "providers.yaml").write_text(PROVIDERS, encoding="utf-8")
     return root
+
+
+def exam_question(question_id: str) -> str:
+    return (
+        f"  - id: {question_id}\n"
+        "    kind: number\n"
+        "    ask: How many reads does a 2 kb transcript at 10 reads per kb collect?\n"
+        "    answer: 20\n"
+        "    rationale: Reads scale with length at a fixed rate.\n"
+    )
+
+
+# Three questions: a pool that warns (CS0813) and never refuses (spec M4E.4).
+SMALL_POOL = "exam:\n" + "".join(exam_question(f"q{n}") for n in range(3))

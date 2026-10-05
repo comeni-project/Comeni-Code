@@ -41,21 +41,29 @@ def github_line(problem: Problem) -> str:
         if problem.line is not None:
             properties.append(f"line={problem.line}")
     properties.append(f"title={problem.code}")
-    head = "::error " + ",".join(properties) if properties else "::error"
+    command = "::error" if problem.refuses else "::warning"
+    head = f"{command} " + ",".join(properties)
     return f"{head}::{_escape_data(str(problem))}"
 
 
 def summary(content: Content) -> str:
     """One closing line: how many nodes, and how many problems in how many of them."""
+    warnings = len(content.problems) - len(content.errors)
+    counted = f", {_plural(warnings, 'warning')}" if warnings else ""
+    return _errors_summary(content) + counted
+
+
+def _errors_summary(content: Content) -> str:
+    """How many nodes, and how many errors in how many of them; warnings are counted apart."""
     nodes = _plural(len(content.folders), "node")
-    if not content.problems:
+    if not content.errors:
         return f"{nodes}, no problems"
     affected = {
         node_id
         for node_id, folder in content.folders.items()
-        if any(problem.file.startswith(f"{folder}/") for problem in content.problems)
+        if any(problem.file.startswith(f"{folder}/") for problem in content.errors)
     }
-    problems = _plural(len(content.problems), "problem")
+    problems = _plural(len(content.errors), "problem")
     if not affected:
         return f"{problems} outside the nodes ({nodes})"
     return f"{problems} in {len(affected)} of {nodes}"
@@ -105,7 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     for problem in content.problems:
         print(github_line(problem) if arguments.format == "github" else str(problem))
     print(summary(content))
-    return 1 if content.problems else 0
+    return 1 if content.errors else 0
 
 
 def run() -> None:
