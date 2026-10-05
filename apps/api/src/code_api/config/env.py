@@ -5,10 +5,10 @@ developer's shell cannot leak another project's `DATABASE_URL` into Code.
 """
 
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Self
 from urllib.parse import unquote, urlsplit
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -33,6 +33,19 @@ class Env(BaseSettings):
     # The content folder `manage.py rebuild_index` reads (M1 part 6 spec, M1P6.2). Optional: only
     # the command needs a content checkout, so the API, worker and beat start without one.
     content_root: Path | None = None
+    # Accounts (M4.3 spec, M4A.3). Where invite links and allauth's redirects point: the web app.
+    web_origin: str = "http://127.0.0.1:5173"
+    # Secure cookies need HTTPS, so they are on for a hosted stack and off for local development.
+    secure_cookies: bool = False
+    # GitHub sign-in is off unless both halves of an OAuth client are set.
+    github_client_id: str | None = None
+    github_client_secret: SecretStr | None = None
+    # Mail goes to the console unless an SMTP host is set.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: SecretStr | None = None
+    email_from: str = "Comeni Code <noreply@localhost>"
 
     @field_validator("database_url")
     @classmethod
@@ -48,6 +61,19 @@ class Env(BaseSettings):
         if urlsplit(value.get_secret_value()).scheme not in {"redis", "rediss"}:
             raise ValueError("must be a redis:// URL")
         return value
+
+    @field_validator("web_origin")
+    @classmethod
+    def _no_trailing_slash(cls, value: str) -> str:
+        return value.rstrip("/")
+
+    @model_validator(mode="after")
+    def _github_in_pairs(self) -> Self:
+        if (self.github_client_id is None) != (self.github_client_secret is None):
+            raise ValueError(
+                "set both CODE_GITHUB_CLIENT_ID and CODE_GITHUB_CLIENT_SECRET, or neither"
+            )
+        return self
 
     @field_validator("allowed_hosts", mode="before")
     @classmethod

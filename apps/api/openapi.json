@@ -87,6 +87,91 @@
         "title": "HealthOut",
         "type": "object"
       },
+      "InviteIn": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InviteIn",
+        "type": "object"
+      },
+      "InviteOut": {
+        "description": "What an invitee sees before signing up.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InviteOut",
+        "type": "object"
+      },
+      "MeOut": {
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "MemberOut": {
+        "description": "A member, named by public id; the integer key never leaves the database (M4A.1).",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "email",
+          "name",
+          "role"
+        ],
+        "title": "MemberOut",
+        "type": "object"
+      },
       "Message": {
         "description": "An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).",
         "properties": {
@@ -267,6 +352,36 @@
           "right"
         ],
         "title": "OptionOut",
+        "type": "object"
+      },
+      "PendingInviteOut": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "email",
+          "role",
+          "expires_at"
+        ],
+        "title": "PendingInviteOut",
         "type": "object"
       },
       "ProviderOut": {
@@ -491,6 +606,28 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "Role": {
+        "description": "In rank order: each role includes the ones before it.",
+        "enum": [
+          "author",
+          "reviewer",
+          "operator"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
+      "RoleIn": {
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "RoleIn",
+        "type": "object"
+      },
       "RouteOut": {
         "properties": {
           "goals": {
@@ -659,6 +796,40 @@
         "title": "StopOut",
         "type": "object"
       },
+      "TeamMemberOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "email",
+          "name",
+          "role",
+          "active"
+        ],
+        "title": "TeamMemberOut",
+        "type": "object"
+      },
       "TextBlockOut": {
         "properties": {
           "kind": {
@@ -698,6 +869,13 @@
         "title": "TryBlockOut",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "Studio": {
+        "in": "cookie",
+        "name": "sessionid",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -736,6 +914,144 @@
         "summary": "Service health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/invites/{token}": {
+      "get": {
+        "operationId": "code_api_accounts_api_look_up",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Gone"
+          }
+        },
+        "summary": "Look Up",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/invites/{token}/accept": {
+      "post": {
+        "description": "Put the invite in the session; sign-up through allauth then reads it (M4A.2).\n\nIt changes the session, so it needs the CSRF token, though no account: otherwise a third-party\npage could plant an invite in a visitor's session (#163).",
+        "operationId": "code_api_accounts_api_accept",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Gone"
+          }
+        },
+        "summary": "Accept",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/me": {
+      "get": {
+        "description": "Who is signed in, or null. Always 200: signed out is not an error (M4A.3).",
+        "operationId": "code_api_accounts_api_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "accounts"
         ]
       }
     },
@@ -926,6 +1242,281 @@
         "summary": "Topics matching the words someone types",
         "tags": [
           "content"
+        ]
+      }
+    },
+    "/api/team/invites": {
+      "get": {
+        "operationId": "code_api_accounts_api_pending_invites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PendingInviteOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Pending Invites",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_accounts_api_invite",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingInviteOut"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Invite",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/team/invites/{public_id}": {
+      "delete": {
+        "operationId": "code_api_accounts_api_revoke",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Revoke",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/team/members": {
+      "get": {
+        "operationId": "code_api_accounts_api_team",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TeamMemberOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Team",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/team/members/{public_id}": {
+      "patch": {
+        "operationId": "code_api_accounts_api_change_role",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamMemberOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Change Role",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/team/members/{public_id}/deactivate": {
+      "post": {
+        "description": "The account and its history stay; it can no longer sign in, and its session ends.",
+        "operationId": "code_api_accounts_api_deactivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamMemberOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Deactivate",
+        "tags": [
+          "accounts"
         ]
       }
     }

@@ -23,6 +23,15 @@ def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "ALLOWED_HOSTS",
         "STATIC_ROOT",
         "CONTENT_ROOT",
+        "WEB_ORIGIN",
+        "SECURE_COOKIES",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASSWORD",
+        "EMAIL_FROM",
     ):
         monkeypatch.delenv(f"CODE_{name}", raising=False)
 
@@ -136,3 +145,37 @@ def test_database_from_url_without_port_or_password() -> None:
 def test_database_from_url_needs_a_database_name() -> None:
     with pytest.raises(ValueError, match="names no database"):
         database_from_url("postgresql://code:code@localhost:5433/")
+
+
+# M4.3 (spec M4A.3): the settings accounts need, with safe defaults.
+
+
+def test_account_settings_default_to_local_development(monkeypatch: pytest.MonkeyPatch) -> None:
+    env = make_env(monkeypatch, secret_key=KEY, database_url=URL, redis_url=REDIS)
+    assert env.web_origin == "http://127.0.0.1:5173"
+    assert env.secure_cookies is False
+    assert env.github_client_id is None and env.github_client_secret is None
+    assert env.smtp_host is None
+
+
+def test_a_github_client_needs_both_halves(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError) as caught:
+        make_env(
+            monkeypatch,
+            secret_key=KEY,
+            database_url=URL,
+            redis_url=REDIS,
+            github_client_id="Iv1.abc",
+        )
+    assert "set both CODE_GITHUB_CLIENT_ID and CODE_GITHUB_CLIENT_SECRET" in str(caught.value)
+
+
+def test_the_web_origin_has_no_trailing_slash(monkeypatch: pytest.MonkeyPatch) -> None:
+    env = make_env(
+        monkeypatch,
+        secret_key=KEY,
+        database_url=URL,
+        redis_url=REDIS,
+        web_origin="https://code.example/",
+    )
+    assert env.web_origin == "https://code.example"

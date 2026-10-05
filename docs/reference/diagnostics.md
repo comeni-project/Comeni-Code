@@ -1181,3 +1181,85 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Fix the problems listed after this line — each has its own code — and rebuild.
 
 **Why.** A rebuild is all or nothing: content with any problem changes nothing, so a route is never silently shortened by a skipped node (M1P5.2).
+
+### CA0100–CA0199 · accounts
+
+#### CA0101 — a Studio route was asked by nobody signed in
+
+*Refuses.*
+
+**Fix.** Sign in, by email and password or GitHub; an account comes only from an invite.
+
+**Why.** Studio is for the team, and the team signs in (M4.3 spec, M4A.4). Learner routes need no account and never answer this.
+
+#### CA0102 — a Studio route needs a higher role
+
+*Refuses.*
+
+**Fix.** Ask an operator for the role the route names.
+
+**Why.** Roles rank author < reviewer < operator, and each Studio route names the lowest role that may use it (W7.1; M4.3 spec, M4A.1, M4A.4).
+
+#### CA0103 — no invite has this link, or no pending invite has this id
+
+*Refuses.*
+
+**Fix.** Check the link was copied whole, or ask an operator for a new invite.
+
+**Why.** An invite is found by its token's hash; a link that matches none is not an invite (M4A.2).
+
+#### CA0104 — the invite has expired
+
+*Refuses.*
+
+**Fix.** Ask an operator for a new invite.
+
+**Why.** An invite lasts seven days, so a link left in a mailbox does not open sign-up forever (M4A.2).
+
+#### CA0105 — the invite was withdrawn
+
+*Refuses.*
+
+**Fix.** Ask an operator for a new invite.
+
+**Why.** An operator revoked it, or a newer invite to the same address replaced it (M4A.2).
+
+#### CA0106 — the invite has been used
+
+*Refuses.*
+
+**Fix.** Sign in with the account it made; an invite opens one sign-up.
+
+**Why.** An invite is single-use, so a forwarded link cannot make a second account (M4A.2).
+
+#### CA0107 — the address already has an account
+
+*Refuses.*
+
+**Fix.** Change the member's role on the team instead of inviting them.
+
+**Why.** One person has one account and one role (M4A.1); an invite makes a new account.
+
+#### CA0108 — the change would leave Studio without an active operator
+
+*Refuses.*
+
+**Fix.** Make another member an operator first, then demote or deactivate this one.
+
+**Why.** Only an operator invites and changes roles, so without one Studio could never be managed again (M4.3 spec, M4A.1).
+
+#### CA0109 — no member has this id
+
+*Refuses.*
+
+**Fix.** Use a public id from the team list.
+
+**Why.** Members are named by their public id, never the database's key (M4A.1).
+
+#### CA0110 — accepting an invite needs the CSRF token
+
+*Refuses.*
+
+**Fix.** Accept the invite from Code's own page, which sends the token from its csrftoken cookie.
+
+**Why.** Accepting changes the session, so a third-party page must not be able to do it on a visitor's behalf (#163).

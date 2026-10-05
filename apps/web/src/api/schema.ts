@@ -1,22 +1,35 @@
 // Generated from apps/api/openapi.json by `npm run api-types`. Do not edit (M0 part 7 spec, P7.2).
+/**
+ * In rank order: each role includes the ones before it.
+ */
+export type Role = "author" | "reviewer" | "operator";
+
 export interface ApiSchemas {
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   HealthOut: HealthOut;
+  InviteIn: InviteIn;
+  InviteOut: InviteOut;
+  MeOut: MeOut;
+  MemberOut: MemberOut;
   Message: Message;
   NeighbourOut: NeighbourOut;
   NodeOut: NodeOut;
   OptionOut: OptionOut;
+  PendingInviteOut: PendingInviteOut;
   ProviderOut: ProviderOut;
   QuestionOut: QuestionOut;
   RegionOut: RegionOut;
   ResourceOut: ResourceOut;
   ResultOut: ResultOut;
+  Role: Role;
+  RoleIn: RoleIn;
   RouteOut: RouteOut;
   SearchOut: SearchOut;
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
+  TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
   TryBlockOut: TryBlockOut;
 }
@@ -34,6 +47,29 @@ export interface CheckOut {
 export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
+}
+export interface InviteIn {
+  email: string;
+  role: Role;
+}
+/**
+ * What an invitee sees before signing up.
+ */
+export interface InviteOut {
+  email: string;
+  role: string;
+}
+export interface MeOut {
+  user: MemberOut | null;
+}
+/**
+ * A member, named by public id; the integer key never leaves the database (M4A.1).
+ */
+export interface MemberOut {
+  email: string;
+  name: string;
+  public_id: string;
+  role: string;
 }
 /**
  * An error answer: the sentence a person reads, and its diagnostic code (spec M4D.4).
@@ -130,6 +166,12 @@ export interface ProviderOut {
   id: string;
   name: string;
 }
+export interface PendingInviteOut {
+  email: string;
+  expires_at: string;
+  public_id: string;
+  role: string;
+}
 /**
  * A candidate as the Start board's *Is this what you mean?* panel shows it (L1).
  */
@@ -140,6 +182,9 @@ export interface ResultOut {
   minutes: number;
   region: RegionOut;
   title: string;
+}
+export interface RoleIn {
+  role: Role;
 }
 export interface RouteOut {
   goals: string[];
@@ -168,4 +213,11 @@ export interface SearchOut {
   query: string;
   results: ResultOut[];
   unmatched: string[];
+}
+export interface TeamMemberOut {
+  active: boolean;
+  email: string;
+  name: string;
+  public_id: string;
+  role: string;
 }
