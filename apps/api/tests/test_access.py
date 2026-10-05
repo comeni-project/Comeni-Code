@@ -124,3 +124,21 @@ def test_me_names_the_signed_in_member(client: Client) -> None:
 def test_learner_routes_need_no_account(client: Client, url: str) -> None:
     rebuild_index(FIXTURES)
     assert client.get(url).status_code not in (401, 403)
+
+
+@on_gated_routes
+def test_a_signed_out_write_is_401_not_a_csrf_403() -> None:
+    # #161: the sign-in check comes before CSRF, so the web app reads "sign in", not "forbidden".
+    response = Client(enforce_csrf_checks=True).post("/gated/review")
+    assert (response.status_code, response.json()["code"]) == (401, "CA0101")
+
+
+def test_the_cache_is_redis() -> None:
+    # #161: allauth's rate limits count across every worker, so the cache is shared. Tests run
+    # on a local-memory cache (conftest.py), so one run's rate limits never reach the next.
+    from code_api.config.auth import caches
+    from code_api.config.env import Env
+
+    cache = caches(Env())["default"]
+    assert cache["BACKEND"] == "django.core.cache.backends.redis.RedisCache"
+    assert cache["LOCATION"] == Env().redis_url.get_secret_value()

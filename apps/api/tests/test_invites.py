@@ -172,3 +172,91 @@ def test_invite_operator_prints_a_working_link(capsys: pytest.CaptureFixture[str
         "email": "first@example.org",
         "role": "operator",
     }
+
+
+# #161: what the checkpoint review found.
+
+
+def signed_up(client: Client, email: str = "ada@example.org") -> User:
+    operator(client)
+    token = invite(client, email=email)
+    client.logout()
+    client.post(f"/api/invites/{token}/accept")
+    assert sign_up(client, email) == 200
+    return User.objects.get(email=email)
+
+
+def test_the_invites_address_is_verified_and_the_only_one(client: Client) -> None:
+    from allauth.account.models import EmailAddress
+
+    user = signed_up(client)
+    (address,) = EmailAddress.objects.filter(user=user)
+    assert (address.email, address.verified, address.primary) == ("ada@example.org", True, True)
+
+
+def test_a_member_cannot_add_an_address(client: Client) -> None:
+    from allauth.account.models import EmailAddress
+
+    user = signed_up(client)
+    body = json.dumps({"email": "squat@example.org"})
+    response = client.post(
+        "/_allauth/browser/v1/account/email", body, content_type="application/json"
+    )
+    assert response.status_code == 400
+    assert not EmailAddress.objects.filter(email="squat@example.org").exists()
+    user.refresh_from_db()
+    assert user.email == "ada@example.org"
+
+
+def test_a_member_can_ask_for_a_password_reset(client: Client) -> None:
+    signed_up(client)
+    client.logout()
+    mail.outbox.clear()
+    body = json.dumps({"email": "ada@example.org"})
+    response = client.post(
+        "/_allauth/browser/v1/auth/password/request", body, content_type="application/json"
+    )
+    assert response.status_code == 200
+    (message,) = mail.outbox
+    assert "http://127.0.0.1:5173/reset-password/" in str(message.body)
+
+
+def test_a_reset_for_an_unknown_address_mails_nobody(client: Client) -> None:
+    body = json.dumps({"email": "stranger@example.org"})
+    response = client.post(
+        "/_allauth/browser/v1/auth/password/request", body, content_type="application/json"
+    )
+    assert response.status_code == 200
+    assert mail.outbox == []
+
+
+def test_losing_a_race_for_an_invite_is_a_json_403(client: Client) -> None:
+    from unittest import mock
+
+    from code_api.accounts import invites
+
+    operator(client)
+    token = invite(client)
+    client.logout()
+    client.post(f"/api/invites/{token}/accept")
+    stale = Invite.objects.get()
+    Invite.objects.update(accepted_at=timezone.now())  # another sign-up spent it meanwhile
+    with mock.patch.object(invites, "held", return_value=stale):
+        response = client.post(
+            SIGNUP,
+            json.dumps({"email": "ada@example.org", "password": PASSWORD}),
+            content_type="application/json",
+        )
+    assert response.status_code == 403
+    assert response["content-type"].startswith("application/json")
+    assert not User.objects.filter(email="ada@example.org").exists()
+
+
+def test_pending_invites_are_found_in_the_database(client: Client) -> None:
+    from code_api.accounts import invites
+
+    operator(client)
+    invite(client)
+    invite(client, email="grace@example.org")
+    Invite.objects.filter(email="grace@example.org").update(expires_at=timezone.now())
+    assert [pending.email for pending in invites.pending_invites()] == ["ada@example.org"]

@@ -8,7 +8,9 @@ new user takes its role in the same transaction that spends it.
 from typing import Any
 
 from allauth.account.adapter import DefaultAccountAdapter
-from django.core.exceptions import PermissionDenied, ValidationError
+from allauth.core.exceptions import ImmediateHttpResponse
+from allauth.headless.base.response import ForbiddenResponse
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpRequest
 
@@ -31,8 +33,15 @@ class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]
     def save_user(self, request: HttpRequest, user: User, form: Any, commit: bool = True) -> User:
         invite = invites.held(request)
         if invite is None:
-            raise PermissionDenied("sign-up needs a pending invite")
-        with transaction.atomic():
-            saved: User = super().save_user(request, user, form, commit=True)
-            invites.accept(request, invite, saved)
+            raise ImmediateHttpResponse(ForbiddenResponse(request))
+        # The link proved the address: allauth records it verified (#161), so it cannot be
+        # swapped for an unverified one later.
+        self.stash_verified_email(request, invite.email)
+        try:
+            with transaction.atomic():
+                saved: User = super().save_user(request, user, form, commit=True)
+                invites.accept(request, invite, saved)
+        except invites.NotPending:
+            # Another sign-up spent the invite first; this one's user was rolled back (#161).
+            raise ImmediateHttpResponse(ForbiddenResponse(request)) from None
         return saved

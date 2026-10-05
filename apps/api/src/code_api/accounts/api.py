@@ -125,8 +125,7 @@ def invite(request: HttpRequest, body: InviteIn) -> Status[PendingInviteOut] | S
 
 @router.get("/team/invites", auth=studio(Role.OPERATOR), response=list[PendingInviteOut])
 def pending_invites(request: HttpRequest) -> list[PendingInviteOut]:
-    every = Invite.objects.order_by("created_at")
-    return [PendingInviteOut.of(i) for i in every if invites.state(i) is invites.State.PENDING]
+    return [PendingInviteOut.of(invite) for invite in invites.pending_invites()]
 
 
 @router.delete(

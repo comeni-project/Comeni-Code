@@ -27,6 +27,17 @@ def github_providers(env: Env) -> dict[str, Any]:
     }
 
 
+def caches(env: Env) -> dict[str, Any]:
+    """Redis, shared by every worker, so allauth's rate limits count once for all of them."""
+    return {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": env.redis_url.get_secret_value(),
+            "KEY_PREFIX": "code",
+        }
+    }
+
+
 def mailers(env: Env) -> dict[str, Any]:
     """Django's MAILERS (6.1, replacing EMAIL_BACKEND): the console in development and tests,
     SMTP with TLS when a host is set."""

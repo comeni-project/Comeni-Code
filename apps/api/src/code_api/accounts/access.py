@@ -27,6 +27,12 @@ class Studio(SessionAuth):
         super().__init__(csrf=True)
         self.min_role = min_role
 
+    def __call__(self, request: HttpRequest) -> Any:
+        # Signed out is 401 before any CSRF check, so a signed-out write reads "sign in" (#161).
+        if not request.user.is_authenticated:
+            return None
+        return super().__call__(request)
+
     def authenticate(self, request: HttpRequest, key: str | None) -> Any:
         user = request.user
         if not user.is_authenticated:

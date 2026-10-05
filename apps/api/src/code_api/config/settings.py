@@ -3,7 +3,7 @@
 M0 part 2 spec, P2.3.
 """
 
-from code_api.config.auth import github_providers, mailers
+from code_api.config.auth import caches, github_providers, mailers
 from code_api.config.env import Env, database_from_url
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
@@ -75,8 +75,15 @@ HEADLESS_ONLY = True
 HEADLESS_CLIENTS = ("browser",)
 HEADLESS_FRONTEND_URLS = {
     "account_signup": f"{ENV.web_origin}/join",
+    "account_reset_password": f"{ENV.web_origin}/reset-password",
+    "account_reset_password_from_key": f"{ENV.web_origin}/reset-password/{{key}}",
+    "account_confirm_email": f"{ENV.web_origin}/verify-email/{{key}}",
     "socialaccount_login_error": f"{ENV.web_origin}/sign-in/error",
 }
+# One address per account, the invite's, verified at sign-up: changing one's email is out of
+# M4.3 (#161). A reset for an unknown address mails nobody, since sign-up is invite-only.
+ACCOUNT_MAX_EMAIL_ADDRESSES = 1
+ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 # Where invite links point (M4A.2).
 CODE_WEB_ORIGIN = ENV.web_origin
 # Sign-up only through an invite (M4A.2); the invite's link proved the address, so no second
@@ -96,6 +103,9 @@ CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = ENV.secure_cookies
 CSRF_COOKIE_SECURE = ENV.secure_cookies
 CSRF_TRUSTED_ORIGINS = [ENV.web_origin]
+
+# The cache is Redis, so allauth's rate limits are shared by every worker (#161).
+CACHES = caches(ENV)
 
 # Mail: the console unless an SMTP host is set.
 MAILERS = mailers(ENV)
