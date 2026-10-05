@@ -11,7 +11,7 @@ decision records.
 | [2026-09-17 — architecture and roadmap](2026-09-17-comeni-code-architecture-and-roadmap-design.md) | design | the stack (Django + Ninja, React, Postgres, Redis, LiteLLM, Compose), where content lives, the repository shape, phases M0–M9 and their objectives, and how each is built part by part |
 | [2026-09-17 — the tutor on top of what exists](2026-09-17-code-as-tutor-design.md) | **current statement of the product** | Code complements Khan Academy: outside resources and video, skeletons from public outlines, step backs and hints, learner state as evidence, **self-tests from node exam pools** (T7.1), AI block scores (automatic deployment deferred), **five content levels** (First steps → Advanced) and rules for young learners; what is deferred past v1 |
 
-**Finished specs** (the parts of M0–M3, M4.1 and M4.2, one per part, and the docs compaction of
+**Finished specs** (the parts of M0–M3 and M4.1–M4.3, one per part, and the docs compaction of
 2026-09-29) are in [`archive/`](archive/). Each records what it decided and rejected;
 `docs/notes/now.md` holds what is still true of them.
 
