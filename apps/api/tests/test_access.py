@@ -144,6 +144,7 @@ def test_the_cache_is_redis() -> None:
     assert cache["LOCATION"] == Env().redis_url.get_secret_value()
 
 
+@override_settings(ALLOWED_HOSTS=["127.0.0.1"])
 def test_a_write_through_the_stacks_origin_passes_csrf() -> None:
     # #163: behind nginx the Host carries the port, and the browser's Origin matches it.
     client = Client(enforce_csrf_checks=True)
