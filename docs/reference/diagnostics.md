@@ -1036,6 +1036,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** 40 is a bound, not a target: it catches a draft or a generator that ran away. How many questions an exam asks is the exam builder's business (M4E.3, M4E.7).
 
+#### CS0813 — a pool has fewer than 4 questions
+
+*Warns; never blocks.*
+
+**Fix.** Write more questions until the pool has at least 4; more is better.
+
+**Why.** A node with fewer than 4 questions is left out of self-tests, since a result needs evidence from at least 2 questions and retakes should not repeat (tutor spec T7.1, M4E.7). A warning: a pool may be written a question at a time.
+
+#### CS0814 — a question's level is two or more from the node's
+
+*Warns; never blocks.*
+
+**Fix.** Ask at or near the node's level, or move the question to the node it fits.
+
+**Why.** A node holds exam questions at or near its own level, and review flags one two or more levels away (tutor spec T10.1). A warning: review decides.
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes

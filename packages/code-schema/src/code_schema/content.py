@@ -30,6 +30,11 @@ class Content:
     problems: tuple[Problem, ...]
     providers: dict[str, Provider]
 
+    @property
+    def errors(self) -> tuple[Problem, ...]:
+        """The problems that refuse; the rest are warnings, printed but never blocking (M4E.4)."""
+        return tuple(problem for problem in self.problems if problem.refuses)
+
     def node_file(self, node_id: str) -> str:
         return f"{self.folders[node_id]}/{NODE_FILE}"
 

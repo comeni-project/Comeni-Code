@@ -6,10 +6,11 @@ tmp_path, never read from the content repository.
 
 from pathlib import Path
 
+from schema.content_helpers import SMALL_POOL, content_root, node_yaml
+
 from code_schema.content import read_content
 from code_schema.node import Level, read_node
 from code_schema.questions import ChoiceAnswer, NumberAnswer, Option
-from schema.content_helpers import content_root, node_yaml
 
 REGIONS = {"sequence-analysis"}
 
@@ -234,3 +235,37 @@ def test_a_near_miss_of_exam_yaml_is_reported(tmp_path: Path) -> None:
     assert [str(problem) for problem in read_content(tmp_path).problems] == [
         "tpm/: CS0706 exam.yml is not read — did you mean exam.yaml?"
     ]
+
+
+# Warnings (spec M4E.4): they are printed, and they never refuse.
+
+
+def test_a_pool_of_three_warns_and_is_kept(tmp_path: Path) -> None:
+    node, problems = read_node(make(tmp_path, SMALL_POOL), regions=REGIONS, root=tmp_path)
+    assert [str(problem) for problem in problems] == [
+        "tpm/exam.yaml:1: exam: CS0813 the pool has 3 questions "
+        "— the node is left out of self-tests until it has 4"
+    ]
+    assert not problems[0].refuses
+    assert node is not None and len(node.exam) == 3
+
+
+def test_a_level_two_from_the_nodes_warns(tmp_path: Path) -> None:
+    pool = POOL.replace("level: foundations", "level: advanced")
+    node, problems = read_node(make(tmp_path, pool), regions=REGIONS, root=tmp_path)
+    assert [str(problem) for problem in problems] == [
+        "tpm/exam.yaml:5: exam: CS0814 tpm-or-count is at advanced, "
+        "2 levels from the node's introductory"
+    ]
+    assert node is not None
+
+
+def test_a_level_one_away_is_quiet(tmp_path: Path) -> None:
+    assert lines(tmp_path, POOL.replace("level: foundations", "level: intermediate")) == []
+
+
+def test_an_error_beside_a_warning_still_refuses(tmp_path: Path) -> None:
+    pool = SMALL_POOL.replace("answer: 20\n", "answer: twenty\n", 1)
+    node, problems = read_node(make(tmp_path, pool), regions=REGIONS, root=tmp_path)
+    assert node is None
+    assert [problem.code for problem in problems] == ["CS0813", "CS0312"]

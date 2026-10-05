@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from schema.content_helpers import SMALL_POOL
 
 from code_api.content import index
 from code_api.content.index import content_digest, rebuild_index
@@ -278,6 +279,16 @@ def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
     registry = root / "providers.yaml"
     registry.write_text(registry.read_text().replace("Khan Academy", "Khan academy"))
     assert content_digest(root, read_content(root)) != before
+
+
+def test_a_warning_does_not_refuse_a_build(tmp_path: Path) -> None:
+    # M4.2 (spec M4E.4): only errors refuse; an applied build keeps no problems.
+    root = copy_of_fixtures(tmp_path)
+    (root / "algorithms" / "de-bruijn-graphs" / "exam.yaml").write_text(SMALL_POOL)
+    build = rebuild_index(root)
+    assert build.outcome == IndexBuild.Outcome.APPLIED
+    assert build.problems == []
+    assert Node.objects.filter(id="de-bruijn-graphs").exists()
 
 
 def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:

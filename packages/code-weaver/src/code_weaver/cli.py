@@ -138,8 +138,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"code-weaver: CW0008 no such folder: {root}", file=sys.stderr)
         return 2
     content = read_content(root)
-    if content.problems:
-        problems = _plural(len(content.problems), "problem")
+    if content.errors:
+        problems = _plural(len(content.errors), "problem")
         print(
             f"code-weaver: CW0007 {problems} in the content; run code-schema validate {root}",
             file=sys.stderr,

@@ -1365,6 +1365,29 @@ codes:
       40 is a bound, not a target: it catches a draft or a generator that ran away. How many
       questions an exam asks is the exam builder's business (M4E.3, M4E.7).
 
+  CS0813:
+    emitted_by: schema
+    concern: exam
+    says: a pool has fewer than 4 questions
+    refuses: false
+    fix: |
+      Write more questions until the pool has at least 4; more is better.
+    explanation: |
+      A node with fewer than 4 questions is left out of self-tests, since a result needs evidence
+      from at least 2 questions and retakes should not repeat (tutor spec T7.1, M4E.7). A warning:
+      a pool may be written a question at a time.
+
+  CS0814:
+    emitted_by: schema
+    concern: exam
+    says: a question's level is two or more from the node's
+    refuses: false
+    fix: |
+      Ask at or near the node's level, or move the question to the node it fits.
+    explanation: |
+      A node holds exam questions at or near its own level, and review flags one two or more levels
+      away (tutor spec T10.1). A warning: review decides.
+
   # ── CW0001–CW0099 · routes ──────────────────────────────────────────────────────────────────
 
   CW0001:

@@ -365,9 +365,11 @@ def read_node(
             assert exam_text is not None
             exam, exam_problems = parse_exam(exam_text, file=f"{where}{EXAM_FILE}", node=node)
             problems += exam_problems
-    if node is None or problems:
-        return None, sorted(problems, key=Problem.sort_key)
-    return replace(node, exam=exam), []
+    problems.sort(key=Problem.sort_key)
+    if node is None or any(problem.refuses for problem in problems):
+        return None, problems
+    # Only warnings, if anything: the node is kept, and its warnings go with it (spec M4E.4).
+    return replace(node, exam=exam), problems
 
 
 def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:

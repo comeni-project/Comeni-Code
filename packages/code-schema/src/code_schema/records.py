@@ -84,6 +84,11 @@ class Entry:
         self.field.problem(code, message, line)
         self.sound = False
 
+    def flag(self, code: str, message: str, *, key: str | None = None) -> None:
+        """A warning about this entry (spec M4E.4): reported, but the entry stays sound."""
+        line = self.line if key is None else self.at(key)
+        self.field.problem(code, message, line)
+
     def unknown(self, allowed: Sequence[str], code: str, says: Callable[[str], str]) -> None:
         """Every key not allowed, at its own line, in the order written."""
         for key in self.mapping:

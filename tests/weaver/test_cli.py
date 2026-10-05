@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from schema.content_helpers import content_root, link, make_node
+from schema.content_helpers import SMALL_POOL, content_root, link, make_node
 from weaver.fixture_graph import FIXTURES
 
 from code_weaver import cli
@@ -77,6 +77,14 @@ def test_content_problems_name_the_validator(capsys: Captured, tmp_path: Path) -
     assert (code, lines) == (1, [])
     assert err.startswith("code-weaver: CW0007 ")
     assert err.endswith(f"in the content; run code-schema validate {root}\n")
+
+
+def test_a_warning_in_the_content_does_not_refuse(capsys: Captured, tmp_path: Path) -> None:
+    # M4.2 (spec M4E.4): only errors refuse.
+    root = content_root(tmp_path)
+    (make_node(root, "salmon") / "exam.yaml").write_text(SMALL_POOL, encoding="utf-8")
+    code, _, err = route(capsys, "salmon", "--root", str(root))
+    assert (code, err) == (0, "")
 
 
 def test_a_refused_graph_prints_its_message(

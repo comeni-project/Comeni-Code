@@ -24,7 +24,7 @@ from code_schema.questions import (
     read_rationale,
     repeated,
 )
-from code_schema.records import Field
+from code_schema.records import Entry, Field
 from code_schema.yaml_lines import load_mapping
 
 if TYPE_CHECKING:
@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 EXAM_FILE = "exam.yaml"
 EXAM_FIELD = "exam"
 MAX_EXAM = 40
+MIN_EXAM = 4  # fewer is left out of self-tests (T7.1): a warning, CS0813
 
 _KEYS = ("id", "kind", "ask", "level", "options", "answer", "unit", "tolerance", "rationale")
 _OPTIONS = OptionRules(
@@ -124,7 +125,8 @@ def parse_exam(
                 f"the exam question {name} has hints — a self-test gives none",
                 key="hints",
             )
-        entry.check("level", _level, prefix=f"the level of {name} ")
+        if entry.check("level", _level, prefix=f"the level of {name} ") and node is not None:
+            _level_distance(entry, name, written.get("level"), node.level)
         answer = read_answer(entry, name, kind, field, rules=_OPTIONS)
         rationale = read_rationale(entry, name)
 
@@ -170,4 +172,24 @@ def parse_exam(
         if repeated(entry, name, seen):
             continue
         questions.append(question)
+    if isinstance(value, list) and len(value) < MIN_EXAM:
+        field.problem(
+            "CS0813",
+            f"the pool has {len(value)} questions "
+            f"— the node is left out of self-tests until it has {MIN_EXAM}",
+        )
     return tuple(questions), problems
+
+
+def _level_distance(entry: Entry, name: str, written: object, home: Level) -> None:
+    """A warning for a question two or more levels from its node's (T10.1)."""
+    if written is None:
+        return
+    order = list(Level)
+    distance = abs(order.index(Level(str(written))) - order.index(home))
+    if distance >= 2:
+        entry.flag(
+            "CS0814",
+            f"{name} is at {written}, {distance} levels from the node's {home.value}",
+            key="level",
+        )

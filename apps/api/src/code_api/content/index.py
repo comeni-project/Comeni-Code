@@ -156,13 +156,13 @@ def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
     """
     content = read_content(root)
     digest = content_digest(root, content)
-    if content.problems:
+    if content.errors:
         return IndexBuild.objects.create(
             outcome=IndexBuild.Outcome.REFUSED,
             digest=digest,
             commit=commit,
             node_count=len(content.folders),
-            problems=[str(problem) for problem in content.problems],
+            problems=[str(problem) for problem in content.errors],
         )
     with transaction.atomic():
         with connection.cursor() as cursor:
