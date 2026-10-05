@@ -183,10 +183,11 @@ never the learner; stages of education such as "AP" are for authors' writing gui
 - **Pure packages** in `packages/` (`code-schema`, `code-weaver`; later `code-figures`,
   `code-problems`) import no Django, no HTTP client and no model library.
 - **Content:** drafts are stored in Postgres. Approved content is stored as files in the
-  comeni-project/comeni-code-content repository (sibling checkout `../comeni-code-content`), one folder per
-  node: `node.yaml`, a MyST `body.md` and YAML data files. Content lands through a pull request
-  that auto-merges when its CI is green. A worker follows that repo's `main` and rebuilds the
-  index. **Tests use `tests/fixtures/` and never read the real content repo.**
+  comeni-project/comeni-code-content repository (sibling checkout `../comeni-code-content`), one
+  folder per node: `node.yaml`, a MyST `body.md`, an optional `exam.yaml` and YAML data files.
+  Content lands through a pull request that auto-merges when its CI is green. A worker follows
+  that repo's `main` and rebuilds the index. **Tests use `tests/fixtures/` and never read the real
+  content repo.**
 - **Accounts:** django-allauth (ORCID, GitHub, email/password), with a session cookie.
 - **Labs** (`../Comeni-Labs`) is a reference for its purity guard (`tests/guards/`), CI and repo
   shape. **Read it; never import from it.**
@@ -284,7 +285,7 @@ docs/notes/journal/       session records, append-only; archive/ holds compacted
 docs/notes/research/      studies decisions were built on (the Khan Academy report)
 docs/superpowers/specs/   design documents; archive/ holds finished part specs
 docs/superpowers/plans/   one plan per part; archive/ holds finished ones
-packages/code-schema/     pure: the node format (fields, links, resources, questions, blocks; records.py reads nested entries), its validation messages, the canonical writer
+packages/code-schema/     pure: the node format (fields, links, resources, questions, blocks, the exam pool in exam.py; records.py reads nested entries), its validation messages and warnings, the canonical writer
 packages/code-weaver/     pure: Graph, weave, find, and the route and find commands (M2, M3 part 2)
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks: links, doc sizes, doc paths, app dependencies
