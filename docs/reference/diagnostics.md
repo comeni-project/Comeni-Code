@@ -1282,6 +1282,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** One open draft per node, held by the database, so versions of a node are worked on in one place (M4W.1).
 
+#### CA0203 — the save was based on a revision that is no longer the latest
+
+*Refuses.*
+
+**Fix.** Reload the draft, then make the change again on its latest revision.
+
+**Why.** Each save names the revision it was based on, so nobody's save silently overwrites another's (optimistic concurrency, M4W.0, M4W.1).
+
 #### CA0204 — the index has no node with this id
 
 *Refuses.*
@@ -1289,6 +1297,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Open it as a new node, with its first fields.
 
 **Why.** A draft of an existing node starts from the index (M4W.2).
+
+#### CA0205 — the edit does not apply to this node
+
+*Refuses.*
+
+**Fix.** Read the draft again: the position or question the edit names is not there.
+
+**Why.** Some edits cannot be said by a file — a block position out of range, a try block without its question, an exam question that is not in the pool — and are refused before the files are written (M4.4 spec, M4W.3).
 
 #### CA0206 — only a contributor or an operator may discard a draft
 

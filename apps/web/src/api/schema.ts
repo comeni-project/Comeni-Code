@@ -1,32 +1,41 @@
 // Generated from apps/api/openapi.json by `npm run api-types`. Do not edit (M0 part 7 spec, P7.2).
 /**
- * In rank order: each role includes the ones before it.
- */
-export type Role = "author" | "reviewer" | "operator";
-/**
  * T10.1's five. A level describes a node, never a learner.
  */
 export type Level = "first-steps" | "foundations" | "introductory" | "intermediate" | "advanced";
+/**
+ * In rank order: each role includes the ones before it.
+ */
+export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  BlockIn: BlockIn;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
+  ExamIn: ExamIn;
+  ExamQuestionIn: ExamQuestionIn;
+  FieldsIn: FieldsIn;
   FilesOut: FilesOut;
   HealthOut: HealthOut;
+  InsertBlockIn: InsertBlockIn;
   InviteIn: InviteIn;
   InviteOut: InviteOut;
   Level: Level;
+  LinkIn: LinkIn;
   LinkOut: LinkOut;
+  LinksIn: LinksIn;
   MeOut: MeOut;
   MemberOut: MemberOut;
   Message: Message;
+  MoveBlockIn: MoveBlockIn;
   NeighbourOut: NeighbourOut;
   NewNodeIn: NewNodeIn;
   NodeOut: NodeOut;
   OpenIn: OpenIn;
+  OptionIn: OptionIn;
   OptionOut: OptionOut;
   PendingInviteOut: PendingInviteOut;
   ProblemOut: ProblemOut;
@@ -34,12 +43,15 @@ export interface ApiSchemas {
   QuestionOut: QuestionOut;
   RefusedOut: RefusedOut;
   RegionOut: RegionOut;
+  ResourceIn: ResourceIn;
   ResourceOut: ResourceOut;
+  ResourcesIn: ResourcesIn;
   ResultOut: ResultOut;
   RevisionOut: RevisionOut;
   Role: Role;
   RoleIn: RoleIn;
   RouteOut: RouteOut;
+  SavedOut: SavedOut;
   SearchOut: SearchOut;
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
@@ -51,6 +63,19 @@ export interface ApiSchemas {
   TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
   TryBlockOut: TryBlockOut;
+  TryQuestionIn: TryQuestionIn;
+  UpdateBlockIn: UpdateBlockIn;
+}
+/**
+ * A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
+ * (callout, title, markdown).
+ */
+export interface BlockIn {
+  callout?: string;
+  kind: string;
+  markdown?: string;
+  question?: string;
+  title?: string;
 }
 export interface CalloutBlockOut {
   callout: "misconception" | "caveat" | "convention";
@@ -177,6 +202,34 @@ export interface DraftSummaryOut {
   revision: number;
   state: string;
 }
+export interface ExamIn {
+  question: ExamQuestionIn;
+  revision: number;
+}
+export interface ExamQuestionIn {
+  answer?: number | null;
+  ask: string;
+  id: string;
+  kind: string;
+  level?: Level | null;
+  options?: OptionIn[] | null;
+  rationale: string;
+  tolerance?: number | null;
+  unit?: string;
+}
+export interface OptionIn {
+  misconception?: string;
+  right?: boolean;
+  text: string;
+}
+export interface FieldsIn {
+  claim?: string | null;
+  level?: Level | null;
+  minutes?: number | null;
+  region?: string | null;
+  revision: number;
+  title?: string | null;
+}
 /**
  * A revision's files, exactly as they would land; `exam_yaml` is empty without a pool.
  */
@@ -190,6 +243,23 @@ export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
 }
+export interface InsertBlockIn {
+  at: number;
+  block: BlockIn;
+  question?: TryQuestionIn | null;
+  revision: number;
+}
+export interface TryQuestionIn {
+  answer?: number | null;
+  ask: string;
+  hints: string[];
+  id: string;
+  kind: string;
+  options?: OptionIn[] | null;
+  rationale: string;
+  tolerance?: number | null;
+  unit?: string;
+}
 export interface InviteIn {
   email: string;
   role: Role;
@@ -201,6 +271,14 @@ export interface InviteOut {
   email: string;
   role: string;
 }
+export interface LinkIn {
+  node: string;
+  reason: string;
+}
+export interface LinksIn {
+  links: LinkIn[];
+  revision: number;
+}
 export interface MeOut {
   user: MemberOut | null;
 }
@@ -210,6 +288,10 @@ export interface MeOut {
 export interface Message {
   code: string;
   detail: string;
+}
+export interface MoveBlockIn {
+  revision: number;
+  to: number;
 }
 /**
  * A neighbour as a card: enough for a node page's side panel (L5) without another request.
@@ -316,6 +398,21 @@ export interface RefusedOut {
   detail: string;
   problems: ProblemOut[];
 }
+export interface ResourceIn {
+  covers: string;
+  display: string;
+  kind: string;
+  level: Level;
+  licence: string;
+  part?: string;
+  provider: string;
+  url: string;
+  video?: string;
+}
+export interface ResourcesIn {
+  resources: ResourceIn[];
+  revision: number;
+}
 /**
  * A candidate as the Start board's *Is this what you mean?* panel shows it (L1).
  */
@@ -359,6 +456,10 @@ export interface StopOut {
   region: RegionOut;
   title: string;
 }
+export interface SavedOut {
+  draft: DraftOut;
+  warnings: ProblemOut[];
+}
 export interface SearchOut {
   query: string;
   results: ResultOut[];
@@ -370,4 +471,9 @@ export interface TeamMemberOut {
   name: string;
   public_id: string;
   role: string;
+}
+export interface UpdateBlockIn {
+  block: BlockIn;
+  question?: TryQuestionIn | null;
+  revision: number;
 }

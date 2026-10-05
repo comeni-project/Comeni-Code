@@ -1681,6 +1681,17 @@ codes:
       One open draft per node, held by the database, so versions of a node are worked on in one
       place (M4W.1).
 
+  CA0203:
+    emitted_by: api
+    concern: drafts
+    says: the save was based on a revision that is no longer the latest
+    refuses: true
+    fix: |
+      Reload the draft, then make the change again on its latest revision.
+    explanation: |
+      Each save names the revision it was based on, so nobody's save silently overwrites another's
+      (optimistic concurrency, M4W.0, M4W.1).
+
   CA0204:
     emitted_by: api
     concern: drafts
@@ -1690,6 +1701,18 @@ codes:
       Open it as a new node, with its first fields.
     explanation: |
       A draft of an existing node starts from the index (M4W.2).
+
+  CA0205:
+    emitted_by: api
+    concern: drafts
+    says: the edit does not apply to this node
+    refuses: true
+    fix: |
+      Read the draft again: the position or question the edit names is not there.
+    explanation: |
+      Some edits cannot be said by a file — a block position out of range, a try block without
+      its question, an exam question that is not in the pool — and are refused before the files
+      are written (M4.4 spec, M4W.3).
 
   CA0206:
     emitted_by: api
