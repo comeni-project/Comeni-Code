@@ -143,9 +143,9 @@ unknown-key codes, unchanged.
 
 | Code | Rule |
 |---|---|
-| CS0801 | `exam.yaml` is not a mapping |
-| CS0802 | `exam.yaml` has a key other than `exam` |
-| CS0803 | `exam:` is missing, or is not a list |
+| CS0801 | `exam.yaml` has a key other than `exam` |
+| CS0802 | `exam:` is missing |
+| CS0803 | `exam:` is not a list |
 | CS0804 | `exam:` is empty — delete the file instead |
 | CS0805 | an entry is not a question |
 | CS0806 | an unknown key in an exam question |
@@ -162,9 +162,11 @@ unknown-key codes, unchanged.
 (`exam.yml`, `exams.yaml`) and is not read, as CS0703 does for `node.yaml`. A pool that is quietly
 not read is the mistake an author would not notice.
 
-The checks that need the node (CS0809, CS0811, CS0814) run only when `node.yaml` and `body.md`
-parsed; the pool's own rules always run. The exact codes are a plan detail and may shift by one; the
-band and the rules are the decision.
+A file that is not YAML, is empty or is not a mapping gets the shared CS0001–CS0003, as `node.yaml`
+does. The checks that need the node (CS0809, CS0811, CS0814) run only when `node.yaml` and `body.md`
+parsed; the pool's own rules always run. *(The table was renumbered on 2026-10-05 during the build,
+to match `diagnostics.yml`, once the shared CS0003 turned out to cover a file that is not a
+mapping.)*
 
 **40** is a bound, not a target. It is high enough that a well-written node never meets it, and it
 catches a draft or a generator that ran away. The pool's size is otherwise the exam builder's
