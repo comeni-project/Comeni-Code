@@ -206,3 +206,21 @@ def test_a_new_node_built_only_through_the_api_validates_beside_the_content(
     content = read_content(root)
     assert [str(problem) for problem in content.problems] == []
     assert len(content.nodes["effective-length"].exam) == 4
+
+
+def test_verify_on_a_draft_that_no_longer_parses_lists_its_problems(client: Client) -> None:
+    from code_api.content.models import Provider
+
+    draft = opened(client, {"node_id": "de-bruijn-graphs"})
+    Provider.objects.update(licences=[])
+    body = call(client, "get", f"/api/studio/drafts/{draft}/verify").json()
+    assert body["clean"] is False and body["problems"]
+    assert call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()["passed"] is False
+
+
+def test_a_discarded_draft_is_not_checked(client: Client) -> None:
+    draft = opened(client, {"node_id": "tpm"})
+    client.post(f"/api/studio/drafts/{draft}/discard")
+    for check in ("verify", "checklist"):
+        response = call(client, "get", f"/api/studio/drafts/{draft}/{check}")
+        assert (response.status_code, response.json()["code"]) == (404, "CA0201")

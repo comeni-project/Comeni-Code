@@ -256,3 +256,90 @@ def test_a_discarded_draft_takes_no_edits(client: Client) -> None:
         client, "patch", f"/api/studio/drafts/{draft}/fields", {"revision": 1, "minutes": 9}
     )
     assert (response.status_code, response.json()["code"]) == (404, "CA0201")
+
+
+# #174: a save stores what was sent, or nothing.
+
+
+@pytest.mark.parametrize(
+    "block",
+    [
+        {"kind": "callout", "callout": "caveat", "title": "a\nb", "markdown": "Text.\n"},
+        {"kind": "callout", "callout": "caveat", "title": "T", "markdown": "One.\n:::\nTwo.\n"},
+    ],
+)
+def test_a_block_that_would_read_back_differently_is_refused(
+    client: Client, block: dict[str, str]
+) -> None:
+    draft = opened(client, "de-bruijn-graphs")
+    response = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 1, "at": 2, "block": block},
+    )
+    assert (response.status_code, response.json().get("code")) == (422, "CA0210"), response.content
+    assert len(revisions(draft)) == 1
+
+
+def test_an_unknown_block_kind_is_refused(client: Client) -> None:
+    draft = opened(client, "tpm")
+    block = {"kind": "figure", "markdown": "hi\n"}
+    response = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 1, "at": 0, "block": block},
+    )
+    assert response.status_code == 422
+    assert len(revisions(draft)) == 1
+
+
+def test_an_unknown_answer_kind_is_refused(client: Client) -> None:
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {"kind": "bogus"}
+    response = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert response.status_code == 422
+    assert len(revisions(draft)) == 1
+
+
+def test_a_number_question_without_its_answer_says_so(client: Client) -> None:
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {"answer": None}
+    response = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert (response.status_code, response.json()["code"]) == (422, "CA0205")
+    assert "answer" in response.json()["detail"]
+
+
+def test_a_question_with_a_text_block_is_refused(client: Client) -> None:
+    draft = opened(client, "de-bruijn-graphs")
+    body = {
+        "revision": 1,
+        "at": 0,
+        "block": {"kind": "text", "markdown": "Lead.\n\n"},
+        "question": TRY_QUESTION,
+    }
+    response = call(client, "post", f"/api/studio/drafts/{draft}/blocks", body)
+    assert (response.status_code, response.json()["code"]) == (422, "CA0205")
+
+
+def test_a_member_with_no_role_cannot_edit() -> None:
+    nobody = Client()
+    nobody.force_login(User.objects.create_user("norole@example.org"))
+    response = call(nobody, "post", "/api/studio/drafts", {"node_id": "tpm"})
+    assert (response.status_code, response.json()["code"]) == (403, "CA0102")
+
+
+def test_an_edit_needs_the_csrf_token(client: Client) -> None:
+    draft = opened(client, "tpm")
+    strict = Client(enforce_csrf_checks=True)
+    strict.force_login(User.objects.get(email="ada@example.org"))
+    response = call(
+        strict, "patch", f"/api/studio/drafts/{draft}/fields", {"revision": 1, "minutes": 9}
+    )
+    assert response.status_code == 403
+    assert len(revisions(draft)) == 1

@@ -55,6 +55,10 @@ class Refused(Exception):
     problems: list[Problem] = field(default_factory=list)
 
 
+class Garbled(Exception):
+    """The edit's files read back as a different node: the save would not store what was sent."""
+
+
 class NotOpen(Exception):
     """The draft was discarded: it takes no more saves."""
 
@@ -208,9 +212,13 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
             raise Refused(problems)  # it no longer reads against today's registries
         edited = edit(node)
         node_yaml, body, exam = _files(edited)
-        _, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam)
+        again, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam)
         if any(problem.refuses for problem in problems):
             raise Refused(problems)
+        if again != edited:
+            # A title with a newline, a ::: line inside a callout: the files say something else
+            # than the edit, so storing them would not be what was sent (#174).
+            raise Garbled()
         revision = Revision.objects.create(
             draft=locked,
             number=current.number + 1,
@@ -237,25 +245,35 @@ def discard(draft: Draft, *, by: User) -> Draft:
 
 
 def verify(draft: Draft) -> list[Problem]:
-    """The rules that need the whole graph (M4W.5), with the draft's node in place of its indexed
-    version, against every other node in the index: `code-schema`'s own graph rules, as `validate`
-    runs them. The draft's own warnings come too. A link to another draft's new node is missing
-    until that node lands. Like the routes, it loads the whole index per call (M2P4.3)."""
+    return _checked(draft)[1]
+
+
+def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
+    """The draft's node and every problem it has (M4W.5): `code-schema`'s own graph rules, as
+    `validate` runs them, with the draft's node in place of its indexed version against every
+    other node in the index, plus the draft's own warnings. A link to another draft's new node is
+    missing until that node lands. Like the routes, it loads the whole index per call (M2P4.3)."""
     node, problems = node_of(draft)
     if node is None:
-        return problems
+        return None, problems
     nodes: dict[str, Node] = {}
     folders: dict[str, str] = {}
-    for row in IndexedNode.objects.order_by("id"):
-        indexed = node_from_index(row.id)
-        assert indexed is not None
-        nodes[row.id], folders[row.id] = indexed, row.folder
+    with transaction.atomic():
+        # Under the rebuild's lock, shared, so no rebuild commits between listing the nodes and
+        # reading each (#174).
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock_shared(%s)", [INDEX_LOCK])
+        for row in IndexedNode.objects.order_by("id"):
+            indexed = node_from_index(row.id)
+            assert indexed is not None
+            nodes[row.id], folders[row.id] = indexed, row.folder
     nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
     link_lines = {
         node_id: locate_links(write_node_yaml(each), file=f"{folders[node_id]}/{NODE_FILE}")
         for node_id, each in nodes.items()
     }
-    return sorted([*problems, *graph_problems(nodes, folders, link_lines)], key=Problem.sort_key)
+    every = [*problems, *graph_problems(nodes, folders, link_lines)]
+    return node, sorted(every, key=Problem.sort_key)
 
 
 @dataclass(frozen=True)
@@ -271,8 +289,7 @@ MIN_EXAM = 4  # M4's bar (architecture spec R4): an exam pool of at least four q
 def checklist(draft: Draft) -> list[Item]:
     """M4's bar before submitting (M4W.5): it verifies clean, a level, a resource, four exam
     questions. Submitting is M4.5's, and requires every item."""
-    node, _ = node_of(draft)
-    problems = verify(draft)
+    node, problems = _checked(draft)
     errors = [problem for problem in problems if problem.refuses]
     resources = 0 if node is None else len(node.resources)
     exam = 0 if node is None else len(node.exam)

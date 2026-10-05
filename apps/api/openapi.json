@@ -10,6 +10,11 @@
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "text",
+              "try",
+              "callout"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -380,6 +385,10 @@
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "choice",
+              "number"
+            ],
             "title": "Kind",
             "type": "string"
           },
@@ -2057,6 +2066,10 @@
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "choice",
+              "number"
+            ],
             "title": "Kind",
             "type": "string"
           },

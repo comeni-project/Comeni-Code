@@ -230,3 +230,18 @@ def test_a_block_uses_the_bodys_line_endings() -> None:
     edited = reread(insert_block(crlf, 0, Text(markdown="Lead.\r\n\r\n")))
     assert edited.body.startswith("Lead.\r\n\r\nTake two transcripts")
     assert "\n" not in edited.body.replace("\r\n", "")
+
+
+@pytest.mark.parametrize(
+    "block",
+    [
+        Callout(kind="caveat", title="a\nb", markdown="Text.\n"),
+        Callout(kind="caveat", title="T", markdown="One.\n:::\nTwo.\n"),
+    ],
+)
+def test_blocks_that_would_read_back_otherwise_are_refused(block: Callout) -> None:
+    # #174: an edit stores what was sent, or nothing.
+    from code_schema.edits import Unfaithful
+
+    with pytest.raises(Unfaithful):
+        insert_block(DBG, 2, block)

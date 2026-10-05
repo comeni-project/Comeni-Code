@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import replace
 
-from code_schema.blocks import Block, Text, Try, write_blocks
+from code_schema.blocks import Block, Text, Try, parse_blocks, write_blocks
 from code_schema.exam import ExamQuestion
 from code_schema.levels import Level
 from code_schema.links import Link
@@ -24,6 +24,11 @@ from code_schema.resources import Resource
 
 class EditError(ValueError):
     """An edit that cannot apply to this node; its message is a sentence for the editor."""
+
+
+class Unfaithful(EditError):
+    """The blocks would not read back as sent: a title with a newline, a ::: line inside a
+    block's text. Storing them would store something else than the edit (#174)."""
 
 
 def set_fields(
@@ -98,14 +103,28 @@ def _asked_before(blocks: Sequence[Block], at: int) -> int:
 
 
 def _with_blocks(node: Node, blocks: Sequence[Block], questions: Sequence[TryQuestion]) -> Node:
-    return replace(node, body=write_blocks(_merged(blocks)), questions=tuple(questions))
+    """The node with these blocks as its body, only if the body reads back as exactly them."""
+    intended = _merged(blocks)
+    body = write_blocks(intended)
+    read, _, problems = parse_blocks(body, file="body.md")
+    if problems or list(read) != intended:
+        raise Unfaithful(
+            "the blocks would read back as something else: keep a title on one line, and ::: "
+            "lines out of a block's text"
+        )
+    return replace(node, body=body, questions=tuple(questions))
 
 
 def _question_for(
     block: Block, question: TryQuestion | None, questions: Sequence[TryQuestion]
 ) -> None:
-    """A `try` block must bring its question, under the id it names, and the id must be new."""
+    """A `try` block must bring its question, under the id it names, and the id must be new; any
+    other block brings none (#174)."""
     if not isinstance(block, Try):
+        if question is not None:
+            raise EditError(
+                f"a question goes with a try block, not a {type(block).__name__.lower()}"
+            )
         return
     if question is None or question.id != block.question:
         raise EditError(f"a try block for {block.question} needs its question, with that id")

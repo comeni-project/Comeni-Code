@@ -3,6 +3,7 @@
 Every route is the team's: `studio(Role.AUTHOR)`, so any author or above (M4W.1).
 """
 
+from typing import Literal
 from uuid import UUID
 
 from django.http import HttpRequest
@@ -44,6 +45,7 @@ from code_schema import (
 )
 from code_schema.edits import (
     EditError,
+    Unfaithful,
     add_exam_question,
     delete_block,
     delete_exam_question,
@@ -264,7 +266,7 @@ class AnswerIn(Schema):
     """A question's answer, flat as the files write it: `options` for a choice; `answer`, `unit`
     and `tolerance` for a number."""
 
-    kind: str
+    kind: Literal["choice", "number"]
     options: list[OptionIn] | None = None
     answer: float | int | None = None
     unit: str = ""
@@ -289,7 +291,7 @@ class BlockIn(Schema):
     """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
     (callout, title, markdown)."""
 
-    kind: str
+    kind: Literal["text", "try", "callout"]
     markdown: str = ""
     question: str = ""
     callout: str = ""
@@ -351,8 +353,8 @@ class ExamIn(Schema):
 
 
 def _answer(given: AnswerIn) -> Answer:
-    """As written: a choice's options, else a number. A malformed one is left for the parse to
-    refuse in the format's own words (no options, no answer, a bad kind)."""
+    """As written: a choice's options, else a number. Built inside the edit, so a missing answer
+    is an EditError; other malformed answers are left for the parse to refuse in its own words."""
     if given.kind == "choice":
         return ChoiceAnswer(
             options=tuple(
@@ -360,11 +362,9 @@ def _answer(given: AnswerIn) -> Answer:
                 for o in given.options or []
             )
         )
-    return NumberAnswer(
-        value=given.answer if given.answer is not None else float("nan"),
-        unit=given.unit,
-        tolerance=given.tolerance,
-    )
+    if given.answer is None:
+        raise EditError("a number question needs its answer")
+    return NumberAnswer(value=given.answer, unit=given.unit, tolerance=given.tolerance)
 
 
 def _try_question(given: TryQuestionIn | None) -> TryQuestion | None:
@@ -420,6 +420,18 @@ def _edit(
             "reload it and make the change again."
         )
         return Status(409, Message(detail=detail, code="CA0203"))
+    except drafts.Garbled:
+        detail = (
+            "The save's files would read back as something else than was sent: a title holds "
+            "a newline, or a block's text holds a ::: line. Nothing was stored."
+        )
+        return Status(422, RefusedOut(detail=detail, code="CA0210", problems=[]))
+    except Unfaithful:
+        detail = (
+            "The save's files would read back as something else than was sent: keep a title on "
+            "one line, and keep ::: lines out of a block's text. Nothing was stored."
+        )
+        return Status(422, RefusedOut(detail=detail, code="CA0210", problems=[]))
     except EditError as wrong:
         return Status(
             422,
@@ -464,24 +476,24 @@ def edit_links(request: HttpRequest, public_id: UUID, kind: str, body: LinksIn) 
 
 @router.post("/{public_id}/blocks", response=_EDIT_RESPONSES, summary="Insert a block")
 def insert(request: HttpRequest, public_id: UUID, body: InsertBlockIn) -> SaveAnswer:
-    block, question = _block(body.block), _try_question(body.question)
+    block = _block(body.block)
     return _edit(
         request,
         public_id,
         body.revision,
-        lambda node: insert_block(node, body.at, block, question),
+        lambda node: insert_block(node, body.at, block, _try_question(body.question)),
         f"inserted a {body.block.kind} block at {body.at}",
     )
 
 
 @router.put("/{public_id}/blocks/{at}", response=_EDIT_RESPONSES, summary="Update a block")
 def update(request: HttpRequest, public_id: UUID, at: int, body: UpdateBlockIn) -> SaveAnswer:
-    block, question = _block(body.block), _try_question(body.question)
+    block = _block(body.block)
     return _edit(
         request,
         public_id,
         body.revision,
-        lambda node: update_block(node, at, block, question),
+        lambda node: update_block(node, at, block, _try_question(body.question)),
         f"updated block {at}",
     )
 
@@ -518,13 +530,12 @@ def edit_resources(request: HttpRequest, public_id: UUID, body: ResourcesIn) -> 
 
 @router.post("/{public_id}/exam", response=_EDIT_RESPONSES, summary="Add an exam question")
 def exam_add(request: HttpRequest, public_id: UUID, body: ExamIn) -> SaveAnswer:
-    question = _exam_question(body.question)
     return _edit(
         request,
         public_id,
         body.revision,
-        lambda node: add_exam_question(node, question),
-        f"added exam question {question.id}",
+        lambda node: add_exam_question(node, _exam_question(body.question)),
+        f"added exam question {body.question.id}",
     )
 
 
@@ -534,12 +545,11 @@ def exam_add(request: HttpRequest, public_id: UUID, body: ExamIn) -> SaveAnswer:
 def exam_update(
     request: HttpRequest, public_id: UUID, question_id: str, body: ExamIn
 ) -> SaveAnswer:
-    question = _exam_question(body.question)
     return _edit(
         request,
         public_id,
         body.revision,
-        lambda node: update_exam_question(node, question_id, question),
+        lambda node: update_exam_question(node, question_id, _exam_question(body.question)),
         f"updated exam question {question_id}",
     )
 
@@ -569,8 +579,8 @@ def exam_delete(
 )
 def verify(request: HttpRequest, public_id: UUID) -> Status[VerifyOut] | Status[Message]:
     draft = find(public_id)
-    if draft is None:
-        return Status(404, _NO_DRAFT)
+    if draft is None or draft.state != Draft.State.OPEN:
+        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
     problems = drafts.verify(draft)
     return Status(
         200,
@@ -586,8 +596,8 @@ def verify(request: HttpRequest, public_id: UUID) -> Status[VerifyOut] | Status[
 )
 def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | Status[Message]:
     draft = find(public_id)
-    if draft is None:
-        return Status(404, _NO_DRAFT)
+    if draft is None or draft.state != Draft.State.OPEN:
+        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
     items = drafts.checklist(draft)
     return Status(
         200,

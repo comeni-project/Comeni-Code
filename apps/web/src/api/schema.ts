@@ -75,7 +75,7 @@ export interface ApiSchemas {
  */
 export interface BlockIn {
   callout?: string;
-  kind: string;
+  kind: "text" | "try" | "callout";
   markdown?: string;
   question?: string;
   title?: string;
@@ -222,7 +222,7 @@ export interface ExamQuestionIn {
   answer?: number | null;
   ask: string;
   id: string;
-  kind: string;
+  kind: "choice" | "number";
   level?: Level | null;
   options?: OptionIn[] | null;
   rationale: string;
@@ -266,7 +266,7 @@ export interface TryQuestionIn {
   ask: string;
   hints: string[];
   id: string;
-  kind: string;
+  kind: "choice" | "number";
   options?: OptionIn[] | null;
   rationale: string;
   tolerance?: number | null;

@@ -1337,3 +1337,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Use a number from the draft's history.
 
 **Why.** Revisions are numbered from 1 within their draft (M4W.1).
+
+#### CA0210 — the save's files would read back as something else than was sent
+
+*Refuses.*
+
+**Fix.** Keep a title on one line, and keep ::: lines out of a block's text.
+
+**Why.** A save is stored only if its files read back as exactly the node the edit made, so a draft never holds other than what its author sent (M4.4 spec, M4W.3; #174).
