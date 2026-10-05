@@ -79,6 +79,19 @@ def _check_position(node: Node, at: int, *, inserting: bool = False) -> None:
         raise EditError(f"there is no block position {at} (0 to {last})")
 
 
+def _check_lines(node: Node, block: Block) -> None:
+    """A text or callout block ends its last line, in the body's line endings (#173): otherwise
+    its prose runs into the next block, or the body would not read back as its blocks."""
+    if isinstance(block, Try):
+        return
+    crlf = "\r\n" in node.body
+    if not block.markdown.endswith("\n"):
+        raise EditError("a block's text ends with a newline")
+    if ("\r\n" in block.markdown) != crlf or (crlf and "\n" in block.markdown.replace("\r\n", "")):
+        ending = "\\r\\n" if crlf else "\\n"
+        raise EditError(f"a block's text uses the body's line endings ({ending})")
+
+
 def _asked_before(blocks: Sequence[Block], at: int) -> int:
     """How many questions are asked before position `at`: where a new one goes in the list."""
     return sum(isinstance(block, Try) for block in blocks[:at])
@@ -100,15 +113,25 @@ def _question_for(
         raise EditError(f"{question.id} is already asked in this node")
 
 
+def _place_of(questions: Sequence[TryQuestion], question_id: str) -> int:
+    """Where the question asked by a `try` block is listed: found by id, since node.yaml may list
+    questions in another order than the body asks them (#173)."""
+    for place, question in enumerate(questions):
+        if question.id == question_id:
+            return place
+    raise EditError(f"the node has no question {question_id}")
+
+
 def insert_block(node: Node, at: int, block: Block, question: TryQuestion | None = None) -> Node:
     """`block` at position `at`; a `try` block brings its question in with it."""
     _check_position(node, at, inserting=True)
+    _check_lines(node, block)
     blocks = list(node.blocks)
     questions = list(node.questions)
     _question_for(block, question, questions)
     if isinstance(block, Try):
         assert question is not None
-        questions.insert(_asked_before(blocks, at), question)
+        questions.insert(min(_asked_before(blocks, at), len(questions)), question)
     blocks.insert(at, block)
     return _with_blocks(node, blocks, questions)
 
@@ -118,25 +141,25 @@ def delete_block(node: Node, at: int) -> Node:
     _check_position(node, at)
     blocks = list(node.blocks)
     removed = blocks.pop(at)
-    questions = [
-        question
-        for question in node.questions
-        if not (isinstance(removed, Try) and question.id == removed.question)
-    ]
+    questions = list(node.questions)
+    if isinstance(removed, Try):
+        questions.pop(_place_of(questions, removed.question))
     return _with_blocks(node, blocks, questions)
 
 
 def update_block(node: Node, at: int, block: Block, question: TryQuestion | None = None) -> Node:
     """The block at `at` replaced in place. A `try` block's question is edited through it: a try
-    replacing a try replaces its question where it stands; a try replacing another block brings
+    replacing a try replaces its question where it is listed; a try replacing another block brings
     its question in; another block replacing a try takes the old question out."""
     _check_position(node, at)
+    _check_lines(node, block)
     old = node.blocks[at]
     blocks = list(node.blocks)
     blocks[at] = block
     questions = list(node.questions)
-    place = _asked_before(node.blocks, at)
+    place = min(_asked_before(node.blocks, at), len(questions))
     if isinstance(old, Try):
+        place = _place_of(questions, old.question)
         questions.pop(place)
     _question_for(block, question, questions)
     if isinstance(block, Try):
@@ -146,14 +169,13 @@ def update_block(node: Node, at: int, block: Block, question: TryQuestion | None
 
 
 def move_block(node: Node, at: int, to: int) -> Node:
-    """The block at `at` moved to position `to`; questions follow their blocks' order."""
+    """The block at `at` moved to position `to`. The questions list stays as it is: node.yaml's
+    order is the author's, and the body's markers say where each is asked (#173)."""
     _check_position(node, at)
     _check_position(node, to)
     blocks = list(node.blocks)
     blocks.insert(to, blocks.pop(at))
-    order = [block.question for block in blocks if isinstance(block, Try)]
-    by_id = {question.id: question for question in node.questions}
-    return _with_blocks(node, blocks, [by_id[question_id] for question_id in order])
+    return _with_blocks(node, blocks, node.questions)
 
 
 def _exam_index(node: Node, question_id: str) -> int:

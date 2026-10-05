@@ -303,3 +303,12 @@ def test_a_question_composes_its_answer() -> None:
     assert isinstance(choice.answer, ChoiceAnswer) and choice.kind == "choice"
     assert not hasattr(number.answer, "options")
     assert not hasattr(choice.answer, "value")
+
+
+@pytest.mark.parametrize("value", [".nan", ".inf", "-.inf"])
+def test_a_number_answer_must_be_finite(value: str) -> None:
+    # #173: no answer or tolerance is infinite or not a number.
+    _, problems = parse(NUMBER.replace("answer: 96", f"answer: {value}"))
+    assert codes(problems) == ["CS0312"]
+    _, problems = parse(NUMBER + f"    tolerance: {value}\n")
+    assert codes(problems) == ["CS0315"]

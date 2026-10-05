@@ -11,6 +11,7 @@ from typing import Any
 from ninja import Status
 
 from code_api.content.models import IndexBuild, Link, Node, Question, Region, Resource
+from code_api.content.numbers import number_from
 from code_api.content.schemas import (
     CalloutBlockOut,
     Message,
@@ -94,9 +95,9 @@ def _question(question: Question) -> QuestionOut:
         kind=question.kind,
         ask=question.ask,
         options=[OptionOut(**option) for option in question.options] if choice else None,
-        answer=None if choice else question.answer,
+        answer=None if choice else number_from(question.answer),
         unit=question.unit or None,
-        tolerance=question.tolerance,
+        tolerance=number_from(question.tolerance),
         hints=list(question.hints),
         rationale=question.rationale,
     )

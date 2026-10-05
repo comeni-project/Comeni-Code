@@ -9,6 +9,7 @@ every fixture node reads back byte for byte (tests/test_snapshot.py).
 from typing import Any
 
 from code_api.content import models
+from code_api.content.numbers import number_from
 from code_schema import (
     Answer,
     ChoiceAnswer,
@@ -61,7 +62,9 @@ def _answer(
                 for option in options
             )
         )
-    return NumberAnswer(value=answer, unit=unit, tolerance=tolerance)
+    value = number_from(answer)
+    assert value is not None  # a number question always has its answer
+    return NumberAnswer(value=value, unit=unit, tolerance=number_from(tolerance))
 
 
 def node_from_index(node_id: str) -> Node | None:

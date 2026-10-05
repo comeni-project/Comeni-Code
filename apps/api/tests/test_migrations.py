@@ -48,8 +48,8 @@ def test_the_index_keeps_no_body_column() -> None:
 
 
 @pytest.mark.django_db(transaction=True)
-def test_answers_keep_their_values_as_json() -> None:
-    # M4.4 (spec M4W.2): answers and tolerances become JSON, so an integer reads back an integer.
+def test_answers_keep_their_values_as_text() -> None:
+    # M4.4 (spec M4W.2, #173): answers and tolerances become text, their values kept.
     executor = MigrationExecutor(connection)
     before = [("content", "0006_exam_question")]
     executor.migrate(before)
@@ -79,6 +79,6 @@ def test_answers_keep_their_values_as_json() -> None:
     executor.migrate(after)
     new = executor.loader.project_state(after).apps
     question = new.get_model("content", "Question").objects.get(question_id="q")
-    assert (question.answer, question.tolerance) == (96, 0.5)
+    assert (question.answer, question.tolerance) == ("96", "0.5")
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())

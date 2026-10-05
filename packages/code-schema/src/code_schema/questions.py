@@ -109,7 +109,10 @@ def _states_the_number(hint: str, answer: str) -> bool:
 
 
 def _is_number(value: object) -> TypeGuard[int | float]:
-    return isinstance(value, int | float) and not isinstance(value, bool)
+    """A finite number: YAML's .nan and .inf are floats, but no answer is either (#173)."""
+    if not isinstance(value, int | float) or isinstance(value, bool):
+        return False
+    return value == value and value not in (float("inf"), float("-inf"))
 
 
 def _parse_options(

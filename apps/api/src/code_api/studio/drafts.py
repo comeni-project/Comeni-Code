@@ -10,10 +10,11 @@ a stale one is refused (optimistic concurrency, M4W.0).
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
+from code_api.content.index import INDEX_LOCK
 from code_api.content.models import IndexBuild
 from code_api.content.models import Node as IndexedNode
 from code_api.content.snapshot import node_from_index, providers_from_index, regions_from_index
@@ -51,6 +52,10 @@ class Refused(Exception):
     problems: list[Problem] = field(default_factory=list)
 
 
+class NotOpen(Exception):
+    """The draft was discarded: it takes no more saves."""
+
+
 class NotAllowed(Exception):
     """Only a contributor or an operator may do this."""
 
@@ -84,14 +89,15 @@ def latest(draft: Draft) -> Revision:
     return draft.revisions.order_by("-number").first()  # type: ignore[return-value]
 
 
-def node_of(draft: Draft, revision: Revision | None = None) -> Node:
-    """The node a revision holds (the latest by default). A stored revision always parses."""
+def node_of(draft: Draft, revision: Revision | None = None) -> tuple[Node | None, list[Problem]]:
+    """The node a revision holds (the latest by default), and its problems.
+
+    A revision parsed when it was saved, but it is read against the index's registries as they
+    are now: if a rebuild dropped a region or a licence it uses, the node is None and the problems
+    say why, never a 500 (#173). Such a draft is discarded, or the registry is restored.
+    """
     shown = revision or latest(draft)
-    node, problems = _read(
-        draft.node_id, draft.folder, shown.node_yaml, shown.body_md, shown.exam_yaml
-    )
-    assert node is not None, problems
-    return node
+    return _read(draft.node_id, draft.folder, shown.node_yaml, shown.body_md, shown.exam_yaml)
 
 
 def contributors(draft: Draft) -> list[User]:
@@ -124,7 +130,10 @@ def _start(node: Node, folder: str, base_digest: str, by: User, change: str) -> 
             )
     except IntegrityError:
         # The partial unique constraint: another open draft of this node exists, or won a race.
-        raise AlreadyOpen(Draft.objects.get(node_id=node.id, state=Draft.State.OPEN)) from None
+        held = _open_draft(node.id)
+        if held is None:
+            raise  # some other integrity error: not ours to word
+        raise AlreadyOpen(held) from None
     return draft
 
 
@@ -136,11 +145,16 @@ def open_existing(node_id: str, *, by: User) -> Draft:
     """A draft of an indexed node, from the index, at the latest applied build (M4W.2)."""
     if (held := _open_draft(node_id)) is not None:
         raise AlreadyOpen(held)
-    node = node_from_index(node_id)
-    if node is None:
-        raise NotIndexed(node_id)
-    folder = IndexedNode.objects.get(id=node_id).folder
-    build = IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).latest("created_at")
+    with transaction.atomic():
+        # The rebuild's lock, shared: no rebuild commits while the node, its folder and the build
+        # are read, so the base version is the build the node came from (#173).
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock_shared(%s)", [INDEX_LOCK])
+        node = node_from_index(node_id)
+        if node is None:
+            raise NotIndexed(node_id)
+        folder = IndexedNode.objects.get(id=node_id).folder
+        build = IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).latest("created_at")
     return _start(node, folder, build.digest, by, "opened from the index")
 
 
@@ -181,10 +195,15 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
     """
     with transaction.atomic():
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
+        if locked.state != Draft.State.OPEN:
+            raise NotOpen(locked.public_id)
         current = latest(locked)
         if current.number != based_on:
             raise Stale(current)
-        edited = edit(node_of(locked, current))
+        node, problems = node_of(locked, current)
+        if node is None:
+            raise Refused(problems)  # it no longer reads against today's registries
+        edited = edit(node)
         node_yaml, body, exam = _files(edited)
         _, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam)
         if any(problem.refuses for problem in problems):
@@ -203,8 +222,12 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
 
 def discard(draft: Draft, *, by: User) -> Draft:
     """A contributor or an operator ends a draft; it and its revisions stay as history."""
-    if not by.can_act_as(Role.OPERATOR) and by not in contributors(draft):
-        raise NotAllowed()
-    draft.state = Draft.State.DISCARDED
-    draft.save(update_fields=["state"])
-    return draft
+    with transaction.atomic():
+        locked = Draft.objects.select_for_update().get(pk=draft.pk)
+        if locked.state != Draft.State.OPEN:
+            raise NotOpen(locked.public_id)
+        if not by.can_act_as(Role.OPERATOR) and by not in contributors(locked):
+            raise NotAllowed()
+        locked.state = Draft.State.DISCARDED
+        locked.save(update_fields=["state"])
+    return locked

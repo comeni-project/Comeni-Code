@@ -97,7 +97,11 @@ class DraftSummaryOut(Schema):
 
 
 class DraftOut(DraftSummaryOut):
-    node: DraftNodeOut
+    """The node, or null with `problems` when its latest revision no longer reads against the
+    index's registries (#173)."""
+
+    node: DraftNodeOut | None
+    problems: list[ProblemOut]
 
 
 class RevisionOut(Schema):

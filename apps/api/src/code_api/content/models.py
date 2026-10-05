@@ -93,11 +93,11 @@ class Question(models.Model):
     kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
     ask = models.TextField()
     options = models.JSONField(default=list)
-    # JSON, not a float column: an answer written 1000000 must read back 1000000, not 1000000.0,
-    # so the index gives back the node's files byte for byte (M4W.2).
-    answer = models.JSONField(null=True)
+    # The number as text (content.numbers): a float column wrote 1000000 back as 1000000.0, and
+    # jsonb drops an exponent; text gives the node's files back byte for byte (M4W.2, #173).
+    answer = models.TextField(null=True)
     unit = models.TextField(blank=True)
-    tolerance = models.JSONField(null=True)
+    tolerance = models.TextField(null=True)
     hints = models.JSONField(default=list)
     rationale = models.TextField()
 
@@ -115,11 +115,11 @@ class ExamQuestion(models.Model):
     kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
     ask = models.TextField()
     options = models.JSONField(default=list)
-    # JSON, not a float column: an answer written 1000000 must read back 1000000, not 1000000.0,
-    # so the index gives back the node's files byte for byte (M4W.2).
-    answer = models.JSONField(null=True)
+    # The number as text (content.numbers): a float column wrote 1000000 back as 1000000.0, and
+    # jsonb drops an exponent; text gives the node's files back byte for byte (M4W.2, #173).
+    answer = models.TextField(null=True)
     unit = models.TextField(blank=True)
-    tolerance = models.JSONField(null=True)
+    tolerance = models.TextField(null=True)
     level = models.TextField(choices=[(level.value, level.value) for level in Level], null=True)
     rationale = models.TextField()
 

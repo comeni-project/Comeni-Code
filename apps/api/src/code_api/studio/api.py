@@ -64,7 +64,12 @@ def summary_out(draft: Draft) -> DraftSummaryOut:
 
 
 def draft_out(draft: Draft) -> DraftOut:
-    return DraftOut(**summary_out(draft).dict(), node=node_out(drafts.node_of(draft)))
+    node, problems = drafts.node_of(draft)
+    return DraftOut(
+        **summary_out(draft).dict(),
+        node=None if node is None else node_out(node),
+        problems=[ProblemOut.of(problem) for problem in problems],
+    )
 
 
 def refused(problems: list[object], detail: str) -> RefusedOut:
@@ -118,7 +123,13 @@ def open_draft(
         detail = f"{body.node_id} is already a node; open a draft of it instead."
         return Status(409, Message(detail=detail, code="CA0207"))
     except drafts.Refused as no:
-        return Status(422, refused(list(no.problems), "The new node's files would not validate."))
+        detail = (
+            "The new node's files would not validate."
+            if body.new is not None
+            else "This node's files do not validate against the index's registries; "
+            "rebuild the index (manage.py rebuild_index), then open it again."
+        )
+        return Status(422, refused(list(no.problems), detail))
     return Status(201, draft_out(draft))
 
 
@@ -190,7 +201,9 @@ def discard(request: HttpRequest, public_id: UUID) -> Status[DraftOut] | Status[
     if draft is None or draft.state != Draft.State.OPEN:
         return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
     try:
-        drafts.discard(draft, by=_member(request))
+        draft = drafts.discard(draft, by=_member(request))
+    except drafts.NotOpen:
+        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
     except drafts.NotAllowed:
         detail = "Only someone who saved this draft, or an operator, may discard it."
         return Status(403, Message(detail=detail, code="CA0206"))

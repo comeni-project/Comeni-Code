@@ -133,12 +133,17 @@ export interface StudioResourceOut {
   url: string;
   video: string;
 }
+/**
+ * The node, or null with `problems` when its latest revision no longer reads against the
+ * index's registries (#173).
+ */
 export interface DraftOut {
   base_digest: string;
   contributors: MemberOut[];
   folder: string;
-  node: DraftNodeOut;
+  node: DraftNodeOut | null;
   node_id: string;
+  problems: ProblemOut[];
   public_id: string;
   revision: number;
   state: string;
@@ -151,6 +156,17 @@ export interface MemberOut {
   name: string;
   public_id: string;
   role: string;
+}
+/**
+ * One problem, as `code-schema validate` reports it; `text` is its printed line.
+ */
+export interface ProblemOut {
+  code: string;
+  field: string | null;
+  file: string;
+  line: number | null;
+  message: string;
+  text: string;
 }
 export interface DraftSummaryOut {
   base_digest: string;
@@ -291,17 +307,6 @@ export interface PendingInviteOut {
   expires_at: string;
   public_id: string;
   role: string;
-}
-/**
- * One problem, as `code-schema validate` reports it; `text` is its printed line.
- */
-export interface ProblemOut {
-  code: string;
-  field: string | null;
-  file: string;
-  line: number | null;
-  message: string;
-  text: string;
 }
 /**
  * A refused save: why, and every problem its files would have (M4W.3).

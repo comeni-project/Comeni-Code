@@ -50,3 +50,29 @@ def test_an_unknown_node_is_none() -> None:
 def test_the_registries_read_back_whole() -> None:
     assert providers_from_index() == CONTENT.providers
     assert regions_from_index() == CONTENT.regions
+
+
+# #173: numbers read back as written, exponents and zeros included.
+
+
+@pytest.mark.parametrize(
+    ("written", "value"),
+    [("6.022e+23", 6.022e23), ("1.0e-20", 1e-20), ("0.0", 0.0), ("0", 0), ("1000000", 1000000)],
+)
+def test_a_number_answer_reads_back_as_written(
+    tmp_path: Path, written: str, value: float | int
+) -> None:
+    import shutil
+
+    root = tmp_path / "content"
+    shutil.copytree(FIXTURES, root)
+    exam = root / "transcriptomics" / "tpm" / "exam.yaml"
+    exam.write_text(exam.read_text().replace("answer: 1000000", f"answer: {written}"))
+    content = read_content(root)
+    assert content.problems == ()
+    rebuild_index(root)
+    node = node_from_index("tpm")
+    assert node == content.nodes["tpm"]
+    assert node is not None and node.exam[0].answer.value == value  # type: ignore[union-attr]
+    assert type(node.exam[0].answer.value) is type(value)  # type: ignore[union-attr]
+    assert write_exam_yaml(node) == exam.read_text()

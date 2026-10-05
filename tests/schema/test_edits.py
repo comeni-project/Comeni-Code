@@ -190,3 +190,43 @@ def test_edits_never_change_their_input() -> None:
     delete_block(DBG, 1)
     insert_block(DBG, 0, Text(markdown="Lead.\n\n"))
     assert (DBG.body, DBG.questions) == before
+
+
+# #173: questions are found by id, and text blocks fit the body they join.
+
+
+def _swapped() -> Node:
+    """de Bruijn graphs with its try questions listed in the other order: still a valid node."""
+    return replace(DBG, questions=tuple(reversed(DBG.questions)))
+
+
+def test_updating_a_try_block_finds_its_question_by_id() -> None:
+    node = reread(_swapped())
+    changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
+    edited = reread(update_block(node, 1, Try(question="kmers-per-read"), question=changed))
+    by_id = {question.id: question for question in edited.questions}
+    assert by_id["kmers-per-read"].ask == changed.ask
+    assert by_id["shared-unitig"] == DBG.questions[1]
+
+
+def test_moving_a_block_leaves_the_questions_list_alone() -> None:
+    node = reread(_swapped())
+    assert reread(move_block(node, 0, 1)).questions == node.questions
+
+
+@pytest.mark.parametrize(
+    "block",
+    [Text(markdown="No newline at the end"), Callout(kind="caveat", title="T", markdown="No end")],
+)
+def test_a_block_must_end_its_line(block: Text | Callout) -> None:
+    with pytest.raises(EditError, match="newline"):
+        insert_block(DBG, 0, block)
+
+
+def test_a_block_uses_the_bodys_line_endings() -> None:
+    crlf = replace(DBG, body=DBG.body.replace("\n", "\r\n"))
+    with pytest.raises(EditError, match="line endings"):
+        insert_block(crlf, 0, Text(markdown="Lead.\n\n"))
+    edited = reread(insert_block(crlf, 0, Text(markdown="Lead.\r\n\r\n")))
+    assert edited.body.startswith("Lead.\r\n\r\nTake two transcripts")
+    assert "\n" not in edited.body.replace("\r\n", "")

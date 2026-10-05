@@ -292,3 +292,45 @@ def test_an_unknown_revision_is_404(client: Client) -> None:
     opened = client.post("/api/studio/drafts", {"node_id": "tpm"}, content_type="application/json")
     response = client.get(f"/api/studio/drafts/{opened.json()['public_id']}/revisions/7")
     assert (response.status_code, response.json()["code"]) == (404, "CA0209")
+
+
+# #173: drafts survive registry changes; a discarded draft takes no saves.
+
+
+def test_a_draft_reads_when_the_registries_change_under_it(client: Client) -> None:
+    from code_api.content.models import Provider
+
+    ada = signed_in(client)
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    Provider.objects.update(licences=[])  # a rebuild that dropped every licence
+    response = client.get(f"/api/studio/drafts/{draft.public_id}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["node"] is None
+    assert body["problems"] and all(
+        problem["code"].startswith("CS") for problem in body["problems"]
+    )
+    with pytest.raises(drafts.Refused):
+        drafts.save(draft, based_on=1, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
+    assert client.post(f"/api/studio/drafts/{draft.public_id}/discard").status_code == 200
+
+
+def test_a_discarded_draft_takes_no_saves() -> None:
+    ada = member()
+    draft = drafts.open_existing("tpm", by=ada)
+    drafts.discard(draft, by=ada)
+    with pytest.raises(drafts.NotOpen):
+        drafts.save(draft, based_on=1, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
+    assert Revision.objects.filter(draft=draft).count() == 1
+
+
+def test_an_existing_node_that_will_not_open_says_so(client: Client) -> None:
+    from code_api.content.models import Provider
+
+    signed_in(client)
+    Provider.objects.update(licences=[])
+    response = client.post(
+        "/api/studio/drafts", {"node_id": "de-bruijn-graphs"}, content_type="application/json"
+    )
+    assert (response.status_code, response.json()["code"]) == (422, "CA0208")
+    assert "rebuild" in response.json()["detail"]

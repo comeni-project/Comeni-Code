@@ -170,6 +170,7 @@
         "type": "object"
       },
       "DraftOut": {
+        "description": "The node, or null with `problems` when its latest revision no longer reads against the\nindex's registries (#173).",
         "properties": {
           "base_digest": {
             "title": "Base Digest",
@@ -187,11 +188,25 @@
             "type": "string"
           },
           "node": {
-            "$ref": "#/components/schemas/DraftNodeOut"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DraftNodeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "node_id": {
             "title": "Node Id",
             "type": "string"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemOut"
+            },
+            "title": "Problems",
+            "type": "array"
           },
           "public_id": {
             "format": "uuid",
@@ -215,7 +230,8 @@
           "base_digest",
           "revision",
           "contributors",
-          "node"
+          "node",
+          "problems"
         ],
         "title": "DraftOut",
         "type": "object"
