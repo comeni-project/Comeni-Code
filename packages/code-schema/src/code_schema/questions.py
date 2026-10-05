@@ -25,7 +25,6 @@ MAX_HINTS = 3
 OPTIONS = (2, 5)
 
 _KEYS = ("id", "kind", "ask", "options", "answer", "unit", "tolerance", "hints", "rationale")
-_OPTION_KEYS = ("text", "right")
 _LATER_KINDS = {"figure": ("CS0306", "a figure question arrives with figures in M6")}
 
 _id = slug(noun="question id")
@@ -35,6 +34,18 @@ _hint = one_sentence(max_len=200)
 _option = one_line(max_len=120)
 _unit = one_line(max_len=20)
 _rationale = one_line(max_len=400)
+
+
+@dataclass(frozen=True)
+class OptionRules:
+    """What a pool's options may hold, and how an unknown key in one is reported (spec M4E.3)."""
+
+    keys: tuple[str, ...]
+    code: str
+    noun: str
+
+
+TRY_OPTIONS = OptionRules(keys=("text", "right"), code="CS0324", noun="an option")
 
 # A number gives the answer away only when it stands alone: "5-mers" is not the answer 5.
 _NOT_A_BOUNDARY = re.compile(r"[0-9A-Za-z.\-]")
@@ -102,7 +113,7 @@ def _is_number(value: object) -> TypeGuard[int | float]:
 
 
 def _parse_options(
-    value: object, *, question: str, field: Field
+    value: object, *, question: str, field: Field, rules: OptionRules
 ) -> tuple[tuple[Option, ...], bool]:
     """The options of a choice question, and whether they are sound.
 
@@ -124,7 +135,9 @@ def _parse_options(
             continue
         option = Entry(item, field)
         option.unknown(
-            _OPTION_KEYS, "CS0324", lambda key: f"unknown key `{key}` in an option (text, right)"
+            rules.keys,
+            rules.code,
+            lambda key: f"unknown key `{key}` in {rules.noun} ({', '.join(rules.keys)})",
         )
         text, right = item.get("text"), item.get("right", False)
         if "text" not in item:
@@ -138,8 +151,14 @@ def _parse_options(
             option.problem("CS0326", f"{shown(right)} is not true or false", key="right")
             sound = False
             continue
+        misconception = item.get("misconception", "")
+        if "misconception" in rules.keys and not option.check(
+            "misconception", _option, prefix=f"the misconception of an option of {question} "
+        ):
+            sound = False
+            continue
         sound = sound and option.sound
-        options.append(Option(text=str(text), right=right))
+        options.append(Option(text=str(text), right=right, misconception=str(misconception)))
     if not sound:
         return (), False
 
@@ -168,7 +187,9 @@ def _gives_the_answer(hint: str, answer: Answer) -> bool:
     return right.casefold() in hint.casefold()
 
 
-def read_answer(entry: Entry, name: str, kind: str, field: Field) -> Answer | None:
+def read_answer(
+    entry: Entry, name: str, kind: str, field: Field, *, rules: OptionRules = TRY_OPTIONS
+) -> Answer | None:
     """A question's answer: options for a choice; a value, unit and tolerance for a number.
 
     Shared by every pool (spec M4E.2), so its rules and messages read the same wherever a question
@@ -185,7 +206,9 @@ def read_answer(entry: Entry, name: str, kind: str, field: Field) -> Answer | No
                 key="answer",
             )
         if entry.require("options", "CS0309", f"the choice question {name} has no options"):
-            options, ok = _parse_options(written["options"], question=name, field=field)
+            options, ok = _parse_options(
+                written["options"], question=name, field=field, rules=rules
+            )
             entry.sound = entry.sound and ok
     else:
         if "options" in written:
@@ -229,6 +252,44 @@ def read_answer(entry: Entry, name: str, kind: str, field: Field) -> Answer | No
         unit=str(unit),
         tolerance=tolerance if _is_number(tolerance) else None,
     )
+
+
+def read_head(entry: Entry) -> tuple[str, str] | None:
+    """A question's id and kind, its ask checked; None when it cannot be named or checked further.
+
+    Shared by every pool (spec M4E.3).
+    """
+    written = entry.mapping
+    if not entry.require("id", "CS0304", "a question has no id") or not entry.check("id", _id):
+        return None
+    name = str(written["id"])
+    kind = written.get("kind")
+    if not entry.require("kind", "CS0305", f"the question {name} has no kind (choice, number)"):
+        return None
+    if isinstance(kind, str) and kind in _LATER_KINDS:
+        entry.problem(*_LATER_KINDS[kind], key="kind")
+        return None
+    if not entry.check("kind", _kind):
+        return None
+    if entry.require("ask", "CS0307", f"the question {name} has no ask"):
+        entry.check("ask", _ask, prefix=f"the question asked by {name} ")
+    return name, str(kind)
+
+
+def read_rationale(entry: Entry, name: str) -> str:
+    rationale = entry.mapping.get("rationale", "")
+    if entry.require("rationale", "CS0320", f"the question {name} has no rationale"):
+        entry.check("rationale", _rationale, prefix=f"the rationale of {name} ")
+    return str(rationale)
+
+
+def repeated(entry: Entry, name: str, seen: set[str]) -> bool:
+    """Whether `name` was already asked in this pool; the first time, it is remembered."""
+    if name in seen:
+        entry.problem("CS0321", f"{name} is asked twice in this node", key="id")
+        return True
+    seen.add(name)
+    return False
 
 
 def _read_hints(entry: Entry, name: str) -> tuple[str, ...]:
@@ -275,29 +336,14 @@ def parse_questions(
         )
 
         # A question with no sound id or kind cannot be named or checked further.
-        if not entry.require("id", "CS0304", "a question has no id") or not entry.check("id", _id):
+        if (head := read_head(entry)) is None:
             continue
-        name = str(written["id"])
-        kind = written.get("kind")
-        if not entry.require("kind", "CS0305", f"the question {name} has no kind (choice, number)"):
-            continue
-        if isinstance(kind, str) and kind in _LATER_KINDS:
-            entry.problem(*_LATER_KINDS[kind], key="kind")
-            continue
-        if not entry.check("kind", _kind):
-            continue
-        kind = str(kind)
-
-        if entry.require("ask", "CS0307", f"the question {name} has no ask"):
-            entry.check("ask", _ask, prefix=f"the question asked by {name} ")
+        name, kind = head
 
         answer = read_answer(entry, name, kind, field)
 
         hints = _read_hints(entry, name)
-
-        rationale = written.get("rationale", "")
-        if entry.require("rationale", "CS0320", f"the question {name} has no rationale"):
-            entry.check("rationale", _rationale, prefix=f"the rationale of {name} ")
+        rationale = read_rationale(entry, name)
 
         if not entry.sound:
             continue
@@ -307,14 +353,12 @@ def parse_questions(
             ask=str(written["ask"]),
             answer=answer,
             hints=hints,
-            rationale=str(rationale),
+            rationale=rationale,
         )
         if any(_gives_the_answer(hint, answer) for hint in hints):
             entry.problem("CS0319", f"a hint for {name} contains the answer", key="hints")
             continue
-        if name in seen:
-            entry.problem("CS0321", f"{name} is asked twice in this node", key="id")
+        if repeated(entry, name, seen):
             continue
-        seen.add(name)
         questions.append(question)
     return tuple(questions), problems

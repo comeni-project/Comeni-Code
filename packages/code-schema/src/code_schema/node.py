@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from code_schema.blocks import Block, Try, parse_blocks
+from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
     exactly,
@@ -52,6 +53,7 @@ class Node:
     related: tuple[Link, ...] = ()
     resources: tuple[Resource, ...] = ()
     questions: tuple[TryQuestion, ...] = ()
+    exam: tuple[ExamQuestion, ...] = ()  # from exam.yaml, beside node.yaml (spec M4E.1)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -345,7 +347,7 @@ def read_node(
     if node_yaml is None or body is None:
         return None, problems
 
-    return parse_node(
+    node, problems = parse_node(
         node_yaml,
         body,
         node_id=folder.name,
@@ -353,3 +355,31 @@ def read_node(
         providers=providers,
         file=f"{where}{NODE_FILE}",
     )
+    problems += _near_misses_of_exam(folder, where)
+    exam: tuple[ExamQuestion, ...] = ()
+    if (folder / EXAM_FILE).is_file():
+        exam_text, exam_error = _read_text(folder / EXAM_FILE)
+        if exam_error is not None:
+            problems.append(Problem(file=f"{where}{EXAM_FILE}", code="CS0022", message=exam_error))
+        else:
+            assert exam_text is not None
+            exam, exam_problems = parse_exam(exam_text, file=f"{where}{EXAM_FILE}", node=node)
+            problems += exam_problems
+    if node is None or problems:
+        return None, sorted(problems, key=Problem.sort_key)
+    return replace(node, exam=exam), []
+
+
+def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:
+    """A file that looks like exam.yaml and is not read: otherwise a pool goes missing silently."""
+    return [
+        Problem(
+            file=where,
+            code="CS0706",
+            message=f"{path.name} is not read — did you mean {EXAM_FILE}?",
+        )
+        for path in sorted(folder.iterdir())
+        if path.is_file()
+        and path.name not in (NODE_FILE, BODY_FILE, EXAM_FILE)
+        and difflib.get_close_matches(path.name, [EXAM_FILE], n=1, cutoff=0.8)
+    ]

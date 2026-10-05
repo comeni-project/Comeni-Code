@@ -930,6 +930,112 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Ids are unique across the content, wherever the folders sit (M1P3.2).
 
+#### CS0706 — a near miss of exam.yaml
+
+*Refuses.*
+
+**Fix.** Rename the file to exam.yaml.
+
+**Why.** exam.yml or exams.yaml would otherwise be skipped silently, and a node would lose its pool without a word (M4E.3).
+
+### CS0800–CS0899 · exam
+
+#### CS0801 — exam.yaml holds a key other than exam
+
+*Refuses.*
+
+**Fix.** Remove the key; exam.yaml holds only the exam: list.
+
+**Why.** The file is one pool and nothing else, so a typo is a problem rather than ignored (M4E.1).
+
+#### CS0802 — exam.yaml has no exam: list
+
+*Refuses.*
+
+**Fix.** Put the questions under exam:, or delete the file.
+
+**Why.** A node's pool is the exam: list in exam.yaml (M4E.1).
+
+#### CS0803 — exam: is not a list
+
+*Refuses.*
+
+**Fix.** Write exam: as a list of questions, each starting with - id:.
+
+**Why.** A pool is a list of questions, asked in no fixed order (M4E.1).
+
+#### CS0804 — the pool is empty
+
+*Refuses.*
+
+**Fix.** Delete exam.yaml; a node without a pool needs no file.
+
+**Why.** An empty file says nothing a missing one does not, and a node without exam.yaml is valid (M4E.1).
+
+#### CS0805 — an entry in exam: is not a question
+
+*Refuses.*
+
+**Fix.** Write each question as a mapping starting with - id:.
+
+**Why.** Each entry of the pool is one question (M4E.1).
+
+#### CS0806 — an unknown key in an exam question
+
+*Refuses.*
+
+**Fix.** Use only id, kind, ask, level, options, answer, unit, tolerance and rationale.
+
+**Why.** The fields are closed, so a typo is reported rather than ignored (M4E.1).
+
+#### CS0807 — an exam question has hints
+
+*Refuses.*
+
+**Fix.** Remove the hints; put what they say in the rationale, which the learner sees with the results.
+
+**Why.** A self-test gives no hints and no feedback until the end (tutor spec T7.1). Hints belong to try questions, which teach as they ask.
+
+#### CS0808 — an unknown key in an exam option
+
+*Refuses.*
+
+**Fix.** Use only text, right and misconception.
+
+**Why.** The fields are closed, so a typo is reported rather than ignored (M4E.1).
+
+#### CS0809 — a misconception names no callout
+
+*Refuses.*
+
+**Fix.** Write the exact title of a misconception callout in body.md, or add that callout.
+
+**Why.** A wrong answer will step back to the misconception it reveals (tutor spec T6.1), so the name must lead somewhere the learner can read (M4E.1).
+
+#### CS0810 — the right option names a misconception
+
+*Refuses.*
+
+**Fix.** Move the misconception to the wrong option that reflects it.
+
+**Why.** A misconception explains a wrong answer; the right one has nothing to step back to (M4E.1).
+
+#### CS0811 — an exam question reuses a try question's id
+
+*Refuses.*
+
+**Fix.** Give the exam question an id no question in node.yaml uses.
+
+**Why.** Every answer is stored as evidence named by node and question id (tutor spec T7), so one id must name one question across both pools (M4E.3).
+
+#### CS0812 — a pool holds more than 40 questions
+
+*Refuses.*
+
+**Fix.** Split the node, or keep the best 40 questions.
+
+**Why.** 40 is a bound, not a target: it catches a draft or a generator that ran away. How many questions an exam asks is the exam builder's business (M4E.3, M4E.7).
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes
