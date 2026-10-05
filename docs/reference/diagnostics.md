@@ -1239,3 +1239,19 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Change the member's role on the team instead of inviting them.
 
 **Why.** One person has one account and one role (M4A.1); an invite makes a new account.
+
+#### CA0108 — the change would leave Studio without an active operator
+
+*Refuses.*
+
+**Fix.** Make another member an operator first, then demote or deactivate this one.
+
+**Why.** Only an operator invites and changes roles, so without one Studio could never be managed again (M4.3 spec, M4A.1).
+
+#### CA0109 — no member has this id
+
+*Refuses.*
+
+**Fix.** Use a public id from the team list.
+
+**Why.** Members are named by their public id, never the database's key (M4A.1).

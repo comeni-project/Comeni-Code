@@ -23,11 +23,13 @@ export interface ApiSchemas {
   ResourceOut: ResourceOut;
   ResultOut: ResultOut;
   Role: Role;
+  RoleIn: RoleIn;
   RouteOut: RouteOut;
   SearchOut: SearchOut;
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
+  TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
   TryBlockOut: TryBlockOut;
 }
@@ -181,6 +183,9 @@ export interface ResultOut {
   region: RegionOut;
   title: string;
 }
+export interface RoleIn {
+  role: Role;
+}
 export interface RouteOut {
   goals: string[];
   known: string[];
@@ -208,4 +213,11 @@ export interface SearchOut {
   query: string;
   results: ResultOut[];
   unmatched: string[];
+}
+export interface TeamMemberOut {
+  active: boolean;
+  email: string;
+  name: string;
+  public_id: string;
+  role: string;
 }

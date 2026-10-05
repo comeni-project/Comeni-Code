@@ -7,6 +7,7 @@ since the invitee has none yet.
 from datetime import datetime
 from uuid import UUID
 
+from django.db import transaction
 from django.http import HttpRequest
 from ninja import Router, Schema, Status
 
@@ -139,3 +140,78 @@ def revoke(request: HttpRequest, public_id: UUID) -> Status[None] | Status[Messa
         return Status(404, Message(detail="No pending invite has this id.", code="CA0103"))
     invites.revoke(found)
     return Status(204, None)
+
+
+class TeamMemberOut(MemberOut):
+    active: bool
+
+    @staticmethod
+    def of(user: User) -> TeamMemberOut:
+        return TeamMemberOut(
+            public_id=user.public_id,
+            email=user.email,
+            name=user.name,
+            role=user.role,
+            active=user.is_active,
+        )
+
+
+class RoleIn(Schema):
+    role: Role
+
+
+_LAST_OPERATOR = Message(
+    detail="Studio needs an active operator; make someone else an operator first.", code="CA0108"
+)
+_NO_MEMBER = Message(detail="No member has this id.", code="CA0109")
+
+
+def _leaves_an_operator(member: User) -> bool:
+    """Whether another active operator remains if `member` stops being one. Counted under a lock
+    on the operators' rows, so two operators stepping down at once cannot both succeed."""
+    operators = User.objects.select_for_update().filter(role=Role.OPERATOR, is_active=True)
+    return any(operator.pk != member.pk for operator in operators)
+
+
+@router.get("/team/members", auth=studio(Role.OPERATOR), response=list[TeamMemberOut])
+def team(request: HttpRequest) -> list[TeamMemberOut]:
+    members = User.objects.exclude(role="").order_by("email")
+    return [TeamMemberOut.of(member) for member in members]
+
+
+@router.patch(
+    "/team/members/{public_id}",
+    auth=studio(Role.OPERATOR),
+    response={200: TeamMemberOut, 404: Message, 409: Message},
+)
+def change_role(
+    request: HttpRequest, public_id: UUID, body: RoleIn
+) -> Status[TeamMemberOut] | Status[Message]:
+    with transaction.atomic():
+        member = User.objects.select_for_update().filter(public_id=public_id).first()
+        if member is None:
+            return Status(404, _NO_MEMBER)
+        demoted = member.role == Role.OPERATOR and body.role != Role.OPERATOR
+        if demoted and member.is_active and not _leaves_an_operator(member):
+            return Status(409, _LAST_OPERATOR)
+        member.role = body.role
+        member.save(update_fields=["role"])
+    return Status(200, TeamMemberOut.of(member))
+
+
+@router.post(
+    "/team/members/{public_id}/deactivate",
+    auth=studio(Role.OPERATOR),
+    response={200: TeamMemberOut, 404: Message, 409: Message},
+)
+def deactivate(request: HttpRequest, public_id: UUID) -> Status[TeamMemberOut] | Status[Message]:
+    """The account and its history stay; it can no longer sign in, and its session ends."""
+    with transaction.atomic():
+        member = User.objects.select_for_update().filter(public_id=public_id).first()
+        if member is None:
+            return Status(404, _NO_MEMBER)
+        if member.role == Role.OPERATOR and member.is_active and not _leaves_an_operator(member):
+            return Status(409, _LAST_OPERATOR)
+        member.is_active = False
+        member.save(update_fields=["is_active"])
+    return Status(200, TeamMemberOut.of(member))

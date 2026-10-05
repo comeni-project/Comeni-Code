@@ -1624,3 +1624,24 @@ codes:
       Change the member's role on the team instead of inviting them.
     explanation: |
       One person has one account and one role (M4A.1); an invite makes a new account.
+
+  CA0108:
+    emitted_by: api
+    concern: accounts
+    says: the change would leave Studio without an active operator
+    refuses: true
+    fix: |
+      Make another member an operator first, then demote or deactivate this one.
+    explanation: |
+      Only an operator invites and changes roles, so without one Studio could never be managed
+      again (M4.3 spec, M4A.1).
+
+  CA0109:
+    emitted_by: api
+    concern: accounts
+    says: no member has this id
+    refuses: true
+    fix: |
+      Use a public id from the team list.
+    explanation: |
+      Members are named by their public id, never the database's key (M4A.1).
