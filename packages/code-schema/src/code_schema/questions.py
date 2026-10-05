@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import TypeGuard
+from typing import ClassVar, TypeGuard
 
 from code_schema.fields import one_line, one_of, one_sentence, shown, slug
 from code_schema.problems import Problem
@@ -47,16 +47,33 @@ class Option:
 
 
 @dataclass(frozen=True)
-class Question:
+class ChoiceQuestion:
+    """Answered by picking one of its options; exactly one is right."""
+
+    kind: ClassVar[str] = "choice"
     id: str
-    kind: str
     ask: str
     hints: tuple[str, ...]
     rationale: str
-    options: tuple[Option, ...] = ()
-    answer: float | int | None = None
+    options: tuple[Option, ...]
+
+
+@dataclass(frozen=True)
+class NumberQuestion:
+    """Answered with a value, right within its tolerance."""
+
+    kind: ClassVar[str] = "number"
+    id: str
+    ask: str
+    hints: tuple[str, ...]
+    rationale: str
+    answer: float | int
     unit: str = ""
     tolerance: float | int | None = None
+
+
+# Exam questions (M4.2) are not these; each kind carries only its own fields (spec M4R.2).
+Question = ChoiceQuestion | NumberQuestion
 
 
 def _states_the_number(hint: str, answer: str) -> bool:
@@ -135,12 +152,10 @@ def _parse_options(
     return tuple(options), True
 
 
-def _gives_the_answer(
-    hint: str, kind: str, answer: float | int | None, options: tuple[Option, ...]
-) -> bool:
-    if kind == "number":
-        return _states_the_number(hint, str(answer))
-    right = next((option.text for option in options if option.right), "")
+def _gives_the_answer(hint: str, question: Question) -> bool:
+    if isinstance(question, NumberQuestion):
+        return _states_the_number(hint, str(question.answer))
+    right = next((option.text for option in question.options if option.right), "")
     return right.casefold() in hint.casefold()
 
 
@@ -256,26 +271,35 @@ def parse_questions(
         if entry.require("rationale", "CS0320", f"the question {name} has no rationale"):
             entry.check("rationale", _rationale, prefix=f"the rationale of {name} ")
 
-        if entry.sound and any(_gives_the_answer(hint, kind, answer, options) for hint in hints):
-            entry.problem("CS0319", f"a hint for {name} contains the answer", key="hints")
-
         if not entry.sound:
+            continue
+        question: Question
+        if kind == "choice":
+            question = ChoiceQuestion(
+                id=name,
+                ask=str(written["ask"]),
+                hints=hints,
+                rationale=str(rationale),
+                options=options,
+            )
+        else:
+            # A sound number question has an answer: CS0311 and CS0312 refuse the rest.
+            assert answer is not None
+            question = NumberQuestion(
+                id=name,
+                ask=str(written["ask"]),
+                hints=hints,
+                rationale=str(rationale),
+                answer=answer,
+                unit=str(unit),
+                tolerance=tolerance if _is_number(tolerance) else None,
+            )
+        if any(_gives_the_answer(hint, question) for hint in hints):
+            entry.problem("CS0319", f"a hint for {name} contains the answer", key="hints")
             continue
         if name in seen:
             entry.problem("CS0321", f"{name} is asked twice in this node", key="id")
             continue
         seen.add(name)
-        questions.append(
-            Question(
-                id=name,
-                kind=kind,
-                ask=str(written["ask"]),
-                hints=hints,
-                rationale=str(rationale),
-                options=options,
-                answer=answer,
-                unit=str(unit),
-                tolerance=tolerance if _is_number(tolerance) else None,
-            )
-        )
+        questions.append(question)
     return tuple(questions), problems

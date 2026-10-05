@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from code_schema.blocks import Block, Try, parse_blocks
@@ -52,8 +52,14 @@ class Node:
     related: tuple[Link, ...] = ()
     resources: tuple[Resource, ...] = ()
     questions: tuple[Question, ...] = ()
-    # The body read as blocks (M4.1.2). Derived from body, so equality compares body alone.
-    blocks: tuple[Block, ...] = field(default=(), compare=False)
+
+    @property
+    def blocks(self) -> tuple[Block, ...]:
+        """The body read as blocks (M4.1.2), derived so the two never disagree (spec M4R.3).
+
+        `parse_node` refuses a body with any problem, so for a node it returns these are the body.
+        """
+        return parse_blocks(self.body, file=BODY_FILE)[0]
 
 
 def fields(regions: Collection[str]) -> tuple[Spec, ...]:
@@ -179,7 +185,6 @@ def parse_node(
             level=Level(level),
             minutes=minutes,
             body=body,
-            blocks=blocks,
             needs=links["needs"],
             goes_deeper=links["goes-deeper"],
             related=links["related"],

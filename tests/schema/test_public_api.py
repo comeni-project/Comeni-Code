@@ -7,11 +7,13 @@ def test_the_public_api_is_what_the_spec_names() -> None:
     assert set(code_schema.__all__) == {
         "Block",
         "Callout",
+        "ChoiceQuestion",
         "Content",
         "Diagnostic",
         "Level",
         "Link",
         "Node",
+        "NumberQuestion",
         "Option",
         "Problem",
         "Provider",

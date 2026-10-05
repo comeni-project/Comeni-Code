@@ -53,9 +53,11 @@ Those shapes are a table and a wire format, and a choice already sends `answer: 
 ## M4R.3 A node's blocks come from its body
 
 `Node.blocks` is a field that `parse_node` fills, so a `Node` built by hand can hold blocks its body
-does not have (#134). It becomes a **cached property derived from `body`**: the blocks `parse_blocks`
-reads. `parse_node` refuses any body with a problem, so for every `Node` it returns, the property is
-the whole truth. Equality still compares the body alone.
+does not have (#134). It becomes a **property derived from `body`**: the blocks `parse_blocks` reads,
+read again on each access. Caching would bring `functools` into the pure package for bodies of a
+few kilobytes, which is not worth widening the purity allowlist. `parse_node` refuses any body
+with a problem, so for every `Node` it returns, the property is the whole truth. Equality still
+compares the body alone.
 
 ## M4R.4 The content views read through one module
 

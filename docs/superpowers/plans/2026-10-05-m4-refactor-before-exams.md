@@ -84,7 +84,7 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
   - `ChoiceQuestion(id, ask, hints, rationale, options)` and `NumberQuestion(id, ask, hints,
     rationale, answer, unit="", tolerance=None)`, each with `kind: ClassVar[str]`;
   - `Question = ChoiceQuestion | NumberQuestion`;
-  - `Node.blocks`, a `cached_property` over `parse_blocks(self.body)`.
+  - `Node.blocks`, a `property` over `parse_blocks(self.body)`.
 
 - [ ] **Step 1: Write the failing tests.**
   - The parsed number question `isinstance(..., NumberQuestion)` with `.kind == "number"`. The

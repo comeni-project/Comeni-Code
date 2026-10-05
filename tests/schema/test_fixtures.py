@@ -11,6 +11,7 @@ from code_schema.blocks import Callout, Try, write_blocks
 from code_schema.cli import main
 from code_schema.content import Content, read_content
 from code_schema.node import Level
+from code_schema.questions import NumberQuestion
 from code_schema.writer import write_node_yaml
 
 ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
@@ -171,7 +172,8 @@ def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> No
     node = content.nodes["de-bruijn-graphs"]
     assert [question.kind for question in node.questions] == ["number", "choice"]
     assert all(question.hints and question.rationale for question in node.questions)
-    assert node.questions[0].answer == 5
+    number = node.questions[0]
+    assert isinstance(number, NumberQuestion) and number.answer == 5
 
 
 def test_every_question_is_asked_where_its_marker_is(content: Content) -> None:

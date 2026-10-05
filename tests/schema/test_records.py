@@ -27,7 +27,10 @@ def field(text: str = TEXT) -> tuple[Field, list[Problem], object]:
 def test_the_mappings_are_yielded_and_the_rest_reported_at_the_field() -> None:
     things, problems, value = field()
     entries = list(things.entries(value, not_a_list=NOT_A_LIST, not_a_mapping=NOT_A_MAPPING))
-    assert [entry.mapping for entry in entries] == [{"name": "first", "size": "big"}, {"colour": "red"}]
+    assert [entry.mapping for entry in entries] == [
+        {"name": "first", "size": "big"},
+        {"colour": "red"},
+    ]
     assert [(p.code, p.message, p.line, p.field) for p in problems] == [
         ("CS0302", "3 is not a question", 2, "things")
     ]

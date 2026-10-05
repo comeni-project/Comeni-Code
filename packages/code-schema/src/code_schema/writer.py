@@ -13,7 +13,7 @@ import yaml
 
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
-from code_schema.questions import TRY_FIELD, Question
+from code_schema.questions import TRY_FIELD, ChoiceQuestion, NumberQuestion, Question
 from code_schema.resources import RESOURCE_FIELD, Resource
 
 # PyYAML folds long strings at 80 columns by default; a claim or a reason must stay on one line.
@@ -51,17 +51,18 @@ def _resource(resource: Resource) -> dict[str, object]:
 def _question(question: Question) -> dict[str, object]:
     """The spec's field order (M3P1.3); nothing empty is invented."""
     written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
-    if question.options:
-        written["options"] = [
-            {"text": option.text, "right": True} if option.right else {"text": option.text}
-            for option in question.options
-        ]
-    if question.answer is not None:
-        written["answer"] = question.answer
-    if question.unit:
-        written["unit"] = question.unit
-    if question.tolerance is not None:
-        written["tolerance"] = question.tolerance
+    match question:
+        case ChoiceQuestion(options=options):
+            written["options"] = [
+                {"text": option.text, "right": True} if option.right else {"text": option.text}
+                for option in options
+            ]
+        case NumberQuestion(answer=answer, unit=unit, tolerance=tolerance):
+            written["answer"] = answer
+            if unit:
+                written["unit"] = unit
+            if tolerance is not None:
+                written["tolerance"] = tolerance
     written["hints"] = list(question.hints)
     written["rationale"] = question.rationale
     return written
