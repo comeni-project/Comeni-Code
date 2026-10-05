@@ -13,7 +13,7 @@ import yaml
 
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
-from code_schema.questions import TRY_FIELD, ChoiceQuestion, NumberQuestion, Question
+from code_schema.questions import TRY_FIELD, ChoiceAnswer, NumberAnswer, TryQuestion
 from code_schema.resources import RESOURCE_FIELD, Resource
 
 # PyYAML folds long strings at 80 columns by default; a claim or a reason must stay on one line.
@@ -48,17 +48,17 @@ def _resource(resource: Resource) -> dict[str, object]:
     return written
 
 
-def _question(question: Question) -> dict[str, object]:
+def _question(question: TryQuestion) -> dict[str, object]:
     """The spec's field order (M3P1.3); nothing empty is invented."""
     written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
-    match question:
-        case ChoiceQuestion(options=options):
+    match question.answer:
+        case ChoiceAnswer(options=options):
             written["options"] = [
                 {"text": option.text, "right": True} if option.right else {"text": option.text}
                 for option in options
             ]
-        case NumberQuestion(answer=answer, unit=unit, tolerance=tolerance):
-            written["answer"] = answer
+        case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
+            written["answer"] = value
             if unit:
                 written["unit"] = unit
             if tolerance is not None:

@@ -21,8 +21,7 @@ from code_api.content.models import (
     Region,
     Resource,
 )
-from code_schema import ChoiceQuestion, Content, NumberQuestion, block_json, read_content
-from code_schema import Question as SchemaQuestion
+from code_schema import ChoiceAnswer, Content, NumberAnswer, TryQuestion, block_json, read_content
 from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
 from code_schema.regions import REGISTRY
 
@@ -122,7 +121,7 @@ def _resource_rows(content: Content) -> list[Resource]:
     ]
 
 
-def _question_row(node_id: str, position: int, question: SchemaQuestion) -> Question:
+def _question_row(node_id: str, position: int, question: TryQuestion) -> Question:
     """One row for either kind: a choice fills options, a number its answer, unit and tolerance."""
     row = Question(
         node_id=node_id,
@@ -133,11 +132,11 @@ def _question_row(node_id: str, position: int, question: SchemaQuestion) -> Ques
         hints=list(question.hints),
         rationale=question.rationale,
     )
-    match question:
-        case ChoiceQuestion(options=options):
+    match question.answer:
+        case ChoiceAnswer(options=options):
             row.options = [{"text": option.text, "right": option.right} for option in options]
-        case NumberQuestion(answer=answer, unit=unit, tolerance=tolerance):
-            row.answer, row.unit, row.tolerance = answer, unit, tolerance
+        case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
+            row.answer, row.unit, row.tolerance = value, unit, tolerance
     return row
 
 

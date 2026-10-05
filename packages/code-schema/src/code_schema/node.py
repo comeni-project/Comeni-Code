@@ -29,7 +29,7 @@ from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.providers import Provider
-from code_schema.questions import TRY_FIELD, Question, parse_questions
+from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
 from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -51,7 +51,7 @@ class Node:
     goes_deeper: tuple[Link, ...] = ()
     related: tuple[Link, ...] = ()
     resources: tuple[Resource, ...] = ()
-    questions: tuple[Question, ...] = ()
+    questions: tuple[TryQuestion, ...] = ()
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -149,7 +149,7 @@ def parse_node(
         )
         problems += resource_problems
 
-    questions: tuple[Question, ...] = ()
+    questions: tuple[TryQuestion, ...] = ()
     question_problems: list[Problem] = []
     if TRY_FIELD in data:
         questions, question_problems = parse_questions(data[TRY_FIELD], lines=lines, file=file)
@@ -198,7 +198,7 @@ def parse_node(
 def _placement_problems(
     blocks: tuple[Block, ...],
     starts: tuple[int, ...],
-    questions: tuple[Question, ...],
+    questions: tuple[TryQuestion, ...],
     *,
     lines: Lines,
     data: dict[str, object],

@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from code_schema.problems import Problem
-from code_schema.questions import ChoiceQuestion, NumberQuestion, parse_questions
+from code_schema.questions import ChoiceAnswer, NumberAnswer, TryQuestion, parse_questions
 from code_schema.yaml_lines import load_mapping
 
 NUMBER = """try:
@@ -52,25 +52,23 @@ def test_a_number_question_is_read() -> None:
     assert problems == []
     assert questions[0].id == "kmer-count"
     assert questions[0].kind == "number"
-    assert questions[0].answer == 96
-    assert questions[0].unit == ""
-    assert questions[0].tolerance is None
-    assert isinstance(questions[0], NumberQuestion)
+    assert questions[0].answer == NumberAnswer(value=96)
+    assert isinstance(questions[0], TryQuestion)
 
 
 def test_a_number_question_may_carry_a_unit_and_a_tolerance() -> None:
     questions, problems = parse(NUMBER + "    unit: bases\n    tolerance: 0.5\n")
     assert problems == []
-    assert questions[0].unit == "bases"
-    assert questions[0].tolerance == 0.5
+    assert questions[0].answer == NumberAnswer(value=96, unit="bases", tolerance=0.5)
 
 
 def test_a_choice_question_is_read() -> None:
     questions, problems = parse(CHOICE)
     assert problems == []
-    assert [option.text for option in questions[0].options] == ["An edge", "A node"]
-    assert [option.right for option in questions[0].options] == [True, False]
-    assert isinstance(questions[0], ChoiceQuestion)
+    answer = questions[0].answer
+    assert isinstance(answer, ChoiceAnswer)
+    assert [option.text for option in answer.options] == ["An edge", "A node"]
+    assert [option.right for option in answer.options] == [True, False]
 
 
 def test_a_choice_needs_a_right_option() -> None:
@@ -297,11 +295,11 @@ def test_each_question_code_labels_its_message(text: str, code: str, said: str) 
     ]
 
 
-def test_a_question_is_a_choice_or_a_number() -> None:
-    # M4.1.3 (spec M4R.2): each kind carries only its own fields.
+def test_a_question_composes_its_answer() -> None:
+    # M4.2 (spec M4E.2): the answer is a choice or a number; the question is its pool's.
     (number,), _ = parse(NUMBER)
     (choice,), _ = parse(CHOICE)
-    assert isinstance(number, NumberQuestion) and number.kind == "number"
-    assert isinstance(choice, ChoiceQuestion) and choice.kind == "choice"
-    assert not hasattr(number, "options")
-    assert not hasattr(choice, "answer")
+    assert isinstance(number.answer, NumberAnswer) and number.kind == "number"
+    assert isinstance(choice.answer, ChoiceAnswer) and choice.kind == "choice"
+    assert not hasattr(number.answer, "options")
+    assert not hasattr(choice.answer, "value")

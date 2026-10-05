@@ -44,36 +44,45 @@ _NOT_A_BOUNDARY = re.compile(r"[0-9A-Za-z.\-]")
 class Option:
     text: str
     right: bool = False
+    # An exam option's link to a misconception callout by title (spec M4E.1); never on a try.
+    misconception: str = ""
 
 
 @dataclass(frozen=True)
-class ChoiceQuestion:
+class ChoiceAnswer:
     """Answered by picking one of its options; exactly one is right."""
 
     kind: ClassVar[str] = "choice"
-    id: str
-    ask: str
-    hints: tuple[str, ...]
-    rationale: str
     options: tuple[Option, ...]
 
 
 @dataclass(frozen=True)
-class NumberQuestion:
+class NumberAnswer:
     """Answered with a value, right within its tolerance."""
 
     kind: ClassVar[str] = "number"
-    id: str
-    ask: str
-    hints: tuple[str, ...]
-    rationale: str
-    answer: float | int
+    value: float | int
     unit: str = ""
     tolerance: float | int | None = None
 
 
-# Exam questions (M4.2) are not these; each kind carries only its own fields (spec M4R.2).
-Question = ChoiceQuestion | NumberQuestion
+# How a question is answered, whichever pool it is in (spec M4E.2). A new kind joins here, once.
+Answer = ChoiceAnswer | NumberAnswer
+
+
+@dataclass(frozen=True)
+class TryQuestion:
+    """A question asked inside the prose, with hints. Exam questions are not these (M4E.2)."""
+
+    id: str
+    ask: str
+    answer: Answer
+    hints: tuple[str, ...]
+    rationale: str
+
+    @property
+    def kind(self) -> str:
+        return self.answer.kind
 
 
 def _states_the_number(hint: str, answer: str) -> bool:
@@ -152,11 +161,74 @@ def _parse_options(
     return tuple(options), True
 
 
-def _gives_the_answer(hint: str, question: Question) -> bool:
-    if isinstance(question, NumberQuestion):
-        return _states_the_number(hint, str(question.answer))
-    right = next((option.text for option in question.options if option.right), "")
+def _gives_the_answer(hint: str, answer: Answer) -> bool:
+    if isinstance(answer, NumberAnswer):
+        return _states_the_number(hint, str(answer.value))
+    right = next((option.text for option in answer.options if option.right), "")
     return right.casefold() in hint.casefold()
+
+
+def read_answer(entry: Entry, name: str, kind: str, field: Field) -> Answer | None:
+    """A question's answer: options for a choice; a value, unit and tolerance for a number.
+
+    Shared by every pool (spec M4E.2), so its rules and messages read the same wherever a question
+    is asked. None when anything in the entry is wrong; the problems are recorded on `entry`.
+    """
+    written = entry.mapping
+    options: tuple[Option, ...] = ()
+    value: float | int | None = None
+    if kind == "choice":
+        if "answer" in written:
+            entry.problem(
+                "CS0308",
+                f"the choice question {name} has an answer — a choice is answered by its options",
+                key="answer",
+            )
+        if entry.require("options", "CS0309", f"the choice question {name} has no options"):
+            options, ok = _parse_options(written["options"], question=name, field=field)
+            entry.sound = entry.sound and ok
+    else:
+        if "options" in written:
+            entry.problem(
+                "CS0310",
+                f"the number question {name} has options "
+                "— a number question is answered with a value",
+                key="options",
+            )
+        if entry.require("answer", "CS0311", f"the number question {name} has no answer"):
+            if _is_number(given := written["answer"]):
+                value = given
+            else:
+                entry.problem("CS0312", f"the answer of {name} is not a number", key="answer")
+
+    unit = written.get("unit", "")
+    if "unit" in written:
+        if kind != "number":
+            entry.problem("CS0313", f"the choice question {name} has a unit", key="unit")
+        else:
+            entry.check("unit", _unit, prefix=f"the unit of {name} ")
+    tolerance = written.get("tolerance")
+    if "tolerance" in written:
+        if kind != "number":
+            entry.problem("CS0314", f"the choice question {name} has a tolerance", key="tolerance")
+        elif not _is_number(tolerance) or float(str(tolerance)) < 0:
+            entry.problem(
+                "CS0315",
+                f"the tolerance of {name} is not a number of 0 or more",
+                key="tolerance",
+            )
+
+    if not entry.sound:
+        return None
+    if kind == "choice":
+        return ChoiceAnswer(options=options)
+    # A sound number question has a value: CS0311 and CS0312 refuse the rest.
+    assert value is not None
+    return NumberAnswer(
+        value=value,
+        unit=str(unit),
+        tolerance=tolerance if _is_number(tolerance) else None,
+    )
 
 
 def _read_hints(entry: Entry, name: str) -> tuple[str, ...]:
@@ -185,11 +257,11 @@ def _read_hints(entry: Entry, name: str) -> tuple[str, ...]:
 
 def parse_questions(
     value: object, *, lines: Lines, file: str
-) -> tuple[tuple[Question, ...], list[Problem]]:
+) -> tuple[tuple[TryQuestion, ...], list[Problem]]:
     """One try: field. Never raises; returns the sound questions and every problem."""
     problems: list[Problem] = []
     field = Field(TRY_FIELD, lines=lines, file=file, problems=problems)
-    questions: list[Question] = []
+    questions: list[TryQuestion] = []
     seen: set[str] = set()
 
     for entry in field.entries(
@@ -219,51 +291,7 @@ def parse_questions(
         if entry.require("ask", "CS0307", f"the question {name} has no ask"):
             entry.check("ask", _ask, prefix=f"the question asked by {name} ")
 
-        options: tuple[Option, ...] = ()
-        answer: float | int | None = None
-        if kind == "choice":
-            if "answer" in written:
-                entry.problem(
-                    "CS0308",
-                    f"the choice question {name} has an answer "
-                    "— a choice is answered by its options",
-                    key="answer",
-                )
-            if entry.require("options", "CS0309", f"the choice question {name} has no options"):
-                options, ok = _parse_options(written["options"], question=name, field=field)
-                entry.sound = entry.sound and ok
-        else:
-            if "options" in written:
-                entry.problem(
-                    "CS0310",
-                    f"the number question {name} has options "
-                    "— a number question is answered with a value",
-                    key="options",
-                )
-            if entry.require("answer", "CS0311", f"the number question {name} has no answer"):
-                if _is_number(given_answer := written["answer"]):
-                    answer = given_answer
-                else:
-                    entry.problem("CS0312", f"the answer of {name} is not a number", key="answer")
-
-        unit = written.get("unit", "")
-        if "unit" in written:
-            if kind != "number":
-                entry.problem("CS0313", f"the choice question {name} has a unit", key="unit")
-            else:
-                entry.check("unit", _unit, prefix=f"the unit of {name} ")
-        tolerance = written.get("tolerance")
-        if "tolerance" in written:
-            if kind != "number":
-                entry.problem(
-                    "CS0314", f"the choice question {name} has a tolerance", key="tolerance"
-                )
-            elif not _is_number(tolerance) or float(str(tolerance)) < 0:
-                entry.problem(
-                    "CS0315",
-                    f"the tolerance of {name} is not a number of 0 or more",
-                    key="tolerance",
-                )
+        answer = read_answer(entry, name, kind, field)
 
         hints = _read_hints(entry, name)
 
@@ -273,28 +301,15 @@ def parse_questions(
 
         if not entry.sound:
             continue
-        question: Question
-        if kind == "choice":
-            question = ChoiceQuestion(
-                id=name,
-                ask=str(written["ask"]),
-                hints=hints,
-                rationale=str(rationale),
-                options=options,
-            )
-        else:
-            # A sound number question has an answer: CS0311 and CS0312 refuse the rest.
-            assert answer is not None
-            question = NumberQuestion(
-                id=name,
-                ask=str(written["ask"]),
-                hints=hints,
-                rationale=str(rationale),
-                answer=answer,
-                unit=str(unit),
-                tolerance=tolerance if _is_number(tolerance) else None,
-            )
-        if any(_gives_the_answer(hint, question) for hint in hints):
+        assert answer is not None  # a sound entry has a sound answer
+        question = TryQuestion(
+            id=name,
+            ask=str(written["ask"]),
+            answer=answer,
+            hints=hints,
+            rationale=str(rationale),
+        )
+        if any(_gives_the_answer(hint, answer) for hint in hints):
             entry.problem("CS0319", f"a hint for {name} contains the answer", key="hints")
             continue
         if name in seen:

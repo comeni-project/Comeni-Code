@@ -6,7 +6,7 @@ from pathlib import Path
 from code_schema.links import Link
 from code_schema.node import Level, Node, read_node
 from code_schema.providers import Provider
-from code_schema.questions import ChoiceQuestion, NumberQuestion, Option
+from code_schema.questions import ChoiceAnswer, NumberAnswer, Option, TryQuestion
 from code_schema.resources import Resource
 from code_schema.writer import write_node_folder, write_node_yaml
 
@@ -193,19 +193,21 @@ TAUGHT = replace(
         ),
     ),
     questions=(
-        NumberQuestion(
+        TryQuestion(
             id="kmer-count",
             ask="How many 5-mers does a 100-base read contain?",
+            answer=NumberAnswer(value=96),
             hints=("Every position where a window of width k still fits gives one k-mer.",),
             rationale="A read of length L has L − k + 1 k-mers.",
-            answer=96,
         ),
-        ChoiceQuestion(
+        TryQuestion(
             id="node-or-edge",
             ask="In this definition, is a k-mer a node or an edge?",
+            answer=ChoiceAnswer(
+                options=(Option(text="An edge", right=True), Option(text="A node"))
+            ),
             hints=("Look at what the definition puts in V and what it puts in E.",),
             rationale="V holds the (k−1)-mers and E holds the k-mers.",
-            options=(Option(text="An edge", right=True), Option(text="A node")),
         ),
     ),
 )
