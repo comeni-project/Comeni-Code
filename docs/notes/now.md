@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-05** (M4.2 closed). `CLAUDE.md` before the first
+**Compacted through: 2026-10-05** (M4.3 closed). `CLAUDE.md` before the first
 compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
@@ -16,8 +16,9 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **M4.1 is done** (#119): diagnostic codes, the block document, and a refactor before exam pools
   (M4.1.3, #138, PR #139). (2026-09-29, 2026-10-05)
 - **M4.2 is done** (#120, PR #151): exam pools in `exam.yaml`, warnings, and the content
-  repository's pin moved (comeni-code-content#6). **M4.3, accounts, invites and roles (#121), is
-  next**, on the operator's word. (2026-10-05)
+  repository's pin moved (comeni-code-content#6). (2026-10-05)
+- **M4.3 is done** (#121, PR #164): accounts, invites and roles. **M4.4, drafts, the content API
+  and checks (#122), is next**; its spec and plan were agreed on 2026-10-05. (2026-10-05)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -90,6 +91,17 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   endpoint sends them** until the self-test spec decides. (2026-10-05)
 - **Each request loads the whole index**: fine at 26 nodes; later a graph cached per digest.
   (2026-09-20)
+
+## Accounts (`code_api.accounts`)
+
+- **django-allauth, headless**, all under `/_allauth/` (Vite and nginx both forward it); GitHub is
+  off until its client id and secret are set, and no OAuth app is registered. (2026-10-05)
+- **A user is keyed by email and a `public_id` UUID** (#101's key; the integer key never leaves
+  the database), with one role, author < reviewer < operator, checked by `can_act_as`. (2026-10-05)
+- **Sign-up only through an invite** (hashed token, single-use, seven days), by password or
+  GitHub, taking its address and role; `manage.py invite_operator` makes the first. (2026-10-05)
+- **`studio(min_role)`** gates Studio routes: 401 `CA0101` (before CSRF), 403 `CA0102`; learner
+  routes take no auth. The last active operator cannot be demoted or deactivated. (2026-10-05)
 
 ## The weaver and search (`code-weaver`, pure)
 
@@ -174,13 +186,15 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   `code-dev-postgres` (:5433) and `code-dev-redis` (:6380), the `.env` ports; after a reboot,
   `podman start code-dev-postgres code-dev-redis`. Compose and the `code-audit` stack are not set
   up again. (2026-10-05)
-- **Two pytest runs against one Postgres break each other** ("database test_code does not
-  exist"): never run the API tests while a reviewer does. (2026-10-05)
-- **This machine's Node is 22**: web checks need the `node:24` image, one `npm` command per run (a
-  `sh -c` script is refused by the harness); not yet tried under podman. The published canvas
-  shows *Page not found* here. Merged branches are kept: retarget a stacked pull request first.
-  (2026-09-29, 2026-10-05)
-- **CI may not start when a pull request opens**: check `gh run list`; closing and reopening it
-  sends the event. (2026-10-05)
+- **Two pytest runs on one Postgres break each other**: not while a reviewer runs. (2026-10-05)
+- **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
+  `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). The
+  published canvas shows *Page not found* here. Merged branches are kept: retarget a stacked pull
+  request first. (2026-09-29, 2026-10-05)
+- **Run the suite with CI's `env:` before pushing**: the local `.env` allows more. Watch CI without
+  blocking; GitHub's runner queue can stall 10–15 minutes. (2026-10-05)
+- **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
+  then refuses every write behind it. (2026-10-05)
+- **CI may not start when a pull request opens**: close and reopen it. (2026-10-05)
 - **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
   behaviour change. Its purity allowlist has no `functools`; widening it is reviewed. (2026-10-05)
