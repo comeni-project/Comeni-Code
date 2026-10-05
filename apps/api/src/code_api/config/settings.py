@@ -89,6 +89,10 @@ CODE_WEB_ORIGIN = ENV.web_origin
 # Sign-up only through an invite (M4A.2); the invite's link proved the address, so no second
 # verification mail is sent.
 ACCOUNT_ADAPTER = "code_api.accounts.adapter.AccountAdapter"
+SOCIALACCOUNT_ADAPTER = "code_api.accounts.adapter.SocialAccountAdapter"
+# GitHub never signs a person into an existing account by matching its email: only a linked
+# GitHub account signs in (M4A.2).
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
