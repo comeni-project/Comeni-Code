@@ -55,3 +55,29 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class Invite(models.Model):
+    """One invite to join the team with a role (M4A.2). Single-use; seven days.
+
+    The token is never stored: only its SHA-256, so the table cannot be turned into sign-ups.
+    `public_id` names the invite in the team API, as a user's does.
+    """
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    email = models.EmailField()
+    role = models.CharField(max_length=16, choices=Role.choices)
+    token_hash = models.CharField(max_length=64, unique=True)
+    invited_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="invites_sent"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    accepted_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="invite_accepted"
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.email} as {self.role}"

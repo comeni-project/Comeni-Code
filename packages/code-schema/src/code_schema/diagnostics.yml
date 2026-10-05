@@ -1573,3 +1573,54 @@ codes:
     explanation: |
       Roles rank author < reviewer < operator, and each Studio route names the lowest role that
       may use it (W7.1; M4.3 spec, M4A.1, M4A.4).
+
+  CA0103:
+    emitted_by: api
+    concern: accounts
+    says: no invite has this link, or no pending invite has this id
+    refuses: true
+    fix: |
+      Check the link was copied whole, or ask an operator for a new invite.
+    explanation: |
+      An invite is found by its token's hash; a link that matches none is not an invite (M4A.2).
+
+  CA0104:
+    emitted_by: api
+    concern: accounts
+    says: the invite has expired
+    refuses: true
+    fix: |
+      Ask an operator for a new invite.
+    explanation: |
+      An invite lasts seven days, so a link left in a mailbox does not open sign-up forever
+      (M4A.2).
+
+  CA0105:
+    emitted_by: api
+    concern: accounts
+    says: the invite was withdrawn
+    refuses: true
+    fix: |
+      Ask an operator for a new invite.
+    explanation: |
+      An operator revoked it, or a newer invite to the same address replaced it (M4A.2).
+
+  CA0106:
+    emitted_by: api
+    concern: accounts
+    says: the invite has been used
+    refuses: true
+    fix: |
+      Sign in with the account it made; an invite opens one sign-up.
+    explanation: |
+      An invite is single-use, so a forwarded link cannot make a second account (M4A.2).
+
+  CA0107:
+    emitted_by: api
+    concern: accounts
+    says: the address already has an account
+    refuses: true
+    fix: |
+      Change the member's role on the team instead of inviting them.
+    explanation: |
+      One person has one account and one role (M4A.1); an invite makes a new account.

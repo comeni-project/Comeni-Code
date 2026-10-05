@@ -77,6 +77,12 @@ HEADLESS_FRONTEND_URLS = {
     "account_signup": f"{ENV.web_origin}/join",
     "socialaccount_login_error": f"{ENV.web_origin}/sign-in/error",
 }
+# Where invite links point (M4A.2).
+CODE_WEB_ORIGIN = ENV.web_origin
+# Sign-up only through an invite (M4A.2); the invite's link proved the address, so no second
+# verification mail is sent.
+ACCOUNT_ADAPTER = "code_api.accounts.adapter.AccountAdapter"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]

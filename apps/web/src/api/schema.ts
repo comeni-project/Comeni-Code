@@ -1,19 +1,28 @@
 // Generated from apps/api/openapi.json by `npm run api-types`. Do not edit (M0 part 7 spec, P7.2).
+/**
+ * In rank order: each role includes the ones before it.
+ */
+export type Role = "author" | "reviewer" | "operator";
+
 export interface ApiSchemas {
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   HealthOut: HealthOut;
+  InviteIn: InviteIn;
+  InviteOut: InviteOut;
   MeOut: MeOut;
   MemberOut: MemberOut;
   Message: Message;
   NeighbourOut: NeighbourOut;
   NodeOut: NodeOut;
   OptionOut: OptionOut;
+  PendingInviteOut: PendingInviteOut;
   ProviderOut: ProviderOut;
   QuestionOut: QuestionOut;
   RegionOut: RegionOut;
   ResourceOut: ResourceOut;
   ResultOut: ResultOut;
+  Role: Role;
   RouteOut: RouteOut;
   SearchOut: SearchOut;
   SideCardOut: SideCardOut;
@@ -36,6 +45,17 @@ export interface CheckOut {
 export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
+}
+export interface InviteIn {
+  email: string;
+  role: Role;
+}
+/**
+ * What an invitee sees before signing up.
+ */
+export interface InviteOut {
+  email: string;
+  role: string;
 }
 export interface MeOut {
   user: MemberOut | null;
@@ -143,6 +163,12 @@ export interface ResourceOut {
 export interface ProviderOut {
   id: string;
   name: string;
+}
+export interface PendingInviteOut {
+  email: string;
+  expires_at: string;
+  public_id: string;
+  role: string;
 }
 /**
  * A candidate as the Start board's *Is this what you mean?* panel shows it (L1).

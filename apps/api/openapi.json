@@ -87,6 +87,42 @@
         "title": "HealthOut",
         "type": "object"
       },
+      "InviteIn": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InviteIn",
+        "type": "object"
+      },
+      "InviteOut": {
+        "description": "What an invitee sees before signing up.",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InviteOut",
+        "type": "object"
+      },
       "MeOut": {
         "properties": {
           "user": {
@@ -318,6 +354,36 @@
         "title": "OptionOut",
         "type": "object"
       },
+      "PendingInviteOut": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "email",
+          "role",
+          "expires_at"
+        ],
+        "title": "PendingInviteOut",
+        "type": "object"
+      },
       "ProviderOut": {
         "properties": {
           "id": {
@@ -540,6 +606,16 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "Role": {
+        "description": "In rank order: each role includes the ones before it.",
+        "enum": [
+          "author",
+          "reviewer",
+          "operator"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
       "RouteOut": {
         "properties": {
           "goals": {
@@ -747,6 +823,13 @@
         "title": "TryBlockOut",
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "Studio": {
+        "in": "cookie",
+        "name": "sessionid",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -785,6 +868,111 @@
         "summary": "Service health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/invites/{token}": {
+      "get": {
+        "operationId": "code_api_accounts_api_look_up",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Gone"
+          }
+        },
+        "summary": "Look Up",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/invites/{token}/accept": {
+      "post": {
+        "description": "Put the invite in the session; sign-up through allauth then reads it (M4A.2).",
+        "operationId": "code_api_accounts_api_accept",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Gone"
+          }
+        },
+        "summary": "Accept",
+        "tags": [
+          "accounts"
         ]
       }
     },
@@ -998,6 +1186,123 @@
         "summary": "Topics matching the words someone types",
         "tags": [
           "content"
+        ]
+      }
+    },
+    "/api/team/invites": {
+      "get": {
+        "operationId": "code_api_accounts_api_pending_invites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PendingInviteOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Pending Invites",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_accounts_api_invite",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingInviteOut"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Invite",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/team/invites/{public_id}": {
+      "delete": {
+        "operationId": "code_api_accounts_api_revoke",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Revoke",
+        "tags": [
+          "accounts"
         ]
       }
     }
