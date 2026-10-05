@@ -25,6 +25,7 @@ from code_schema.fields import (
 from code_schema.levels import Level
 from code_schema.problems import Problem
 from code_schema.providers import PLAYERS, REGISTRY, Provider, player_problem
+from code_schema.records import Field
 from code_schema.yaml_lines import Lines
 
 RESOURCE_FIELD = "resources"
@@ -86,7 +87,6 @@ def _video_problem(video: object) -> Wrong | None:
 
 
 def _registry_problems(
-    entry: dict[object, object],
     provider: str,
     licence: str,
     display: str,
@@ -129,42 +129,22 @@ def parse_resources(
     value: object, *, providers: dict[str, Provider] | None, lines: Lines, file: str
 ) -> tuple[tuple[Resource, ...], list[Problem]]:
     """One resources: field. Never raises; returns the sound resources and every problem."""
-    field_line = lines.get(RESOURCE_FIELD)
-
-    def problem(code: str, message: str, line: int | None = field_line) -> Problem:
-        return Problem(file=file, field=RESOURCE_FIELD, line=line, code=code, message=message)
-
-    if not isinstance(value, list):
-        return (), [problem("CS0205", "must be a list of resources")]
-    if not value:
-        return (), [problem("CS0019", "an empty list is written by leaving the field out")]
-
-    resources: list[Resource] = []
     problems: list[Problem] = []
+    field = Field(RESOURCE_FIELD, lines=lines, file=file, problems=problems)
+    resources: list[Resource] = []
     first_seen: dict[str, int | None] = {}
 
-    for entry in value:
-        if not isinstance(entry, dict):
-            problems.append(problem("CS0206", f"{shown(entry)} is not a resource"))
-            continue
-        entry_line = next((lines.of(entry, str(key)) for key in entry), field_line)
-
-        sound = True
-        for key in entry:
-            if key not in _KEYS:
-                problems.append(
-                    problem(
-                        "CS0207",
-                        f"unknown key `{key}` in a resource ({', '.join(_KEYS)})",
-                        lines.of(entry, str(key)),
-                    )
-                )
-                sound = False
+    for entry in field.entries(
+        value,
+        not_a_list=("CS0205", "must be a list of resources"),
+        not_a_mapping=("CS0206", lambda item: f"{shown(item)} is not a resource"),
+    ):
+        written = entry.mapping
+        entry.unknown(
+            _KEYS, "CS0207", lambda key: f"unknown key `{key}` in a resource ({', '.join(_KEYS)})"
+        )
         for key in _REQUIRED:
-            if key not in entry:
-                problems.append(problem("CS0208", f"a resource has no {key}", entry_line))
-                sound = False
-
+            entry.require(key, "CS0208", f"a resource has no {key}")
         for key, check in (
             ("kind", _kind),
             ("url", _url),
@@ -172,81 +152,52 @@ def parse_resources(
             ("display", _display),
             ("level", _level),
         ):
-            if key in entry and (wrong := check(entry[key])) is not None:
-                problems.append(problem(wrong.code, wrong.message, lines.of(entry, key)))
-                sound = False
-        if "covers" in entry and (wrong := _covers(entry["covers"])) is not None:
-            problems.append(
-                problem(
-                    wrong.code,
-                    f"what this resource covers {wrong.message}",
-                    lines.of(entry, "covers"),
-                )
-            )
-            sound = False
-        provider = entry.get("provider")
-        if "provider" in entry and not isinstance(provider, str):
-            problems.append(
-                problem("CS0209", f"{shown(provider)} is not a provider id", entry_line)
-            )
-            sound = False
+            entry.check(key, check)
+        entry.check("covers", _covers, prefix="what this resource covers ")
+        provider = written.get("provider")
+        if "provider" in written and not isinstance(provider, str):
+            entry.problem("CS0209", f"{shown(provider)} is not a provider id")
 
-        part = entry.get("part", "")
-        if "part" in entry:
-            if (wrong := _section(part)) is not None:
-                problems.append(
-                    problem(wrong.code, f"the part {wrong.message}", lines.of(entry, "part"))
-                )
-                sound = False
-            elif entry.get("kind") == "video" and (wrong := _range_problem(str(part))) is not None:
-                problems.append(problem(wrong.code, wrong.message, lines.of(entry, "part")))
-                sound = False
+        part = written.get("part", "")
+        # A video's part is a range; any other resource's part is a section, such as §17.1.
+        if (
+            entry.check("part", _section, prefix="the part ")
+            and "part" in written
+            and written.get("kind") == "video"
+            and (wrong := _range_problem(str(part))) is not None
+        ):
+            entry.problem(wrong.code, wrong.message, key="part")
 
-        video = entry.get("video", "")
-        if "video" in entry:
+        video = written.get("video", "")
+        if "video" in written:
             if (wrong := _video_problem(video)) is not None:
-                problems.append(problem(wrong.code, wrong.message, lines.of(entry, "video")))
-                sound = False
-            elif entry.get("kind") in KINDS and entry.get("kind") != "video":
-                problems.append(
-                    problem(
-                        "CS0216", "only a video names a video to play", lines.of(entry, "video")
-                    )
-                )
-                sound = False
-        elif entry.get("kind") == "video" and entry.get("display") == "embed":
-            problems.append(
-                problem(
-                    "CS0217",
-                    "an embedded video names the video it plays, such as video: youtube:<id>",
-                    lines.of(entry, "display"),
-                )
+                entry.problem(wrong.code, wrong.message, key="video")
+            elif written.get("kind") in KINDS and written.get("kind") != "video":
+                entry.problem("CS0216", "only a video names a video to play", key="video")
+        elif written.get("kind") == "video" and written.get("display") == "embed":
+            entry.problem(
+                "CS0217",
+                "an embedded video names the video it plays, such as video: youtube:<id>",
+                key="display",
             )
-            sound = False
 
-        if not sound:
+        if not entry.sound:
             continue
-        kind, url = str(entry["kind"]), str(entry["url"])
-        licence, display = str(entry["licence"]), str(entry["display"])
-        level, covers = Level(str(entry["level"])), str(entry["covers"])
+        kind, url = str(written["kind"]), str(written["url"])
+        licence, display = str(written["licence"]), str(written["display"])
+        level, covers = Level(str(written["level"])), str(written["covers"])
 
         if providers is not None:
-            found = _registry_problems(
-                entry, str(provider), licence, display, str(video), providers
-            )
-            problems += [
-                problem(code, message, lines.of(entry, key) or entry_line)
-                for key, code, message in found
-            ]
+            found = _registry_problems(str(provider), licence, display, str(video), providers)
+            for key, code, message in found:
+                entry.problem(code, message, line=entry.at(key) or entry.line)
             if found:
                 continue
 
         if url in first_seen:
-            problems.append(
-                problem("CS0218", f"{url} is cited twice in this node", lines.of(entry, "url"))
-            )
+            entry.problem("CS0218", f"{url} is cited twice in this node", key="url")
             continue
-        first_seen[url] = lines.of(entry, "url")
+        first_seen[url] = entry.at("url")
         resources.append(
             Resource(
                 kind=kind,

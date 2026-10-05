@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 from code_schema.fields import Wrong, one_sentence, shown, slug
 from code_schema.problems import Problem
+from code_schema.records import Field
 from code_schema.yaml_lines import Lines, load_mapping
 
 LINK_FIELDS = ("needs", "goes-deeper", "related")
@@ -38,94 +39,64 @@ def parse_links(
     value: object, *, kind: str, node_id: str, lines: Lines, file: str
 ) -> tuple[tuple[Link, ...], tuple[int | None, ...], list[Problem]]:
     """One link list. Never raises; returns the valid links, the line of each, and the problems."""
-    field_line = lines.get(kind)
-
-    def problem(code: str, message: str, line: int | None = field_line) -> Problem:
-        return Problem(file=file, field=kind, line=line, code=code, message=message)
-
-    if not isinstance(value, list):
-        return (), (), [problem("CS0101", "must be a list of links, each with a node and a reason")]
-    if not value:
-        return (), (), [problem("CS0019", "an empty list is written by leaving the field out")]
-
+    problems: list[Problem] = []
+    field = Field(kind, lines=lines, file=file, problems=problems)
     links: list[Link] = []
     link_lines: list[int | None] = []
-    problems: list[Problem] = []
     first_seen: dict[str, int | None] = {}
 
-    for entry in value:
-        if not isinstance(entry, dict):
-            problems.append(
-                problem(
-                    "CS0102",
-                    f"{shown(entry)} is not a link — write node: and reason: on separate lines",
-                )
-            )
+    for entry in field.entries(
+        value,
+        not_a_list=("CS0101", "must be a list of links, each with a node and a reason"),
+        not_a_mapping=(
+            "CS0102",
+            lambda item: f"{shown(item)} is not a link — write node: and reason: on separate lines",
+        ),
+    ):
+        node_line = entry.at("node")
+        entry.unknown(
+            _LINK_KEYS,
+            "CS0103",
+            lambda key: f"unknown key `{key}` in a link (a link has node and reason)",
+        )
+        if not entry.require("node", "CS0104", "a link has no node"):
             continue
-        node_line = lines.of(entry, "node")
-        sound = True
-
-        for key in entry:
-            if key not in _LINK_KEYS:
-                problems.append(
-                    problem(
-                        "CS0103",
-                        f"unknown key `{key}` in a link (a link has node and reason)",
-                        lines.of(entry, str(key)),
-                    )
-                )
-                sound = False
-
-        target = entry.get("node")
-        if "node" not in entry:
-            entry_line = next((lines.of(entry, str(key)) for key in entry), field_line)
-            problems.append(problem("CS0104", "a link has no node", entry_line))
-            continue
+        target = entry.mapping["node"]
         wrong = _node_id(target)
         if wrong is not None or not isinstance(target, str):
             # The id check refuses anything that is not a valid id, text or not, so its CS0015 is
             # the code either way; the fallback only satisfies the type checker.
             said = wrong.message if wrong is not None else f"{shown(target)} is not a node id"
-            problems.append(problem("CS0015", said, node_line))
+            entry.problem("CS0015", said, line=node_line)
             continue
 
-        reason = entry.get("reason")
-        if "reason" not in entry:
-            problems.append(problem("CS0106", f"the link to {target} has no reason", node_line))
-            sound = False
+        reason = entry.mapping.get("reason")
+        if "reason" not in entry.mapping:
+            entry.problem("CS0106", f"the link to {target} has no reason", line=node_line)
         elif (wrong := _reason_problem(reason)) is not None:
-            problems.append(
-                problem(
-                    wrong.code,
-                    f"the reason for {target} {wrong.message}",
-                    lines.of(entry, "reason"),
-                )
-            )
-            sound = False
+            entry.problem(wrong.code, f"the reason for {target} {wrong.message}", key="reason")
 
         if target == node_id:
-            problems.append(problem("CS0108", f"{target} links to itself", node_line))
+            entry.problem("CS0108", f"{target} links to itself", line=node_line)
             continue
         if target in first_seen:
             first = first_seen[target]
             where = "" if first is None else f" (first on line {first})"
-            problems.append(problem("CS0109", f"{target} is listed twice{where}", node_line))
+            entry.problem("CS0109", f"{target} is listed twice{where}", line=node_line)
             continue
         first_seen[target] = node_line
 
-        if sound and isinstance(reason, str):
+        if entry.sound and isinstance(reason, str):
             links.append(Link(node=target, reason=reason))
             link_lines.append(node_line)
 
-    if kind == "related" and len(value) > MAX_PEERS:
+    if kind == "related" and isinstance(value, list) and len(value) > MAX_PEERS:
         over = value[MAX_PEERS]
-        line = lines.of(over, "node") if isinstance(over, dict) else field_line
-        problems.append(
-            problem(
-                "CS0110",
-                f"{len(value)} peers, at most {MAX_PEERS} — a node with more is probably two nodes",
-                line,
-            )
+        line = lines.of(over, "node") if isinstance(over, dict) else field.line
+        field.problem(
+            "CS0110",
+            f"{len(value)} peers, at most {MAX_PEERS} — a node with more is probably two nodes",
+            line,
         )
 
     return tuple(links), tuple(link_lines), problems
