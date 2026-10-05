@@ -55,11 +55,16 @@ class Link(models.Model):
 
 
 class Provider(models.Model):
-    """providers.yaml, as Region mirrors regions.yaml. Its licences stay in the files (M3P1.4)."""
+    """providers.yaml, as Region mirrors regions.yaml: whole since M4.4, licences, embedding and
+    players too, so a draft's resources are checked against it as CI checks files (M4W.2)."""
 
     id = models.TextField(primary_key=True)
     name = models.TextField()
     position = models.PositiveIntegerField()
+    # The whole registry entry, so a draft's resources are checked as CI checks files (M4W.2).
+    licences = models.JSONField(default=list)
+    embed = models.BooleanField(default=False)
+    players = models.JSONField(default=list)
 
 
 class Resource(models.Model):
@@ -88,9 +93,11 @@ class Question(models.Model):
     kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
     ask = models.TextField()
     options = models.JSONField(default=list)
-    answer = models.FloatField(null=True)
+    # JSON, not a float column: an answer written 1000000 must read back 1000000, not 1000000.0,
+    # so the index gives back the node's files byte for byte (M4W.2).
+    answer = models.JSONField(null=True)
     unit = models.TextField(blank=True)
-    tolerance = models.FloatField(null=True)
+    tolerance = models.JSONField(null=True)
     hints = models.JSONField(default=list)
     rationale = models.TextField()
 
@@ -108,9 +115,11 @@ class ExamQuestion(models.Model):
     kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
     ask = models.TextField()
     options = models.JSONField(default=list)
-    answer = models.FloatField(null=True)
+    # JSON, not a float column: an answer written 1000000 must read back 1000000, not 1000000.0,
+    # so the index gives back the node's files byte for byte (M4W.2).
+    answer = models.JSONField(null=True)
     unit = models.TextField(blank=True)
-    tolerance = models.FloatField(null=True)
+    tolerance = models.JSONField(null=True)
     level = models.TextField(choices=[(level.value, level.value) for level in Level], null=True)
     rationale = models.TextField()
 

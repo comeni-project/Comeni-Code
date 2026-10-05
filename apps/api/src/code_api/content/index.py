@@ -108,7 +108,14 @@ def _link_rows(content: Content) -> list[Link]:
 
 def _provider_rows(content: Content) -> list[Provider]:
     return [
-        Provider(id=provider.id, name=provider.name, position=position)
+        Provider(
+            id=provider.id,
+            name=provider.name,
+            position=position,
+            licences=list(provider.licences),
+            embed=provider.embed,
+            players=list(provider.players),
+        )
         for position, provider in enumerate(content.providers.values())
     ]
 
