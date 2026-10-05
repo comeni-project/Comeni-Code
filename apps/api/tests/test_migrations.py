@@ -37,3 +37,11 @@ def test_rows_indexed_before_blocks_get_their_blocks() -> None:
     ]
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_the_index_keeps_no_body_column() -> None:
+    # M4.1.3 (spec M4R.4): blocks are the body in the index; the raw body was written, never read.
+    with connection.cursor() as cursor:
+        columns = connection.introspection.get_table_description(cursor, "content_node")
+    assert "body" not in [column.name for column in columns]

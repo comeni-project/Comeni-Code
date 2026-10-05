@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from code_schema.problems import Problem
-from code_schema.questions import parse_questions
+from code_schema.questions import ChoiceQuestion, NumberQuestion, parse_questions
 from code_schema.yaml_lines import load_mapping
 
 NUMBER = """try:
@@ -55,7 +55,7 @@ def test_a_number_question_is_read() -> None:
     assert questions[0].answer == 96
     assert questions[0].unit == ""
     assert questions[0].tolerance is None
-    assert questions[0].options == ()
+    assert isinstance(questions[0], NumberQuestion)
 
 
 def test_a_number_question_may_carry_a_unit_and_a_tolerance() -> None:
@@ -70,7 +70,7 @@ def test_a_choice_question_is_read() -> None:
     assert problems == []
     assert [option.text for option in questions[0].options] == ["An edge", "A node"]
     assert [option.right for option in questions[0].options] == [True, False]
-    assert questions[0].answer is None
+    assert isinstance(questions[0], ChoiceQuestion)
 
 
 def test_a_choice_needs_a_right_option() -> None:
@@ -295,3 +295,13 @@ def test_each_question_code_labels_its_message(text: str, code: str, said: str) 
     assert any(problem.code == code and said in problem.message for problem in problems), [
         (problem.code, problem.message) for problem in problems
     ]
+
+
+def test_a_question_is_a_choice_or_a_number() -> None:
+    # M4.1.3 (spec M4R.2): each kind carries only its own fields.
+    (number,), _ = parse(NUMBER)
+    (choice,), _ = parse(CHOICE)
+    assert isinstance(number, NumberQuestion) and number.kind == "number"
+    assert isinstance(choice, ChoiceQuestion) and choice.kind == "choice"
+    assert not hasattr(number, "options")
+    assert not hasattr(choice, "answer")

@@ -2,7 +2,16 @@
 
 import pytest
 
-from code_schema.blocks import Block, Callout, Text, Try, parse_blocks, write_blocks
+from code_schema.blocks import (
+    Block,
+    Callout,
+    Text,
+    Try,
+    block_from_json,
+    block_json,
+    parse_blocks,
+    write_blocks,
+)
 from code_schema.problems import Problem
 
 BODY = (
@@ -160,3 +169,33 @@ def test_every_accepted_body_writes_back_unchanged() -> None:
         blocks, _, problems = parse(body)
         assert problems == []
         assert write_blocks(blocks) == body
+
+
+# M4.1.3 (spec M4R.4): one codec for the index's JSON, so a kind it does not know is an error.
+
+
+@pytest.mark.parametrize(
+    "block",
+    [Text("Prose.\n"), Try("kmer-count"), Callout("caveat", "A title", "Careful.\n")],
+)
+def test_a_block_survives_its_json(block: Block) -> None:
+    assert block_from_json(block_json(block)) == block
+
+
+def test_a_callout_is_stored_with_its_kind_as_callout() -> None:
+    assert block_json(Callout("caveat", "", "Careful.\n")) == {
+        "kind": "callout",
+        "callout": "caveat",
+        "title": "",
+        "markdown": "Careful.\n",
+    }
+
+
+def test_a_stored_kind_the_format_does_not_read_is_an_error() -> None:
+    with pytest.raises(ValueError, match="figure"):
+        block_from_json({"kind": "figure", "markdown": "x"})
+
+
+def test_a_stored_callout_of_a_kind_the_format_does_not_read_is_an_error() -> None:
+    with pytest.raises(ValueError, match="note"):
+        block_from_json({"kind": "callout", "callout": "note", "title": "", "markdown": "x"})

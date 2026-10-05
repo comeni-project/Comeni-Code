@@ -21,7 +21,7 @@ export interface ApiSchemas {
   TryBlockOut: TryBlockOut;
 }
 export interface CalloutBlockOut {
-  callout: string;
+  callout: "misconception" | "caveat" | "convention";
   kind: "callout";
   markdown: string;
   title: string;

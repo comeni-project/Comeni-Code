@@ -28,7 +28,7 @@ def dump() -> tuple[list[Any], ...]:
         sorted(Region.objects.values_list("id", "name", "position")),
         sorted(
             Node.objects.values_list(
-                "id", "title", "claim", "region_id", "level", "minutes", "body", "folder"
+                "id", "title", "claim", "region_id", "level", "minutes", "blocks", "folder"
             )
         ),
         sorted(Link.objects.values_list("source_id", "kind", "position", "target_id", "reason")),

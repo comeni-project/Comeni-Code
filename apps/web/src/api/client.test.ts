@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiUnreachable, getJson } from "./client";
+import { ApiUnreachable, getJson, sentenceOf } from "./client";
 import { nodeUrl } from "./nodes";
 import { routeUrl } from "./routes";
 import { searchUrl } from "./search";
@@ -54,6 +54,34 @@ describe("getJson", () => {
     await expect(getJson("/api/search?q=")).rejects.toMatchObject(
       new ApiUnreachable("A search needs a word.", 422),
     );
+  });
+});
+
+describe("getJson's answers that carry a body", () => {
+  it("returns the body of a status it was told to accept", async () => {
+    answers({ status: "down" }, 503);
+    await expect(getJson("/api/health", undefined, [503])).resolves.toEqual({ status: "down" });
+  });
+
+  it("says the status when an error answer is not JSON", async () => {
+    // nginx's own 502 page, while the API behind it is down.
+    vi.stubGlobal("fetch", async () => new Response("<html>bad gateway</html>", { status: 502 }));
+    await expect(getJson("/api/health")).rejects.toMatchObject(new ApiUnreachable("HTTP 502", 502));
+  });
+});
+
+describe("sentenceOf", () => {
+  it("prints the API's own sentence when it answered", () => {
+    expect(sentenceOf(new ApiUnreachable("No topic with id 'x'.", 404))).toBe(
+      "No topic with id 'x'.",
+    );
+  });
+
+  it("says it cannot reach the API when nothing answered", () => {
+    expect(sentenceOf(new ApiUnreachable("network error"))).toBe(
+      "Can't reach the API · network error",
+    );
+    expect(sentenceOf(new Error("boom"))).toBe("Can't reach the API · unexpected error");
   });
 });
 

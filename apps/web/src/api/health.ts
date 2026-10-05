@@ -1,39 +1,25 @@
 // GET /api/health (M0 part 7 spec, P7.3). 200 and 503 both carry a HealthOut: 503 is an answer.
+import { ApiUnreachable, getJson } from "./client";
 import type { HealthOut } from "./schema";
 
 export const HEALTH_URL = "/api/health";
 
-/** The API gave no health answer; `reason` says why, in words. */
-export class HealthUnreachable extends Error {
-  readonly reason: string;
-  constructor(reason: string) {
-    super(`Can't reach the API: ${reason}`);
-    this.name = "HealthUnreachable";
-    this.reason = reason;
-  }
-}
+/** Only these carry a report; any other answer is said by its status, whatever its body. */
+const REPORTED = [200, 503];
 
 export async function fetchHealth(signal?: AbortSignal): Promise<HealthOut> {
-  let response: Response;
-  try {
-    response = await fetch(HEALTH_URL, {
-      headers: { Accept: "application/json" },
-      signal: signal ?? null,
-    });
-  } catch {
-    throw new HealthUnreachable("network error");
-  }
-  if (response.status !== 200 && response.status !== 503) {
-    throw new HealthUnreachable(`HTTP ${response.status}`);
-  }
   let body: unknown;
   try {
-    body = await response.json();
-  } catch {
-    throw new HealthUnreachable("the response wasn't JSON");
+    body = await getJson<unknown>(HEALTH_URL, signal, REPORTED);
+  } catch (error) {
+    const status = error instanceof ApiUnreachable ? error.status : undefined;
+    if (status !== undefined && !REPORTED.includes(status)) {
+      throw new ApiUnreachable(`HTTP ${status}`, status);
+    }
+    throw error;
   }
   if (!isHealthOut(body)) {
-    throw new HealthUnreachable("the response wasn't a health report");
+    throw new ApiUnreachable("the response wasn't a health report");
   }
   return body;
 }

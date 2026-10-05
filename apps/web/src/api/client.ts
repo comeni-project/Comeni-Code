@@ -25,7 +25,15 @@ function detailOf(body: unknown): string | undefined {
   return undefined;
 }
 
-export async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
+/**
+ * The JSON body of `url`. A status outside 2xx rejects with the API's own sentence, unless it is
+ * one of `accept`: health answers 503 with a report worth reading.
+ */
+export async function getJson<T>(
+  url: string,
+  signal?: AbortSignal,
+  accept: readonly number[] = [],
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, {
@@ -35,14 +43,28 @@ export async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> 
   } catch {
     throw new ApiUnreachable("network error");
   }
+  const usable = response.ok || accept.includes(response.status);
   let body: unknown;
   try {
     body = await response.json();
   } catch {
-    throw new ApiUnreachable("the response wasn't JSON", response.status);
+    // An error page that is not JSON (nginx's 502 while the API is down) is still its status.
+    throw new ApiUnreachable(
+      usable ? "the response wasn't JSON" : `HTTP ${response.status}`,
+      response.status,
+    );
   }
-  if (!response.ok) {
+  if (!usable) {
     throw new ApiUnreachable(detailOf(body) ?? `HTTP ${response.status}`, response.status);
   }
   return body as T;
 }
+
+/**
+ * What a page prints when a question failed: the API's own sentence when it answered (a 404's
+ * "No topic with id …"), else that the API could not be reached, and why.
+ */
+export const sentenceOf = (error: Error): string =>
+  error instanceof ApiUnreachable && error.status !== undefined
+    ? error.reason
+    : `Can't reach the API · ${error instanceof ApiUnreachable ? error.reason : "unexpected error"}`;

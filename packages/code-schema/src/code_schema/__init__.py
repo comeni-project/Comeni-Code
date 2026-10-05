@@ -8,14 +8,23 @@ content folder; `code-schema validate` is the command around it.
 
 from __future__ import annotations
 
-from code_schema.blocks import Block, Callout, Text, Try, parse_blocks, write_blocks
+from code_schema.blocks import (
+    Block,
+    Callout,
+    Text,
+    Try,
+    block_from_json,
+    block_json,
+    parse_blocks,
+    write_blocks,
+)
 from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
 from code_schema.providers import Provider, parse_providers, read_providers
-from code_schema.questions import Option, Question
+from code_schema.questions import ChoiceQuestion, NumberQuestion, Option, Question
 from code_schema.regions import Region, parse_regions, read_regions
 from code_schema.resources import Resource
 from code_schema.writer import write_node_folder, write_node_yaml
@@ -23,11 +32,13 @@ from code_schema.writer import write_node_folder, write_node_yaml
 __all__ = [
     "Block",
     "Callout",
+    "ChoiceQuestion",
     "Content",
     "Diagnostic",
     "Level",
     "Link",
     "Node",
+    "NumberQuestion",
     "Option",
     "Problem",
     "Provider",
@@ -37,6 +48,8 @@ __all__ = [
     "Text",
     "Try",
     "UnknownDiagnostic",
+    "block_from_json",
+    "block_json",
     "diagnostic",
     "parse_blocks",
     "parse_node",

@@ -23,14 +23,15 @@ export function Body({
       {blocks.map((block, index) => {
         if (block.kind === "text") {
           if (block.markdown.trim() === "") return null;
+          // Keys say what they key, so the third block cannot collide with a question named 2.
           // biome-ignore lint/suspicious/noArrayIndexKey: text blocks have no identity beyond their place
-          return <Prose key={index} markdown={block.markdown} components={components} />;
+          return <Prose key={`text:${index}`} markdown={block.markdown} components={components} />;
         }
         if (block.kind === "callout") {
           return (
             <Callout
               // biome-ignore lint/suspicious/noArrayIndexKey: callouts have no identity beyond their place
-              key={index}
+              key={`callout:${index}`}
               kind={block.callout}
               title={block.title}
               markdown={block.markdown}
@@ -41,7 +42,9 @@ export function Body({
         const question = byId.get(block.question);
         if (question === undefined) return null;
         asked += 1;
-        return <TryQuestion key={question.id} question={question} number={asked} big={big} />;
+        return (
+          <TryQuestion key={`try:${question.id}`} question={question} number={asked} big={big} />
+        );
       })}
     </>
   );

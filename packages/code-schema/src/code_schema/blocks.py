@@ -13,10 +13,12 @@ import difflib
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Literal, cast, get_args
 
 from code_schema.problems import Problem
 
-CALLOUTS = ("misconception", "caveat", "convention")
+CalloutKind = Literal["misconception", "caveat", "convention"]
+CALLOUTS: tuple[CalloutKind, ...] = get_args(CalloutKind)
 _LATER = {
     "figure": "M6",
     "math": "M6",
@@ -45,7 +47,7 @@ class Try:
 
 @dataclass(frozen=True)
 class Callout:
-    kind: str
+    kind: CalloutKind
     title: str
     markdown: str
 
@@ -191,7 +193,7 @@ def parse_blocks(
             if not "".join(inner).strip():
                 problem("CS0411", f"the {name} callout is empty", number)
             else:
-                blocks.append(Callout(name, argument, "".join(inner)))
+                blocks.append(Callout(cast(CalloutKind, name), argument, "".join(inner)))
                 starts.append(number)
             continue
         if name in _LATER:
@@ -230,3 +232,28 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
     return "".join(out)
+
+
+def block_json(block: Block) -> dict[str, str]:
+    """A block as the index stores it (spec M4B.5). A callout's own kind goes under `callout`."""
+    match block:
+        case Text(markdown=markdown):
+            return {"kind": "text", "markdown": markdown}
+        case Try(question=question):
+            return {"kind": "try", "question": question}
+        case Callout(kind=kind, title=title, markdown=markdown):
+            return {"kind": "callout", "callout": kind, "title": title, "markdown": markdown}
+
+
+def block_from_json(stored: dict[str, str]) -> Block:
+    """The inverse of `block_json`. A kind it does not write is an error, never a guess."""
+    match stored.get("kind"):
+        case "text":
+            return Text(stored["markdown"])
+        case "try":
+            return Try(stored["question"])
+        case "callout" if (kind := stored.get("callout")) in CALLOUTS:
+            return Callout(kind, stored["title"], stored["markdown"])
+        case other:
+            said = f"callout {stored.get('callout')!r}" if other == "callout" else repr(other)
+            raise ValueError(f"a stored block of kind {said} is not one this format writes")

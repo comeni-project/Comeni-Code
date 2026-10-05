@@ -396,3 +396,17 @@ def test_invalid_yaml_and_a_missing_field_have_their_codes() -> None:
     assert [problem.code for problem in broken] == ["CS0001"]
     _, missing = parse(GOOD.replace("minutes: 12\n", ""))
     assert [(problem.field, problem.code) for problem in missing] == [("minutes", "CS0005")]
+
+
+def test_a_hand_built_node_reads_its_blocks_from_its_body() -> None:
+    # M4.1.3 (#134): blocks are derived, so a Node cannot hold blocks its body does not have.
+    node = Node(
+        id="a",
+        title="A",
+        claim="A claim.",
+        region="sequence-analysis",
+        level=Level.FOUNDATIONS,
+        minutes=5,
+        body="Prose.\n\n:::{try} kmer-count\n:::\n",
+    )
+    assert node.blocks == (Text("Prose.\n\n"), Try("kmer-count"))

@@ -13,6 +13,7 @@ from django.test import Client
 from pytest_django import DjangoAssertNumQueries
 
 from code_api.content.index import rebuild_index
+from code_api.content.models import Node as StoredNode
 from code_schema import Link, Node, read_content
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
@@ -259,4 +260,23 @@ def test_a_placed_question_is_a_try_block(client: Client) -> None:
     assert [block["question"] for block in blocks if block["kind"] == "try"] == [
         "kmers-per-read",
         "shared-unitig",
+    ]
+
+
+# M4.1.3 (spec M4R.4): a stored block is read by one codec, and a callout's kind is closed.
+
+
+def test_a_stored_block_kind_the_api_does_not_know_is_an_error(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    StoredNode.objects.filter(id="tpm").update(blocks=[{"kind": "figure", "markdown": "x"}])
+    with pytest.raises(ValueError, match="figure"):
+        get(client, "tpm")
+
+
+def test_a_callouts_kind_is_one_of_three_in_the_schema(client: Client) -> None:
+    schemas = client.get("/api/openapi.json").json()["components"]["schemas"]
+    assert schemas["CalloutBlockOut"]["properties"]["callout"]["enum"] == [
+        "misconception",
+        "caveat",
+        "convention",
     ]

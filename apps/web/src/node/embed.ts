@@ -1,4 +1,4 @@
-// Playing a resource in the page, and links that keep the route (M3P5.3, M3P5.4).
+// Playing a resource in the page (M3P5.3).
 
 /** Seconds in `m:ss` or `h:mm:ss`, as code_schema.fields.seconds reads a part. */
 function seconds(stamp: string): number | null {
@@ -20,17 +20,4 @@ export function playerSrc(video: string, part: string): string | null {
   const [from, to] = part.split(/[–-]/).map(seconds);
   if (from === null || from === undefined || to === null || to === undefined) return src;
   return `${src}?${new URLSearchParams({ start: String(from), end: String(to) })}`;
-}
-
-/** A path with the route it was reached from, so the next page knows it too. */
-export function withRoute(
-  path: string,
-  goals: readonly string[],
-  known: readonly string[],
-): string {
-  const query = new URLSearchParams();
-  for (const goal of goals) query.append("goal", goal);
-  for (const topic of known) query.append("known", topic);
-  const tail = query.toString();
-  return tail === "" ? path : `${path}?${tail}`;
 }

@@ -61,6 +61,13 @@ describe("HealthPage", () => {
 
   it.each([
     ["an unexpected status", async () => json(502, {}), "HTTP 502"],
+    // M4.1.3: an unexpected status says its number, not the body's own sentence.
+    [
+      "a status with a sentence of its own",
+      async () => json(404, { detail: "Not Found" }),
+      "HTTP 404",
+    ],
+    ["a 2xx that is not a report", async () => new Response(null, { status: 204 }), "HTTP 204"],
     [
       "a network failure",
       async () => Promise.reject(new TypeError("fetch failed")),

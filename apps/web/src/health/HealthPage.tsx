@@ -1,6 +1,6 @@
 // The health page (M0 part 7 spec, P7.3): every state in words, colour only as the law allows.
-import { useQuery } from "@tanstack/react-query";
-import { fetchHealth, HealthUnreachable } from "../api/health";
+import { ApiUnreachable } from "../api/client";
+import { useHealth } from "../api/queries";
 import type { CheckOut } from "../api/schema";
 import { TopBar } from "../layout/TopBar";
 
@@ -10,7 +10,7 @@ export const HEALTH_POLL_MS = 10_000;
 const time = (ms: number) => new Date(ms).toLocaleTimeString("en-GB", { hour12: false });
 
 const reasonOf = (error: Error) =>
-  error instanceof HealthUnreachable ? error.reason : "unexpected error";
+  error instanceof ApiUnreachable ? error.reason : "unexpected error";
 
 function summary(checks: CheckOut[]): { text: string; tone: "ok" | "down" } {
   const down = checks.filter((c) => c.status === "down").map((c) => c.name);
@@ -29,12 +29,7 @@ function Dot({ tone }: { tone: "ok" | "down" | "stale" | "none" }) {
 }
 
 export function HealthPage({ pollMs = HEALTH_POLL_MS }: { pollMs?: number | false }) {
-  const query = useQuery({
-    queryKey: ["health"],
-    queryFn: ({ signal }) => fetchHealth(signal),
-    refetchInterval: pollMs,
-    retry: false,
-  });
+  const query = useHealth(pollMs);
 
   return (
     <div className="min-h-screen">

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { playerSrc, withRoute } from "./embed";
+import { playerSrc } from "./embed";
 
 describe("playerSrc", () => {
   it("plays a YouTube video without cookies", () => {
@@ -20,17 +20,5 @@ describe("playerSrc", () => {
 
   it("gives nothing for a player it does not know", () => {
     expect(playerSrc("vimeo:123", "")).toBeNull();
-  });
-});
-
-describe("withRoute", () => {
-  it("carries the goals and what is known", () => {
-    expect(withRoute("/node/k-mers", ["salmon"], ["tpm"])).toBe(
-      "/node/k-mers?goal=salmon&known=tpm",
-    );
-  });
-
-  it("is the bare path with no route", () => {
-    expect(withRoute("/node/k-mers", [], [])).toBe("/node/k-mers");
   });
 });
