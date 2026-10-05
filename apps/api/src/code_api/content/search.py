@@ -8,33 +8,14 @@ involved; M5's goal suggestions will sit in front of this, not replace it (W3.3 
 from typing import Annotated
 
 from django.http import HttpRequest
-from ninja import Query, Router, Schema, Status
+from ninja import Query, Router, Status
 
-from code_api.content.api import Message, RegionOut
-from code_api.content.models import IndexBuild, Node
-from code_weaver.find import Target, find
+from code_api.content import reads
+from code_api.content.schemas import Message, SearchOut
 
 router = Router(tags=["content"])
 
 BLANK = "A search needs a word."
-
-
-class ResultOut(Schema):
-    """A candidate as the Start board's *Is this what you mean?* panel shows it (L1)."""
-
-    id: str
-    title: str
-    claim: str
-    level: str
-    minutes: int
-    region: RegionOut
-
-
-class SearchOut(Schema):
-    query: str
-    # The words that matched nothing anywhere, so the page can name them (M3P2.2).
-    unmatched: list[str]
-    results: list[ResultOut]
 
 
 @router.get(
@@ -50,35 +31,8 @@ def search(
 ) -> Status[SearchOut] | Status[Message]:
     if not q.strip():
         return Status(422, Message(detail=BLANK, code="CA0003"))
-    rows = {
-        node.id: node
-        for node in Node.objects.select_related("region").only(
-            "id", "title", "claim", "level", "minutes", "region__id", "region__name"
-        )
-    }
-    found = find(
-        (Target(id=node.id, title=node.title, claim=node.claim) for node in rows.values()),
-        q,
-        limit=limit,
-    )
-    if not found.ids and not IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).exists():
-        # Only a miss pays for this query, as on the node endpoint (M1P6.4).
-        return Status(503, Message(detail="The index has not been built yet.", code="CA0001"))
-    return Status(
-        200,
-        SearchOut(
-            query=q,
-            unmatched=list(found.unmatched),
-            results=[
-                ResultOut(
-                    id=node.id,
-                    title=node.title,
-                    claim=node.claim,
-                    level=node.level,
-                    minutes=node.minutes,
-                    region=RegionOut(id=node.region.id, name=node.region.name),
-                )
-                for node in (rows[identifier] for identifier in found.ids)
-            ],
-        ),
-    )
+    found = reads.search(q, limit)
+    # Nothing found may mean nothing built: only then does the miss pay for that query (M1P6.4).
+    if not found.results and (never := reads.unbuilt()) is not None:
+        return never
+    return Status(200, found)

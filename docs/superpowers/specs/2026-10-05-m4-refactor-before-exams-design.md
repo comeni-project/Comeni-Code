@@ -71,7 +71,8 @@ function. The "never built → 503, else 404" decision is written three times, a
   **`missing(detail)`**, the 503 or a 404.
 - **Blocks have one codec, in `code_schema.blocks`**: `block_json` and `block_from_json`, inverses
   of each other. The index writes with the first; the API reads with the second, so a stored kind it
-  does not know raises instead of being drawn as a callout (the old `case _:`).
+  does not know raises by design. The old `case _:` sent it to `CalloutBlockOut`, which refused it only
+  because Pydantic checks the `kind` literal.
 - **`CalloutBlockOut.callout` is a `Literal` of the three kinds** (#134).
 - **The `Node.body` column is dropped.** Since M4.1.2 it has been written and never read; `blocks`
   is the body in the index. The files keep `body.md`, and the digest still hashes it.

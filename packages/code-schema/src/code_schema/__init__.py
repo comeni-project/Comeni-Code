@@ -8,7 +8,16 @@ content folder; `code-schema validate` is the command around it.
 
 from __future__ import annotations
 
-from code_schema.blocks import Block, Callout, Text, Try, parse_blocks, write_blocks
+from code_schema.blocks import (
+    Block,
+    Callout,
+    Text,
+    Try,
+    block_from_json,
+    block_json,
+    parse_blocks,
+    write_blocks,
+)
 from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
 from code_schema.links import Link
@@ -39,6 +48,8 @@ __all__ = [
     "Text",
     "Try",
     "UnknownDiagnostic",
+    "block_from_json",
+    "block_json",
     "diagnostic",
     "parse_blocks",
     "parse_node",

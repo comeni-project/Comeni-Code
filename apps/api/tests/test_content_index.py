@@ -21,7 +21,7 @@ from code_api.content.models import (
     Region,
     Resource,
 )
-from code_schema import Level, read_content, read_node, write_node_folder
+from code_schema import Level, block_json, read_content, read_node, write_node_folder
 from code_schema import Link as SchemaLink
 from code_schema import Node as SchemaNode
 
@@ -36,7 +36,7 @@ def dump() -> tuple[list[Any], ...]:
         sorted(Region.objects.values_list("id", "name", "position")),
         sorted(
             Node.objects.values_list(
-                "id", "title", "claim", "region_id", "level", "minutes", "body", "blocks", "folder"
+                "id", "title", "claim", "region_id", "level", "minutes", "blocks", "folder"
             )
         ),
         sorted(Link.objects.values_list("source_id", "kind", "position", "target_id", "reason")),
@@ -84,7 +84,7 @@ def test_the_fixtures_rebuild_into_the_index() -> None:
         "intermediate",
         "transcriptomics/salmon",
     )
-    assert salmon.body == content.nodes["salmon"].body
+    assert salmon.blocks == [block_json(block) for block in content.nodes["salmon"].blocks]
     assert list(Region.objects.order_by("position").values_list("id", flat=True)) == list(
         content.regions
     )

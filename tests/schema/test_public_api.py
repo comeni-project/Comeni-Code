@@ -23,6 +23,8 @@ def test_the_public_api_is_what_the_spec_names() -> None:
         "Text",
         "Try",
         "UnknownDiagnostic",
+        "block_from_json",
+        "block_json",
         "diagnostic",
         "parse_blocks",
         "parse_node",

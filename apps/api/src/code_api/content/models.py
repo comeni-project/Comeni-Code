@@ -28,8 +28,8 @@ class Node(models.Model):
     region = models.ForeignKey(Region, on_delete=models.PROTECT, related_name="nodes")
     level = models.TextField(choices=[(level.value, level.value) for level in Level])
     minutes = models.PositiveIntegerField()
-    body = models.TextField()
-    # The body as blocks, in order (spec M4B.5): {"kind": "text" | "try" | "callout", ...}.
+    # The body as blocks, in order (spec M4B.5), written by code_schema.block_json. The raw body
+    # is not kept: nothing read it once the blocks were stored (spec M4R.4).
     blocks = models.JSONField(default=list)
     # The node's folder, relative to the content root: for "edit on GitHub" later.
     folder = models.TextField()
