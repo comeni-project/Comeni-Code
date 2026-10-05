@@ -226,3 +226,21 @@ def node_out(node: Node) -> DraftNodeOut:
         questions=[_question_out(question) for question in node.questions],
         exam=[_exam_out(question) for question in node.exam],
     )
+
+
+class VerifyOut(Schema):
+    """`clean` when no problem refuses; warnings may still be listed (M4W.5)."""
+
+    clean: bool
+    problems: list[ProblemOut]
+
+
+class ItemOut(Schema):
+    rule: str
+    passed: bool
+    detail: str
+
+
+class ChecklistOut(Schema):
+    passed: bool
+    items: list[ItemOut]

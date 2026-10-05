@@ -12,6 +12,7 @@ export interface ApiSchemas {
   BlockIn: BlockIn;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
+  ChecklistOut: ChecklistOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
@@ -23,6 +24,7 @@ export interface ApiSchemas {
   InsertBlockIn: InsertBlockIn;
   InviteIn: InviteIn;
   InviteOut: InviteOut;
+  ItemOut: ItemOut;
   Level: Level;
   LinkIn: LinkIn;
   LinkOut: LinkOut;
@@ -65,6 +67,7 @@ export interface ApiSchemas {
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
+  VerifyOut: VerifyOut;
 }
 /**
  * A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
@@ -87,6 +90,15 @@ export interface CheckOut {
   duration_ms: number;
   name: string;
   status: "ok" | "down";
+}
+export interface ChecklistOut {
+  items: ItemOut[];
+  passed: boolean;
+}
+export interface ItemOut {
+  detail: string;
+  passed: boolean;
+  rule: string;
 }
 export interface DraftNodeOut {
   blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
@@ -476,4 +488,11 @@ export interface UpdateBlockIn {
   block: BlockIn;
   question?: TryQuestionIn | null;
   revision: number;
+}
+/**
+ * `clean` when no problem refuses; warnings may still be listed (M4W.5).
+ */
+export interface VerifyOut {
+  clean: boolean;
+  problems: ProblemOut[];
 }

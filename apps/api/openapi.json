@@ -96,6 +96,27 @@
         "title": "CheckOut",
         "type": "object"
       },
+      "ChecklistOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "passed",
+          "items"
+        ],
+        "title": "ChecklistOut",
+        "type": "object"
+      },
       "DraftNodeOut": {
         "properties": {
           "blocks": {
@@ -606,6 +627,29 @@
           "role"
         ],
         "title": "InviteOut",
+        "type": "object"
+      },
+      "ItemOut": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "passed",
+          "detail"
+        ],
+        "title": "ItemOut",
         "type": "object"
       },
       "Level": {
@@ -2090,6 +2134,28 @@
         ],
         "title": "UpdateBlockIn",
         "type": "object"
+      },
+      "VerifyOut": {
+        "description": "`clean` when no problem refuses; warnings may still be listed (M4W.5).",
+        "properties": {
+          "clean": {
+            "title": "Clean",
+            "type": "boolean"
+          },
+          "problems": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemOut"
+            },
+            "title": "Problems",
+            "type": "array"
+          }
+        },
+        "required": [
+          "clean",
+          "problems"
+        ],
+        "title": "VerifyOut",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -2947,6 +3013,54 @@
         ]
       }
     },
+    "/api/studio/drafts/{public_id}/checklist": {
+      "get": {
+        "operationId": "code_api_studio_api_checklist",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "M4's bar",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
     "/api/studio/drafts/{public_id}/discard": {
       "post": {
         "operationId": "code_api_studio_api_discard",
@@ -3601,6 +3715,54 @@
           }
         ],
         "summary": "A revision's files",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/verify": {
+      "get": {
+        "operationId": "code_api_studio_api_verify",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Check against the graph",
         "tags": [
           "studio"
         ]

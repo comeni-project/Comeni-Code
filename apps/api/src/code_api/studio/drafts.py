@@ -20,6 +20,9 @@ from code_api.content.models import Node as IndexedNode
 from code_api.content.snapshot import node_from_index, providers_from_index, regions_from_index
 from code_api.studio.models import Draft, Revision
 from code_schema import Level, Node, Problem, parse_node_files
+from code_schema.graph import graph_problems
+from code_schema.links import locate_links
+from code_schema.node import NODE_FILE
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
 Edit = Callable[[Node], Node]
@@ -231,3 +234,55 @@ def discard(draft: Draft, *, by: User) -> Draft:
         locked.state = Draft.State.DISCARDED
         locked.save(update_fields=["state"])
     return locked
+
+
+def verify(draft: Draft) -> list[Problem]:
+    """The rules that need the whole graph (M4W.5), with the draft's node in place of its indexed
+    version, against every other node in the index: `code-schema`'s own graph rules, as `validate`
+    runs them. The draft's own warnings come too. A link to another draft's new node is missing
+    until that node lands. Like the routes, it loads the whole index per call (M2P4.3)."""
+    node, problems = node_of(draft)
+    if node is None:
+        return problems
+    nodes: dict[str, Node] = {}
+    folders: dict[str, str] = {}
+    for row in IndexedNode.objects.order_by("id"):
+        indexed = node_from_index(row.id)
+        assert indexed is not None
+        nodes[row.id], folders[row.id] = indexed, row.folder
+    nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
+    link_lines = {
+        node_id: locate_links(write_node_yaml(each), file=f"{folders[node_id]}/{NODE_FILE}")
+        for node_id, each in nodes.items()
+    }
+    return sorted([*problems, *graph_problems(nodes, folders, link_lines)], key=Problem.sort_key)
+
+
+@dataclass(frozen=True)
+class Item:
+    rule: str
+    passed: bool
+    detail: str
+
+
+MIN_EXAM = 4  # M4's bar (architecture spec R4): an exam pool of at least four questions
+
+
+def checklist(draft: Draft) -> list[Item]:
+    """M4's bar before submitting (M4W.5): it verifies clean, a level, a resource, four exam
+    questions. Submitting is M4.5's, and requires every item."""
+    node, _ = node_of(draft)
+    problems = verify(draft)
+    errors = [problem for problem in problems if problem.refuses]
+    resources = 0 if node is None else len(node.resources)
+    exam = 0 if node is None else len(node.exam)
+    return [
+        Item(
+            "verifies clean",
+            not errors,
+            "no problems" if not errors else f"{len(errors)} problem(s); see verify",
+        ),
+        Item("a level", node is not None, "" if node is None else f"{node.level.value}"),
+        Item("a resource", resources >= 1, f"{resources} resource(s)"),
+        Item("four exam questions", exam >= MIN_EXAM, f"{exam} of {MIN_EXAM}"),
+    ]

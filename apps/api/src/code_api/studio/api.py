@@ -16,12 +16,15 @@ from code_api.content.schemas import Message
 from code_api.studio import drafts
 from code_api.studio.models import Draft
 from code_api.studio.schemas import (
+    ChecklistOut,
     DraftOut,
     DraftSummaryOut,
     FilesOut,
+    ItemOut,
     ProblemOut,
     RefusedOut,
     RevisionOut,
+    VerifyOut,
     node_out,
 )
 from code_schema import (
@@ -553,4 +556,45 @@ def exam_delete(
         revision,
         lambda node: delete_exam_question(node, question_id),
         f"deleted exam question {question_id}",
+    )
+
+
+# ── Verify and the checklist (M4W.5) ─────────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/{public_id}/verify",
+    response={200: VerifyOut, 404: Message},
+    summary="Check against the graph",
+)
+def verify(request: HttpRequest, public_id: UUID) -> Status[VerifyOut] | Status[Message]:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    problems = drafts.verify(draft)
+    return Status(
+        200,
+        VerifyOut(
+            clean=not any(problem.refuses for problem in problems),
+            problems=[ProblemOut.of(problem) for problem in problems],
+        ),
+    )
+
+
+@router.get(
+    "/{public_id}/checklist", response={200: ChecklistOut, 404: Message}, summary="M4's bar"
+)
+def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | Status[Message]:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    items = drafts.checklist(draft)
+    return Status(
+        200,
+        ChecklistOut(
+            passed=all(item.passed for item in items),
+            items=[
+                ItemOut(rule=item.rule, passed=item.passed, detail=item.detail) for item in items
+            ],
+        ),
     )
