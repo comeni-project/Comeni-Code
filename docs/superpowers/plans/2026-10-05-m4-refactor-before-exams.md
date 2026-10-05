@@ -56,21 +56,21 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
     - `.check(key, check, says="{}") -> bool`.
   - `Reporter = Callable[[str, str, int | None], None]` (code, message, line).
 
-- [ ] **Step 1: Write the failing tests.** In `test_records.py`, test:
+- [x] **Step 1: Write the failing tests.** In `test_records.py`, test:
   - `entries` reports a value that is not a list, the empty list (CS0019) and an entry that is not
     a mapping, and yields the mappings;
   - `Entry.unknown` reports each key not allowed, at that key's line, in the entry's order;
   - `Entry.require` reports a missing key at the entry's first line;
   - `Entry.check` words a check's message through `says` and reports it at the key's line;
   - each of these marks the entry unsound.
-- [ ] **Step 2: Run** `uv run pytest tests/schema/test_records.py`. Expected: fails, no module
+- [x] **Step 2: Run** `uv run pytest tests/schema/test_records.py`. Expected: fails, no module
   `code_schema.records`.
-- [ ] **Step 3: Write `records.py`** to pass.
-- [ ] **Step 4: Port the three parsers** to `entries` and `Entry`. Keep each rule's order and
+- [x] **Step 3: Write `records.py`** to pass.
+- [x] **Step 4: Port the three parsers** to `entries` and `Entry`. Keep each rule's order and
   wording, and delete `_Problem` and the per-file closures.
-- [ ] **Step 5: Run** `uv run pytest tests/schema` and `uv run mypy`. Expected: all pass, with the
+- [x] **Step 5: Run** `uv run pytest tests/schema` and `uv run mypy`. Expected: all pass, with the
   parser tests unedited.
-- [ ] **Step 6: Commit** `refactor(schema): one record reader for nested entries — M4.1.3`.
+- [x] **Step 6: Commit** `refactor(schema): one record reader for nested entries — M4.1.3`.
 
 ### Task 2: A question is a choice or a number; a node's blocks come from its body (M4R.2, M4R.3)
 
@@ -86,20 +86,20 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
   - `Question = ChoiceQuestion | NumberQuestion`;
   - `Node.blocks`, a `property` over `parse_blocks(self.body)`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - The parsed number question `isinstance(..., NumberQuestion)` with `.kind == "number"`. The
     choice one is a `ChoiceQuestion`.
   - `Node(..., body=":::{try} a\n:::\n")` built by hand has `blocks == (Try("a"),)`.
-- [ ] **Step 2: Run them.** Expected: they fail, on the import and on `()`.
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them.** Expected: they fail, on the import and on `()`.
+- [x] **Step 3: Implement.**
   - Split the class, and build the right one in `parse_questions`.
   - Use `match` in the writer and the index.
   - Drop the `blocks` field and the `blocks=` argument in `parse_node`.
   - Turn the asserts in the old tests that read `.options` on a number, or `.answer` on a choice,
     into `isinstance` checks.
-- [ ] **Step 4: Run** `uv run pytest tests/schema apps/api/tests/test_content_index.py` and
+- [x] **Step 4: Run** `uv run pytest tests/schema apps/api/tests/test_content_index.py` and
   `uv run mypy`. Expected: pass.
-- [ ] **Step 5: Commit** `refactor(schema): a question is a choice or a number; blocks come from the body — M4.1.3`.
+- [x] **Step 5: Commit** `refactor(schema): a question is a choice or a number; blocks come from the body — M4.1.3`.
 
 ### Task 3: The content views read through one module (M4R.4)
 
@@ -124,23 +124,23 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
     `reads.search_rows() -> dict[str, Node]`;
   - `reads.unbuilt() -> Status[Message] | None` and `reads.missing(detail) -> Status[Message]`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `block_from_json(block_json(b)) == b` for each kind, and an unknown kind raises.
   - A node row whose blocks hold `{"kind": "figure"}` makes the node endpoint raise, not answer
     200.
   - The schema's `CalloutBlockOut.callout` has the enum of the three kinds.
   - After migrating to 0005, `content_node` has no `body` column.
-- [ ] **Step 2: Run them.** Expected: they fail.
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run them.** Expected: they fail.
+- [x] **Step 3: Implement.**
   - Move the schemas to `schemas.py` and the queries and assembly to `reads.py`.
   - Have the views call them.
   - Write the codec, and use it in the index and the API.
   - Narrow `CalloutBlockOut.callout` to the `Literal`.
   - Remove the `Node.body` field and run `makemigrations`.
   - Regenerate `openapi.json` and `schema.ts`.
-- [ ] **Step 4: Run** `uv run pytest`, `uv run mypy`, `uv run ruff check .` and `ruff format --check`,
+- [x] **Step 4: Run** `uv run pytest`, `uv run mypy`, `uv run ruff check .` and `ruff format --check`,
   plus `manage.py makemigrations --check --dry-run`. Expected: all pass.
-- [ ] **Step 5: Commit** `refactor(api): content views read through one module; drop Node.body — M4.1.3`.
+- [x] **Step 5: Commit** `refactor(api): content views read through one module; drop Node.body — M4.1.3`.
 
 ### Task 4: The web app asks the API in one way (M4R.5, #137)
 
@@ -164,7 +164,7 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
   - `sentenceOf(error)` and `<ErrorNotice error={…} />`;
   - `getJson(url, signal?, accept?: number[])`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `queryKeys.route(["salmon", "kallisto"], [])` differs from
     `queryKeys.route(["salmon"], ["kallisto"])`. This is #137.
   - A rendered Start page with goals *salmon* and *kallisto* does not leave its preview where the
@@ -173,21 +173,21 @@ and Biome on Node 24 (through `web.sh` in the scratchpad: this machine's Node is
     rejects with `HTTP <status>`.
   - `Body` with blocks text, text, text and try `2` (question id `2`) renders without React's
     duplicate-key warning.
-- [ ] **Step 2: Run** `web.sh npm test`. Expected: those fail.
-- [ ] **Step 3: Implement.**
+- [x] **Step 2: Run** `web.sh npm test`. Expected: those fail.
+- [x] **Step 3: Implement.**
   - Write `queries.ts`, `url.ts` and `ErrorNotice`.
   - Move the pages onto them.
   - Move health onto `getJson` with `ApiUnreachable`.
   - Give `Body` its prefixed keys.
-- [ ] **Step 4: Run** `web.sh npm run lint`, `npm run typecheck`, `npm test` and `npm run build`.
+- [x] **Step 4: Run** `web.sh npm run lint`, `npm run typecheck`, `npm test` and `npm run build`.
   Expected: all pass, with the pages' sentence tests unedited.
-- [ ] **Step 5: Commit** `refactor(web): one way to ask the API; fix the route cache key — M4.1.3`
+- [x] **Step 5: Commit** `refactor(web): one way to ask the API; fix the route cache key — M4.1.3`
   with `Fixes #137`.
 
 ### Task 5: The record
 
-- [ ] Journal entry `docs/notes/journal/2026-10-05-m4-1-3-refactor.md`.
-- [ ] `CLAUDE.md` layout line for `content/` (`reads.py` and `schemas.py`).
-- [ ] Tick the three #134 boxes this part closes.
-- [ ] Commit `docs: M4.1.3's journal entry`.
-- [ ] Final review by a fresh reviewer over the branch, then one fix pass and the pull request.
+- [x] Journal entry `docs/notes/journal/2026-10-05-m4-1-3-refactor.md`.
+- [x] `CLAUDE.md` layout line for `content/` (`reads.py` and `schemas.py`).
+- [x] Tick the three #134 boxes this part closes.
+- [x] Commit `docs: M4.1.3's journal entry`.
+- [x] Final review by a fresh reviewer over the branch, then one fix pass and the pull request.
