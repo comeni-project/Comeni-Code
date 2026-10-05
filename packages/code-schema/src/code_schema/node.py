@@ -348,24 +348,59 @@ def read_node(
     if node_yaml is None or body is None:
         return None, problems
 
+    near_misses = _near_misses_of_exam(folder, where)
+    exam_text: str | None = None
+    if (folder / EXAM_FILE).is_file():
+        exam_text, exam_error = _read_text(folder / EXAM_FILE)
+        if exam_error is not None:
+            near_misses.append(
+                Problem(file=f"{where}{EXAM_FILE}", code="CS0022", message=exam_error)
+            )
+    node, problems = parse_node_files(
+        node_yaml,
+        body,
+        exam_text,
+        node_id=folder.name,
+        regions=regions,
+        providers=providers,
+        where=where,
+    )
+    if not near_misses:
+        return node, problems
+    problems = sorted([*problems, *near_misses], key=Problem.sort_key)
+    if node is None or any(problem.refuses for problem in problems):
+        return None, problems
+    return node, problems
+
+
+def parse_node_files(
+    node_yaml: str,
+    body: str,
+    exam_yaml: str | None,
+    *,
+    node_id: str,
+    regions: Collection[str],
+    providers: dict[str, Provider] | None,
+    where: str,
+) -> tuple[Node | None, list[Problem]]:
+    """A node from its three texts, as a folder holds them (M4.4 spec, M4W.3). Never raises.
+
+    `read_node` reads a folder with it, and a draft is read with it, so both are checked by one
+    path. `exam_yaml` is None when there is no exam.yaml; `where` is the folder's path, ending
+    in a slash, that each problem's file is named under.
+    """
     node, problems = parse_node(
         node_yaml,
         body,
-        node_id=folder.name,
+        node_id=node_id,
         regions=regions,
         providers=providers,
         file=f"{where}{NODE_FILE}",
     )
-    problems += _near_misses_of_exam(folder, where)
     exam: tuple[ExamQuestion, ...] = ()
-    if (folder / EXAM_FILE).is_file():
-        exam_text, exam_error = _read_text(folder / EXAM_FILE)
-        if exam_error is not None:
-            problems.append(Problem(file=f"{where}{EXAM_FILE}", code="CS0022", message=exam_error))
-        else:
-            assert exam_text is not None
-            exam, exam_problems = parse_exam(exam_text, file=f"{where}{EXAM_FILE}", node=node)
-            problems += exam_problems
+    if exam_yaml is not None:
+        exam, exam_problems = parse_exam(exam_yaml, file=f"{where}{EXAM_FILE}", node=node)
+        problems = [*problems, *exam_problems]
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems

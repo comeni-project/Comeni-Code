@@ -410,3 +410,76 @@ def test_a_hand_built_node_reads_its_blocks_from_its_body() -> None:
         body="Prose.\n\n:::{try} kmer-count\n:::\n",
     )
     assert node.blocks == (Text("Prose.\n\n"), Try("kmer-count"))
+
+
+# M4.4 (spec M4W.3): a node is parsed from its three texts, so a folder and a draft share one path.
+
+FIXTURE_ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
+
+
+def _texts(folder: Path) -> tuple[str, str, str | None]:
+    exam = folder / "exam.yaml"
+    return (
+        (folder / "node.yaml").read_text(encoding="utf-8"),
+        (folder / "body.md").read_text(encoding="utf-8"),
+        exam.read_text(encoding="utf-8") if exam.is_file() else None,
+    )
+
+
+def test_parse_node_files_reads_a_node_as_its_folder_does() -> None:
+    from code_schema import parse_node_files, read_content
+
+    content = read_content(FIXTURE_ROOT)
+    folder = FIXTURE_ROOT / content.folders["tpm"]
+    node_yaml, body, exam_yaml = _texts(folder)
+    node, problems = parse_node_files(
+        node_yaml,
+        body,
+        exam_yaml,
+        node_id="tpm",
+        regions=set(content.regions),
+        providers=content.providers,
+        where=f"{content.folders['tpm']}/",
+    )
+    assert problems == []
+    assert node == content.nodes["tpm"]
+    assert len(node.exam) == 4
+
+
+def test_parse_node_files_names_each_file_in_its_problems() -> None:
+    from code_schema import parse_node_files, read_content
+
+    content = read_content(FIXTURE_ROOT)
+    node_yaml, body, exam_yaml = _texts(FIXTURE_ROOT / content.folders["tpm"])
+    assert exam_yaml is not None
+    node, problems = parse_node_files(
+        node_yaml.replace("level: introductory", "level: expert"),
+        body,
+        exam_yaml.replace("answer: 1000000", "answer: lots"),
+        node_id="tpm",
+        regions=set(content.regions),
+        providers=content.providers,
+        where="transcriptomics/tpm/",
+    )
+    assert node is None
+    assert {problem.file for problem in problems} == {
+        "transcriptomics/tpm/node.yaml",
+        "transcriptomics/tpm/exam.yaml",
+    }
+
+
+def test_parse_node_files_without_an_exam_has_no_pool() -> None:
+    from code_schema import parse_node_files, read_content
+
+    content = read_content(FIXTURE_ROOT)
+    node_yaml, body, _ = _texts(FIXTURE_ROOT / content.folders["tpm"])
+    node, _ = parse_node_files(
+        node_yaml,
+        body,
+        None,
+        node_id="tpm",
+        regions=set(content.regions),
+        providers=content.providers,
+        where="transcriptomics/tpm/",
+    )
+    assert node is not None and node.exam == ()
