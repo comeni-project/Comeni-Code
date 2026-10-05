@@ -3,6 +3,7 @@
 M0 part 2 spec, P2.3.
 """
 
+from code_api.config.auth import github_providers, mailers
 from code_api.config.env import Env, database_from_url
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
@@ -20,6 +21,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Ninja in INSTALLED_APPS serves the docs page from its bundled files, not a CDN (part 2, P2.5).
     "ninja",
+    # Accounts (M4.3 spec, M4A.3): allauth, headless, with GitHub as its one provider.
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.github",
+    "allauth.headless",
     "code_api.accounts",
     "code_api.content",
 ]
@@ -32,6 +39,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -56,6 +64,35 @@ DATABASES = {"default": database_from_url(ENV.database_url.get_secret_value())}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# allauth, headless and browser-only (M4A.3): its JSON API at /_allauth/browser/v1/, none of its
+# HTML pages, and redirects back to the web app, whose screens arrive in M4.8.
+HEADLESS_ONLY = True
+HEADLESS_CLIENTS = ("browser",)
+HEADLESS_FRONTEND_URLS = {
+    "account_signup": f"{ENV.web_origin}/join",
+    "socialaccount_login_error": f"{ENV.web_origin}/sign-in/error",
+}
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
+SOCIALACCOUNT_PROVIDERS = github_providers(ENV)
+
+# The session and CSRF cookies (M4A.3): HttpOnly, Lax, two weeks; Secure on a hosted stack.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 14 * 24 * 60 * 60
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = ENV.secure_cookies
+CSRF_COOKIE_SECURE = ENV.secure_cookies
+CSRF_TRUSTED_ORIGINS = [ENV.web_origin]
+
+# Mail: the console unless an SMTP host is set.
+MAILERS = mailers(ENV)
+DEFAULT_FROM_EMAIL = ENV.email_from
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},

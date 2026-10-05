@@ -50,5 +50,10 @@ exclude = ['^tests/guards/fixtures/']
 mypy_path = ["tests", "apps/api/src"]
 explicit_package_bases = true
 
+# allauth ships no type information (no py.typed); its imports are typed as Any, and only there.
+[[tool.mypy.overrides]]
+module = ["allauth.*"]
+ignore_missing_imports = true
+
 [tool.django-stubs]
 django_settings_module = "code_api.config.settings"
