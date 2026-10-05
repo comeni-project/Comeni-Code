@@ -77,6 +77,7 @@ HEADLESS_FRONTEND_URLS = {
     "account_signup": f"{ENV.web_origin}/join",
     "socialaccount_login_error": f"{ENV.web_origin}/sign-in/error",
 }
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 SOCIALACCOUNT_PROVIDERS = github_providers(ENV)

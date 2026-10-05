@@ -27,7 +27,8 @@ def test_the_user_model_is_ours() -> None:
 
 @pytest.mark.django_db
 def test_a_user_round_trips() -> None:
-    User.objects.create_user(username="ada", email="ada@example.org", password="x" * 16)
-    stored = User.objects.get(username="ada")
+    # M4.3 (spec M4A.1): a user is keyed by email; there is no username.
+    User.objects.create_user("ada@example.org", password="x" * 16)
+    stored = User.objects.get(email="ada@example.org")
     assert stored.email == "ada@example.org"
     assert stored.check_password("x" * 16)
