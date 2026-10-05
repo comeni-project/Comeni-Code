@@ -971,7 +971,7 @@
     },
     "/api/invites/{token}/accept": {
       "post": {
-        "description": "Put the invite in the session; sign-up through allauth then reads it (M4A.2).",
+        "description": "Put the invite in the session; sign-up through allauth then reads it (M4A.2).\n\nIt changes the session, so it needs the CSRF token, though no account: otherwise a third-party\npage could plant an invite in a visitor's session (#163).",
         "operationId": "code_api_accounts_api_accept",
         "parameters": [
           {
@@ -994,6 +994,16 @@
               }
             },
             "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "404": {
             "content": {

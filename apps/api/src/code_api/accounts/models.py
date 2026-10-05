@@ -19,8 +19,14 @@ class UserManager(BaseUserManager["User"]):
         return user
 
     def create_superuser(self, email: str, password: str | None = None, **fields: Any) -> User:
+        from allauth.account.models import EmailAddress
+
         fields |= {"is_staff": True, "is_superuser": True, "role": Role.OPERATOR}
-        return self.create_user(email, password, **fields)
+        user = self.create_user(email, password, **fields)
+        # One verified address, as an invite's sign-up records, so the one-address rule holds
+        # for an operator made from the command line too (#163).
+        EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
+        return user
 
 
 class User(AbstractBaseUser, PermissionsMixin):

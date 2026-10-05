@@ -1645,3 +1645,14 @@ codes:
       Use a public id from the team list.
     explanation: |
       Members are named by their public id, never the database's key (M4A.1).
+
+  CA0110:
+    emitted_by: api
+    concern: accounts
+    says: accepting an invite needs the CSRF token
+    refuses: true
+    fix: |
+      Accept the invite from Code's own page, which sends the token from its csrftoken cookie.
+    explanation: |
+      Accepting changes the session, so a third-party page must not be able to do it on a
+      visitor's behalf (#163).

@@ -1255,3 +1255,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Use a public id from the team list.
 
 **Why.** Members are named by their public id, never the database's key (M4A.1).
+
+#### CA0110 — accepting an invite needs the CSRF token
+
+*Refuses.*
+
+**Fix.** Accept the invite from Code's own page, which sends the token from its csrftoken cookie.
+
+**Why.** Accepting changes the session, so a third-party page must not be able to do it on a visitor's behalf (#163).

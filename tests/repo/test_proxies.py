@@ -27,3 +27,14 @@ def test_nginx_forwards_each_api_path() -> None:
 def test_nginx_keeps_invite_links_out_of_referers() -> None:
     # An invite's token is in the /join/ path; a Referer must not carry it to another site (#161).
     assert re.search(r"add_header Referrer-Policy same-origin always;", NGINX)
+
+
+def test_nginx_passes_the_host_with_its_port() -> None:
+    # #163: `$host` drops the port, so Django's CSRF origin check failed every write at :8090.
+    assert "proxy_set_header Host $host;" not in NGINX
+    assert NGINX.count("proxy_set_header Host $http_host;") == 3
+
+
+def test_compose_points_invite_links_at_its_own_web_app() -> None:
+    compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+    assert "CODE_WEB_ORIGIN: http://127.0.0.1:8090" in compose

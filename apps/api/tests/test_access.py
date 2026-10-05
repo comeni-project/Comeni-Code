@@ -142,3 +142,41 @@ def test_the_cache_is_redis() -> None:
     cache = caches(Env())["default"]
     assert cache["BACKEND"] == "django.core.cache.backends.redis.RedisCache"
     assert cache["LOCATION"] == Env().redis_url.get_secret_value()
+
+
+def test_a_write_through_the_stacks_origin_passes_csrf() -> None:
+    # #163: behind nginx the Host carries the port, and the browser's Origin matches it.
+    client = Client(enforce_csrf_checks=True)
+    client.force_login(member(Role.OPERATOR))
+    client.cookies["csrftoken"] = "a" * 32
+    response = client.post(
+        "/api/team/invites",
+        {"email": "new@example.org", "role": "author"},
+        content_type="application/json",
+        headers={"X-CSRFToken": "a" * 32, "Origin": "http://127.0.0.1:8090"},
+        HTTP_HOST="127.0.0.1:8090",
+    )
+    assert response.status_code == 201
+
+
+def test_https_is_read_from_the_proxy() -> None:
+    from django.conf import settings
+
+    assert settings.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+@pytest.mark.parametrize(
+    ("method", "url"),
+    [
+        ("get", "/api/team/members"),
+        ("get", "/api/team/invites"),
+        ("post", "/api/team/invites"),
+        ("patch", "/api/team/members/00000000-0000-0000-0000-000000000000"),
+        ("post", "/api/team/members/00000000-0000-0000-0000-000000000000/deactivate"),
+        ("delete", "/api/team/invites/00000000-0000-0000-0000-000000000000"),
+    ],
+)
+def test_every_studio_route_is_401_signed_out(client: Client, method: str, url: str) -> None:
+    # Spec M4A.5, #163.
+    response = getattr(client, method)(url, content_type="application/json")
+    assert (response.status_code, response.json()["code"]) == (401, "CA0101")

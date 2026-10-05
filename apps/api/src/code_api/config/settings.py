@@ -108,6 +108,9 @@ CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = ENV.secure_cookies
 CSRF_COOKIE_SECURE = ENV.secure_cookies
 CSRF_TRUSTED_ORIGINS = [ENV.web_origin]
+# Behind nginx (and a hosted stack's TLS), the scheme comes from the proxy, so allauth builds
+# GitHub's redirect URI with https; nginx sets the header itself, so a client cannot forge it.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # The cache is Redis, so allauth's rate limits are shared by every worker (#161).
 CACHES = caches(ENV)

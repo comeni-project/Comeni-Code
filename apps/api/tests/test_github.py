@@ -143,3 +143,32 @@ def test_one_invite_makes_one_account_by_github(client: Client) -> None:
     assert Client().post(f"/api/invites/{token}/accept").status_code == 410
     invite.refresh_from_db()
     assert invite.accepted_by == User.objects.get()
+
+
+def test_a_deactivated_members_github_signs_nobody_in(client: Client) -> None:
+    accepted_invite(client)
+    sign_in_with_github(client)
+    User.objects.update(is_active=False)
+    again = Client()
+    sign_in_with_github(again)
+    assert again.get("/api/me").json() == {"user": None}
+    assert User.objects.count() == 1
+
+
+def test_githubs_pending_sign_up_form_completes_once(client: Client) -> None:
+    # #163: when auto sign-up cannot finish, allauth keeps the sign-up pending for a form; the
+    # form's save spends the invite once, and a failure leaves it held.
+    _, token = invites.mint("ada@example.org", Role.REVIEWER, by=None)
+    client.post(f"/api/invites/{token}/accept")
+    squatter = User.objects.create_user("ada@example.org")  # the address is taken meanwhile
+    sign_in_with_github(client)
+    assert User.objects.count() == 1
+    squatter.delete()
+    response = client.post(
+        "/_allauth/browser/v1/auth/provider/signup",
+        json.dumps({"email": "ada@example.org"}),
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+    user = User.objects.get()
+    assert (user.email, user.role) == ("ada@example.org", Role.REVIEWER)

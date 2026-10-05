@@ -267,3 +267,35 @@ def test_allauths_responses_name_a_user_by_public_id(client: Client) -> None:
     user = signed_up(client)
     session = client.get("/_allauth/browser/v1/auth/session").json()
     assert session["data"]["user"]["id"] == str(user.public_id)
+
+
+def test_accepting_an_invite_needs_the_csrf_token() -> None:
+    # #163: a third-party page cannot plant an invite in a visitor's session.
+    from code_api.accounts import invites
+
+    _, token = invites.mint("ada@example.org", Role.AUTHOR, by=None)
+    client = Client(enforce_csrf_checks=True)
+    response = client.post(f"/api/invites/{token}/accept")
+    assert (response.status_code, response.json()["code"]) == (403, "CA0110")
+    client.cookies["csrftoken"] = "a" * 32
+    response = client.post(f"/api/invites/{token}/accept", headers={"X-CSRFToken": "a" * 32})
+    assert response.status_code == 200
+
+
+def test_an_invite_needs_an_email_address(client: Client) -> None:
+    operator(client)
+    response = client.post(
+        "/api/team/invites",
+        {"email": "not an address", "role": "author"},
+        content_type="application/json",
+    )
+    assert response.status_code == 422
+    assert not Invite.objects.exists()
+
+
+def test_a_superuser_has_one_verified_address() -> None:
+    from allauth.account.models import EmailAddress
+
+    user = User.objects.create_superuser("root@example.org", password=PASSWORD)
+    (address,) = EmailAddress.objects.filter(user=user)
+    assert (address.email, address.verified, address.primary) == ("root@example.org", True, True)

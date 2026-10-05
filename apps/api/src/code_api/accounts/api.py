@@ -7,9 +7,13 @@ since the invitee has none yet.
 from datetime import datetime
 from uuid import UUID
 
-from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.db import connection, transaction
 from django.http import HttpRequest
 from ninja import Router, Schema, Status
+from ninja.utils import check_csrf
+from pydantic import field_validator
 
 from code_api.accounts import invites
 from code_api.accounts.access import studio
@@ -46,6 +50,15 @@ class MeOut(Schema):
 class InviteIn(Schema):
     email: str
     role: Role
+
+    @field_validator("email")
+    @classmethod
+    def _an_address(cls, value: str) -> str:
+        try:
+            validate_email(value)
+        except ValidationError as wrong:
+            raise ValueError(f"{value!r} is not an email address") from wrong
+        return value
 
 
 class InviteOut(Schema):
@@ -98,9 +111,18 @@ def look_up(request: HttpRequest, token: str) -> Status[InviteOut] | Status[Mess
     return Status(200, InviteOut(email=found.email, role=found.role))
 
 
-@router.post("/invites/{token}/accept", response={200: InviteOut, 404: Message, 410: Message})
+@router.post(
+    "/invites/{token}/accept", response={200: InviteOut, 403: Message, 404: Message, 410: Message}
+)
 def accept(request: HttpRequest, token: str) -> Status[InviteOut] | Status[Message]:
-    """Put the invite in the session; sign-up through allauth then reads it (M4A.2)."""
+    """Put the invite in the session; sign-up through allauth then reads it (M4A.2).
+
+    It changes the session, so it needs the CSRF token, though no account: otherwise a third-party
+    page could plant an invite in a visitor's session (#163).
+    """
+    if check_csrf(request) is not None:
+        detail = "Accepting an invite needs the page's CSRF token."
+        return Status(403, Message(detail=detail, code="CA0110"))
     found = _usable(token)
     if isinstance(found, Status):
         return found
@@ -166,11 +188,21 @@ _LAST_OPERATOR = Message(
 _NO_MEMBER = Message(detail="No member has this id.", code="CA0109")
 
 
+_TEAM_LOCK = 0x7EA4  # one advisory lock for every change to the team
+
+
+def _team_change() -> None:
+    """Serialise team changes in this transaction. Two operators demoting each other at once would
+    otherwise each lock one row and wait on the other's: a deadlock, answered 500 (#163)."""
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(%s)", [_TEAM_LOCK])
+
+
 def _leaves_an_operator(member: User) -> bool:
-    """Whether another active operator remains if `member` stops being one. Counted under a lock
-    on the operators' rows, so two operators stepping down at once cannot both succeed."""
-    operators = User.objects.select_for_update().filter(role=Role.OPERATOR, is_active=True)
-    return any(operator.pk != member.pk for operator in operators)
+    """Whether another active operator remains if `member` stops being one. Read while the team
+    lock is held, so two operators stepping down at once cannot both succeed."""
+    others = User.objects.filter(role=Role.OPERATOR, is_active=True).exclude(pk=member.pk)
+    return others.exists()
 
 
 @router.get("/team/members", auth=studio(Role.OPERATOR), response=list[TeamMemberOut])
@@ -188,7 +220,8 @@ def change_role(
     request: HttpRequest, public_id: UUID, body: RoleIn
 ) -> Status[TeamMemberOut] | Status[Message]:
     with transaction.atomic():
-        member = User.objects.select_for_update().filter(public_id=public_id).first()
+        _team_change()
+        member = User.objects.filter(public_id=public_id).first()
         if member is None:
             return Status(404, _NO_MEMBER)
         demoted = member.role == Role.OPERATOR and body.role != Role.OPERATOR
@@ -207,7 +240,8 @@ def change_role(
 def deactivate(request: HttpRequest, public_id: UUID) -> Status[TeamMemberOut] | Status[Message]:
     """The account and its history stay; it can no longer sign in, and its session ends."""
     with transaction.atomic():
-        member = User.objects.select_for_update().filter(public_id=public_id).first()
+        _team_change()
+        member = User.objects.filter(public_id=public_id).first()
         if member is None:
             return Status(404, _NO_MEMBER)
         if member.role == Role.OPERATOR and member.is_active and not _leaves_an_operator(member):

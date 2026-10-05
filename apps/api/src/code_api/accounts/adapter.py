@@ -7,6 +7,7 @@ new user takes its role in the same transaction that spends it.
 """
 
 import dataclasses
+from collections.abc import Callable
 from typing import Any
 
 from allauth.account.adapter import DefaultAccountAdapter
@@ -21,7 +22,27 @@ from django.db import transaction
 from django.http import HttpRequest
 
 from code_api.accounts import invites
-from code_api.accounts.models import User
+from code_api.accounts.models import Invite, User
+
+
+def _held_or_forbidden(request: HttpRequest) -> Invite:
+    """The session's pending invite; with none, allauth's JSON 403."""
+    invite = invites.held(request)
+    if invite is None:
+        raise ImmediateHttpResponse(ForbiddenResponse(request))
+    return invite
+
+
+def _spend(request: HttpRequest, invite: Invite, save: Callable[[], User]) -> User:
+    """Save the new user and spend the invite in one transaction, for password and GitHub alike.
+    Losing a race for the invite rolls the user back and answers allauth's JSON 403 (#161)."""
+    try:
+        with transaction.atomic():
+            saved = save()
+            invites.accept(request, invite, saved)
+    except invites.NotPending:
+        raise ImmediateHttpResponse(ForbiddenResponse(request)) from None
+    return saved
 
 
 class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]
@@ -37,20 +58,15 @@ class AccountAdapter(DefaultAccountAdapter):  # type: ignore[misc]
         return str(super().clean_email(email))
 
     def save_user(self, request: HttpRequest, user: User, form: Any, commit: bool = True) -> User:
-        invite = invites.held(request)
-        if invite is None:
-            raise ImmediateHttpResponse(ForbiddenResponse(request))
         # The link proved the address: allauth records it verified (#161), so it cannot be
         # swapped for an unverified one later.
+        invite = _held_or_forbidden(request)
         self.stash_verified_email(request, invite.email)
-        try:
-            with transaction.atomic():
-                saved: User = super().save_user(request, user, form, commit=True)
-                invites.accept(request, invite, saved)
-        except invites.NotPending:
-            # Another sign-up spent the invite first; this one's user was rolled back (#161).
-            raise ImmediateHttpResponse(ForbiddenResponse(request)) from None
-        return saved
+        return _spend(
+            request,
+            invite,
+            lambda: super(AccountAdapter, self).save_user(request, user, form, commit=True),
+        )
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
@@ -78,16 +94,17 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
         return user
 
     def save_user(self, request: HttpRequest, sociallogin: SocialLogin, form: Any = None) -> User:
-        invite = invites.held(request)
-        if invite is None:
-            raise ImmediateHttpResponse(ForbiddenResponse(request))
-        try:
-            with transaction.atomic():
-                saved: User = super().save_user(request, sociallogin, form)
-                invites.accept(request, invite, saved)
-        except invites.NotPending:
-            raise ImmediateHttpResponse(ForbiddenResponse(request)) from None
-        return saved
+        if form is not None:
+            # allauth's pending sign-up form saves through the account adapter, which spends the
+            # invite itself; spending it here too always failed (#163).
+            saved: User = super().save_user(request, sociallogin, form)
+            return saved
+        invite = _held_or_forbidden(request)
+        return _spend(
+            request,
+            invite,
+            lambda: super(SocialAccountAdapter, self).save_user(request, sociallogin, form),
+        )
 
 
 class HeadlessAdapter(DefaultHeadlessAdapter):  # type: ignore[misc]

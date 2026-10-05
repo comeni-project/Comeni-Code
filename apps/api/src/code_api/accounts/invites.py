@@ -135,7 +135,8 @@ def accept(request: HttpRequest, invite: Invite, user: User) -> None:
     locked.accepted_at = timezone.now()
     locked.accepted_by = user
     locked.save(update_fields=["accepted_at", "accepted_by"])
-    request.session.pop(SESSION_KEY, None)
+    # Only once the sign-up commits: a rolled-back one keeps its invite held (#163).
+    transaction.on_commit(lambda: request.session.pop(SESSION_KEY, None))
 
 
 def revoke(invite: Invite) -> None:
