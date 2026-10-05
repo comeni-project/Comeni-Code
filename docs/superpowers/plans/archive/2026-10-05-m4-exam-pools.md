@@ -211,17 +211,17 @@ filled by `rebuild_index`.
   untouched).
 - [x] A fresh reviewer over the whole branch; deferred minors go in one `deferred` issue.
 - [x] The journal entry for M4.2 (what changed, decisions, what is next), the plan ticked.
-- [ ] Push, open the pull request (closing #120's sub-issues 1–6), wait for checks with
+- [x] Push, open the pull request (closing #120's sub-issues 1–6), wait for checks with
   `gh pr checks --watch > log; rc=$?`. Merge only on the operator's yes.
 
 ### Task 7: The content repository's pin (M4E.8)
 
 Runs after Task 6's pull request merges, since the pin is that merge commit.
 
-- [ ] Clone `comeni-project/comeni-code-content` into the scratchpad; branch `ci/pin-m4-2`.
-- [ ] Rewrite each `{% try <id> %}` marker to `:::{try} <id>` then `:::`, by a scratchpad script
+- [x] Clone `comeni-project/comeni-code-content` into the scratchpad; branch `ci/pin-m4-2`.
+- [x] Rewrite each `{% try <id> %}` marker to `:::{try} <id>` then `:::`, by a scratchpad script
   (not committed), and move the SHA in `.github/workflows/validate.yml` to M4.2's merge commit.
-- [ ] Run `uv run code-schema validate <clone>` from this repository at that commit. Expected: exit 0.
-- [ ] **Show the operator the diff before opening the pull request.** Then open it, wait for its
+- [x] Run `uv run code-schema validate <clone>` from this repository at that commit. Expected: exit 0.
+- [x] **Show the operator the diff before opening the pull request.** Then open it, wait for its
   checks, and merge only on the operator's yes.
-- [ ] Close the M4.2.7 sub-issue and #120 citing both pull requests.
+- [x] Close the M4.2.7 sub-issue and #120 citing both pull requests.

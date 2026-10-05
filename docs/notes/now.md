@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-05** (M4.1 closed, with M4.1.3). `CLAUDE.md` before the first
+**Compacted through: 2026-10-05** (M4.2 closed). `CLAUDE.md` before the first
 compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
@@ -14,8 +14,10 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   back end first, screens last; the list and its reasons are in the archived *M4 in parts* entry.
   (2026-09-29)
 - **M4.1 is done** (#119): diagnostic codes, the block document, and a refactor before exam pools
-  (M4.1.3, #138, PR #139). **M4.2, exam pools (#120), is next**, from tutor spec T7.1, on the
-  question union and `code_schema.records`. (2026-09-29, 2026-10-05)
+  (M4.1.3, #138, PR #139). (2026-09-29, 2026-10-05)
+- **M4.2 is done** (#120, PR #151): exam pools in `exam.yaml`, warnings, and the content
+  repository's pin moved (comeni-code-content#6). **M4.3, accounts, invites and roles (#121), is
+  next**, on the operator's word. (2026-10-05)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -39,8 +41,9 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 ## The content format (`code-schema`)
 
 - A node is a folder: `node.yaml` (id from the folder, title, claim, region, level, minutes, links,
-  resources, try questions) and a MyST `body.md`; the writer round-trips both byte for byte.
-  (2026-09-18, 2026-09-29)
+  resources, try questions), a MyST `body.md` and an optional `exam.yaml`; the writer round-trips
+  all three byte for byte, and removes `exam.yaml` for a node without a pool. (2026-09-18 to
+  2026-10-05)
 - **The body is blocks**: text between top-level fences, `:::{try} <id>` then `:::`, and
   `:::{misconception|caveat|convention} <title>` … `:::`. Fences follow CommonMark; later kinds are
   refused by name until M6; a body its blocks would not write back unchanged is CS0415. (2026-09-29)
@@ -51,17 +54,27 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   most four). *helps* and *any-of* are refused until content needs them. (2026-09-18, 2026-09-19)
 - **A need is what understanding the claim requires**, never a tool or an implementation detail:
   *de Bruijn graphs* sits below *Salmon*, not on its route. (2026-09-18, 2026-09-19)
-- `code-schema validate <root>` checks every node and the graph, exits 0/1/2, and speaks GitHub
-  annotations with `--format github`. (2026-09-18)
+- `code-schema validate <root>` checks every node and the graph, exits 0/1/2 (1 only for errors),
+  and speaks GitHub annotations with `--format github`. (2026-09-18, 2026-10-05)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
-- **Try questions** are `ChoiceQuestion | NumberQuestion`, with hints (never the answer) and a
-  rationale. Their answer reaches the browser; exam answers must not. (2026-09-20, 2026-10-05)
+- **A question composes an answer**: `Answer = ChoiceAnswer | NumberAnswer`, inside `TryQuestion`
+  (hints, never the answer) or `ExamQuestion` (no hints, an optional `level`, a `misconception`
+  per wrong option naming a callout). One reader in `code_schema.questions` serves both pools.
+  (2026-09-20, 2026-10-05)
+- **An exam pool** (`code_schema.exam`, CS08xx): at most 40 questions, ids not shared with try
+  questions. Under 4 is a *warning*: the node is left out of self-tests. **Exam answers are not a
+  secret in v1**: the content repository is public and self-tests certify nothing (spec M4E.6).
+  (2026-10-05)
+- **Warnings never refuse** (M4E.4): `Problem.refuses` reads the registry; `Content.errors` is what
+  `validate` (exit 1, `::error` vs `::warning`), the weaver and `rebuild_index` refuse on.
+  (2026-10-05)
 - **`code_schema.records`** (`Field`, `Entry`) reads every nested list of mappings; links,
   resources and questions keep their own rules on it. `Node.blocks` is a property over the body,
   and `block_json` / `block_from_json` are the one block codec. (2026-10-05)
 - `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route from no background to *Salmon* and nine
-  nodes beside it. Tests never read the real content repository. (2026-09-19)
+  nodes beside it; TPM carries the one exam pool, of four. Tests never read the real content
+  repository. (2026-09-19, 2026-10-05)
 
 ## The index and the API (`apps/api`)
 
@@ -73,7 +86,8 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   error bodies carry a `code`. (2026-09-19 to 2026-09-29)
 - **`code_api/content/reads.py` holds every read** (with `unbuilt()` for 503, `missing()` for 404)
   and `code_api/content/schemas.py` every response schema. The index stores blocks only:
-  migration 0005 dropped `Node.body`. (2026-10-05)
+  migration 0005 dropped `Node.body`. Exam pools are their own `ExamQuestion` table (0006); **no
+  endpoint sends them** until the self-test spec decides. (2026-10-05)
 - **Each request loads the whole index**: fine at 26 nodes; later a graph cached per digest.
   (2026-09-20)
 
@@ -131,6 +145,9 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 - **M4's spec questions**: whether a draft locks its node and how it relates to the index (M4.4);
   webhook or polling (M4.7); which real node lands first (M4.9). (2026-09-29)
+- **For the self-test part** (M4E.7): a cap of questions per node in one exam, unseen questions
+  first; whether grading runs in the browser; whether exam rows keep an empty `misconception`.
+  (2026-10-05)
 - **Deferred minors**: #131, #134, and M4.1.3's four review minors, listed in PR #139. (2026-10-05)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
@@ -151,14 +168,18 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **An app must declare every workspace package it imports**; the image installs only those.
   (2026-09-20)
 - **Stop a server by its PID**; never `pkill -f` a pattern in your own command line. (2026-09-17)
-- **The content repository still writes `{% try %}`** on an older validator; its pin moves in M4.2,
-  before the first landing. (2026-09-29)
-- **An audit stack** (Compose project `code-audit`: Postgres 5434, Redis 6381, web 8091) is kept up
-  for debugging; reach it with `CODE_DATABASE_URL` and `CODE_REDIS_URL`; after a reboot,
-  `docker start code-audit-postgres-1 code-audit-redis-1`. (2026-09-29, 2026-10-05)
-- **This machine's Node is 22**: web checks run in the `node:24` image, one `npm` command per
-  `docker run` (a `sh -c` script is refused by the harness). The published canvas shows *Page not
-  found* here. Merged branches are kept: retarget a stacked pull request first. (2026-09-29)
+- **`comeni-code-content` holds no nodes yet**; its validator is pinned at M4.2's merge, `38d09dc`.
+  (2026-10-05)
+- **Docker is gone from this machine; podman is here.** Postgres 18 and Redis 8 run as
+  `code-dev-postgres` (:5433) and `code-dev-redis` (:6380), the `.env` ports; after a reboot,
+  `podman start code-dev-postgres code-dev-redis`. Compose and the `code-audit` stack are not set
+  up again. (2026-10-05)
+- **Two pytest runs against one Postgres break each other** ("database test_code does not
+  exist"): never run the API tests while a reviewer does. (2026-10-05)
+- **This machine's Node is 22**: web checks need the `node:24` image, one `npm` command per run (a
+  `sh -c` script is refused by the harness); not yet tried under podman. The published canvas
+  shows *Page not found* here. Merged branches are kept: retarget a stacked pull request first.
+  (2026-09-29, 2026-10-05)
 - **CI may not start when a pull request opens**: check `gh run list`; closing and reopening it
   sends the event. (2026-10-05)
 - **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
