@@ -14,6 +14,7 @@ from schema.content_helpers import SMALL_POOL
 from code_api.content import index
 from code_api.content.index import content_digest, rebuild_index
 from code_api.content.models import (
+    ExamQuestion,
     IndexBuild,
     Link,
     Node,
@@ -22,7 +23,15 @@ from code_api.content.models import (
     Region,
     Resource,
 )
-from code_schema import Level, block_json, read_content, read_node, write_node_folder
+from code_schema import (
+    ChoiceAnswer,
+    Level,
+    NumberAnswer,
+    block_json,
+    read_content,
+    read_node,
+    write_node_folder,
+)
 from code_schema import Link as SchemaLink
 from code_schema import Node as SchemaNode
 
@@ -311,3 +320,54 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
     assert stored[1] == {"kind": "try", "question": "kmers-per-read"}
     callout = Node.objects.get(id="tpm").blocks[1]
     assert (callout["kind"], callout["callout"]) == ("callout", "misconception")
+
+
+# M4.2: the index keeps each node's exam pool, in its own table (spec M4E.5).
+
+
+def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
+    rebuild_index(FIXTURES)
+    parsed = read_content(FIXTURES).nodes["tpm"].exam
+    rows = list(ExamQuestion.objects.filter(node_id="tpm").order_by("position"))
+    assert [row.question_id for row in rows] == [question.id for question in parsed]
+    assert [row.position for row in rows] == [0, 1, 2, 3]
+    for row, question in zip(rows, parsed, strict=True):
+        assert (row.kind, row.ask, row.rationale) == (
+            question.kind,
+            question.ask,
+            question.rationale,
+        )
+        assert row.level == (question.level.value if question.level else None)
+        match question.answer:
+            case ChoiceAnswer(options=options):
+                assert row.options == [
+                    {"text": o.text, "right": o.right, "misconception": o.misconception}
+                    for o in options
+                ]
+                assert row.answer is None
+            case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
+                assert (row.answer, row.unit, row.tolerance) == (value, unit, tolerance)
+                assert row.options == []
+
+
+def test_only_tpm_has_a_pool_and_a_rebuild_replaces_it() -> None:
+    rebuild_index(FIXTURES)
+    rebuild_index(FIXTURES)
+    assert ExamQuestion.objects.count() == 4
+    assert set(ExamQuestion.objects.values_list("node_id", flat=True)) == {"tpm"}
+
+
+def test_a_refused_build_leaves_the_exam_pool_standing(tmp_path: Path) -> None:
+    rebuild_index(FIXTURES)
+    root = copy_of_fixtures(tmp_path)
+    (root / "providers.yaml").unlink()
+    assert rebuild_index(root).outcome == IndexBuild.Outcome.REFUSED
+    assert ExamQuestion.objects.filter(node_id="tpm").count() == 4
+
+
+def test_the_digest_covers_exam_yaml(tmp_path: Path) -> None:
+    before = content_digest(FIXTURES, read_content(FIXTURES))
+    root = copy_of_fixtures(tmp_path)
+    exam = root / "transcriptomics" / "tpm" / "exam.yaml"
+    exam.write_text(exam.read_text().replace("answer: 750000", "answer: 750001"))
+    assert content_digest(root, read_content(root)) != before

@@ -95,6 +95,26 @@ class Question(models.Model):
     rationale = models.TextField()
 
 
+class ExamQuestion(models.Model):
+    """One exam question (spec M4E.5): a try question's shape without hints, with a level.
+
+    Its own table, so a listing of a node's try questions never needs a filter to stay one.
+    Options hold text, right and misconception; `level` is null when it is the node's own.
+    """
+
+    node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="exam")
+    position = models.PositiveIntegerField()
+    question_id = models.TextField()
+    kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
+    ask = models.TextField()
+    options = models.JSONField(default=list)
+    answer = models.FloatField(null=True)
+    unit = models.TextField(blank=True)
+    tolerance = models.FloatField(null=True)
+    level = models.TextField(choices=[(level.value, level.value) for level in Level], null=True)
+    rationale = models.TextField()
+
+
 class IndexBuild(models.Model):
     """One rebuild attempt, kept. The live index is the latest applied build (M1P5.5)."""
 

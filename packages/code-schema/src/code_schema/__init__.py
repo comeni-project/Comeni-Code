@@ -20,6 +20,7 @@ from code_schema.blocks import (
 )
 from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
+from code_schema.exam import ExamQuestion
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, read_node
 from code_schema.problems import Problem
@@ -36,6 +37,7 @@ __all__ = [
     "ChoiceAnswer",
     "Content",
     "Diagnostic",
+    "ExamQuestion",
     "Level",
     "Link",
     "Node",
