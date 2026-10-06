@@ -238,6 +238,10 @@ Decided while building, each with its reason; the plan's ledger holds the rest.
   branch is deleted and the landing refused. A landing claimed long ago is recovered, and one
   lost in the queue (Celery acknowledges on delivery) is run by the poller. A worker without the
   app's settings refuses the landing.
+- **The claim is a token** (#204): recovery takes a new claim, and a worker whose claim is gone
+  writes no branch, or closes the pull request it opened. Commit statuses count as failed checks
+  (the `review` check is one); an open landing without auto-merge becomes failed; close reads the
+  pull request first, so one merged since the last poll keeps its drafts.
 - **Routes in `studio/landing_api.py`**, their own router gated by operator, beside the drafts
   router; the poll interval is `WATCH_LANDINGS_SECONDS` in settings.
 - **The `review` check runs on `pull_request_target`** and posts a commit status, not a job in
