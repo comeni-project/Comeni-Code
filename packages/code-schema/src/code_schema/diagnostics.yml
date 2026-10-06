@@ -277,6 +277,18 @@ codes:
     explanation: |
       Every file is read as UTF-8, exactly, so it can be written back byte for byte (M1P1).
 
+  CS0023:
+    emitted_by: schema
+    concern: fields
+    says: a number is above its maximum
+    refuses: true
+    fix: |
+      Write a number no larger than the maximum the message gives. A node longer than ten hours is
+      several nodes: split it.
+    explanation: |
+      A node is a page read in one sitting, so its minutes stop at 600; a larger number is a typo,
+      and one past the index's integer column would make the rebuild fail (#175).
+
   # ── CS0100–CS0199 · links ─────────────────────────────────────────────────────────────────────
 
   CS0101:

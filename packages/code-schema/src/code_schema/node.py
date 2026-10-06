@@ -37,6 +37,7 @@ from code_schema.yaml_lines import Lines, load_mapping
 SCHEMA = 1
 NODE_FILE = "node.yaml"
 BODY_FILE = "body.md"
+MAX_MINUTES = 600  # one sitting (#175); a larger number is a typo
 _EXAM_SPELLINGS = {f"{stem}.{ext}" for stem in ("exam", "exams") for ext in ("yaml", "yml")}
 
 
@@ -77,7 +78,7 @@ def fields(regions: Collection[str]) -> tuple[Spec, ...]:
             check=in_registry(regions, noun="region", registry="regions.yaml"),
         ),
         Spec("level", required=True, check=one_of(tuple(Level), noun="level")),
-        Spec("minutes", required=True, check=whole_number(minimum=1)),
+        Spec("minutes", required=True, check=whole_number(minimum=1, maximum=MAX_MINUTES)),
     )
 
 

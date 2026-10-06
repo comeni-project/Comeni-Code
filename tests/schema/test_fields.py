@@ -60,6 +60,12 @@ def test_whole_number_refuses_text_even_when_it_looks_like_a_number() -> None:
     assert check(0) == Wrong("CS0014", "0 is not at least 1")
 
 
+def test_whole_number_refuses_above_its_maximum() -> None:
+    check = whole_number(minimum=1, maximum=600)
+    assert check(600) is None
+    assert check(601) == Wrong("CS0023", "601 is more than 600")
+
+
 def test_slug_states_the_pattern() -> None:
     check = slug(noun="region id")
     assert check("sequence-analysis") is None
