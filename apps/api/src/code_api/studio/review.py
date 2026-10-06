@@ -218,3 +218,44 @@ def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answer
         review.answers = {**review.answers, question_id: given}
         review.save(update_fields=["answers"])
     return Answered(question, given, right)
+
+
+# ── Approve (M4R.2, M4R.3) ──────────────────────────────────────────────────────────────────────
+
+
+class Unanswered(Exception):
+    def __init__(self, ids: list[str]) -> None:
+        super().__init__(", ".join(ids))
+        self.ids = ids
+
+
+def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
+    """Approve the submitted revision: a judge who answered all its questions, the checklist
+    still passing; an operator's own draft only with a reason, marked self-approved."""
+    with transaction.atomic():
+        locked = _locked(draft)
+        _need(locked, State.SUBMITTED)
+        own = _judge(locked, by)
+        current = _submitted(locked, revision)
+        why = _reason(reason) if own else reason.strip()
+        _passes(locked)
+        questions = asked(locked)
+        given = _given(locked, current.number, by)
+        missing = [question.id for question in questions if question.id not in given]
+        if missing:
+            raise Unanswered(missing)
+        wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
+        found = Review.objects.get(draft=locked, number=current.number, reviewer=by)
+        _move(locked, State.APPROVED)
+        record(
+            locked,
+            Kind.APPROVED,
+            by=by,
+            revision=current.number,
+            reason=why,
+            self_approved=own,
+            review=found,
+            answered=len(questions),
+            wrong=wrong,
+        )
+    return locked
