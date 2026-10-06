@@ -6,13 +6,18 @@ in one transaction (M4R.5), so two people acting at once run one after the other
 finds the state moved.
 """
 
+from dataclasses import dataclass
+from typing import Literal
+
 from django.db import transaction
 
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.studio import drafts
 from code_api.studio.log import record
-from code_api.studio.models import Draft, DraftEvent, Revision
+from code_api.studio.models import Draft, DraftEvent, Review, Revision
+from code_schema import ExamQuestion, TryQuestion
+from code_schema.grading import is_right
 
 State = Draft.State
 Kind = DraftEvent.Kind
@@ -140,3 +145,76 @@ def send_back(draft: Draft, *, reason: str, by: User) -> Draft:
         _move(locked, State.OPEN)
         record(locked, Kind.SENT_BACK, by=by, revision=drafts.latest(locked).number, reason=why)
     return locked
+
+
+# ── The review: the reviewer's answers to the submitted revision's questions (M4R.4) ───────────
+
+
+class NoSuchQuestion(Exception):
+    """The submitted revision asks no question with this id."""
+
+
+@dataclass(frozen=True)
+class Asked:
+    id: str
+    pool: Literal["try", "exam"]
+    question: TryQuestion | ExamQuestion
+
+
+@dataclass(frozen=True)
+class Answered:
+    asked: Asked
+    given: object | None  # None: not answered yet
+    right: bool | None
+
+
+def asked(draft: Draft) -> list[Asked]:
+    """Every question the latest revision asks: its try questions, then its exam pool."""
+    node, problems = drafts.node_of(draft)
+    if node is None:
+        raise drafts.Refused(problems)
+    tries: list[Asked] = [Asked(q.id, "try", q) for q in node.questions]
+    return tries + [Asked(q.id, "exam", q) for q in node.exam]
+
+
+def _reviewer(by: User) -> None:
+    if not by.can_act_as(Role.REVIEWER):
+        raise RoleTooLow()
+
+
+def _given(draft: Draft, number: int, by: User) -> dict[str, object]:
+    found = Review.objects.filter(draft=draft, number=number, reviewer=by).first()
+    return {} if found is None else dict(found.answers)
+
+
+def _graded(question: Asked, given: object | None) -> Answered:
+    if given is None:
+        return Answered(question, None, None)
+    return Answered(question, given, is_right(question.question.answer, given))
+
+
+def review_of(draft: Draft, *, by: User) -> list[Answered]:
+    """`by`'s answers to the submitted revision; a key is theirs to see only once answered."""
+    _reviewer(by)
+    _need(draft, State.SUBMITTED)
+    given = _given(draft, drafts.latest(draft).number, by)
+    return [_graded(question, given.get(question.id)) for question in asked(draft)]
+
+
+def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answered:
+    """Store or change one answer; what cannot answer the question raises `NotAnAnswer` and
+    stores nothing."""
+    _reviewer(by)
+    with transaction.atomic():
+        locked = _locked(draft)
+        _need(locked, State.SUBMITTED)
+        question = next((q for q in asked(locked) if q.id == question_id), None)
+        if question is None:
+            raise NoSuchQuestion(question_id)
+        right = is_right(question.question.answer, given)
+        review, _ = Review.objects.get_or_create(
+            draft=locked, number=drafts.latest(locked).number, reviewer=by
+        )
+        review.answers = {**review.answers, question_id: given}
+        review.save(update_fields=["answers"])
+    return Answered(question, given, right)
