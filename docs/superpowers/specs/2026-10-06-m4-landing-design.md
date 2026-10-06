@@ -221,6 +221,29 @@ repository's pull request.
 GitHub with the provenance in its pull request, and a failed check leaves the drafts approved, not
 landed; and the content repository's `review` check is merged and required.
 
+## Notes from the build
+
+Decided while building, each with its reason; the plan's ledger holds the rest.
+
+- **A failed landing holds its drafts** until an operator closes it (M4L.3 said *failed* frees
+  them): its pull request can still merge on a re-run, so freeing them could land a node twice.
+  A landing without auto-merge (GitHub refused to turn it on) stays failed when its checks go
+  green, or its pull request would sit open forever (#203).
+- **Staleness compares the folder's tree** at the draft's starting commit and at `main`'s head,
+  not the *compare* call M4L.2 names: compare lists at most 300 changed files, on its first page
+  only, so a large change on `main` would go unseen (#203).
+- **Every failure ends a landing in words, and leaves nothing behind Studio cannot close** (#203).
+  GitHub's calls run outside any transaction; a short one claims the landing and names its
+  branch. After a failure, a pull request that exists makes the landing failed; otherwise the
+  branch is deleted and the landing refused. A landing claimed long ago is recovered, and one
+  lost in the queue (Celery acknowledges on delivery) is run by the poller. A worker without the
+  app's settings refuses the landing.
+- **Routes in `studio/landing_api.py`**, their own router gated by operator, beside the drafts
+  router; the poll interval is `WATCH_LANDINGS_SECONDS` in settings.
+- **The `review` check runs on `pull_request_target`** and posts a commit status, not a job in
+  `validate.yml` (M4L.6): a pull request runs its own copy of a `pull_request` workflow, so it
+  could edit the check that judges it.
+
 ## Not in this part
 
 The Land screen (M4.9); following `main`, `landed` drafts and filling `IndexBuild.commit` (M4.7);
