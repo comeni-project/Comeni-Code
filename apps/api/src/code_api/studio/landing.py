@@ -6,17 +6,20 @@ steps, the poller and closing follow (`run`, `watch`, `close`). A draft is in at
 landing, which Postgres holds, so landings need no lock and run on any worker.
 """
 
+import logging
 from dataclasses import dataclass, field
+from datetime import timedelta
 from uuid import UUID
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 
 from code_api.accounts.models import User
 from code_api.content.models import IndexBuild
 from code_api.studio import drafts
-from code_api.studio.github import GitHub, GitHubError
+from code_api.studio.github import GitHub, GitHubError, Pull
 from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent, Landing, LandingDraft
 from code_schema import Problem
@@ -145,14 +148,15 @@ def _stale(entry: LandingDraft, head: str, client: GitHub) -> tuple[str, str] | 
     """Why this draft must not land on `head`, or None (M4L.3)."""
     draft = entry.draft
     if not draft.base_digest:  # a new node
-        if client.exists(draft.folder, head):
+        if client.folder(draft.folder, head) is not None:
             return DROPPED_EXISTS, f"{draft.folder} already exists on main."
         return None
     start = _starting_commit(draft)
     if not start:
         return DROPPED_NO_COMMIT, "the index this draft started from records no commit."
-    prefix = f"{draft.folder}/"
-    if any(path.startswith(prefix) for path in client.changed(start, head)):
+    # The folder's tree at both commits: equal means nothing under it changed. Not compare, which
+    # lists at most 300 files (#203).
+    if client.folder(draft.folder, start) != client.folder(draft.folder, head):
         return DROPPED_CHANGED, f"{draft.node_id} changed on main since this draft was opened."
     return None
 
@@ -208,28 +212,100 @@ def provenance(made: Landing, entries: list[LandingDraft]) -> str:
 
 
 def _end(made: Landing, state: str, reason: str) -> Landing:
-    made.state, made.reason = state, reason
-    made.save(update_fields=["state", "reason", "main_head"])
-    made.entries.filter(live=True).update(live=False)
+    """A landing that will not land: its drafts are free."""
+    with transaction.atomic():
+        made.state, made.reason = state, reason
+        made.save(update_fields=["state", "reason", "main_head"])
+        made.entries.filter(live=True).update(live=False)
     return made
 
 
-def run(made: Landing, client: GitHub) -> Landing:
-    """The worker's steps. Holds the landing's row, so a redelivered task finds it no longer
-    pending and does nothing; GitHub's calls are few and bounded by their timeouts."""
+def _opened(made: Landing, pull: Pull, state: str, reason: str = "") -> Landing:
+    """The pull request exists: the landing holds its drafts, and each draft's log says so."""
+    with transaction.atomic():
+        made.pull_number, made.pull_url = pull.number, pull.url
+        made.state, made.reason = state, reason
+        made.save()
+        for entry in made.entries.filter(live=True).select_related("draft"):
+            record(
+                entry.draft,
+                DraftEvent.Kind.LANDING,
+                by=made.started_by,
+                revision=entry.revision,
+                landing=made,
+            )
+    return made
+
+
+STUCK_AFTER = timedelta(minutes=10)  # a claimed landing this old was interrupted
+log = logging.getLogger(__name__)
+
+
+def _said(error: Exception) -> str:
+    if isinstance(error, GitHubError):
+        return str(error)
+    return f"Studio stopped mid-landing ({type(error).__name__}: {error})."
+
+
+def refuse_unconfigured(made: Landing) -> Landing:
+    """A worker without the app's settings cannot land: say so rather than leave it pending."""
     with transaction.atomic():
         locked = Landing.objects.select_for_update().get(pk=made.pk)
         if locked.state != Landing.State.PENDING:
             return locked
+        reason = "Landing is not configured on the worker: the GitHub App's settings are not set."
+        return _end(locked, Landing.State.REFUSED, reason)
+
+
+def run(made: Landing, client: GitHub) -> Landing:
+    """The worker's steps (#203). A short transaction claims the landing and names its branch;
+    GitHub's calls run outside any transaction; every failure ends the landing in words. A
+    landing claimed long ago was interrupted (a killed worker), and is recovered, not landed
+    twice; one claimed moments ago belongs to the worker running it."""
+    with transaction.atomic():
+        locked = Landing.objects.select_for_update().get(pk=made.pk)
+        if locked.state != Landing.State.PENDING:
+            return locked
+        claimed = locked.claimed_at
+        if claimed is None:
+            locked.branch = f"studio/landing-{locked.public_id.hex[:8]}"
+            locked.claimed_at = timezone.now()
+            locked.save(update_fields=["branch", "claimed_at"])
+    if claimed is not None:
+        if timezone.now() - claimed < STUCK_AFTER:
+            return locked
+        return _recover(locked, client, "Studio stopped mid-landing; it was found unfinished.")
+    try:
+        return _land(locked, client)
+    except Exception as error:
+        if not isinstance(error, GitHubError):
+            log.exception("landing %s stopped", locked.public_id)
+        return _recover(locked, client, _said(error))
+
+
+def _recover(made: Landing, client: GitHub, reason: str) -> Landing:
+    """After a failure: a pull request that exists holds its drafts (failed, for an operator to
+    close); otherwise its branch, if any, is deleted and the landing refused. If GitHub cannot
+    say, the landing stays pending and the poller asks again."""
+    try:
+        pull = client.find_pull(made.branch)
+        if pull is not None:
+            return _opened(made, pull, Landing.State.FAILED, reason)
         try:
-            return _land(locked, client)
+            client.delete_branch(made.branch)
         except GitHubError as error:
-            return _end(locked, Landing.State.REFUSED, str(error))
+            if error.status not in (404, 422):  # no such branch: nothing was left behind
+                raise
+    except GitHubError:
+        log.warning("landing %s could not be recovered yet", made.public_id)
+        return made
+    return _end(made, Landing.State.REFUSED, reason)
 
 
 def _land(made: Landing, client: GitHub) -> Landing:
     head = client.head()
     made.main_head = head
+    made.save(update_fields=["main_head"])
     entries = list(made.entries.select_related("draft").order_by("draft__node_id"))
     for entry in entries:
         why = _stale(entry, head, client)
@@ -245,26 +321,18 @@ def _land(made: Landing, client: GitHub) -> Landing:
     noun = "node" if len(kept) == 1 else "nodes"
     message = f"content: land {len(kept)} {noun} ({ids})"
     sha = client.commit(parent=head, files=files, message=message)
-    made.branch = f"studio/landing-{made.public_id.hex[:8]}"
     client.branch(made.branch, sha)
     pull = client.open_pull(branch=made.branch, title=message, body=provenance(made, kept))
-    made.pull_number, made.pull_url = pull.number, pull.url
-    made.state = Landing.State.OPEN
-    made.save()
+    _opened(made, pull, Landing.State.OPEN)
     try:
         client.auto_merge(pull)
     except GitHubError as error:
-        # The pull request exists: the landing is failed, holding its drafts, until it is closed.
+        # The pull request exists without auto-merge: failed, holding its drafts, until closed.
         made.state, made.reason = Landing.State.FAILED, str(error)
         made.save(update_fields=["state", "reason"])
-    for entry in kept:
-        record(
-            entry.draft,
-            DraftEvent.Kind.LANDING,
-            by=made.started_by,
-            revision=entry.revision,
-            landing=made,
-        )
+        return made
+    made.auto_merge = True
+    made.save(update_fields=["auto_merge"])
     return made
 
 
@@ -297,8 +365,10 @@ def watch(made: Landing, client: GitHub) -> Landing:
         elif found.failed:
             name, link = found.failed[0]
             locked.state, locked.reason = Landing.State.FAILED, f"{name} failed: {link}"
-        else:
+        elif locked.auto_merge:
             locked.state, locked.reason = Landing.State.OPEN, ""
+        else:
+            return locked  # no auto-merge: it stays failed until an operator closes it (#203)
         locked.save(update_fields=["state", "reason"])
         return locked
 

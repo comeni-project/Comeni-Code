@@ -1,11 +1,13 @@
 """The worker's steps (M4.6 spec, M4L.3–M4L.4), against a fake GitHub. Needs Compose's Postgres."""
 
 from collections.abc import Callable
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import pytest
 from allauth.socialaccount.models import SocialAccount
+from django.utils import timezone
 from fake_github import FakeGitHub
 
 from code_api.accounts.models import User
@@ -198,3 +200,70 @@ def test_auto_merge_refused_leaves_the_landing_failed_holding_its_drafts(batch: 
     assert (landed.state, landed.reason) == ("failed", "GitHub did not turn on auto-merge: off.")
     assert landed.pull_number == 1 and list(fake.pulls) == [1]
     assert landed.entries.filter(live=True).count() == 1
+
+
+# ── #203: every failure ends the landing, and leaves nothing behind it cannot close ─────────────
+
+
+def test_a_crash_after_the_branch_deletes_it_and_refuses(batch: Ready) -> None:
+    made = batch("salmon")
+    fake = FakeGitHub(explode_on="open_pull")
+    landed = landing.run(made, fake)
+    assert landed.state == "refused"
+    assert "RuntimeError" in landed.reason
+    assert fake.branches == {}
+    assert not landed.entries.filter(live=True).exists()
+
+
+def test_a_pull_request_made_despite_an_error_leaves_the_landing_failed(batch: Ready) -> None:
+    made = batch("salmon")
+    fake = FakeGitHub(
+        fail_with="GitHub did not answer within 10 seconds.", fail_on="open_pull", pull_anyway=True
+    )
+    landed = landing.run(made, fake)
+    assert (landed.state, landed.pull_number) == ("failed", 1)
+    assert landed.reason == "GitHub did not answer within 10 seconds."
+    assert landed.entries.filter(live=True).count() == 1
+    assert history(Draft.objects.get(node_id="salmon", state="approved"))[-1].kind == "landing"
+
+
+def test_a_landing_claimed_moments_ago_is_left_to_its_worker(batch: Ready) -> None:
+    made = batch("salmon")
+    Landing.objects.filter(pk=made.pk).update(branch="studio/landing-x", claimed_at=timezone.now())
+    fake = FakeGitHub()
+    assert landing.run(Landing.objects.get(pk=made.pk), fake).state == "pending"
+    assert fake.calls == []
+
+
+def test_an_interrupted_landing_with_a_pull_request_is_failed(batch: Ready) -> None:
+    made = batch("salmon")
+    long_ago = timezone.now() - landing.STUCK_AFTER - timedelta(minutes=1)
+    Landing.objects.filter(pk=made.pk).update(branch="studio/landing-x", claimed_at=long_ago)
+    fake = FakeGitHub(branches={"studio/landing-x": "c"}, pulls={1: ("studio/landing-x", "t", "b")})
+    landed = landing.run(Landing.objects.get(pk=made.pk), fake)
+    assert (landed.state, landed.pull_number) == ("failed", 1)
+    assert "stopped mid-landing" in landed.reason
+
+
+def test_an_interrupted_landing_without_one_is_refused_and_its_branch_deleted(batch: Ready) -> None:
+    made = batch("salmon")
+    long_ago = timezone.now() - landing.STUCK_AFTER - timedelta(minutes=1)
+    Landing.objects.filter(pk=made.pk).update(branch="studio/landing-x", claimed_at=long_ago)
+    fake = FakeGitHub(branches={"studio/landing-x": "c"})
+    landed = landing.run(Landing.objects.get(pk=made.pk), fake)
+    assert landed.state == "refused"
+    assert fake.branches == {}
+    assert not landed.entries.filter(live=True).exists()
+
+
+def test_a_worker_without_the_app_refuses_the_landing(
+    batch: Ready, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from code_api.studio import tasks
+
+    made = batch("salmon")
+    monkeypatch.setattr("code_api.studio.github.from_settings", lambda: None)
+    tasks.land(str(made.public_id))
+    refused = Landing.objects.get(pk=made.pk)
+    assert refused.state == "refused"
+    assert "not configured on the worker" in refused.reason

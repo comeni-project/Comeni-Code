@@ -115,3 +115,38 @@ def test_the_landing_task_runs_a_pending_landing(
     monkeypatch.setattr("code_api.studio.github.from_settings", lambda: fake)
     tasks.land(str(made.public_id))
     assert Landing.objects.get(pk=made.pk).state == "open"
+
+
+def test_a_landing_without_auto_merge_stays_failed_when_checks_go_green(
+    otto: User, settings: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # #203: its pull request would sit open forever if the poller called it open again.
+    rebuild_index(FIXTURES, commit="base-1")
+    settings.CODE_GITHUB_APP = object()
+    monkeypatch.setattr("code_api.studio.tasks.land.delay", lambda public_id: None)
+    draft = drafts.open_existing("salmon", by=otto)
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=otto, revision=1, reason="r", self_approved=True)
+    fake = FakeGitHub(fail_with="GitHub did not turn on auto-merge: off.", fail_on="auto_merge")
+    made = landing.run(landing.start([draft.public_id], by=otto), fake)
+    fake.fail_with = None
+    watched = landing.watch(made, fake)
+    assert (watched.state, watched.reason) == ("failed", "GitHub did not turn on auto-merge: off.")
+
+
+def test_the_beat_task_runs_a_landing_lost_in_the_queue(
+    opened: tuple[Landing, FakeGitHub], otto: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    _, fake = opened
+    draft = drafts.open_existing("tpm", by=otto)
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=otto, revision=1, reason="r", self_approved=True)
+    lost = landing.start([draft.public_id], by=otto)
+    Landing.objects.filter(pk=lost.pk).update(started_at=timezone.now() - timedelta(hours=1))
+    monkeypatch.setattr("code_api.studio.github.from_settings", lambda: fake)
+    tasks.watch_landings()
+    assert Landing.objects.get(pk=lost.pk).state == "open"

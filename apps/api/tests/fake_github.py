@@ -14,6 +14,8 @@ class FakeGitHub:
     since: dict[str, set[str]] = field(default_factory=dict)
     fail_with: str | None = None
     fail_on: str | None = None  # the one method that fails, when set with fail_with
+    explode_on: str | None = None  # a method that raises something other than GitHubError
+    pull_anyway: bool = False  # open_pull makes the pull request even when it then fails
     commits: dict[str, tuple[str, dict[str, str | None], str]] = field(default_factory=dict)
     branches: dict[str, str] = field(default_factory=dict)
     pulls: dict[int, tuple[str, str, str]] = field(default_factory=dict)  # branch, title, body
@@ -26,6 +28,8 @@ class FakeGitHub:
 
     def _step(self, name: str) -> None:
         self.calls.append(name)
+        if self.explode_on == name:
+            raise RuntimeError(f"{name} exploded")
         if self.fail_with is not None and self.fail_on in (None, name):
             raise GitHubError(self.fail_with)
 
@@ -33,9 +37,14 @@ class FakeGitHub:
         self._step("head")
         return self.main
 
-    def changed(self, base: str, head: str) -> set[str]:
-        self._step("changed")
-        return set(self.since.get(base, set()))
+    def folder(self, path: str, ref: str) -> str | None:
+        """main's folder is a hash of its files; at an older commit it differs when `since` says a
+        file under it changed after that commit."""
+        self._step("folder")
+        if ref != self.main and any(p.startswith(f"{path}/") for p in self.since.get(ref, ())):
+            return f"older-{path}"
+        under = sorted((p, t) for p, t in self.files.items() if p.startswith(f"{path}/"))
+        return f"tree-{hash(tuple(under))}" if under else None
 
     def exists(self, path: str, ref: str) -> bool:
         self._step("exists")
@@ -61,8 +70,10 @@ class FakeGitHub:
         self.branches.pop(name, None)
 
     def open_pull(self, *, branch: str, title: str, body: str) -> Pull:
-        self._step("open_pull")
         number = len(self.pulls) + 1
+        if self.pull_anyway:
+            self.pulls[number] = (branch, title, body)
+        self._step("open_pull")
         self.pulls[number] = (branch, title, body)
         return Pull(number=number, url=f"https://github.test/pull/{number}", node_id=f"PR_{number}")
 
@@ -82,3 +93,12 @@ class FakeGitHub:
     def close_pull(self, number: int) -> None:
         self._step("close_pull")
         self.closed.add(number)
+
+    def find_pull(self, branch: str) -> Pull | None:
+        self._step("find_pull")
+        for number, (head, _, _) in self.pulls.items():
+            if head == branch and number not in self.closed:
+                return Pull(
+                    number=number, url=f"https://github.test/pull/{number}", node_id=f"PR_{number}"
+                )
+        return None

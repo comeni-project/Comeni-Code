@@ -159,6 +159,10 @@ class Landing(models.Model):
     pull_number = models.PositiveIntegerField(null=True, blank=True)
     pull_url = models.TextField(blank=True)
     reason = models.TextField(blank=True)  # why it was refused or failed, in words
+    # When a worker took it; a landing claimed long ago and still pending was interrupted (#203).
+    claimed_at = models.DateTimeField(null=True, blank=True)
+    # Whether GitHub turned auto-merge on; without it a failed landing never goes back to open.
+    auto_merge = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f"landing {self.public_id} ({self.state})"

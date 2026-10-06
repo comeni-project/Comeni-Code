@@ -5,8 +5,10 @@ with its key and trades it for an installation token, kept until shortly before 
 call has a timeout, and every failure is a `GitHubError` whose message is a sentence.
 """
 
+import functools
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol
@@ -23,7 +25,26 @@ _EARLY = 300  # a token is renewed five minutes before it expires
 
 
 class GitHubError(Exception):
-    """A step GitHub did not complete; the message is a sentence."""
+    """A step GitHub did not complete; the message is a sentence, `status` GitHub's code if any."""
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+def _expected[**P, R](method: Callable[P, R]) -> Callable[P, R]:
+    """An answer without the fields a call reads is a `GitHubError`, never a KeyError (#203)."""
+
+    @functools.wraps(method)
+    def call(*args: P.args, **kwargs: P.kwargs) -> R:
+        try:
+            return method(*args, **kwargs)
+        except (KeyError, TypeError, ValueError, AttributeError) as error:
+            raise GitHubError(
+                f"GitHub's answer was not what Studio expected ({type(error).__name__}: {error})."
+            ) from error
+
+    return call
 
 
 @dataclass(frozen=True)
@@ -43,7 +64,7 @@ class PullState:
 
 class GitHub(Protocol):
     def head(self) -> str: ...
-    def changed(self, base: str, head: str) -> set[str]: ...
+    def folder(self, path: str, ref: str) -> str | None: ...
     def exists(self, path: str, ref: str) -> bool: ...
     def commit(self, *, parent: str, files: dict[str, str | None], message: str) -> str: ...
     def branch(self, name: str, sha: str) -> None: ...
@@ -52,6 +73,7 @@ class GitHub(Protocol):
     def auto_merge(self, pull: Pull) -> None: ...
     def pull_state(self, number: int) -> PullState: ...
     def close_pull(self, number: int) -> None: ...
+    def find_pull(self, branch: str) -> Pull | None: ...
 
 
 _tokens: dict[str, tuple[str, float]] = {}
@@ -98,8 +120,13 @@ class Client:
         except ValueError:
             data = {}
         if answer.status_code >= 400:
-            message = str(data.get("message") or answer.reason).rstrip(".")
-            raise GitHubError(f"GitHub answered {answer.status_code}: {message}.")
+            said = data.get("message") if isinstance(data, dict) else None
+            message = str(said or answer.reason).rstrip(".")
+            raise GitHubError(
+                f"GitHub answered {answer.status_code}: {message}.", answer.status_code
+            )
+        if not isinstance(data, dict | list):
+            raise GitHubError("GitHub's answer was not what Studio expected (not JSON).")
         return data
 
     def _token(self) -> str:
@@ -124,32 +151,36 @@ class Client:
 
     # ── the calls a landing makes ───────────────────────────────────────────────────────────────
 
+    @_expected
     def head(self) -> str:
         return str(self._call("GET", "/git/ref/heads/main")["object"]["sha"])
 
-    def changed(self, base: str, head: str) -> set[str]:
-        paths: set[str] = set()
-        page = 1
-        while True:
-            data = self._call("GET", f"/compare/{base}...{head}?per_page=100&page={page}")
-            files = data.get("files") or []
-            for each in files:
-                paths.add(each["filename"])
-                if each.get("previous_filename"):
-                    paths.add(each["previous_filename"])
-            if len(files) < 100:
-                return paths
-            page += 1
+    @_expected
+    def folder(self, path: str, ref: str) -> str | None:
+        """A folder's tree SHA at a commit, read from its parent's listing; None if it is not
+        there. Equal SHAs mean nothing under the folder changed (#203: compare stops at 300)."""
+        parent, _, name = path.rpartition("/")
+        try:
+            listing = self._call("GET", f"/contents/{parent}?ref={ref}")
+        except GitHubError as error:
+            if error.status == 404:
+                return None
+            raise
+        for entry in listing:
+            if entry["name"] == name and entry["type"] == "dir":
+                return str(entry["sha"])
+        return None
 
     def exists(self, path: str, ref: str) -> bool:
         try:
             self._call("GET", f"/contents/{path}?ref={ref}")
         except GitHubError as error:
-            if "answered 404" in str(error):
+            if error.status == 404:
                 return False
             raise
         return True
 
+    @_expected
     def commit(self, *, parent: str, files: dict[str, str | None], message: str) -> str:
         base_tree = self._call("GET", f"/git/commits/{parent}")["tree"]["sha"]
         entries: list[dict[str, object]] = []
@@ -169,12 +200,14 @@ class Client:
     def delete_branch(self, name: str) -> None:
         self._call("DELETE", f"/git/refs/heads/{name}")
 
+    @_expected
     def open_pull(self, *, branch: str, title: str, body: str) -> Pull:
         data = self._call(
             "POST", "/pulls", {"title": title, "body": body, "head": branch, "base": "main"}
         )
         return Pull(number=int(data["number"]), url=str(data["html_url"]), node_id=data["node_id"])
 
+    @_expected
     def auto_merge(self, pull: Pull) -> None:
         query = (
             "mutation($id: ID!) { enablePullRequestAutoMerge("
@@ -190,6 +223,7 @@ class Client:
             message = str(data["errors"][0].get("message", "an error")).rstrip(".")
             raise GitHubError(f"GitHub did not turn on auto-merge: {message}.")
 
+    @_expected
     def pull_state(self, number: int) -> PullState:
         pull = self._call("GET", f"/pulls/{number}")
         runs = self._call("GET", f"/commits/{pull['head']['sha']}/check-runs?per_page=100")
@@ -207,6 +241,16 @@ class Client:
 
     def close_pull(self, number: int) -> None:
         self._call("PATCH", f"/pulls/{number}", {"state": "closed"})
+
+    @_expected
+    def find_pull(self, branch: str) -> Pull | None:
+        """The open pull request from a branch: a timeout on opening one may still have made it."""
+        owner = self.app.repository.split("/")[0]
+        found = self._call("GET", f"/pulls?head={owner}:{branch}&state=open")
+        if not found:
+            return None
+        data = found[0]
+        return Pull(number=int(data["number"]), url=str(data["html_url"]), node_id=data["node_id"])
 
 
 def from_settings() -> GitHub | None:

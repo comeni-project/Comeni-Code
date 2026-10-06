@@ -113,17 +113,48 @@ def test_a_commit_is_one_tree_on_the_parents(stub: tuple[Stub, GitHubApp]) -> No
     assert commit == {"message": "m", "tree": "t2", "parents": ["p1"]}
 
 
-def test_changed_reads_every_page_of_a_compare(stub: tuple[Stub, GitHubApp]) -> None:
+def test_a_folders_tree_is_read_from_its_parent(stub: tuple[Stub, GitHubApp]) -> None:
+    # #203: compare lists at most 300 files, so staleness compares a folder's tree instead.
     state, app = stub
-    first = [{"filename": f"r/n{i}/node.yaml"} for i in range(100)]
-    state.routes[("GET", f"{REPO}/compare/a...b?per_page=100&page=1")] = (200, {"files": first})
-    state.routes[("GET", f"{REPO}/compare/a...b?per_page=100&page=2")] = (
+    state.routes[("GET", f"{REPO}/contents/transcriptomics?ref=c1")] = (
         200,
-        {"files": [{"filename": "r/moved/node.yaml", "previous_filename": "q/moved/node.yaml"}]},
+        [
+            {"name": "salmon", "type": "dir", "sha": "tree-s"},
+            {"name": "tpm", "type": "dir", "sha": "tree-t"},
+        ],
     )
-    changed = Client(app).changed("a", "b")
-    assert len(changed) == 102
-    assert "q/moved/node.yaml" in changed
+    client = Client(app)
+    assert client.folder("transcriptomics/tpm", "c1") == "tree-t"
+    assert client.folder("transcriptomics/rpkm", "c1") is None
+    assert client.folder("statistics/likelihood", "c1") is None  # the region itself is missing
+
+
+def test_a_malformed_answer_is_an_error_not_a_crash(stub: tuple[Stub, GitHubApp]) -> None:
+    # #203: a 2xx without the fields asked for, or an error body that is a list.
+    state, app = stub
+    state.routes[("GET", f"{REPO}/git/ref/heads/main")] = (200, {"object": {}})
+    with pytest.raises(GitHubError, match="not what Studio expected"):
+        Client(app).head()
+    state.routes[("POST", f"{REPO}/git/refs")] = (500, ["boom"])
+    with pytest.raises(GitHubError, match="answered 500") as raised:
+        Client(app).branch("b", "c")
+    assert raised.value.status == 500
+
+
+def test_a_pull_request_is_found_by_its_branch(stub: tuple[Stub, GitHubApp]) -> None:
+    state, app = stub
+    path = f"{REPO}/pulls?head=comeni-project:studio/landing-ab12&state=open"
+    state.routes[("GET", path)] = (
+        200,
+        [{"number": 9, "html_url": "https://github.com/x/pull/9", "node_id": "PR_9"}],
+    )
+    none = f"{REPO}/pulls?head=comeni-project:studio/landing-none&state=open"
+    state.routes[("GET", none)] = (200, [])
+    client = Client(app)
+    assert client.find_pull("studio/landing-ab12") == Pull(
+        number=9, url="https://github.com/x/pull/9", node_id="PR_9"
+    )
+    assert client.find_pull("studio/landing-none") is None
 
 
 def test_a_pull_request_is_opened_and_set_to_merge(stub: tuple[Stub, GitHubApp]) -> None:
