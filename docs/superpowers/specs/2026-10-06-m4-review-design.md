@@ -189,6 +189,19 @@ an approved draft cannot be edited in place; the log reads back in order. Also: 
 refused with a question unanswered or on a revision not submitted; the review hides a key until
 its question is answered; `is_right` agrees with the web's rule; two approvals racing leave one.
 
+## Notes from the build
+
+- **A review belongs to a submission**, its `submitted` event, not to a revision number: a revision
+  submitted again unchanged after a rejection or a send back starts an empty review (#188).
+  M4R.4's "keyed by draft, revision number and reviewer" is superseded.
+- **Where review meets M4.4's routes:** an edit or a discard on a submitted or approved draft is
+  409 CA0211 naming its state (M4.4 answered 404); verify and the checklist answer for any live
+  draft, so a reviewer can run them; every 422 is `RefusedOut`, which gains `items` for CA0212.
+- **The backfill** writes `discarded` too, for a draft discarded before the log, and going back
+  before the migration reopens drafts under review (#188).
+- **jsonb prints a large float without an exponent**, so an answer of `1e300` reads back as an
+  integer; grading is unaffected (#188).
+
 ## Not in this part
 
 Comments on single blocks, and the review screen (M4.9); more than one approval; the claim lock
