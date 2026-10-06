@@ -150,3 +150,58 @@ def test_the_beat_task_runs_a_landing_lost_in_the_queue(
     monkeypatch.setattr("code_api.studio.github.from_settings", lambda: fake)
     tasks.watch_landings()
     assert Landing.objects.get(pk=lost.pk).state == "open"
+
+
+# ── The final review ─────────────────────────────────────────────────────────────────────────────
+
+
+def test_an_open_landing_without_auto_merge_becomes_failed(
+    opened: tuple[Landing, FakeGitHub],
+) -> None:
+    # A worker killed between opening the pull request and turning auto-merge on.
+    made, fake = opened
+    Landing.objects.filter(pk=made.pk).update(auto_merge=False)
+    watched = landing.watch(Landing.objects.get(pk=made.pk), fake)
+    assert (watched.state, watched.reason) == (
+        "failed",
+        "Auto-merge is not on for this pull request.",
+    )
+    assert landing.close(watched, fake).state == "closed"
+
+
+def test_closing_a_landing_that_merged_meanwhile_records_the_merge(
+    opened: tuple[Landing, FakeGitHub],
+) -> None:
+    made, fake = opened
+    fake.checks[made.pull_number or 0] = (("validate", "https://ci.test/1"),)
+    landing.watch(made, fake)
+    fake.checks.clear()
+    fake.merged.add(made.pull_number or 0)  # merged after a re-run, before the next poll
+    with pytest.raises(landing.NotFailed) as raised:
+        landing.close(Landing.objects.get(pk=made.pk), fake)
+    assert raised.value.state == "merged"
+    again = Landing.objects.get(pk=made.pk)
+    assert again.state == "merged" and again.entries.get().live is True
+    assert "close_pull" not in fake.calls
+
+
+def test_one_landing_failing_does_not_stop_the_poller(
+    opened: tuple[Landing, FakeGitHub], otto: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    made, fake = opened
+    draft = drafts.open_existing("tpm", by=otto)
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=otto, revision=1, reason="r", self_approved=True)
+    second = landing.run(landing.start([draft.public_id], by=otto), fake)
+    fake.merged.update({made.pull_number or 0, second.pull_number or 0})
+    real = landing.watch
+
+    def flaky(each: Landing, client: Any) -> Landing:
+        if each.pk == made.pk:
+            raise RuntimeError("one bad landing")
+        return real(each, client)
+
+    monkeypatch.setattr(landing, "watch", flaky)
+    monkeypatch.setattr("code_api.studio.github.from_settings", lambda: fake)
+    tasks.watch_landings()
+    assert Landing.objects.get(pk=second.pk).state == "merged"

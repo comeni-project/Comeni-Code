@@ -196,6 +196,7 @@ def test_a_pull_requests_state_names_its_failed_checks(stub: tuple[Stub, GitHubA
             ]
         },
     )
+    state.routes[("GET", f"{REPO}/commits/h7/status")] = (200, {"statuses": []})
     found = Client(app).pull_state(7)
     assert (found.merged, found.closed, found.conflict) == (False, False, False)
     assert found.failed == (("validate", "https://ci/1"),)
@@ -221,3 +222,37 @@ def test_a_slow_github_is_a_timeout_not_a_hang(
 def test_landing_is_off_without_the_app(settings: Any) -> None:
     settings.CODE_GITHUB_APP = None
     assert github.from_settings() is None
+
+
+def test_a_failing_commit_status_counts_as_a_failed_check(stub: tuple[Stub, GitHubApp]) -> None:
+    # The final review: the content repository's `review` is a commit status, not a check run.
+    state, app = stub
+    state.routes[("GET", f"{REPO}/pulls/7")] = (
+        200,
+        {"merged": False, "state": "open", "mergeable": True, "head": {"sha": "h7"}},
+    )
+    state.routes[("GET", f"{REPO}/commits/h7/check-runs?per_page=100")] = (200, {"check_runs": []})
+    state.routes[("GET", f"{REPO}/commits/h7/status")] = (
+        200,
+        {
+            "statuses": [
+                {"context": "review", "state": "failure", "target_url": "https://ci/r"},
+                {"context": "other", "state": "success", "target_url": "https://ci/o"},
+            ]
+        },
+    )
+    assert Client(app).pull_state(7).failed == (("review", "https://ci/r"),)
+
+
+def test_a_key_github_cannot_use_is_an_error_in_words(stub: tuple[Stub, GitHubApp]) -> None:
+    # The final review: a bad PEM raised PyJWT's own error, past every handler.
+    _, app = stub
+    broken = GitHubApp(
+        app_id=app.app_id,
+        installation_id="999",
+        private_key="not a key",
+        repository=app.repository,
+        api_url=app.api_url,
+    )
+    with pytest.raises(GitHubError, match="could not sign in to GitHub as the app"):
+        Client(broken).head()

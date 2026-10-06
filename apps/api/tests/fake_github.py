@@ -1,6 +1,7 @@
 """A fake of the GitHub API behind Studio's client (M4.6 spec, M4L.7): commits, branches and pull
 requests in memory. Tests set `files` on `main`, then read what a landing made."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from code_api.studio.github import GitHubError, Pull, PullState
@@ -16,6 +17,8 @@ class FakeGitHub:
     fail_on: str | None = None  # the one method that fails, when set with fail_with
     explode_on: str | None = None  # a method that raises something other than GitHubError
     pull_anyway: bool = False  # open_pull makes the pull request even when it then fails
+    # Run just before a method's step: how a test lets something happen mid-landing.
+    before: dict[str, Callable[[], None]] = field(default_factory=dict)
     commits: dict[str, tuple[str, dict[str, str | None], str]] = field(default_factory=dict)
     branches: dict[str, str] = field(default_factory=dict)
     pulls: dict[int, tuple[str, str, str]] = field(default_factory=dict)  # branch, title, body
@@ -28,6 +31,8 @@ class FakeGitHub:
 
     def _step(self, name: str) -> None:
         self.calls.append(name)
+        if name in self.before:
+            self.before.pop(name)()
         if self.explode_on == name:
             raise RuntimeError(f"{name} exploded")
         if self.fail_with is not None and self.fail_on in (None, name):

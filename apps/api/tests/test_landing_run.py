@@ -267,3 +267,48 @@ def test_a_worker_without_the_app_refuses_the_landing(
     refused = Landing.objects.get(pk=made.pk)
     assert refused.state == "refused"
     assert "not configured on the worker" in refused.reason
+
+
+# ── The final review: a slow worker and the poller's recovery never both act ────────────────────
+
+
+def _taken_over(made: Landing) -> Callable[[], None]:
+    """The poller recovered this landing while its worker was slow: a new claim, refused."""
+
+    def happen() -> None:
+        Landing.objects.filter(pk=made.pk).update(
+            claimed_at=timezone.now() + timedelta(seconds=1), state="refused", reason="recovered"
+        )
+        made.entries.update(live=False)
+
+    return happen
+
+
+def test_a_worker_whose_landing_was_recovered_writes_no_branch(batch: Ready) -> None:
+    made = batch("salmon")
+    fake = FakeGitHub()
+    fake.before["commit"] = _taken_over(made)  # recovered while it built the commit
+    landing.run(made, fake)
+    after = Landing.objects.get(pk=made.pk)
+    assert (after.state, after.reason) == ("refused", "recovered")
+    assert fake.branches == {} and fake.pulls == {}
+
+
+def test_a_worker_whose_landing_was_recovered_closes_the_pull_request_it_opened(
+    batch: Ready,
+) -> None:
+    made = batch("salmon")
+    fake = FakeGitHub()
+    original = fake.open_pull
+
+    def open_then_lose(**kwargs: str) -> Any:
+        pull = original(**kwargs)
+        _taken_over(made)()
+        return pull
+
+    fake.open_pull = open_then_lose  # type: ignore[method-assign]
+    landing.run(made, fake)
+    after = Landing.objects.get(pk=made.pk)
+    assert (after.state, after.reason) == ("refused", "recovered")
+    assert fake.closed == {1} and fake.branches == {}
+    assert "auto_merge" not in fake.calls

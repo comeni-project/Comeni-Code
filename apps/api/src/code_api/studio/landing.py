@@ -220,9 +220,22 @@ def _end(made: Landing, state: str, reason: str) -> Landing:
     return made
 
 
-def _opened(made: Landing, pull: Pull, state: str, reason: str = "") -> Landing:
-    """The pull request exists: the landing holds its drafts, and each draft's log says so."""
+def _ours(made: Landing) -> Landing | None:
+    """The landing, locked, if it is still pending under this run's claim; None if the poller's
+    recovery took it over meanwhile (the final review: a slow worker and recovery never both act).
+    Call inside a transaction."""
+    locked = Landing.objects.select_for_update().get(pk=made.pk)
+    if locked.state != Landing.State.PENDING or locked.claimed_at != made.claimed_at:
+        return None
+    return locked
+
+
+def _opened(made: Landing, pull: Pull, state: str, reason: str = "") -> Landing | None:
+    """The pull request exists: the landing holds its drafts, and each draft's log says so. None,
+    writing nothing, if the landing is no longer this run's."""
     with transaction.atomic():
+        if _ours(made) is None:
+            return None
         made.pull_number, made.pull_url = pull.number, pull.url
         made.state, made.reason = state, reason
         made.save()
@@ -287,10 +300,17 @@ def _recover(made: Landing, client: GitHub, reason: str) -> Landing:
     """After a failure: a pull request that exists holds its drafts (failed, for an operator to
     close); otherwise its branch, if any, is deleted and the landing refused. If GitHub cannot
     say, the landing stays pending and the poller asks again."""
+    with transaction.atomic():
+        locked = _ours(made)
+        if locked is None:
+            return Landing.objects.get(pk=made.pk)
+        locked.claimed_at = timezone.now()  # a new claim: a late worker finds it gone
+        locked.save(update_fields=["claimed_at"])
+    made.claimed_at = locked.claimed_at
     try:
         pull = client.find_pull(made.branch)
         if pull is not None:
-            return _opened(made, pull, Landing.State.FAILED, reason)
+            return _opened(made, pull, Landing.State.FAILED, reason) or made
         try:
             client.delete_branch(made.branch)
         except GitHubError as error:
@@ -321,9 +341,19 @@ def _land(made: Landing, client: GitHub) -> Landing:
     noun = "node" if len(kept) == 1 else "nodes"
     message = f"content: land {len(kept)} {noun} ({ids})"
     sha = client.commit(parent=head, files=files, message=message)
+    with transaction.atomic():
+        if _ours(made) is None:  # recovered while this worker was slow: write nothing
+            return Landing.objects.get(pk=made.pk)
     client.branch(made.branch, sha)
     pull = client.open_pull(branch=made.branch, title=message, body=provenance(made, kept))
-    _opened(made, pull, Landing.State.OPEN)
+    if _opened(made, pull, Landing.State.OPEN) is None:
+        # Recovered while this worker was slow: what it opened is not the landing's.
+        try:
+            client.close_pull(pull.number)
+            client.delete_branch(made.branch)
+        except GitHubError:
+            log.warning("landing %s: could not close pull request %s", made.public_id, pull.number)
+        return Landing.objects.get(pk=made.pk)
     try:
         client.auto_merge(pull)
     except GitHubError as error:
@@ -367,19 +397,40 @@ def watch(made: Landing, client: GitHub) -> Landing:
             locked.state, locked.reason = Landing.State.FAILED, f"{name} failed: {link}"
         elif locked.auto_merge:
             locked.state, locked.reason = Landing.State.OPEN, ""
-        else:
+        elif locked.state == Landing.State.FAILED:
             return locked  # no auto-merge: it stays failed until an operator closes it (#203)
+        else:
+            # Open without auto-merge (a worker stopped between the two): it would never merge.
+            reason = "Auto-merge is not on for this pull request."
+            locked.state, locked.reason = Landing.State.FAILED, reason
         locked.save(update_fields=["state", "reason"])
         return locked
 
 
 def close(made: Landing, client: GitHub) -> Landing:
-    """An operator closes a failed landing: its pull request and branch go, its drafts are free."""
+    """An operator closes a failed landing: its pull request and branch go, its drafts are free.
+    Its pull request is read first: one that merged since the last poll is recorded as merged and
+    keeps its drafts (the final review)."""
+    merged = False
     with transaction.atomic():
         locked = Landing.objects.select_for_update().get(pk=made.pk)
         if locked.state != Landing.State.FAILED:
             raise NotFailed(locked.state)
         assert locked.pull_number is not None
-        client.close_pull(locked.pull_number)
-        client.delete_branch(locked.branch)
-        return _end(locked, Landing.State.CLOSED, locked.reason)
+        found = client.pull_state(locked.pull_number)
+        if found.merged:
+            locked.state, locked.reason = Landing.State.MERGED, ""
+            locked.save(update_fields=["state", "reason"])
+            merged = True
+        else:
+            if not found.closed:
+                client.close_pull(locked.pull_number)
+            try:
+                client.delete_branch(locked.branch)
+            except GitHubError as error:
+                if error.status not in (404, 422):  # already gone
+                    raise
+            _end(locked, Landing.State.CLOSED, locked.reason)
+    if merged:
+        raise NotFailed(Landing.State.MERGED)
+    return locked

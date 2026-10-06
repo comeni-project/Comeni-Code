@@ -130,6 +130,18 @@ class Client:
         return data
 
     def _token(self) -> str:
+        """The installation token. Any failure to sign or to read the answer — a key PyJWT cannot
+        use, an answer without its token — is a `GitHubError` (the final review)."""
+        try:
+            return self._signed_in()
+        except GitHubError:
+            raise
+        except Exception as error:
+            raise GitHubError(
+                f"Studio could not sign in to GitHub as the app ({type(error).__name__}: {error})."
+            ) from error
+
+    def _signed_in(self) -> str:
         with _tokens_lock:
             kept = _tokens.get(self.app.installation_id)
             if kept is not None and kept[1] - _EARLY > time.time():
@@ -231,6 +243,13 @@ class Client:
             (run["name"], run["html_url"])
             for run in runs.get("check_runs", [])
             if run.get("conclusion") in FAILED
+        )
+        # Commit statuses too: the content repository's `review` is one (M4L.6).
+        combined = self._call("GET", f"/commits/{pull['head']['sha']}/status")
+        failed += tuple(
+            (status["context"], status.get("target_url") or "")
+            for status in combined.get("statuses", [])
+            if status.get("state") in ("failure", "error")
         )
         return PullState(
             merged=bool(pull["merged"]),
