@@ -82,3 +82,31 @@ def test_answers_keep_their_values_as_text() -> None:
     assert (question.answer, question.tolerance) == ("96", "0.5")
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_drafts_opened_before_the_log_get_their_opened_event() -> None:
+    executor = MigrationExecutor(connection)
+    before = [("accounts", "0003_invite"), ("studio", "0001_initial")]
+    executor.migrate(before)
+    old = executor.loader.project_state(before).apps
+    user = old.get_model("accounts", "User").objects.create(email="ada@example.org", role="author")
+    draft = old.get_model("studio", "Draft").objects.create(
+        node_id="tpm", folder="transcriptomics/tpm", created_by_id=user.pk
+    )
+    revision = old.get_model("studio", "Revision").objects.create(
+        draft=draft, number=1, node_yaml="", saved_by_id=user.pk, change="opened from the index"
+    )
+    after = [("accounts", "0003_invite"), ("studio", "0002_review")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(after)
+    new = executor.loader.project_state(after).apps
+    (event,) = new.get_model("studio", "DraftEvent").objects.filter(draft_id=draft.pk)
+    assert (event.kind, event.by_id, event.at, event.revision) == (
+        "opened",
+        user.pk,
+        revision.saved_at,
+        1,
+    )
+    executor.loader.build_graph()
+    executor.migrate(executor.loader.graph.leaf_nodes())
