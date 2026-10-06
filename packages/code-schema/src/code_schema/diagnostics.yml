@@ -30,6 +30,7 @@ bands:
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
   - {first: CA0100, last: CA0199, concern: accounts}
+  - {first: CA0200, last: CA0299, concern: drafts}
 
 codes:
 
@@ -1656,3 +1657,111 @@ codes:
     explanation: |
       Accepting changes the session, so a third-party page must not be able to do it on a
       visitor's behalf (#163).
+
+  # ── CA0200–CA0299 · drafts ──────────────────────────────────────────────────────────────────
+
+  CA0201:
+    emitted_by: api
+    concern: drafts
+    says: no draft, or no open draft, has this id
+    refuses: true
+    fix: |
+      Use a draft id from the list of open drafts.
+    explanation: |
+      Drafts are named by their public id (M4.4 spec, M4W.1); a discarded draft cannot be changed.
+
+  CA0202:
+    emitted_by: api
+    concern: drafts
+    says: the node already has an open draft
+    refuses: true
+    fix: |
+      Edit that draft, or have a contributor or an operator discard it first.
+    explanation: |
+      One open draft per node, held by the database, so versions of a node are worked on in one
+      place (M4W.1).
+
+  CA0203:
+    emitted_by: api
+    concern: drafts
+    says: the save was based on a revision that is no longer the latest
+    refuses: true
+    fix: |
+      Reload the draft, then make the change again on its latest revision.
+    explanation: |
+      Each save names the revision it was based on, so nobody's save silently overwrites another's
+      (optimistic concurrency, M4W.0, M4W.1).
+
+  CA0204:
+    emitted_by: api
+    concern: drafts
+    says: the index has no node with this id
+    refuses: true
+    fix: |
+      Open it as a new node, with its first fields.
+    explanation: |
+      A draft of an existing node starts from the index (M4W.2).
+
+  CA0205:
+    emitted_by: api
+    concern: drafts
+    says: the edit does not apply to this node
+    refuses: true
+    fix: |
+      Read the draft again: the position or question the edit names is not there.
+    explanation: |
+      Some edits cannot be said by a file — a block position out of range, a try block without
+      its question, an exam question that is not in the pool — and are refused before the files
+      are written (M4.4 spec, M4W.3).
+
+  CA0206:
+    emitted_by: api
+    concern: drafts
+    says: only a contributor or an operator may discard a draft
+    refuses: true
+    fix: |
+      Ask someone who saved the draft, or an operator.
+    explanation: |
+      Discarding ends shared work, so it is for those who did it, or an operator (M4W.1).
+
+  CA0207:
+    emitted_by: api
+    concern: drafts
+    says: a new node's id is already a node
+    refuses: true
+    fix: |
+      Open a draft of that node instead, or choose another id.
+    explanation: |
+      A new node's id must be new; ids are unique across the content (M1P3.2).
+
+  CA0208:
+    emitted_by: api
+    concern: drafts
+    says: the save's files would not validate
+    refuses: true
+    fix: |
+      Fix each listed problem; each is code-schema's own, with its file and line.
+    explanation: |
+      Every save is checked by code-schema as CI checks the content repository, and a save with an
+      error stores nothing (M4W.3).
+
+  CA0209:
+    emitted_by: api
+    concern: drafts
+    says: no revision has this number
+    refuses: true
+    fix: |
+      Use a number from the draft's history.
+    explanation: |
+      Revisions are numbered from 1 within their draft (M4W.1).
+
+  CA0210:
+    emitted_by: api
+    concern: drafts
+    says: the save's files would read back as something else than was sent
+    refuses: true
+    fix: |
+      Keep a title on one line, and keep ::: lines out of a block's text.
+    explanation: |
+      A save is stored only if its files read back as exactly the node the edit made, so a draft
+      never holds other than what its author sent (M4.4 spec, M4W.3; #174).

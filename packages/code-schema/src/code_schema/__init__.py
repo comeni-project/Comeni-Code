@@ -22,7 +22,7 @@ from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
 from code_schema.exam import ExamQuestion
 from code_schema.links import Link
-from code_schema.node import Level, Node, parse_node, read_node
+from code_schema.node import Level, Node, parse_node, parse_node_files, read_node
 from code_schema.problems import Problem
 from code_schema.providers import Provider, parse_providers, read_providers
 from code_schema.questions import Answer, ChoiceAnswer, NumberAnswer, Option, TryQuestion
@@ -56,6 +56,7 @@ __all__ = [
     "diagnostic",
     "parse_blocks",
     "parse_node",
+    "parse_node_files",
     "parse_providers",
     "parse_regions",
     "read_content",

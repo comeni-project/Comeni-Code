@@ -22,6 +22,7 @@ from code_api.content.models import (
     Region,
     Resource,
 )
+from code_api.content.numbers import number_text
 from code_schema import (
     Answer,
     ChoiceAnswer,
@@ -38,7 +39,7 @@ from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
 from code_schema.regions import REGISTRY
 
 # Any fixed number: it names the transaction-scoped lock two rebuilds take in turn.
-_LOCK = 5_172_031
+INDEX_LOCK = 5_172_031
 
 
 def content_digest(root: Path, content: Content) -> str:
@@ -108,7 +109,14 @@ def _link_rows(content: Content) -> list[Link]:
 
 def _provider_rows(content: Content) -> list[Provider]:
     return [
-        Provider(id=provider.id, name=provider.name, position=position)
+        Provider(
+            id=provider.id,
+            name=provider.name,
+            position=position,
+            licences=list(provider.licences),
+            embed=provider.embed,
+            players=list(provider.players),
+        )
         for position, provider in enumerate(content.providers.values())
     ]
 
@@ -143,7 +151,7 @@ def _fill_answer(row: Question | ExamQuestion, answer: Answer, *, misconceptions
                 for option in options
             ]
         case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
-            row.answer, row.unit, row.tolerance = value, unit, tolerance
+            row.answer, row.unit, row.tolerance = number_text(value), unit, number_text(tolerance)
 
 
 def _question_row(node_id: str, position: int, question: TryQuestion) -> Question:
@@ -210,7 +218,7 @@ def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
         )
     with transaction.atomic():
         with connection.cursor() as cursor:
-            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [_LOCK])
+            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [INDEX_LOCK])
         Link.objects.all().delete()
         Question.objects.all().delete()
         ExamQuestion.objects.all().delete()

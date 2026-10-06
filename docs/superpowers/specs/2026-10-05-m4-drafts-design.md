@@ -72,7 +72,9 @@ chose shared drafts.
 
 A draft of an existing node is read from the index: its rows become a `code-schema` `Node`, and
 the canonical writer turns that into exactly the files in the content repository (M4.2 proved the
-writer byte for byte). The draft records the build's digest as its base version. **The test that
+writer byte for byte). That holds for files in the writer's form, which is every file Studio
+lands; a hand-written file (comments, another key order) is put in that form by its first revision.
+Numbers are kept as text in the index, so an exponent survives (#173). The draft records the build's digest as its base version. **The test that
 makes this safe: every fixture node goes index → `Node` → files byte for byte.**
 
 **The index keeps the whole provider registry.** Its `Provider` table holds only id and name
@@ -166,6 +168,11 @@ the edit API; verify and the checklist; wiring and close.
 - **A *related* link is on both nodes**, so adding one needs the other node's draft too, and verify
   reports the missing half until both land. M4.6 decides whether drafts land together, in one
   pull request.
+- **A draft whose region changes keeps its folder** for now; M4.6 decides whether landing moves
+  the node's folder with it.
+- **A draft that no longer reads against the index's registries** (a rebuild dropped a region or
+  a licence it uses) is shown with its problems and refuses saves; it is discarded, or the
+  registry restored (#173).
 - **The base-version check at landing** is M4.6's: a draft whose node changed in the content
   repository since its base is refused, not overwritten.
 

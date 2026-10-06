@@ -30,6 +30,7 @@ def test_the_public_api_is_what_the_spec_names() -> None:
         "diagnostic",
         "parse_blocks",
         "parse_node",
+        "parse_node_files",
         "parse_providers",
         "parse_regions",
         "read_content",

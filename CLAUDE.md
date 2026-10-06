@@ -271,7 +271,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/ — users, roles, invites, studio(min_role), allauth's adapters —, content/ — the index, rebuild_index, the views /api/nodes, /api/routes, /api/search over reads.py and schemas.py, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/ — users, roles, invites, studio(min_role), allauth's adapters —, content/ — the index (snapshot.py reads it back as nodes), rebuild_index, the views /api/nodes, /api/routes, /api/search over reads.py and schemas.py, studio/ — drafts: Draft, Revision, the validated save, the content API, verify and the checklist —, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), route/ (L4, with the map's pure layout), node/ (L5, the body drawn block by block: text by react-markdown, try questions, callouts), health/, identity/, layout/, api/ (the fetchers, and queries.ts: every query key and hook), url.ts; its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat

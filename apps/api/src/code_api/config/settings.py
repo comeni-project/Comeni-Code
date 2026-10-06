@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "allauth.headless",
     "code_api.accounts",
     "code_api.content",
+    "code_api.studio",
 ]
 
 MIDDLEWARE = [

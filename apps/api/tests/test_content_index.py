@@ -23,6 +23,7 @@ from code_api.content.models import (
     Region,
     Resource,
 )
+from code_api.content.numbers import number_from
 from code_schema import (
     ChoiceAnswer,
     Level,
@@ -253,7 +254,7 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     questions = list(node.questions.order_by("position"))
     assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
     assert questions[0].kind == "number"
-    assert questions[0].answer == 5
+    assert number_from(questions[0].answer) == 5  # stored as text (#173)
     assert questions[0].options == []
     assert questions[0].hints and questions[0].rationale
     assert questions[1].options[0] == {"text": "ACGTTG", "right": True}
@@ -348,7 +349,11 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
                 ]
                 assert row.answer is None
             case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
-                assert (row.answer, row.unit, row.tolerance) == (value, unit, tolerance)
+                assert (number_from(row.answer), row.unit, number_from(row.tolerance)) == (
+                    value,
+                    unit,
+                    tolerance,
+                )
                 assert row.options == []
 
 
