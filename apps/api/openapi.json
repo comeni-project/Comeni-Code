@@ -265,6 +265,18 @@
             "title": "Folder",
             "type": "string"
           },
+          "landing": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Landing"
+          },
           "node": {
             "anyOf": [
               {
@@ -342,6 +354,18 @@
           "folder": {
             "title": "Folder",
             "type": "string"
+          },
+          "landing": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Landing"
           },
           "node_id": {
             "title": "Node Id",
@@ -791,6 +815,138 @@
           "detail"
         ],
         "title": "ItemOut",
+        "type": "object"
+      },
+      "LandingEntryOut": {
+        "properties": {
+          "draft": {
+            "format": "uuid",
+            "title": "Draft",
+            "type": "string"
+          },
+          "dropped_code": {
+            "title": "Dropped Code",
+            "type": "string"
+          },
+          "dropped_reason": {
+            "title": "Dropped Reason",
+            "type": "string"
+          },
+          "live": {
+            "title": "Live",
+            "type": "boolean"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "draft",
+          "node_id",
+          "revision",
+          "live",
+          "dropped_code",
+          "dropped_reason"
+        ],
+        "title": "LandingEntryOut",
+        "type": "object"
+      },
+      "LandingIn": {
+        "properties": {
+          "drafts": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Drafts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "drafts"
+        ],
+        "title": "LandingIn",
+        "type": "object"
+      },
+      "LandingOut": {
+        "properties": {
+          "branch": {
+            "title": "Branch",
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/LandingEntryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "main_head": {
+            "title": "Main Head",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "pull_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pull Number"
+          },
+          "pull_url": {
+            "title": "Pull Url",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "started_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "state",
+          "started_by",
+          "started_at",
+          "main_head",
+          "branch",
+          "pull_number",
+          "pull_url",
+          "reason",
+          "entries"
+        ],
+        "title": "LandingOut",
         "type": "object"
       },
       "Level": {
@@ -4782,6 +4938,238 @@
           }
         ],
         "summary": "Withdraw from review",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/landings": {
+      "get": {
+        "operationId": "code_api_studio_landing_api_landings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LandingOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The landings, newest first",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_studio_landing_api_start",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingOut"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Land a batch of approved drafts",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/landings/{public_id}": {
+      "get": {
+        "operationId": "code_api_studio_landing_api_read",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "A landing",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/landings/{public_id}/close": {
+      "post": {
+        "operationId": "code_api_studio_landing_api_close",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandingOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Close a failed landing",
         "tags": [
           "studio"
         ]

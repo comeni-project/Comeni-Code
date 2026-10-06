@@ -17,7 +17,7 @@ from code_api.accounts.api import MemberOut
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
-from code_api.studio import drafts, review
+from code_api.studio import drafts, landing, review
 from code_api.studio.log import history
 from code_api.studio.models import LIVE_STATES, Draft
 from code_api.studio.schemas import (
@@ -103,6 +103,7 @@ def summary_out(draft: Draft) -> DraftSummaryOut:
         revision=number,
         submitted_revision=number if under_review else None,
         contributors=[MemberOut.of(user) for user in drafts.contributors(draft)],
+        landing=None if (held := landing.live_landing(draft)) is None else held.public_id,
     )
 
 
@@ -722,6 +723,9 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
         case drafts.Refused(problems=problems):
             detail = "This draft no longer reads against the index's registries."
             return Status(422, refused(list(problems), detail))
+        case landing.AlreadyLanding(landing=held):
+            detail = f"This draft is in landing {held.public_id} ({held.state})."
+            return Status(409, Message(detail=detail, code="CA0303"))
     raise error
 
 
@@ -738,6 +742,7 @@ _REFUSALS = (
     drafts.Stale,
     drafts.NotAllowed,
     drafts.Refused,
+    landing.AlreadyLanding,
 )
 
 

@@ -1417,3 +1417,93 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Give an option's index for a choice, a finite number for a number question.
 
 **Why.** Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else (M4R.4).
+
+### CA0300–CA0399 · landing
+
+#### CA0301 — landing is not configured
+
+*Refuses.*
+
+**Fix.** Set CODE_GITHUB_APP_ID, CODE_GITHUB_APP_INSTALLATION_ID and CODE_GITHUB_APP_PRIVATE_KEY.
+
+**Why.** Studio lands as a GitHub App; without its settings nothing can be written to the content repository, and the rest of Studio works as before (M4L.4).
+
+#### CA0302 — a draft in the batch is not approved
+
+*Refuses.*
+
+**Fix.** Approve it first, or leave it out of the batch.
+
+**Why.** Only approved drafts land, at the revision that was approved (M4L.3).
+
+#### CA0303 — a draft is already in a landing
+
+*Refuses.*
+
+**Fix.** Wait for that landing, or close it if it failed.
+
+**Why.** A draft is in at most one live landing, so two batches never write the same node and an approval cannot be sent back while it is going out (M4L.3).
+
+#### CA0304 — the batch is empty
+
+*Refuses.*
+
+**Fix.** Pick at least one approved draft.
+
+**Why.** A landing is one commit and one pull request for the drafts picked (M4L.1).
+
+#### CA0305 — the batch does not validate in place
+
+*Refuses.*
+
+**Fix.** Fix the problems, or add the draft its links need to the batch.
+
+**Why.** The batch is checked against the index with every draft standing in for its node before anything leaves Studio, so a related link lands with its partner (M4L.3).
+
+#### CA0306 — the node changed on main since the draft was opened
+
+*Warns; never blocks.*
+
+**Fix.** Send the draft back and redo the edit on the node as it is on main.
+
+**Why.** Landing the draft as it stands would undo the change on main; it is left out of the batch and the rest land (M4L.3).
+
+#### CA0307 — a new node's folder already exists on main
+
+*Warns; never blocks.*
+
+**Fix.** Pick another id, or discard the draft.
+
+**Why.** A new node may not overwrite a folder already on main; it is left out of the batch (M4L.3).
+
+#### CA0308 — the draft's starting index records no commit
+
+*Warns; never blocks.*
+
+**Fix.** Rebuild the index from a content commit (M4.7 records it), then land again.
+
+**Why.** Without the commit a draft started from, a change on main since then cannot be found, so the draft is left out rather than guessed (M4L.3).
+
+#### CA0309 — only a failed landing can be closed
+
+*Refuses.*
+
+**Fix.** Leave an open landing: it merges or fails by itself.
+
+**Why.** Closing gives up a landing's pull request and frees its drafts; a pending or open one is still on its way (M4L.3).
+
+#### CA0310 — no landing has this id
+
+*Refuses.*
+
+**Fix.** Use a landing id from the list.
+
+**Why.** Landings are named by their public id (M4L.5).
+
+#### CA0311 — GitHub did not complete a step
+
+*Refuses.*
+
+**Fix.** Try again; the reason says what GitHub answered.
+
+**Why.** Every GitHub call has a timeout, and a failure is reported in words, never as a server error (M4L.4).
