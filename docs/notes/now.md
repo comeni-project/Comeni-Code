@@ -5,17 +5,15 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-05** (M4.4 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-06** (M4.5 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
-- **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, sub-issues #119–#127 of #74,
-  back end first, screens last; the list and its reasons are in the archived *M4 in parts* entry.
-  (2026-09-29)
-- **M4.1–M4.4 are done** (#119–#122): diagnostic codes and the block document (PR #139); exam
-  pools (#151, comeni-code-content#6); accounts, invites, roles (#164); drafts, the content API and
-  checks (#177). **M4.5, review (#123), is next**: nobody approves a draft they contributed to, and
-  the checklist gates submitting. (2026-09-29, 2026-10-05)
+- **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, #119–#127 of #74, back end
+  first, screens last; the reasons are in the archived *M4 in parts* entry. (2026-09-29)
+- **M4.1–M4.5 are done** (#119–#123): the block document (#139); exam pools (#151); accounts and
+  roles (#164); drafts and checks (#177); review (#190). **M4.6, landing through the GitHub App
+  (#124), is next.** (2026-09-29 to 2026-10-06)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -54,7 +52,8 @@ line is in [the archive](journal/archive/).
 - **A question composes an answer**: `Answer = ChoiceAnswer | NumberAnswer`, inside `TryQuestion`
   (hints, never the answer) or `ExamQuestion` (no hints, an optional `level`, a `misconception`
   per wrong option naming a callout). One reader in `code_schema.questions` serves both pools.
-  (2026-09-20, 2026-10-05)
+  (2026-09-20, 2026-10-05) **`code_schema.grading.is_right`** grades a given answer by the web's
+  rule, a choice by its option's index. (2026-10-06)
 - **An exam pool** (`code_schema.exam`, CS08xx): at most 40 questions, ids not shared with try
   questions. Under 4 is a *warning*: the node is left out of self-tests. **Exam answers are not a
   secret in v1**: the content repository is public and self-tests certify nothing (spec M4E.6).
@@ -97,12 +96,18 @@ line is in [the archive](journal/archive/).
 
 ## Drafts (`code_api.studio`)
 
-- **A draft is a working copy of one node**, one open per node (a partial unique constraint),
-  opened from the index or new; any author or above edits it. (2026-10-05)
+- **A draft is a working copy of one node**, opened from the index or new; any author or above
+  edits it while `open`. One live draft (open, submitted, approved) per node. (2026-10-05, 10-06)
 - **A save is one edit, one `Revision`** of the three files, or none: it names its base revision
   (stale: 409 `CA0203`); the files must re-read as exactly the edit (CA0208, CA0210). (2026-10-05)
 - **Verify** runs the graph rules with the draft in place; **the checklist** wants it clean, a
   level, a resource and four exam questions. (2026-10-05)
+- **Review** (`code_api/studio/review.py`): submitting needs the checklist and the latest revision
+  and freezes the draft (an edit: 409 CA0211); reject and send back need a reason. Each transition
+  takes the row lock; `DraftEvent`, the append-only log, replays to `Draft.state`. (2026-10-06)
+- **Approving needs every question of the submission answered** by the reviewer; a wrong answer
+  counts, never blocks. Nobody approves their own draft, except an operator with a reason, marked
+  `self_approved`. (2026-10-06)
 
 ## The weaver and search (`code-weaver`, pure)
 
@@ -114,17 +119,14 @@ line is in [the archive](journal/archive/).
 
 - React Router: `/` Start (L1), `/route` (L4), `/node/:id` (L5, and its First steps form), `/health`,
   `/identity`. Page state lives in the URL: `q`, `goal`, `known`, `stop`, `view`. (2026-09-21)
-- **The Route map is the canvas's metro map**, a pure layout whose gaps widen to fit climbs and
-  crowded labels, so it holds for any route shape (`shapes.fixture.ts`), not only Salmon's.
-  (2026-09-21, 2026-09-29)
-- **The Node page** lists resources in *Learn it* (embedded only where a provider allows), draws
-  the body block by block, try questions and callouts included, and folds its neighbours into an
-  *Around this node* rail. (2026-09-21, 2026-09-29)
+- **The Route map is the canvas's metro map**, a pure layout whose gaps widen for climbs and
+  crowded labels, so any route shape holds (`shapes.fixture.ts`). (2026-09-21, 2026-09-29)
+- **The Node page** lists resources in *Learn it* (embedded where a provider allows), draws the
+  body block by block and folds its neighbours into *Around this node*. (2026-09-21, 2026-09-29)
 - **A First steps node reads in its own form**: one column, larger type, *Read · Watch*, one large
   question, *Next on your route*. (2026-09-21)
-- **`api/queries.ts` is the only place query keys and hooks are made**; `url.ts` reads and writes
-  route params; `ErrorNotice` is the one error sentence, and an answer that is not JSON reports its
-  status (`HTTP 502`). (2026-10-05)
+- **`api/queries.ts` alone makes query keys and hooks**; `url.ts` reads and writes route params;
+  `ErrorNotice` is the one error sentence (an answer not JSON: `HTTP 502`). (2026-10-05)
 - **No page invents learner state**: what needs records or review is absent, not faked. (2026-09-21)
 
 ## The stack, CI and guardrails
@@ -142,30 +144,27 @@ line is in [the archive](journal/archive/).
   outlines. **Khan Academy is linked, never embedded** (#76). (2026-09-17, 2026-09-29)
 - **Five content levels** describe nodes, never learners; accounts 13+ until a consent spec; First
   steps is in the MVP. (2026-09-17)
-- **Self-tests** from per-node exam pools are v1's mastery system; results per node, never a grade.
-  (2026-09-17)
-- **M4**: blocks thin (text, try, callout); back end first; email and GitHub sign-in, invite-only;
-  Studio lands as a GitHub App; a sign-in shared with Labs (#101) kept open; #102 in M4.6's spec.
-  (2026-09-29)
+- **Self-tests** from exam pools are v1's mastery system, scored per node, never graded. (2026-09-17)
+- **M4**: blocks thin; back end first; invite-only email and GitHub sign-in; Studio lands as a
+  GitHub App; a sign-in shared with Labs (#101) kept open; #102 in M4.6's spec. (2026-09-29)
 - One colour per meaning (W10): teal is your route, blue selected; five regions are not five
   colours. *Read / Watch* is on First steps only. (2026-09-20, 2026-09-21)
 
 ## Open
 
-- **M4's spec questions**: webhook or polling (M4.7); which real node lands first (M4.9).
-  (2026-09-29)
-- **For landing (M4.6)**: a *related* link needs both drafts landed together; whether a region
-  change moves the folder; a base that changed is refused. #176: an empty edit still makes a
-  revision. (2026-10-05)
-- **For the self-test part** (M4E.7): a cap of questions per node in one exam, unseen questions
-  first; whether grading runs in the browser; whether exam rows keep an empty `misconception`.
-  (2026-10-05)
-- **Deferred minors**: #131, #134, and M4.1.3's four review minors, listed in PR #139. (2026-10-05)
+- **M4 spec questions**: webhook or polling (M4.7); which real node lands first (M4.9). (2026-09-29)
+- **For landing (M4.6)**: it lands `approved` drafts at their approved revision and says
+  *self-approved* in the pull request; a *related* link needs both drafts landed together; whether
+  a region change moves the folder; a base that changed is refused. (2026-10-05, 2026-10-06)
+- **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
+  runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
+- **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139 and #189;
+  large floats given as answers read back from jsonb as integers (#188). (2026-10-05, 2026-10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
-- `providers.yaml` is not in `comeni-code-content` yet. (2026-09-20)
-- Whether `IndexBuild` rows need pruning; three light chip pairs under 4.5 : 1, kept by the
-  operator; jsdom 29 until Node 24.15 (issue 32). (2026-09-17, 2026-09-19)
+- `providers.yaml` is not in `comeni-code-content` yet; whether `IndexBuild` rows need pruning;
+  three light chip pairs under 4.5 : 1, kept by the operator; jsdom 29 until Node 24.15 (issue 32).
+  (2026-09-17 to 2026-09-20)
 - R8 of the architecture spec: search, institutional sign-in, the consent spec, review of content
   pull requests not from Studio (#102). (2026-09-17)
 
@@ -183,18 +182,19 @@ line is in [the archive](journal/archive/).
   (2026-10-05)
 - **Podman, not Docker, on this machine**: `podman start code-dev-postgres code-dev-redis` after a
   reboot (:5433, :6380); Compose is not set up again. (2026-10-05)
-- **Two pytest runs on one Postgres break each other**: not while a reviewer runs. (2026-10-05)
 - **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
-  `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). The
-  published canvas shows *Page not found* here. Merged branches are kept: retarget a stacked pull
-  request first. (2026-09-29, 2026-10-05)
-- **Run the suite with CI's `env:` before pushing**: the local `.env` allows more. Watch CI without
-  blocking; GitHub's runner queue can stall 10–15 minutes. (2026-10-05)
+  `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). Two pytest
+  runs on one Postgres break each other. The canvas shows *Page not found* here. Merged branches
+  are kept: retarget a stacked pull request first. (2026-09-29, 2026-10-05)
+- **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
+  ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
 - **Migration 0007 needs `rebuild_index` after it** (providers' licences, numbers). (2026-10-05)
 - **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**,
   so a later text replacement can miss: assert each test setup step. (2026-10-05)
 - **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
   then refuses every write behind it. (2026-10-05)
 - **CI may not start when a pull request opens**: close and reopen it. (2026-10-05)
+- **A migration test pinning one app** gets the others' models at whatever state: pin `accounts`
+  too, or `User` has no `role`. (2026-10-06)
 - **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
   behaviour change. Its purity allowlist has no `functools`; widening it is reviewed. (2026-10-05)
