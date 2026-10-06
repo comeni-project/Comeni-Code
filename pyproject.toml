@@ -17,8 +17,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests", "apps/api/tests"]
 DJANGO_SETTINGS_MODULE = "code_api.config.settings"
-# `tests/` is on the path so `guards.purity` imports without making `tests` a package.
-pythonpath = ["tests"]
+# `tests/` is on the path so `guards.purity` imports without making `tests` a package; the API's
+# tests directory so its helpers (`fake_github`) do.
+pythonpath = ["tests", "apps/api/tests"]
 addopts = ["--import-mode=importlib", "--strict-markers"]
 filterwarnings = [
     # WhiteNoise notes a missing STATIC_ROOT; tests run without collectstatic except where they call it.
@@ -48,7 +49,7 @@ files = ["packages", "apps/api", "tests"]
 plugins = ["pydantic.mypy", "mypy_django_plugin.main"]
 exclude = ['^tests/guards/fixtures/']
 # apps/api/src is listed so each file there has exactly one module name.
-mypy_path = ["tests", "apps/api/src"]
+mypy_path = ["tests", "apps/api/src", "apps/api/tests"]
 explicit_package_bases = true
 
 # allauth ships no type information (no py.typed); its imports are typed as Any, and only there.
