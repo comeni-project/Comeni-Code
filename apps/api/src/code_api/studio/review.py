@@ -208,10 +208,13 @@ def _graded(question: Asked, given: object | None) -> Answered:
 def review_of(draft: Draft, *, by: User) -> list[Answered]:
     """`by`'s answers to the submitted revision; a key is theirs to see only once answered."""
     _reviewer(by)
-    now = Draft.objects.get(pk=draft.pk)  # its state now, not when the caller read it (#188)
-    _need(now, State.SUBMITTED)
-    given = _given(now, by)
-    return [_graded(question, given.get(question.id)) for question in asked(now)]
+    with transaction.atomic():
+        # Its state now, not the caller's copy (#188), and held while the answers and the
+        # questions are read, so a resubmission cannot land between them (#189).
+        now = _locked(draft)
+        _need(now, State.SUBMITTED)
+        given = _given(now, by)
+        return [_graded(question, given.get(question.id)) for question in asked(now)]
 
 
 def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answered:

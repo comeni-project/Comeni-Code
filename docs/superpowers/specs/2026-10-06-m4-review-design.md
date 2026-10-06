@@ -196,7 +196,12 @@ its question is answered; `is_right` agrees with the web's rule; two approvals r
   M4R.4's "keyed by draft, revision number and reviewer" is superseded.
 - **Where review meets M4.4's routes:** an edit or a discard on a submitted or approved draft is
   409 CA0211 naming its state (M4.4 answered 404); verify and the checklist answer for any live
-  draft, so a reviewer can run them; every 422 is `RefusedOut`, which gains `items` for CA0212.
+  draft, so a reviewer can run them; every 422 the studio's code answers is `RefusedOut`, which
+  gains `items` for CA0212. A body Ninja cannot validate (a field missing) is still Ninja's own
+  422, as in M4.4 (#189).
+- **The key is hidden on the review route only.** M4.4's `GET …/drafts/{id}` shows every answer
+  and rationale to the team, so M4.9's review screen must not fetch it for the reviewer before
+  they answer (#189).
 - **The backfill** writes `discarded` too, for a draft discarded before the log, and going back
   before the migration reopens drafts under review (#188).
 - **jsonb prints a large float without an exponent**, so an answer of `1e300` reads back as an

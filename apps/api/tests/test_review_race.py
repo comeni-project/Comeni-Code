@@ -1,6 +1,7 @@
 """Two approvals at once leave one (M4.5 spec, M4R.3). Real transactions, so its own module."""
 
 import threading
+import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -45,3 +46,44 @@ def test_two_approvals_racing_leave_one(
         thread.join()
     assert sorted(outcomes.values()) == ["approved", "found it approved"]
     assert DraftEvent.objects.filter(draft=draft, kind="approved").count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_review_holds_the_draft_while_it_reads(
+    ada: User, grace: User, ready: Callable[[User], Draft], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # #189: review_of read the state, the answers and the questions apart, so a withdraw (and an
+    # edit and a resubmit) landing between them could grade old answers against new questions.
+    rebuild_index(FIXTURES)
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    reading, order = threading.Event(), []
+    real_asked = review.asked
+
+    def slow_asked(d: Draft) -> list[review.Asked]:
+        reading.set()
+        time.sleep(0.5)
+        return real_asked(d)
+
+    monkeypatch.setattr(review, "asked", slow_asked)
+
+    def read() -> None:
+        try:
+            review.review_of(draft, by=grace)
+            order.append("review read")
+        finally:
+            connection.close()
+
+    def withdraw() -> None:
+        try:
+            reading.wait()
+            review.withdraw(draft, by=ada)
+            order.append("withdrawn")
+        finally:
+            connection.close()
+
+    threads = [threading.Thread(target=read), threading.Thread(target=withdraw)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert order == ["review read", "withdrawn"]

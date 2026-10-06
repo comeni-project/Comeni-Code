@@ -126,7 +126,7 @@ def refused(problems: list[object], detail: str) -> RefusedOut:
 def already_open(held: Draft) -> Message:
     names = ", ".join(user.email for user in drafts.contributors(held)) or "nobody"
     return Message(
-        detail=f"{held.node_id} already has a {held.state} draft, {held.public_id}, by {names}.",
+        detail=f"{held.node_id} already has a draft ({held.state}), {held.public_id}, by {names}.",
         code="CA0202",
     )
 

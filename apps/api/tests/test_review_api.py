@@ -255,4 +255,11 @@ def test_opening_a_node_under_review_is_ca0202(ada: User, ready: Ready) -> None:
     submitted(ada, ready)
     response = call(ada, "post", "/api/studio/drafts", {"node_id": "tpm"})
     assert code_of(response) == (409, "CA0202")
-    assert "already has a submitted draft" in response.json()["detail"]
+    assert "tpm already has a draft (submitted)," in response.json()["detail"]
+
+
+def test_ca0202_names_an_open_draft_in_good_english(ada: User) -> None:
+    # #189: "already has a open draft" regressed in #188's fix.
+    drafts.open_existing("tpm", by=ada)
+    response = call(ada, "post", "/api/studio/drafts", {"node_id": "tpm"})
+    assert "tpm already has a draft (open)," in response.json()["detail"]
