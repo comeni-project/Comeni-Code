@@ -31,6 +31,7 @@ bands:
   - {first: CA0001, last: CA0099, concern: index}
   - {first: CA0100, last: CA0199, concern: accounts}
   - {first: CA0200, last: CA0299, concern: drafts}
+  - {first: CA0300, last: CA0399, concern: landing}
 
 codes:
 
@@ -1866,3 +1867,122 @@ codes:
     explanation: |
       Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else
       (M4R.4).
+
+  # ── CA0300–CA0399 · landing ─────────────────────────────────────────────────────────────────
+
+  CA0301:
+    emitted_by: api
+    concern: landing
+    says: landing is not configured
+    refuses: true
+    fix: |
+      Set CODE_GITHUB_APP_ID, CODE_GITHUB_APP_INSTALLATION_ID and CODE_GITHUB_APP_PRIVATE_KEY.
+    explanation: |
+      Studio lands as a GitHub App; without its settings nothing can be written to the content
+      repository, and the rest of Studio works as before (M4L.4).
+
+  CA0302:
+    emitted_by: api
+    concern: landing
+    says: a draft in the batch is not approved
+    refuses: true
+    fix: |
+      Approve it first, or leave it out of the batch.
+    explanation: |
+      Only approved drafts land, at the revision that was approved (M4L.3).
+
+  CA0303:
+    emitted_by: api
+    concern: landing
+    says: a draft is already in a landing
+    refuses: true
+    fix: |
+      Wait for that landing, or close it if it failed.
+    explanation: |
+      A draft is in at most one live landing, so two batches never write the same node and an
+      approval cannot be sent back while it is going out (M4L.3).
+
+  CA0304:
+    emitted_by: api
+    concern: landing
+    says: the batch is empty
+    refuses: true
+    fix: |
+      Pick at least one approved draft.
+    explanation: |
+      A landing is one commit and one pull request for the drafts picked (M4L.1).
+
+  CA0305:
+    emitted_by: api
+    concern: landing
+    says: the batch does not validate in place
+    refuses: true
+    fix: |
+      Fix the problems, or add the draft its links need to the batch.
+    explanation: |
+      The batch is checked against the index with every draft standing in for its node before
+      anything leaves Studio, so a related link lands with its partner (M4L.3).
+
+  CA0306:
+    emitted_by: api
+    concern: landing
+    says: the node changed on main since the draft was opened
+    refuses: false
+    fix: |
+      Send the draft back and redo the edit on the node as it is on main.
+    explanation: |
+      Landing the draft as it stands would undo the change on main; it is left out of the batch
+      and the rest land (M4L.3).
+
+  CA0307:
+    emitted_by: api
+    concern: landing
+    says: a new node's folder already exists on main
+    refuses: false
+    fix: |
+      Pick another id, or discard the draft.
+    explanation: |
+      A new node may not overwrite a folder already on main; it is left out of the batch (M4L.3).
+
+  CA0308:
+    emitted_by: api
+    concern: landing
+    says: the draft's starting index records no commit
+    refuses: false
+    fix: |
+      Rebuild the index from a content commit (M4.7 records it), then land again.
+    explanation: |
+      Without the commit a draft started from, a change on main since then cannot be found, so
+      the draft is left out rather than guessed (M4L.3).
+
+  CA0309:
+    emitted_by: api
+    concern: landing
+    says: only a failed landing can be closed
+    refuses: true
+    fix: |
+      Leave an open landing: it merges or fails by itself.
+    explanation: |
+      Closing gives up a landing's pull request and frees its drafts; a pending or open one is
+      still on its way (M4L.3).
+
+  CA0310:
+    emitted_by: api
+    concern: landing
+    says: no landing has this id
+    refuses: true
+    fix: |
+      Use a landing id from the list.
+    explanation: |
+      Landings are named by their public id (M4L.5).
+
+  CA0311:
+    emitted_by: api
+    concern: landing
+    says: GitHub did not complete a step
+    refuses: true
+    fix: |
+      Try again; the reason says what GitHub answered.
+    explanation: |
+      Every GitHub call has a timeout, and a failure is reported in words, never as a server
+      error (M4L.4).

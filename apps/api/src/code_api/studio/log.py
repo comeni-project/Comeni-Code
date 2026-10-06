@@ -4,7 +4,7 @@ that changes the state, so replaying a draft's events gives its state."""
 from collections.abc import Iterable
 
 from code_api.accounts.models import User
-from code_api.studio.models import Draft, DraftEvent, Review
+from code_api.studio.models import Draft, DraftEvent, Landing, Review
 
 Kind = DraftEvent.Kind
 AFTER: dict[str, str] = {
@@ -15,6 +15,7 @@ AFTER: dict[str, str] = {
     Kind.APPROVED: Draft.State.APPROVED,
     Kind.SENT_BACK: Draft.State.OPEN,
     Kind.DISCARDED: Draft.State.DISCARDED,
+    Kind.LANDING: Draft.State.APPROVED,  # it leaves the draft approved; M4.7 moves it on
 }
 
 
@@ -29,6 +30,7 @@ def record(
     review: Review | None = None,
     answered: int | None = None,
     wrong: int | None = None,
+    landing: Landing | None = None,
 ) -> DraftEvent:
     return DraftEvent.objects.create(
         draft=draft,
@@ -40,6 +42,7 @@ def record(
         review=review,
         answered=answered,
         wrong=wrong,
+        landing=landing,
     )
 
 

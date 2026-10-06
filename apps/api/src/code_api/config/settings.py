@@ -5,6 +5,7 @@ M0 part 2 spec, P2.3.
 
 from code_api.config.auth import caches, github_providers, mailers
 from code_api.config.env import Env, database_from_url
+from code_api.config.landing import github_app
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
 ENV = Env()
@@ -137,6 +138,9 @@ STATIC_ROOT = ENV.static_root
 # The content folder `manage.py rebuild_index` reads; `--root` overrides it (M1P6.2).
 CODE_CONTENT_ROOT = ENV.content_root
 
+# The GitHub App Studio lands as (M4L.4); None while landing is off.
+CODE_GITHUB_APP = github_app(ENV)
+
 # Celery (M0 part 4 spec, P4.2). No result backend: nothing reads task results yet.
 CELERY_BROKER_URL = ENV.redis_url.get_secret_value()
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
@@ -145,9 +149,15 @@ CELERY_TIMEZONE = TIME_ZONE
 # Autodiscovery searches INSTALLED_APPS only; task modules outside a Django app are named here, or a
 # worker rejects their tasks as unregistered (found by hand in the part 4 scratch build).
 CELERY_IMPORTS = ("code_api.health.tasks",)
+# Seconds between looks at open and failed landings' pull requests (M4L.4).
+WATCH_LANDINGS_SECONDS = 120
 CELERY_BEAT_SCHEDULE = {
     "health-heartbeat": {
         "task": "code_api.health.tasks.heartbeat",
         "schedule": HEARTBEAT_INTERVAL_SECONDS,
+    },
+    "studio-watch-landings": {
+        "task": "code_api.studio.tasks.watch_landings",
+        "schedule": WATCH_LANDINGS_SECONDS,
     },
 }

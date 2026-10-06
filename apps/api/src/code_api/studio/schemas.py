@@ -98,6 +98,8 @@ class DraftSummaryOut(Schema):
     # The revision under review or approved; null while open or discarded (M4R.6).
     submitted_revision: int | None
     contributors: list[MemberOut]
+    # The live landing the draft is in, if any (M4.6 spec, M4L.5).
+    landing: UUID | None = None
 
 
 class DraftOut(DraftSummaryOut):
@@ -314,3 +316,28 @@ class EventOut(Schema):
     self_approved: bool
     answered: int | None
     wrong: int | None
+
+
+# ── Landing (M4.6 spec, M4L.5) ──────────────────────────────────────────────────────────────────
+
+
+class LandingEntryOut(Schema):
+    draft: UUID
+    node_id: str
+    revision: int
+    live: bool
+    dropped_code: str
+    dropped_reason: str
+
+
+class LandingOut(Schema):
+    public_id: UUID
+    state: str
+    started_by: MemberOut | None
+    started_at: datetime
+    main_head: str
+    branch: str
+    pull_number: int | None
+    pull_url: str
+    reason: str
+    entries: list[LandingEntryOut]

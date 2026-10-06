@@ -28,6 +28,9 @@ export interface ApiSchemas {
   InviteIn: InviteIn;
   InviteOut: InviteOut;
   ItemOut: ItemOut;
+  LandingEntryOut: LandingEntryOut;
+  LandingIn: LandingIn;
+  LandingOut: LandingOut;
   Level: Level;
   LinkIn: LinkIn;
   LinkOut: LinkOut;
@@ -189,6 +192,7 @@ export interface DraftOut {
   base_digest: string;
   contributors: MemberOut[];
   folder: string;
+  landing?: string | null;
   node: DraftNodeOut | null;
   node_id: string;
   problems: ProblemOut[];
@@ -221,6 +225,7 @@ export interface DraftSummaryOut {
   base_digest: string;
   contributors: MemberOut[];
   folder: string;
+  landing?: string | null;
   node_id: string;
   public_id: string;
   revision: number;
@@ -315,6 +320,29 @@ export interface InviteIn {
 export interface InviteOut {
   email: string;
   role: string;
+}
+export interface LandingEntryOut {
+  draft: string;
+  dropped_code: string;
+  dropped_reason: string;
+  live: boolean;
+  node_id: string;
+  revision: number;
+}
+export interface LandingIn {
+  drafts: string[];
+}
+export interface LandingOut {
+  branch: string;
+  entries: LandingEntryOut[];
+  main_head: string;
+  public_id: string;
+  pull_number: number | null;
+  pull_url: string;
+  reason: string;
+  started_at: string;
+  started_by: MemberOut | null;
+  state: string;
 }
 export interface LinkIn {
   node: string;

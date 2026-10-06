@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from code_api.config.env import Env, database_from_url
+from code_api.config.landing import GitHubApp, github_app
 
 KEY = "k" * 50
 URL = "postgresql://code:code@localhost:5433/code"
@@ -32,6 +33,11 @@ def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "SMTP_USER",
         "SMTP_PASSWORD",
         "EMAIL_FROM",
+        "GITHUB_APP_ID",
+        "GITHUB_APP_INSTALLATION_ID",
+        "GITHUB_APP_PRIVATE_KEY",
+        "CONTENT_REPOSITORY",
+        "GITHUB_API_URL",
     ):
         monkeypatch.delenv(f"CODE_{name}", raising=False)
 
@@ -179,3 +185,45 @@ def test_the_web_origin_has_no_trailing_slash(monkeypatch: pytest.MonkeyPatch) -
         web_origin="https://code.example/",
     )
     assert env.web_origin == "https://code.example"
+
+
+# ── Landing (M4.6 spec, M4L.4) ──────────────────────────────────────────────────────────────────
+
+BASE = {"secret_key": KEY, "database_url": URL, "redis_url": REDIS}
+PEM = "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----"
+
+
+def test_landing_is_off_until_the_app_is_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    env = make_env(monkeypatch, **BASE)
+    assert github_app(env) is None
+    assert env.content_repository == "comeni-project/comeni-code-content"
+    assert env.github_api_url == "https://api.github.com"
+
+
+def test_the_app_is_read_whole(monkeypatch: pytest.MonkeyPatch) -> None:
+    env = make_env(
+        monkeypatch,
+        **BASE,
+        github_app_id="123",
+        github_app_installation_id="456",
+        github_app_private_key=PEM,
+        github_api_url="http://127.0.0.1:9999/",
+    )
+    assert github_app(env) == GitHubApp(
+        app_id="123",
+        installation_id="456",
+        # A key pasted on one line, with \n for its line breaks, reads as the PEM it is.
+        private_key="-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----",
+        repository="comeni-project/comeni-code-content",
+        api_url="http://127.0.0.1:9999",
+    )
+
+
+def test_half_an_app_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError, match="together, or none"):
+        make_env(monkeypatch, **BASE, github_app_id="123")
+
+
+def test_a_repository_is_owner_slash_name(monkeypatch: pytest.MonkeyPatch) -> None:
+    with pytest.raises(ValidationError, match="owner/name"):
+        make_env(monkeypatch, **BASE, content_repository="comeni-code-content")

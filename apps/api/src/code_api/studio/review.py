@@ -14,8 +14,9 @@ from django.db import transaction
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.studio import drafts
+from code_api.studio.landing import AlreadyLanding
 from code_api.studio.log import record
-from code_api.studio.models import Draft, DraftEvent, Review, Revision
+from code_api.studio.models import Draft, DraftEvent, LandingDraft, Review, Revision
 from code_schema import ExamQuestion, TryQuestion
 from code_schema.grading import is_right
 
@@ -141,6 +142,10 @@ def send_back(draft: Draft, *, reason: str, by: User) -> Draft:
     with transaction.atomic():
         locked = _locked(draft)
         _need(locked, State.APPROVED)
+        held = LandingDraft.objects.filter(draft=locked, live=True).select_related("landing")
+        entry = held.first()
+        if entry is not None:
+            raise AlreadyLanding(locked, entry.landing)
         why = _reason(reason)
         _move(locked, State.OPEN)
         record(locked, Kind.SENT_BACK, by=by, revision=drafts.latest(locked).number, reason=why)

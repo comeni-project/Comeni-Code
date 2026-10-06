@@ -109,6 +109,7 @@ class DraftEvent(models.Model):
         APPROVED = "approved"
         SENT_BACK = "sent_back"
         DISCARDED = "discarded"
+        LANDING = "landing"
 
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="events")
     kind = models.CharField(max_length=16, choices=Kind.choices)
@@ -123,6 +124,66 @@ class DraftEvent(models.Model):
     review = models.ForeignKey(Review, null=True, on_delete=models.SET_NULL, related_name="+")
     answered = models.PositiveIntegerField(null=True)
     wrong = models.PositiveIntegerField(null=True)
+    # The batch the draft went out in, on a `landing` event (M4.6 spec, M4L.3).
+    landing = models.ForeignKey(
+        "Landing", null=True, blank=True, on_delete=models.PROTECT, related_name="events"
+    )
 
     def __str__(self) -> str:
         return f"{self.kind} {self.draft.node_id}"
+
+
+class Landing(models.Model):
+    """One batch of approved drafts, landed as one commit and one pull request (M4.6, M4L.3)."""
+
+    class State(models.TextChoices):
+        PENDING = "pending"
+        REFUSED = "refused"
+        OPEN = "open"
+        FAILED = "failed"
+        MERGED = "merged"
+        CLOSED = "closed"
+
+    # A landing in one of these holds its drafts: a failed one can still merge on a re-run, so its
+    # drafts wait until an operator closes it (plan ruling, Review Focus 1).
+    LIVE: ClassVar = (State.PENDING, State.OPEN, State.FAILED, State.MERGED)
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    started_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    started_at = models.DateTimeField(default=timezone.now)
+    state = models.CharField(max_length=16, choices=State.choices, default=State.PENDING)
+    main_head = models.TextField(blank=True)  # the commit the landing was built on
+    branch = models.TextField(blank=True)
+    pull_number = models.PositiveIntegerField(null=True, blank=True)
+    pull_url = models.TextField(blank=True)
+    reason = models.TextField(blank=True)  # why it was refused or failed, in words
+    # When a worker took it; a landing claimed long ago and still pending was interrupted (#203).
+    claimed_at = models.DateTimeField(null=True, blank=True)
+    # Whether GitHub turned auto-merge on; without it a failed landing never goes back to open.
+    auto_merge = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"landing {self.public_id} ({self.state})"
+
+
+class LandingDraft(models.Model):
+    """One draft in a landing, at the revision it lands at. `live` while the landing holds it."""
+
+    landing = models.ForeignKey(Landing, on_delete=models.CASCADE, related_name="entries")
+    draft = models.ForeignKey(Draft, on_delete=models.PROTECT, related_name="landings")
+    revision = models.PositiveIntegerField()
+    live = models.BooleanField(default=True)
+    dropped_code = models.CharField(max_length=6, blank=True)
+    dropped_reason = models.TextField(blank=True)
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["draft"], condition=Q(live=True), name="studio_one_live_landing_per_draft"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.draft.node_id} r{self.revision} in {self.landing.public_id}"
