@@ -341,3 +341,23 @@ class LandingOut(Schema):
     pull_url: str
     reason: str
     entries: list[LandingEntryOut]
+
+
+# ── The index (M4.7 spec, M4F.5) ────────────────────────────────────────────────────────────────
+
+
+class BuildOut(Schema):
+    commit: str
+    digest: str
+    outcome: str
+    node_count: int
+    created_at: datetime
+    problems: list[str]
+
+
+class IndexOut(Schema):
+    live: BuildOut | None
+    latest: BuildOut | None
+    main_head: str | None
+    checked_at: datetime | None
+    behind: bool

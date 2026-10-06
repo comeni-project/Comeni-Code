@@ -11,6 +11,7 @@ export type Role = "author" | "reviewer" | "operator";
 export interface ApiSchemas {
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
+  BuildOut: BuildOut;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   ChecklistOut: ChecklistOut;
@@ -24,6 +25,7 @@ export interface ApiSchemas {
   FilesOut: FilesOut;
   GivenIn: GivenIn;
   HealthOut: HealthOut;
+  IndexOut: IndexOut;
   InsertBlockIn: InsertBlockIn;
   InviteIn: InviteIn;
   InviteOut: InviteOut;
@@ -93,6 +95,14 @@ export interface BlockIn {
   markdown?: string;
   question?: string;
   title?: string;
+}
+export interface BuildOut {
+  commit: string;
+  created_at: string;
+  digest: string;
+  node_count: number;
+  outcome: string;
+  problems: string[];
 }
 export interface CalloutBlockOut {
   callout: "misconception" | "caveat" | "convention";
@@ -292,6 +302,13 @@ export interface GivenIn {
 export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
+}
+export interface IndexOut {
+  behind: boolean;
+  checked_at: string | null;
+  latest: BuildOut | null;
+  live: BuildOut | null;
+  main_head: string | null;
 }
 export interface InsertBlockIn {
   at: number;

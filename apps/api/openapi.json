@@ -58,6 +58,48 @@
         "title": "BlockIn",
         "type": "object"
       },
+      "BuildOut": {
+        "properties": {
+          "commit": {
+            "title": "Commit",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "node_count": {
+            "title": "Node Count",
+            "type": "integer"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Problems",
+            "type": "array"
+          }
+        },
+        "required": [
+          "commit",
+          "digest",
+          "outcome",
+          "node_count",
+          "created_at",
+          "problems"
+        ],
+        "title": "BuildOut",
+        "type": "object"
+      },
       "CalloutBlockOut": {
         "properties": {
           "callout": {
@@ -724,6 +766,66 @@
           "checks"
         ],
         "title": "HealthOut",
+        "type": "object"
+      },
+      "IndexOut": {
+        "properties": {
+          "behind": {
+            "title": "Behind",
+            "type": "boolean"
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuildOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "live": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BuildOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "main_head": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Main Head"
+          }
+        },
+        "required": [
+          "live",
+          "latest",
+          "main_head",
+          "checked_at",
+          "behind"
+        ],
+        "title": "IndexOut",
         "type": "object"
       },
       "InsertBlockIn": {
@@ -3034,7 +3136,8 @@
               "enum": [
                 "open",
                 "submitted",
-                "approved"
+                "approved",
+                "landed"
               ],
               "title": "State",
               "type": "string"
@@ -4938,6 +5041,33 @@
           }
         ],
         "summary": "Withdraw from review",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/index": {
+      "get": {
+        "operationId": "code_api_studio_index_api_index",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The index and main",
         "tags": [
           "studio"
         ]
