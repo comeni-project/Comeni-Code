@@ -4,6 +4,7 @@ This is the only module that reads environment variables. Every name starts with
 developer's shell cannot leak another project's `DATABASE_URL` into Code.
 """
 
+import re
 from pathlib import Path
 from typing import Annotated, Any, Self
 from urllib.parse import unquote, urlsplit
@@ -46,6 +47,12 @@ class Env(BaseSettings):
     smtp_user: str = ""
     smtp_password: SecretStr | None = None
     email_from: str = "Comeni Code <noreply@localhost>"
+    # Landing (M4.6 spec, M4L.4): the GitHub App Studio lands as. Off unless all three are set.
+    github_app_id: str | None = None
+    github_app_installation_id: str | None = None
+    github_app_private_key: SecretStr | None = None
+    content_repository: str = "comeni-project/comeni-code-content"
+    github_api_url: str = "https://api.github.com"
 
     @field_validator("database_url")
     @classmethod
@@ -72,6 +79,28 @@ class Env(BaseSettings):
         if (self.github_client_id is None) != (self.github_client_secret is None):
             raise ValueError(
                 "set both CODE_GITHUB_CLIENT_ID and CODE_GITHUB_CLIENT_SECRET, or neither"
+            )
+        return self
+
+    @field_validator("github_api_url")
+    @classmethod
+    def _api_without_slash(cls, value: str) -> str:
+        return value.rstrip("/")
+
+    @field_validator("content_repository")
+    @classmethod
+    def _owner_slash_name(cls, value: str) -> str:
+        if re.fullmatch(r"[\w.-]+/[\w.-]+", value) is None:
+            raise ValueError("must be owner/name")
+        return value
+
+    @model_validator(mode="after")
+    def _app_whole(self) -> Self:
+        parts = (self.github_app_id, self.github_app_installation_id, self.github_app_private_key)
+        if any(part is not None for part in parts) and None in parts:
+            raise ValueError(
+                "set CODE_GITHUB_APP_ID, CODE_GITHUB_APP_INSTALLATION_ID and "
+                "CODE_GITHUB_APP_PRIVATE_KEY together, or none"
             )
         return self
 
