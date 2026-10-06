@@ -105,3 +105,16 @@ def test_a_path_that_is_not_a_folder_exits_2(tmp_path: Path, name: str) -> None:
     assert caught.value.returncode == 2
     assert str(path) in str(caught.value)
     assert (IndexBuild.objects.count(), dump()) == (1, before)
+
+
+def test_the_command_follows_the_configured_source(settings: Settings) -> None:
+    # No --root: the command is follow(configured_source()) — here the folder setting.
+    settings.CODE_GITHUB_APP, settings.CODE_CONTENT_ROOT = None, FIXTURES
+    run()
+    assert IndexBuild.objects.get().outcome == "applied"
+
+
+def test_the_command_lives_beside_follow() -> None:
+    from django.core.management import get_commands
+
+    assert get_commands()["rebuild_index"] == "code_api.studio"

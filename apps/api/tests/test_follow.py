@@ -99,3 +99,8 @@ def test_the_configured_source_follows_the_settings(settings: Any, tmp_path: Pat
 
     settings.CODE_GITHUB_APP = GitHubApp("1", "2", "k", "o/r", "http://127.0.0.1:9")
     assert isinstance(follow.configured_source(), GitHubSource)
+
+
+def test_beat_follows_main_every_five_minutes(settings: Any) -> None:
+    entry = settings.CELERY_BEAT_SCHEDULE["studio-follow-main"]
+    assert (entry["task"], entry["schedule"]) == ("code_api.studio.tasks.follow_main", 300)
