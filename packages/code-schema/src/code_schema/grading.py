@@ -18,9 +18,14 @@ class NotAnAnswer(ValueError):
 
 
 def _is_number(given: object) -> bool:
+    """A finite number a float can hold: JSON allows an integer of 4,000 digits (#188)."""
     if isinstance(given, bool) or not isinstance(given, int | float):
         return False
-    return given == given and abs(given) != float("inf")  # NaN is unequal to itself
+    try:
+        as_float = float(given)
+    except OverflowError:
+        return False
+    return as_float == as_float and abs(as_float) != float("inf")  # NaN is unequal to itself
 
 
 def is_right(answer: Answer, given: object) -> bool:

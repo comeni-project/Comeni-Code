@@ -119,3 +119,21 @@ def test_a_second_approval_finds_it_approved(
     review.approve(draft, revision=2, reason="", by=grace)
     with pytest.raises(review.WrongState):
         review.approve(draft, revision=2, reason="", by=otto)
+
+
+def test_a_send_back_and_the_same_revision_resubmitted_needs_fresh_answers(
+    ada: User, grace: User, otto: User, ready: Ready
+) -> None:
+    # #188: answers given before a send back do not approve the next submission.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    answered_all(draft, grace)
+    review.approve(draft, revision=2, reason="", by=grace)
+    review.send_back(draft, reason="Check the claim again.", by=otto)
+    review.submit(draft, revision=2, by=ada)
+    with pytest.raises(review.Unanswered):
+        review.approve(draft, revision=2, reason="", by=grace)
+
+
+def test_an_operator_who_contributed_may_reject(otto: User, ready: Ready) -> None:
+    draft = review.submit(ready(otto), revision=2, by=otto)
+    assert review.reject(draft, revision=2, reason="Not ready.", by=otto).state == "open"

@@ -103,3 +103,39 @@ def test_a_node_that_no_longer_reads_is_refused_not_a_500(
     Provider.objects.update(licences=[])
     with pytest.raises(drafts.Refused):
         review.review_of(draft, by=grace)
+
+
+def test_submitting_the_same_revision_again_starts_a_fresh_review(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    # #188: a review belongs to a submission, not to a revision number.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    review.answer(draft, "tpm-or-count", 0, by=grace)
+    review.reject(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
+    review.submit(draft, revision=2, by=ada)
+    assert all(a.given is None for a in review.review_of(draft, by=grace))
+
+
+def test_the_review_reads_the_drafts_state_now(ada: User, grace: User, ready: Ready) -> None:
+    # #188: an object read while submitted, then withdrawn, is not reviewed on its stale state.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    stale = Draft.objects.get(pk=draft.pk)
+    review.withdraw(draft, by=ada)
+    with pytest.raises(review.WrongState):
+        review.review_of(stale, by=grace)
+
+
+def test_answering_or_submitting_a_node_that_no_longer_reads_is_refused(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    from code_api.content.models import Provider
+
+    draft = ready(ada)
+    review.submit(draft, revision=2, by=ada)
+    review.withdraw(draft, by=ada)
+    Provider.objects.update(licences=[])
+    with pytest.raises(review.ChecklistFails):
+        review.submit(draft, revision=2, by=ada)
+    Draft.objects.filter(pk=draft.pk).update(state="submitted")
+    with pytest.raises(drafts.Refused):
+        review.answer(draft, "tpm-or-count", 0, by=grace)

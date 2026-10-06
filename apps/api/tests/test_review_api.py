@@ -65,6 +65,8 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
     sent = call(ada, "post", at(draft, "/submit"), {"revision": 2})
     assert (sent.json()["state"], sent.json()["submitted_revision"]) == ("submitted", 2)
     unanswered = call(grace, "get", at(draft, "/review")).json()
+    hidden = ("right_option", "value", "tolerance", "rationale")
+    assert all(q[key] is None for q in unanswered for key in hidden)  # #188: no key unanswered
     assert unanswered[1] == {
         "id": "tpm-or-count",
         "pool": "exam",

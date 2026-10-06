@@ -182,8 +182,20 @@ def _reviewer(by: User) -> None:
         raise RoleTooLow()
 
 
-def _given(draft: Draft, number: int, by: User) -> dict[str, object]:
-    found = Review.objects.filter(draft=draft, number=number, reviewer=by).first()
+def _submission(draft: Draft) -> DraftEvent:
+    """The submission under review: the draft's latest `submitted` event. A review belongs to
+    it, so a revision submitted again is reviewed afresh (#188)."""
+    found = draft.events.filter(kind=Kind.SUBMITTED).order_by("-id").first()
+    assert found is not None, "a submitted draft has a submitted event"
+    return found
+
+
+def _review(draft: Draft, by: User) -> Review | None:
+    return Review.objects.filter(submission=_submission(draft), reviewer=by).first()
+
+
+def _given(draft: Draft, by: User) -> dict[str, object]:
+    found = _review(draft, by)
     return {} if found is None else dict(found.answers)
 
 
@@ -196,9 +208,10 @@ def _graded(question: Asked, given: object | None) -> Answered:
 def review_of(draft: Draft, *, by: User) -> list[Answered]:
     """`by`'s answers to the submitted revision; a key is theirs to see only once answered."""
     _reviewer(by)
-    _need(draft, State.SUBMITTED)
-    given = _given(draft, drafts.latest(draft).number, by)
-    return [_graded(question, given.get(question.id)) for question in asked(draft)]
+    now = Draft.objects.get(pk=draft.pk)  # its state now, not when the caller read it (#188)
+    _need(now, State.SUBMITTED)
+    given = _given(now, by)
+    return [_graded(question, given.get(question.id)) for question in asked(now)]
 
 
 def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answered:
@@ -213,7 +226,9 @@ def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answer
             raise NoSuchQuestion(question_id)
         right = is_right(question.question.answer, given)
         review, _ = Review.objects.get_or_create(
-            draft=locked, number=drafts.latest(locked).number, reviewer=by
+            submission=_submission(locked),
+            reviewer=by,
+            defaults={"draft": locked, "number": drafts.latest(locked).number},
         )
         review.answers = {**review.answers, question_id: given}
         review.save(update_fields=["answers"])
@@ -240,12 +255,12 @@ def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
         why = _reason(reason) if own else reason.strip()
         _passes(locked)
         questions = asked(locked)
-        given = _given(locked, current.number, by)
+        given = _given(locked, by)
         missing = [question.id for question in questions if question.id not in given]
         if missing:
             raise Unanswered(missing)
         wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
-        found = Review.objects.get(draft=locked, number=current.number, reviewer=by)
+        found = _review(locked, by)
         _move(locked, State.APPROVED)
         record(
             locked,

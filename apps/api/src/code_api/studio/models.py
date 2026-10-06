@@ -74,9 +74,12 @@ class Revision(models.Model):
 
 
 class Review(models.Model):
-    """One reviewer's answers to the questions of one submitted revision (M4.5 spec, M4R.4)."""
+    """One reviewer's answers to the questions of one submission (M4.5 spec, M4R.4). Keyed on the
+    submission, its `submitted` event, not the revision: a revision submitted again after a
+    rejection or a send back is a new submission, and its review starts empty (#188)."""
 
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="reviews")
+    submission = models.ForeignKey("DraftEvent", on_delete=models.CASCADE, related_name="reviews")
     number = models.PositiveIntegerField()  # the revision reviewed
     reviewer = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
@@ -87,7 +90,7 @@ class Review(models.Model):
     class Meta:
         constraints: ClassVar = [
             models.UniqueConstraint(
-                fields=["draft", "number", "reviewer"], name="studio_one_review_per_reviewer"
+                fields=["submission", "reviewer"], name="studio_one_review_per_reviewer"
             )
         ]
 

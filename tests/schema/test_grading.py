@@ -46,7 +46,11 @@ def test_a_number_is_right_within_its_tolerance_and_the_webs_slack() -> None:
     assert is_right(answer, 0.41) is False
 
 
-@pytest.mark.parametrize("given", [True, "750000", None, float("nan"), float("inf")])
+@pytest.mark.parametrize(
+    "given",
+    [True, "750000", None, float("nan"), float("inf"), pytest.param(10**400, id="10**400")],
+)
 def test_a_number_refuses_what_is_not_a_finite_number(given: object) -> None:
+    # 10**400 is valid JSON, and past a float: #188 found it raised OverflowError, a 500.
     with pytest.raises(NotAnAnswer, match="^a number question is answered with a finite number$"):
-        is_right(NumberAnswer(value=750000, tolerance=1), given)
+        is_right(NumberAnswer(value=0.5, tolerance=1), given)
