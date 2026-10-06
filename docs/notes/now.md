@@ -5,46 +5,36 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-05** (M4.3 closed). `CLAUDE.md` before the first
-compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-05** (M4.4 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
 - **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, sub-issues #119–#127 of #74,
   back end first, screens last; the list and its reasons are in the archived *M4 in parts* entry.
   (2026-09-29)
-- **M4.1 is done** (#119): diagnostic codes, the block document, and a refactor before exam pools
-  (M4.1.3, #138, PR #139). (2026-09-29, 2026-10-05)
-- **M4.2 is done** (#120, PR #151): exam pools in `exam.yaml`, warnings, and the content
-  repository's pin moved (comeni-code-content#6). (2026-10-05)
-- **M4.3 is done** (#121, PR #164): accounts, invites and roles. **M4.4, drafts, the content API
-  and checks (#122), is next**; its spec and plan were agreed on 2026-10-05. (2026-10-05)
+- **M4.1–M4.4 are done** (#119–#122): diagnostic codes and the block document (PR #139); exam
+  pools (#151, comeni-code-content#6); accounts, invites, roles (#164); drafts, the content API and
+  checks (#177). **M4.5, review (#123), is next**: nobody approves a draft they contributed to, and
+  the checklist gates submitting. (2026-09-29, 2026-10-05)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
 
-- **Every defect gets an issue first**, `mechanical` or `protocol` (`docs/internals/walking.md`).
-  The plan is a sub-issue tree (`M4.1.2 — …`); a part's deferred minors go in one `deferred` issue
-  (#131, #134). (2026-09-29)
+- **Every defect gets an issue first**, `mechanical` or `protocol` (`docs/internals/walking.md`);
+  the plan is a sub-issue tree; deferred minors go in one `deferred` issue. (2026-09-29)
 - **A phase is split into parts; each is spec → plan → test-first build → journal entry**, the
   operator approving the parts list and each spec (R5). A part is built natively with a
   fresh-reviewer checkpoint mid-plan and one over the branch. (2026-09-17, 2026-09-29)
 - **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
-- **A quality pass between parts**, when asked: recommend, don't survey. Work the operator calls
-  mechanical and agreed is built without stopping, still issues first, test first, and a fresh
-  reviewer at the end. (2026-10-05)
+- **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
+  built without stopping, still issues and tests first, a fresh reviewer at the end. (2026-10-05)
 - **The app before the pages**: content and finishing polish wait for the end of the MVP; screens
   still match the original boards as closely as possible. (2026-09-29)
-- **Screens are compared with the published canvas in a browser**, at the page's real width, in
-  light at 1440 and in dark, never with a board regenerated in the same change; styles are read
-  from `.design/build_pages.mjs`. (2026-09-21)
 
 ## The content format (`code-schema`)
 
-- A node is a folder: `node.yaml` (id from the folder, title, claim, region, level, minutes, links,
-  resources, try questions), a MyST `body.md` and an optional `exam.yaml`; the writer round-trips
-  all three byte for byte, and removes `exam.yaml` for a node without a pool. (2026-09-18 to
-  2026-10-05)
+- A node is a folder: `node.yaml` (fields, links, resources, try questions), a MyST `body.md`
+  and an optional `exam.yaml`; the writer round-trips all three byte for byte. (2026-09-18 to 10-05)
 - **The body is blocks**: text between top-level fences, `:::{try} <id>` then `:::`, and
   `:::{misconception|caveat|convention} <title>` … `:::`. Fences follow CommonMark; later kinds are
   refused by name until M6; a body its blocks would not write back unchanged is CS0415. (2026-09-29)
@@ -57,6 +47,8 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   *de Bruijn graphs* sits below *Salmon*, not on its route. (2026-09-18, 2026-09-19)
 - `code-schema validate <root>` checks every node and the graph, exits 0/1/2 (1 only for errors),
   and speaks GitHub annotations with `--format github`. (2026-09-18, 2026-10-05)
+- **Edits are pure** (`code_schema.edits`, `Node` in, `Node` out), and `parse_node_files` reads a
+  folder or a draft by one path. `minutes` is 1 to 600 (CS0023, #175). (2026-10-05)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
 - **A question composes an answer**: `Answer = ChoiceAnswer | NumberAnswer`, inside `TryQuestion`
@@ -70,9 +62,8 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **Warnings never refuse** (M4E.4): `Problem.refuses` reads the registry; `Content.errors` is what
   `validate` (exit 1, `::error` vs `::warning`), the weaver and `rebuild_index` refuse on.
   (2026-10-05)
-- **`code_schema.records`** (`Field`, `Entry`) reads every nested list of mappings; links,
-  resources and questions keep their own rules on it. `Node.blocks` is a property over the body,
-  and `block_json` / `block_from_json` are the one block codec. (2026-10-05)
+- **`code_schema.records`** reads every nested list of mappings; `Node.blocks` is a property over
+  the body; `block_json` / `block_from_json` are the one block codec. (2026-10-05)
 - `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route from no background to *Salmon* and nine
   nodes beside it; TPM carries the one exam pool, of four. Tests never read the real content
   repository. (2026-09-19, 2026-10-05)
@@ -89,8 +80,9 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   and `code_api/content/schemas.py` every response schema. The index stores blocks only:
   migration 0005 dropped `Node.body`. Exam pools are their own `ExamQuestion` table (0006); **no
   endpoint sends them** until the self-test spec decides. (2026-10-05)
-- **Each request loads the whole index**: fine at 26 nodes; later a graph cached per digest.
-  (2026-09-20)
+- **Index numbers are text** (jsonb drops exponents); `content.snapshot` reads rows back as nodes.
+  (2026-10-05)
+- **Each request loads the whole index**: fine at 26 nodes; later cached per digest. (2026-09-20)
 
 ## Accounts (`code_api.accounts`)
 
@@ -103,14 +95,20 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **`studio(min_role)`** gates Studio routes: 401 `CA0101` (before CSRF), 403 `CA0102`; learner
   routes take no auth. The last active operator cannot be demoted or deactivated. (2026-10-05)
 
+## Drafts (`code_api.studio`)
+
+- **A draft is a working copy of one node**, one open per node (a partial unique constraint),
+  opened from the index or new; any author or above edits it. (2026-10-05)
+- **A save is one edit, one `Revision`** of the three files, or none: it names its base revision
+  (stale: 409 `CA0203`); the files must re-read as exactly the edit (CA0208, CA0210). (2026-10-05)
+- **Verify** runs the graph rules with the draft in place; **the checklist** wants it clean, a
+  level, a resource and four exam questions. (2026-10-05)
+
 ## The weaver and search (`code-weaver`, pure)
 
-- `weave` walks *needs* back from the goals and orders by region, then first-reached; the same
-  graph, goals and known set give byte-identical routes; levels never change a route. (2026-09-19)
-- Each stop lists the stops that need it, with reasons; a known topic ends the walk; the route
-  reports its level span. (2026-09-20)
-- `find` ranks topics for typed words with no model; a word nothing matched is returned by name.
-  (2026-09-20)
+- `weave` walks *needs* back from the goals, orders by region then first-reached, byte-identical
+  for the same input; levels never change a route; known topics end the walk. (2026-09-19, 09-20)
+- `find` ranks topics for typed words with no model; unmatched words come back by name. (2026-09-20)
 
 ## The web app (`apps/web`)
 
@@ -127,8 +125,7 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 - **`api/queries.ts` is the only place query keys and hooks are made**; `url.ts` reads and writes
   route params; `ErrorNotice` is the one error sentence, and an answer that is not JSON reports its
   status (`HTTP 502`). (2026-10-05)
-- **No page invents learner state**: what needs learner records, problems, connecting text or
-  review is absent, not faked. (2026-09-21)
+- **No page invents learner state**: what needs records or review is absent, not faked. (2026-09-21)
 
 ## The stack, CI and guardrails
 
@@ -155,8 +152,11 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 ## Open
 
-- **M4's spec questions**: whether a draft locks its node and how it relates to the index (M4.4);
-  webhook or polling (M4.7); which real node lands first (M4.9). (2026-09-29)
+- **M4's spec questions**: webhook or polling (M4.7); which real node lands first (M4.9).
+  (2026-09-29)
+- **For landing (M4.6)**: a *related* link needs both drafts landed together; whether a region
+  change moves the folder; a base that changed is refused. #176: an empty edit still makes a
+  revision. (2026-10-05)
 - **For the self-test part** (M4E.7): a cap of questions per node in one exam, unseen questions
   first; whether grading runs in the browser; whether exam rows keep an empty `misconception`.
   (2026-10-05)
@@ -173,19 +173,16 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
 
 - **Never pipe a check into `tail` or `grep`** and trust the chain: the exit status is the pipe's.
   A red pull request merged this way. (2026-09-17, 2026-09-21)
-- **The link check reads tracked files only**: `git add` a new document before trusting it.
-  (2026-09-17)
+- **The link check reads tracked files only**: `git add` a new document first. (2026-09-17)
 - **Compose rebuilds nothing by itself**: rebuild the index after a fixture change, `--build` after
   a code change, reload the browser before judging. (2026-09-21)
 - **An app must declare every workspace package it imports**; the image installs only those.
   (2026-09-20)
-- **Stop a server by its PID**; never `pkill -f` a pattern in your own command line. (2026-09-17)
+- **Stop a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17)
 - **`comeni-code-content` holds no nodes yet**; its validator is pinned at M4.2's merge, `38d09dc`.
   (2026-10-05)
-- **Docker is gone from this machine; podman is here.** Postgres 18 and Redis 8 run as
-  `code-dev-postgres` (:5433) and `code-dev-redis` (:6380), the `.env` ports; after a reboot,
-  `podman start code-dev-postgres code-dev-redis`. Compose and the `code-audit` stack are not set
-  up again. (2026-10-05)
+- **Podman, not Docker, on this machine**: `podman start code-dev-postgres code-dev-redis` after a
+  reboot (:5433, :6380); Compose is not set up again. (2026-10-05)
 - **Two pytest runs on one Postgres break each other**: not while a reviewer runs. (2026-10-05)
 - **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
   `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). The
@@ -193,6 +190,9 @@ compaction, with its part-by-part status, is `git show 23da290:CLAUDE.md`.
   request first. (2026-09-29, 2026-10-05)
 - **Run the suite with CI's `env:` before pushing**: the local `.env` allows more. Watch CI without
   blocking; GitHub's runner queue can stall 10–15 minutes. (2026-10-05)
+- **Migration 0007 needs `rebuild_index` after it** (providers' licences, numbers). (2026-10-05)
+- **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**,
+  so a later text replacement can miss: assert each test setup step. (2026-10-05)
 - **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
   then refuses every write behind it. (2026-10-05)
 - **CI may not start when a pull request opens**: close and reopen it. (2026-10-05)
