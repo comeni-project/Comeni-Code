@@ -20,7 +20,7 @@ from django.utils import timezone
 
 from code_api.content.index import rebuild_index
 from code_api.content.models import IndexBuild
-from code_api.studio import github
+from code_api.studio import github, landing
 from code_api.studio.github import GitHub
 
 FOLLOW_LOCK = 5_172_032
@@ -119,4 +119,8 @@ def _round(source: Source) -> Followed:
     if stale and not (want is not None and _refused_before(want)):
         with source.checkout(want) as folder:
             built = rebuild_index(folder, commit=want or "")
-    return Followed(build=built, landed=0)
+    live = _live()
+    landed = (
+        0 if live is None or not live.commit else landing.mark_landed(live.commit, source.contains)
+    )
+    return Followed(build=built, landed=landed)

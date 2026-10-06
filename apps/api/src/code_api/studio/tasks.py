@@ -5,7 +5,7 @@ import logging
 from celery import shared_task
 from django.utils import timezone
 
-from code_api.studio import github, landing
+from code_api.studio import follow, github, landing
 from code_api.studio.models import Landing
 
 log = logging.getLogger(__name__)
@@ -40,3 +40,10 @@ def watch_landings() -> None:
             landing.run(each, client)
         except Exception:
             log.exception("running landing %s", each.public_id)
+
+
+@shared_task(name="code_api.studio.tasks.follow_main")
+def follow_main() -> None:
+    source = follow.configured_source()
+    if source is not None:
+        follow.follow(source)
