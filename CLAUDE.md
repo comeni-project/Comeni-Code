@@ -138,9 +138,10 @@ spec, not in code.
 4. **Nothing leaves the request queue without a person.** Models may propose and group requests;
    they may not accept, merge or decline them.
 5. **AI drafts, people approve.** Model-written text that reaches a learner unreviewed carries a
-   *not yet reviewed* label. Nobody approves what they drafted, and a judge model is never from
-   the drafter's model family. Automatic deployment of high-scoring blocks is deferred until
-   judge–human agreement is measured (tutor spec T8.4).
+   *not yet reviewed* label. Nobody approves what they drafted — except an operator, with a stated
+   reason, logged and marked *self-approved*, so a team of one can land (M4.5) — and a judge model
+   is never from the drafter's model family. Automatic deployment of high-scoring blocks is
+   deferred until judge–human agreement is measured (tutor spec T8.4).
 6. **Content is validated blocks.** No free HTML, script or styling from an author or a model;
    figures are library components filled with data; images carry author and licence or are
    refused; outside resources are `resource` blocks with a recorded licence, embedded only from
@@ -271,7 +272,7 @@ Target shape (R2): `packages/` (pure), `apps/api/` (Django), `apps/web/` (React)
 .nvmrc                    Node 24 for the web app
 .github/                  contributing, security, templates
 .github/workflows/ci.yml  the CI job
-apps/api/                 the Django project, code_api (config/, accounts/ — users, roles, invites, studio(min_role), allauth's adapters —, content/ — the index (snapshot.py reads it back as nodes), rebuild_index, the views /api/nodes, /api/routes, /api/search over reads.py and schemas.py, studio/ — drafts: Draft, Revision, the validated save, the content API, verify and the checklist —, health/, api.py, celery.py, redis.py), openapi.json, tests
+apps/api/                 the Django project, code_api (config/, accounts/ — users, roles, invites, studio(min_role), allauth's adapters —, content/ — the index (snapshot.py reads it back as nodes), rebuild_index, the views /api/nodes, /api/routes, /api/search over reads.py and schemas.py, studio/ — drafts: Draft, Revision, the validated save, the content API, verify and the checklist; review.py: submit, approve, the reviewer's answers; log.py: the draft's events —, health/, api.py, celery.py, redis.py), openapi.json, tests
 apps/web/                 the React app (Vite, React Router, TypeScript 7, Biome, vitest): start/ (L1), route/ (L4, with the map's pure layout), node/ (L5, the body drawn block by block: text by react-markdown, try questions, callouts), health/, identity/, layout/, api/ (the fetchers, and queries.ts: every query key and hook), url.ts; its Dockerfile builds the nginx image
 compose.yaml              the whole stack: postgres, redis, migrate, api, worker, beat, web
 Dockerfile.api            the API image: migrate, api (gunicorn), worker and beat

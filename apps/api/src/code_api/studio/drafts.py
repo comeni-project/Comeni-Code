@@ -18,7 +18,8 @@ from code_api.content.index import INDEX_LOCK
 from code_api.content.models import IndexBuild
 from code_api.content.models import Node as IndexedNode
 from code_api.content.snapshot import node_from_index, providers_from_index, regions_from_index
-from code_api.studio.models import Draft, Revision
+from code_api.studio.log import record
+from code_api.studio.models import LIVE_STATES, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
 from code_schema.graph import graph_problems
 from code_schema.links import locate_links
@@ -60,7 +61,11 @@ class Garbled(Exception):
 
 
 class NotOpen(Exception):
-    """The draft was discarded: it takes no more saves."""
+    """The draft is not open — submitted, approved or discarded — so it takes no saves (#188)."""
+
+    def __init__(self, public_id: object, state: str) -> None:
+        super().__init__(public_id)
+        self.state = state
 
 
 class NotAllowed(Exception):
@@ -135,8 +140,9 @@ def _start(node: Node, folder: str, base_digest: str, by: User, change: str) -> 
                 saved_by=by,
                 change=change,
             )
+            record(draft, DraftEvent.Kind.OPENED, by=by, revision=1)
     except IntegrityError:
-        # The partial unique constraint: another open draft of this node exists, or won a race.
+        # The partial unique constraint: another live draft of this node exists, or won a race.
         held = _open_draft(node.id)
         if held is None:
             raise  # some other integrity error: not ours to word
@@ -145,7 +151,7 @@ def _start(node: Node, folder: str, base_digest: str, by: User, change: str) -> 
 
 
 def _open_draft(node_id: str) -> Draft | None:
-    return Draft.objects.filter(node_id=node_id, state=Draft.State.OPEN).first()
+    return Draft.objects.filter(node_id=node_id, state__in=LIVE_STATES).first()
 
 
 def open_existing(node_id: str, *, by: User) -> Draft:
@@ -203,7 +209,7 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
     with transaction.atomic():
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
         if locked.state != Draft.State.OPEN:
-            raise NotOpen(locked.public_id)
+            raise NotOpen(locked.public_id, locked.state)
         current = latest(locked)
         if current.number != based_on:
             raise Stale(current)
@@ -236,11 +242,12 @@ def discard(draft: Draft, *, by: User) -> Draft:
     with transaction.atomic():
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
         if locked.state != Draft.State.OPEN:
-            raise NotOpen(locked.public_id)
+            raise NotOpen(locked.public_id, locked.state)
         if not by.can_act_as(Role.OPERATOR) and by not in contributors(locked):
             raise NotAllowed()
         locked.state = Draft.State.DISCARDED
         locked.save(update_fields=["state"])
+        record(locked, DraftEvent.Kind.DISCARDED, by=by, revision=latest(locked).number)
     return locked
 
 

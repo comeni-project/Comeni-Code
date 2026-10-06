@@ -14,10 +14,12 @@ from django.utils import timezone
 
 
 class Draft(models.Model):
-    """One node's working copy. At most one is open per node, which Postgres holds."""
+    """One node's working copy. At most one is live per node, which Postgres holds."""
 
     class State(models.TextChoices):
         OPEN = "open"
+        SUBMITTED = "submitted"
+        APPROVED = "approved"
         DISCARDED = "discarded"
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -35,13 +37,17 @@ class Draft(models.Model):
         constraints: ClassVar = [
             models.UniqueConstraint(
                 fields=["node_id"],
-                condition=Q(state="open"),
-                name="studio_one_open_draft_per_node",
+                condition=Q(state__in=["open", "submitted", "approved"]),
+                name="studio_one_live_draft_per_node",
             )
         ]
 
     def __str__(self) -> str:
         return f"draft of {self.node_id} ({self.state})"
+
+
+# A draft in one of these is its node's draft (M4.5 spec, M4R.3).
+LIVE_STATES = (Draft.State.OPEN, Draft.State.SUBMITTED, Draft.State.APPROVED)
 
 
 class Revision(models.Model):
@@ -65,3 +71,58 @@ class Revision(models.Model):
 
     def __str__(self) -> str:
         return f"{self.draft.node_id} r{self.number}"
+
+
+class Review(models.Model):
+    """One reviewer's answers to the questions of one submission (M4.5 spec, M4R.4). Keyed on the
+    submission, its `submitted` event, not the revision: a revision submitted again after a
+    rejection or a send back is a new submission, and its review starts empty (#188)."""
+
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="reviews")
+    submission = models.ForeignKey("DraftEvent", on_delete=models.CASCADE, related_name="reviews")
+    number = models.PositiveIntegerField()  # the revision reviewed
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    answers = models.JSONField(default=dict)  # question id → what was given
+    started_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["submission", "reviewer"], name="studio_one_review_per_reviewer"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"review of {self.draft.node_id} r{self.number}"
+
+
+class DraftEvent(models.Model):
+    """One transition, append-only, written with the state it made (M4.5 spec, M4R.5)."""
+
+    class Kind(models.TextChoices):
+        OPENED = "opened"
+        SUBMITTED = "submitted"
+        WITHDRAWN = "withdrawn"
+        REJECTED = "rejected"
+        APPROVED = "approved"
+        SENT_BACK = "sent_back"
+        DISCARDED = "discarded"
+
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="events")
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    at = models.DateTimeField(default=timezone.now)
+    revision = models.PositiveIntegerField(null=True)  # the revision it concerned
+    reason = models.TextField(blank=True)
+    self_approved = models.BooleanField(default=False)
+    # An approval's review, and how it went: how many questions answered, how many wrong.
+    review = models.ForeignKey(Review, null=True, on_delete=models.SET_NULL, related_name="+")
+    answered = models.PositiveIntegerField(null=True)
+    wrong = models.PositiveIntegerField(null=True)
+
+    def __str__(self) -> str:
+        return f"{self.kind} {self.draft.node_id}"

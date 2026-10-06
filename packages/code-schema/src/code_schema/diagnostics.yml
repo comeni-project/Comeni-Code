@@ -1685,13 +1685,14 @@ codes:
   CA0202:
     emitted_by: api
     concern: drafts
-    says: the node already has an open draft
+    says: the node already has a draft, open or under review
     refuses: true
     fix: |
-      Edit that draft, or have a contributor or an operator discard it first.
+      Edit that draft; if it is submitted, withdraw it first, and if approved, an operator sends
+      it back. Or have a contributor or an operator discard it.
     explanation: |
-      One open draft per node, held by the database, so versions of a node are worked on in one
-      place (M4W.1).
+      One live draft per node — open, submitted or approved — held by the database, so versions
+      of a node are worked on in one place (M4W.1; M4.5 spec, M4R.3).
 
   CA0203:
     emitted_by: api
@@ -1777,3 +1778,91 @@ codes:
     explanation: |
       A save is stored only if its files read back as exactly the node the edit made, so a draft
       never holds other than what its author sent (M4.4 spec, M4W.3; #174).
+
+  CA0211:
+    emitted_by: api
+    concern: drafts
+    says: the draft is not in the state this step needs
+    refuses: true
+    fix: |
+      Read the draft's state: submit an open draft, approve or reject a submitted one, send back an
+      approved one. An edit or a discard needs the draft open: withdraw it first.
+    explanation: |
+      A submitted draft is frozen, so what is reviewed is exactly one revision, and an approved one
+      is what lands (M4.5 spec, M4R.3).
+
+  CA0212:
+    emitted_by: api
+    concern: drafts
+    says: the checklist does not pass
+    refuses: true
+    fix: |
+      Make each failed item the answer lists pass, then submit or approve again.
+    explanation: |
+      M4's bar — it verifies clean, a level, a resource, four exam questions — is checked at
+      submit and again at approve, since a rebuild between the two can change it (M4R.3).
+
+  CA0213:
+    emitted_by: api
+    concern: drafts
+    says: a contributor approves or rejects their own draft
+    refuses: true
+    fix: |
+      Ask a reviewer who did not save the draft, or an operator, to decide it.
+    explanation: |
+      Nobody approves what they drafted (invariant 5); an operator alone may, with a reason, so a
+      team of one can still land content (M4R.2).
+
+  CA0214:
+    emitted_by: api
+    concern: drafts
+    says: a reason is missing where one is required
+    refuses: true
+    fix: |
+      Say why in a sentence.
+    explanation: |
+      A rejection, a send back and a self-approval are read later, by the author and in the
+      landing pull request, so each carries its reason (M4R.3).
+
+  CA0215:
+    emitted_by: api
+    concern: drafts
+    says: questions are unanswered at approval
+    refuses: true
+    fix: |
+      Answer each question the message names, then approve.
+    explanation: |
+      Answering the node's own questions before approving is S6's defence against rubber-stamping
+      (first spec, §5.5; M4R.1).
+
+  CA0216:
+    emitted_by: api
+    concern: drafts
+    says: the named revision is not the one submitted
+    refuses: true
+    fix: |
+      Reload the draft and review the revision now submitted.
+    explanation: |
+      Nobody approves or rejects a revision they did not see; the call names the one it acts on
+      (M4R.3).
+
+  CA0217:
+    emitted_by: api
+    concern: drafts
+    says: the submitted revision asks no question with this id
+    refuses: true
+    fix: |
+      Use a question id from the review.
+    explanation: |
+      A reviewer answers the questions of the revision under review, by id (M4R.4).
+
+  CA0218:
+    emitted_by: api
+    concern: drafts
+    says: an answer is of the wrong kind
+    refuses: true
+    fix: |
+      Give an option's index for a choice, a finite number for a number question.
+    explanation: |
+      Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else
+      (M4R.4).

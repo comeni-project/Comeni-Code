@@ -1282,13 +1282,13 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Drafts are named by their public id (M4.4 spec, M4W.1); a discarded draft cannot be changed.
 
-#### CA0202 — the node already has an open draft
+#### CA0202 — the node already has a draft, open or under review
 
 *Refuses.*
 
-**Fix.** Edit that draft, or have a contributor or an operator discard it first.
+**Fix.** Edit that draft; if it is submitted, withdraw it first, and if approved, an operator sends it back. Or have a contributor or an operator discard it.
 
-**Why.** One open draft per node, held by the database, so versions of a node are worked on in one place (M4W.1).
+**Why.** One live draft per node — open, submitted or approved — held by the database, so versions of a node are worked on in one place (M4W.1; M4.5 spec, M4R.3).
 
 #### CA0203 — the save was based on a revision that is no longer the latest
 
@@ -1353,3 +1353,67 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Keep a title on one line, and keep ::: lines out of a block's text.
 
 **Why.** A save is stored only if its files read back as exactly the node the edit made, so a draft never holds other than what its author sent (M4.4 spec, M4W.3; #174).
+
+#### CA0211 — the draft is not in the state this step needs
+
+*Refuses.*
+
+**Fix.** Read the draft's state: submit an open draft, approve or reject a submitted one, send back an approved one. An edit or a discard needs the draft open: withdraw it first.
+
+**Why.** A submitted draft is frozen, so what is reviewed is exactly one revision, and an approved one is what lands (M4.5 spec, M4R.3).
+
+#### CA0212 — the checklist does not pass
+
+*Refuses.*
+
+**Fix.** Make each failed item the answer lists pass, then submit or approve again.
+
+**Why.** M4's bar — it verifies clean, a level, a resource, four exam questions — is checked at submit and again at approve, since a rebuild between the two can change it (M4R.3).
+
+#### CA0213 — a contributor approves or rejects their own draft
+
+*Refuses.*
+
+**Fix.** Ask a reviewer who did not save the draft, or an operator, to decide it.
+
+**Why.** Nobody approves what they drafted (invariant 5); an operator alone may, with a reason, so a team of one can still land content (M4R.2).
+
+#### CA0214 — a reason is missing where one is required
+
+*Refuses.*
+
+**Fix.** Say why in a sentence.
+
+**Why.** A rejection, a send back and a self-approval are read later, by the author and in the landing pull request, so each carries its reason (M4R.3).
+
+#### CA0215 — questions are unanswered at approval
+
+*Refuses.*
+
+**Fix.** Answer each question the message names, then approve.
+
+**Why.** Answering the node's own questions before approving is S6's defence against rubber-stamping (first spec, §5.5; M4R.1).
+
+#### CA0216 — the named revision is not the one submitted
+
+*Refuses.*
+
+**Fix.** Reload the draft and review the revision now submitted.
+
+**Why.** Nobody approves or rejects a revision they did not see; the call names the one it acts on (M4R.3).
+
+#### CA0217 — the submitted revision asks no question with this id
+
+*Refuses.*
+
+**Fix.** Use a question id from the review.
+
+**Why.** A reviewer answers the questions of the revision under review, by id (M4R.4).
+
+#### CA0218 — an answer is of the wrong kind
+
+*Refuses.*
+
+**Fix.** Give an option's index for a choice, a finite number for a number question.
+
+**Why.** Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else (M4R.4).

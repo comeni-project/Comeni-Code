@@ -82,3 +82,63 @@ def test_answers_keep_their_values_as_text() -> None:
     assert (question.answer, question.tolerance) == ("96", "0.5")
     executor.loader.build_graph()
     executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_drafts_opened_before_the_log_get_their_opened_event() -> None:
+    executor = MigrationExecutor(connection)
+    before = [("accounts", "0003_invite"), ("studio", "0001_initial")]
+    executor.migrate(before)
+    old = executor.loader.project_state(before).apps
+    user = old.get_model("accounts", "User").objects.create(email="ada@example.org", role="author")
+    draft = old.get_model("studio", "Draft").objects.create(
+        node_id="tpm", folder="transcriptomics/tpm", created_by_id=user.pk
+    )
+    revision = old.get_model("studio", "Revision").objects.create(
+        draft=draft, number=1, node_yaml="", saved_by_id=user.pk, change="opened from the index"
+    )
+    gone = old.get_model("studio", "Draft").objects.create(
+        node_id="salmon", folder="quantification/salmon", state="discarded"
+    )
+    for number in (1, 2):
+        old.get_model("studio", "Revision").objects.create(
+            draft=gone, number=number, node_yaml="", saved_by_id=user.pk, change="a save"
+        )
+    after = [("accounts", "0003_invite"), ("studio", "0002_review")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(after)
+    new = executor.loader.project_state(after).apps
+    (event,) = new.get_model("studio", "DraftEvent").objects.filter(draft_id=draft.pk)
+    assert (event.kind, event.by_id, event.at, event.revision) == (
+        "opened",
+        user.pk,
+        revision.saved_at,
+        1,
+    )
+    # #188: a draft discarded before the log replays as discarded, at its last revision.
+    gone_events = new.get_model("studio", "DraftEvent").objects.filter(draft_id=gone.pk)
+    assert [(e.kind, e.by_id, e.revision) for e in gone_events.order_by("id")] == [
+        ("opened", user.pk, 1),
+        ("discarded", None, 2),
+    ]
+    executor.loader.build_graph()
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_going_back_before_review_reopens_drafts_under_review() -> None:
+    # #188: M4.4 knows only open and discarded.
+    executor = MigrationExecutor(connection)
+    review = [("accounts", "0003_invite"), ("studio", "0002_review")]
+    executor.migrate(review)
+    new = executor.loader.project_state(review).apps
+    draft = new.get_model("studio", "Draft").objects.create(
+        node_id="tpm", folder="transcriptomics/tpm", state="submitted"
+    )
+    before = [("accounts", "0003_invite"), ("studio", "0001_initial")]
+    executor = MigrationExecutor(connection)
+    executor.migrate(before)
+    old = executor.loader.project_state(before).apps
+    assert old.get_model("studio", "Draft").objects.get(pk=draft.pk).state == "open"
+    executor.loader.build_graph()
+    executor.migrate(executor.loader.graph.leaf_nodes())

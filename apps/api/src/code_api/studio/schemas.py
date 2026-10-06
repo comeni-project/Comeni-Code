@@ -2,12 +2,14 @@
 answers and the exam pool included: it is the team's, behind `studio(min_role)`."""
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from ninja import Schema
 
 from code_api.accounts.api import MemberOut
 from code_api.content.schemas import BlockOut, CalloutBlockOut, TextBlockOut, TryBlockOut
+from code_api.studio.review import Answered
 from code_schema import (
     Answer,
     Callout,
@@ -93,6 +95,8 @@ class DraftSummaryOut(Schema):
     state: str
     base_digest: str
     revision: int
+    # The revision under review or approved; null while open or discarded (M4R.6).
+    submitted_revision: int | None
     contributors: list[MemberOut]
 
 
@@ -142,12 +146,20 @@ class ProblemOut(Schema):
         )
 
 
+class ItemOut(Schema):
+    rule: str
+    passed: bool
+    detail: str
+
+
 class RefusedOut(Schema):
-    """A refused save: why, and every problem its files would have (M4W.3)."""
+    """A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist
+    that fails, its items (M4.5 spec, M4R.6)."""
 
     detail: str
     code: str
     problems: list[ProblemOut]
+    items: list[ItemOut] = []
 
 
 def _answer_out(answer: Answer) -> dict[str, object]:
@@ -235,12 +247,70 @@ class VerifyOut(Schema):
     problems: list[ProblemOut]
 
 
-class ItemOut(Schema):
-    rule: str
-    passed: bool
-    detail: str
-
-
 class ChecklistOut(Schema):
     passed: bool
     items: list[ItemOut]
+
+
+# ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────
+
+
+class ReviewQuestionOut(Schema):
+    """One question of the submitted revision, as its reviewer sees it: the key and rationale only
+    once they have answered it (M4R.4). A choice is answered by its option's index."""
+
+    id: str
+    pool: Literal["try", "exam"]
+    kind: str
+    ask: str
+    options: list[str] | None
+    unit: str
+    given: float | int | None
+    right: bool | None
+    right_option: int | None
+    value: float | int | None
+    tolerance: float | int | None
+    rationale: str | None
+
+
+def review_question_out(answered: Answered) -> ReviewQuestionOut:
+    question = answered.asked.question
+    shown = answered.given is not None
+    right_option = value = tolerance = None
+    match question.answer:
+        case ChoiceAnswer(options=options):
+            texts: list[str] | None = [option.text for option in options]
+            unit = ""
+            if shown:
+                right_option = next(i for i, option in enumerate(options) if option.right)
+        case NumberAnswer(value=key, unit=unit, tolerance=within):
+            texts = None
+            if shown:
+                value, tolerance = key, within
+    return ReviewQuestionOut(
+        id=answered.asked.id,
+        pool=answered.asked.pool,
+        kind=question.kind,
+        ask=question.ask,
+        options=texts,
+        unit=unit,
+        given=answered.given,  # type: ignore[arg-type]
+        right=answered.right,
+        right_option=right_option,
+        value=value,
+        tolerance=tolerance,
+        rationale=question.rationale if shown else None,
+    )
+
+
+class EventOut(Schema):
+    """One entry of a draft's log (M4R.5)."""
+
+    kind: str
+    by: MemberOut | None
+    at: datetime
+    revision: int | None
+    reason: str
+    self_approved: bool
+    answered: int | None
+    wrong: int | None
