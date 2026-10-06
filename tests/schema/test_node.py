@@ -113,6 +113,14 @@ def test_minutes_of_zero_is_refused() -> None:
     assert [str(p) for p in problems] == ["salmon/node.yaml:6: minutes: CS0014 0 is not at least 1"]
 
 
+def test_minutes_beyond_one_sitting_is_refused() -> None:
+    # #175: a node is read in one sitting, and a number past the index's column would crash it.
+    _, problems = parse(GOOD.replace("minutes: 12", "minutes: 1000000000000000000000000000000"))
+    assert [str(p) for p in problems] == [
+        "salmon/node.yaml:6: minutes: CS0023 1000000000000000000000000000000 is more than 600"
+    ]
+
+
 def test_a_claim_without_terminal_punctuation_is_refused() -> None:
     _, problems = parse(GOOD.replace("aligning them.", "aligning them"))
     assert [str(p) for p in problems] == [

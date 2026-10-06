@@ -186,6 +186,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Every file is read as UTF-8, exactly, so it can be written back byte for byte (M1P1).
 
+#### CS0023 — a number is above its maximum
+
+*Refuses.*
+
+**Fix.** Write a number no larger than the maximum the message gives. A node longer than ten hours is several nodes: split it.
+
+**Why.** A node is a page read in one sitting, so its minutes stop at 600; a larger number is a typo, and one past the index's integer column would make the rebuild fail (#175).
+
 ### CS0100–CS0199 · links
 
 #### CS0101 — a link field is not a list of links

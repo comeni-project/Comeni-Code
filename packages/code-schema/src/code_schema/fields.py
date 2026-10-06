@@ -96,12 +96,14 @@ def one_of(allowed: Sequence[str], *, noun: str) -> Check:
     return check
 
 
-def whole_number(minimum: int) -> Check:
+def whole_number(minimum: int, maximum: int | None = None) -> Check:
     def check(value: object) -> Wrong | None:
         if not isinstance(value, int) or isinstance(value, bool):
             return Wrong("CS0013", f"{shown(value)} is not a whole number")
         if value < minimum:
             return Wrong("CS0014", f"{shown(value)} is not at least {minimum}")
+        if maximum is not None and value > maximum:
+            return Wrong("CS0023", f"{shown(value)} is more than {maximum}")
         return None
 
     return check

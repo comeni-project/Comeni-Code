@@ -175,6 +175,10 @@ the edit API; verify and the checklist; wiring and close.
   registry restored (#173).
 - **The base-version check at landing** is M4.6's: a draft whose node changed in the content
   repository since its base is refused, not overwritten.
+- **A node's minutes stop at 600** (#175, decided): a node is a page read in one sitting, so a
+  larger number is an error, CS0023, not a warning. Rejected: a warning above some length with a
+  hard stop only at the index's integer column, and only that column's limit; both let a typo
+  through to a learner's route time.
 
 ## Not in this part
 
