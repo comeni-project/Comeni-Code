@@ -61,7 +61,11 @@ class Garbled(Exception):
 
 
 class NotOpen(Exception):
-    """The draft was discarded: it takes no more saves."""
+    """The draft is not open — submitted, approved or discarded — so it takes no saves (#188)."""
+
+    def __init__(self, public_id: object, state: str) -> None:
+        super().__init__(public_id)
+        self.state = state
 
 
 class NotAllowed(Exception):
@@ -205,7 +209,7 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
     with transaction.atomic():
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
         if locked.state != Draft.State.OPEN:
-            raise NotOpen(locked.public_id)
+            raise NotOpen(locked.public_id, locked.state)
         current = latest(locked)
         if current.number != based_on:
             raise Stale(current)
@@ -238,7 +242,7 @@ def discard(draft: Draft, *, by: User) -> Draft:
     with transaction.atomic():
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
         if locked.state != Draft.State.OPEN:
-            raise NotOpen(locked.public_id)
+            raise NotOpen(locked.public_id, locked.state)
         if not by.can_act_as(Role.OPERATOR) and by not in contributors(locked):
             raise NotAllowed()
         locked.state = Draft.State.DISCARDED

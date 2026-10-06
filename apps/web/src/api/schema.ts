@@ -9,6 +9,7 @@ export type Level = "first-steps" | "foundations" | "introductory" | "intermedia
 export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
@@ -16,10 +17,12 @@ export interface ApiSchemas {
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
+  EventOut: EventOut;
   ExamIn: ExamIn;
   ExamQuestionIn: ExamQuestionIn;
   FieldsIn: FieldsIn;
   FilesOut: FilesOut;
+  GivenIn: GivenIn;
   HealthOut: HealthOut;
   InsertBlockIn: InsertBlockIn;
   InviteIn: InviteIn;
@@ -45,16 +48,19 @@ export interface ApiSchemas {
   QuestionOut: QuestionOut;
   RefusedOut: RefusedOut;
   RegionOut: RegionOut;
+  RejectIn: RejectIn;
   ResourceIn: ResourceIn;
   ResourceOut: ResourceOut;
   ResourcesIn: ResourcesIn;
   ResultOut: ResultOut;
+  ReviewQuestionOut: ReviewQuestionOut;
   RevisionOut: RevisionOut;
   Role: Role;
   RoleIn: RoleIn;
   RouteOut: RouteOut;
   SavedOut: SavedOut;
   SearchOut: SearchOut;
+  SendBackIn: SendBackIn;
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
@@ -62,12 +68,17 @@ export interface ApiSchemas {
   StudioOptionOut: StudioOptionOut;
   StudioQuestionOut: StudioQuestionOut;
   StudioResourceOut: StudioResourceOut;
+  SubmitIn: SubmitIn;
   TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
   VerifyOut: VerifyOut;
+}
+export interface ApproveIn {
+  reason?: string;
+  revision: number;
 }
 /**
  * A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
@@ -184,6 +195,7 @@ export interface DraftOut {
   public_id: string;
   revision: number;
   state: string;
+  submitted_revision: number | null;
 }
 /**
  * A member, named by public id; the integer key never leaves the database (M4A.1).
@@ -213,6 +225,20 @@ export interface DraftSummaryOut {
   public_id: string;
   revision: number;
   state: string;
+  submitted_revision: number | null;
+}
+/**
+ * One entry of a draft's log (M4R.5).
+ */
+export interface EventOut {
+  answered: number | null;
+  at: string;
+  by: MemberOut | null;
+  kind: string;
+  reason: string;
+  revision: number | null;
+  self_approved: boolean;
+  wrong: number | null;
 }
 export interface ExamIn {
   question: ExamQuestionIn;
@@ -250,6 +276,13 @@ export interface FilesOut {
   exam_yaml: string;
   node_yaml: string;
   number: number;
+}
+/**
+ * An option's index for a choice, a number for a number. Taken as any JSON value, so that
+ * `true` or "1" reach the grader and are refused as CA0218, not coerced.
+ */
+export interface GivenIn {
+  given: unknown;
 }
 export interface HealthOut {
   checks: CheckOut[];
@@ -403,12 +436,18 @@ export interface PendingInviteOut {
   role: string;
 }
 /**
- * A refused save: why, and every problem its files would have (M4W.3).
+ * A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist
+ * that fails, its items (M4.5 spec, M4R.6).
  */
 export interface RefusedOut {
   code: string;
   detail: string;
+  items?: ItemOut[];
   problems: ProblemOut[];
+}
+export interface RejectIn {
+  reason: string;
+  revision: number;
 }
 export interface ResourceIn {
   covers: string;
@@ -435,6 +474,24 @@ export interface ResultOut {
   minutes: number;
   region: RegionOut;
   title: string;
+}
+/**
+ * One question of the submitted revision, as its reviewer sees it: the key and rationale only
+ * once they have answered it (M4R.4). A choice is answered by its option's index.
+ */
+export interface ReviewQuestionOut {
+  ask: string;
+  given: number | null;
+  id: string;
+  kind: string;
+  options: string[] | null;
+  pool: "try" | "exam";
+  rationale: string | null;
+  right: boolean | null;
+  right_option: number | null;
+  tolerance: number | null;
+  unit: string;
+  value: number | null;
 }
 export interface RevisionOut {
   change: string;
@@ -476,6 +533,12 @@ export interface SearchOut {
   query: string;
   results: ResultOut[];
   unmatched: string[];
+}
+export interface SendBackIn {
+  reason: string;
+}
+export interface SubmitIn {
+  revision: number;
 }
 export interface TeamMemberOut {
   active: boolean;

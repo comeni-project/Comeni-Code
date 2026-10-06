@@ -1,9 +1,12 @@
-"""The Studio drafts API (M4.4 spec, M4W.4): open, read, list, discard, and the content API's edits.
+"""The Studio drafts API (M4.4 spec, M4W.4): open, read, list, discard, and the content API's edits;
+and review (M4.5 spec, M4R.6): submit, withdraw, reject, approve, send back, the review and the log.
 
-Every route is the team's: `studio(Role.AUTHOR)`, so any author or above (M4W.1).
+Every route is the team's: `studio(Role.AUTHOR)`, so any author or above (M4W.1). Who may take a
+review step past that is `studio.review`'s to say; too low a role is CA0102, as M4.3's gate says.
 """
 
-from typing import Literal
+from collections.abc import Callable
+from typing import Any, Literal
 from uuid import UUID
 
 from django.http import HttpRequest
@@ -14,19 +17,23 @@ from code_api.accounts.api import MemberOut
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
-from code_api.studio import drafts
-from code_api.studio.models import Draft
+from code_api.studio import drafts, review
+from code_api.studio.log import history
+from code_api.studio.models import LIVE_STATES, Draft
 from code_api.studio.schemas import (
     ChecklistOut,
     DraftOut,
     DraftSummaryOut,
+    EventOut,
     FilesOut,
     ItemOut,
     ProblemOut,
     RefusedOut,
+    ReviewQuestionOut,
     RevisionOut,
     VerifyOut,
     node_out,
+    review_question_out,
 )
 from code_schema import (
     Answer,
@@ -57,6 +64,7 @@ from code_schema.edits import (
     update_block,
     update_exam_question,
 )
+from code_schema.grading import NotAnAnswer
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
 
@@ -84,13 +92,16 @@ def _member(request: HttpRequest) -> User:
 
 
 def summary_out(draft: Draft) -> DraftSummaryOut:
+    number = drafts.latest(draft).number
+    under_review = draft.state in (Draft.State.SUBMITTED, Draft.State.APPROVED)
     return DraftSummaryOut(
         public_id=draft.public_id,
         node_id=draft.node_id,
         folder=draft.folder,
         state=draft.state,
         base_digest=draft.base_digest,
-        revision=drafts.latest(draft).number,
+        revision=number,
+        submitted_revision=number if under_review else None,
         contributors=[MemberOut.of(user) for user in drafts.contributors(draft)],
     )
 
@@ -115,13 +126,28 @@ def refused(problems: list[object], detail: str) -> RefusedOut:
 def already_open(held: Draft) -> Message:
     names = ", ".join(user.email for user in drafts.contributors(held)) or "nobody"
     return Message(
-        detail=f"{held.node_id} already has an open draft, {held.public_id}, by {names}.",
+        detail=f"{held.node_id} already has a {held.state} draft, {held.public_id}, by {names}.",
         code="CA0202",
     )
 
 
 def find(public_id: UUID) -> Draft | None:
     return Draft.objects.filter(public_id=public_id).first()
+
+
+def wrong_state(state: str, needs: tuple[str, ...]) -> Message:
+    detail = f"This draft is {state}; this step needs it {' or '.join(needs)}."
+    return Message(detail=detail, code="CA0211")
+
+
+def not_open(draft: Draft | None) -> Status[Message] | None:
+    """For a step that needs the draft open (M4.4's edits, discard): 404 for no draft or a
+    discarded one, as M4.4 answered; 409 CA0211 for one under review or approved (#188)."""
+    if draft is None or draft.state == Draft.State.DISCARDED:
+        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    if draft.state != Draft.State.OPEN:
+        return Status(409, wrong_state(draft.state, (Draft.State.OPEN,)))
+    return None
 
 
 @router.post(
@@ -165,11 +191,13 @@ def open_draft(
     return Status(201, draft_out(draft))
 
 
-@router.get("", response=list[DraftSummaryOut], summary="The open drafts")
-def open_drafts(request: HttpRequest) -> list[DraftSummaryOut]:
+@router.get("", response=list[DraftSummaryOut], summary="The drafts in one state")
+def open_drafts(
+    request: HttpRequest, state: Literal["open", "submitted", "approved"] = "open"
+) -> list[DraftSummaryOut]:
+    """Open drafts by default; `?state=submitted` is the review queue (M4R.6)."""
     return [
-        summary_out(draft)
-        for draft in Draft.objects.filter(state=Draft.State.OPEN).order_by("created_at")
+        summary_out(draft) for draft in Draft.objects.filter(state=state).order_by("created_at")
     ]
 
 
@@ -225,17 +253,19 @@ def revision_files(
 
 @router.post(
     "/{public_id}/discard",
-    response={200: DraftOut, 403: Message, 404: Message},
+    response={200: DraftOut, 403: Message, 404: Message, 409: Message},
     summary="Discard a draft",
 )
 def discard(request: HttpRequest, public_id: UUID) -> Status[DraftOut] | Status[Message]:
     draft = find(public_id)
-    if draft is None or draft.state != Draft.State.OPEN:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    if (refusal := not_open(draft)) is not None:
+        return refusal
+    assert draft is not None
     try:
         draft = drafts.discard(draft, by=_member(request))
-    except drafts.NotOpen:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    except drafts.NotOpen as moved:
+        draft.state = moved.state
+        return not_open(draft)  # type: ignore[return-value]
     except drafts.NotAllowed:
         detail = "Only someone who saved this draft, or an operator, may discard it."
         return Status(403, Message(detail=detail, code="CA0206"))
@@ -406,13 +436,15 @@ def _edit(
     request: HttpRequest, public_id: UUID, based_on: int, edit: drafts.Edit, change: str
 ) -> SaveAnswer:
     """One save through `drafts.save`, each outcome in the API's words."""
-    draft = Draft.objects.filter(public_id=public_id, state=Draft.State.OPEN).first()
-    if draft is None:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    draft = find(public_id)
+    if (refusal := not_open(draft)) is not None:
+        return refusal
+    assert draft is not None
     try:
         saved = drafts.save(draft, based_on=based_on, edit=edit, by=_member(request), change=change)
-    except drafts.NotOpen:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    except drafts.NotOpen as moved:
+        draft.state = moved.state
+        return not_open(draft)  # type: ignore[return-value]
     except drafts.Stale as stale:
         who = "nobody" if stale.latest.saved_by is None else stale.latest.saved_by.email
         detail = (
@@ -579,8 +611,8 @@ def exam_delete(
 )
 def verify(request: HttpRequest, public_id: UUID) -> Status[VerifyOut] | Status[Message]:
     draft = find(public_id)
-    if draft is None or draft.state != Draft.State.OPEN:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    if draft is None or draft.state not in LIVE_STATES:
+        return Status(404, Message(detail="No live draft has this id.", code="CA0201"))
     problems = drafts.verify(draft)
     return Status(
         200,
@@ -596,8 +628,8 @@ def verify(request: HttpRequest, public_id: UUID) -> Status[VerifyOut] | Status[
 )
 def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | Status[Message]:
     draft = find(public_id)
-    if draft is None or draft.state != Draft.State.OPEN:
-        return Status(404, Message(detail="No open draft has this id.", code="CA0201"))
+    if draft is None or draft.state not in LIVE_STATES:
+        return Status(404, Message(detail="No live draft has this id.", code="CA0201"))
     items = drafts.checklist(draft)
     return Status(
         200,
@@ -607,4 +639,222 @@ def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | S
                 ItemOut(rule=item.rule, passed=item.passed, detail=item.detail) for item in items
             ],
         ),
+    )
+
+
+# ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────
+
+
+class SubmitIn(Schema):
+    revision: int
+
+
+class RejectIn(Schema):
+    revision: int
+    reason: str
+
+
+class ApproveIn(Schema):
+    revision: int
+    reason: str = ""  # required only when an operator approves their own draft
+
+
+class SendBackIn(Schema):
+    reason: str
+
+
+class GivenIn(Schema):
+    """An option's index for a choice, a number for a number. Taken as any JSON value, so that
+    `true` or "1" reach the grader and are refused as CA0218, not coerced."""
+
+    given: Any
+
+
+Acted = Status[DraftOut] | Status[Message] | Status[RefusedOut]
+_ACT_RESPONSES = {200: DraftOut, 403: Message, 404: Message, 409: Message, 422: RefusedOut}
+
+
+def _sentence(error: Exception) -> str:
+    text = str(error)
+    return f"{text[:1].upper()}{text[1:]}."
+
+
+def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
+    """A review step's refusal, in the API's words (M4R.6)."""
+    match error:
+        case review.WrongState(state=state, needs=needs):
+            return Status(409, wrong_state(state, needs))
+        case review.ChecklistFails(items=items):
+            return Status(
+                422,
+                RefusedOut(
+                    detail="The checklist does not pass.",
+                    code="CA0212",
+                    problems=[],
+                    items=[ItemOut(rule=i.rule, passed=i.passed, detail=i.detail) for i in items],
+                ),
+            )
+        case review.Contributor():
+            detail = "You saved this draft: a reviewer who did not, or an operator, decides it."
+            return Status(403, Message(detail=detail, code="CA0213"))
+        case review.RoleTooLow():
+            return Status(403, Message(detail="Your role cannot take this step.", code="CA0102"))
+        case review.NeedsReason():
+            detail = "Say why, in a sentence."
+            return Status(422, RefusedOut(detail=detail, code="CA0214", problems=[]))
+        case review.Unanswered(ids=ids):
+            detail = f"Answer every question first; unanswered: {', '.join(ids)}."
+            return Status(422, RefusedOut(detail=detail, code="CA0215", problems=[]))
+        case review.NotSubmittedRevision(submitted=submitted):
+            detail = f"Revision {submitted} is the one submitted; reload the draft and review it."
+            return Status(409, Message(detail=detail, code="CA0216"))
+        case review.NoSuchQuestion():
+            detail = "The submitted revision asks no question with this id."
+            return Status(404, Message(detail=detail, code="CA0217"))
+        case NotAnAnswer():
+            return Status(422, RefusedOut(detail=_sentence(error), code="CA0218", problems=[]))
+        case drafts.Stale(latest=latest):
+            detail = f"This draft is at revision {latest.number}; reload it and submit that."
+            return Status(409, Message(detail=detail, code="CA0203"))
+        case drafts.NotAllowed():
+            detail = "Only someone who saved this draft, or an operator, may withdraw it."
+            return Status(403, Message(detail=detail, code="CA0206"))
+        case drafts.Refused(problems=problems):
+            detail = "This draft no longer reads against the index's registries."
+            return Status(422, refused(list(problems), detail))
+    raise error
+
+
+_REFUSALS = (
+    review.WrongState,
+    review.ChecklistFails,
+    review.Contributor,
+    review.RoleTooLow,
+    review.NeedsReason,
+    review.Unanswered,
+    review.NotSubmittedRevision,
+    review.NoSuchQuestion,
+    NotAnAnswer,
+    drafts.Stale,
+    drafts.NotAllowed,
+    drafts.Refused,
+)
+
+
+def _act(request: HttpRequest, public_id: UUID, step: Callable[[Draft, User], Draft]) -> Acted:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    try:
+        return Status(200, draft_out(step(draft, _member(request))))
+    except _REFUSALS as error:
+        return _refusal(error)
+
+
+@router.post("/{public_id}/submit", response=_ACT_RESPONSES, summary="Submit for review")
+def submit(request: HttpRequest, public_id: UUID, body: SubmitIn) -> Acted:
+    return _act(
+        request,
+        public_id,
+        lambda draft, by: review.submit(draft, revision=body.revision, by=by),
+    )
+
+
+@router.post("/{public_id}/withdraw", response=_ACT_RESPONSES, summary="Withdraw from review")
+def withdraw(request: HttpRequest, public_id: UUID) -> Acted:
+    return _act(request, public_id, lambda draft, by: review.withdraw(draft, by=by))
+
+
+@router.post("/{public_id}/reject", response=_ACT_RESPONSES, summary="Reject, saying why")
+def reject(request: HttpRequest, public_id: UUID, body: RejectIn) -> Acted:
+    return _act(
+        request,
+        public_id,
+        lambda draft, by: review.reject(draft, revision=body.revision, reason=body.reason, by=by),
+    )
+
+
+@router.post("/{public_id}/approve", response=_ACT_RESPONSES, summary="Approve")
+def approve(request: HttpRequest, public_id: UUID, body: ApproveIn) -> Acted:
+    return _act(
+        request,
+        public_id,
+        lambda draft, by: review.approve(draft, revision=body.revision, reason=body.reason, by=by),
+    )
+
+
+@router.post("/{public_id}/send-back", response=_ACT_RESPONSES, summary="Send an approval back")
+def send_back(request: HttpRequest, public_id: UUID, body: SendBackIn) -> Acted:
+    return _act(
+        request,
+        public_id,
+        lambda draft, by: review.send_back(draft, reason=body.reason, by=by),
+    )
+
+
+ReviewAnswer = Status[list[ReviewQuestionOut]] | Status[Message] | Status[RefusedOut]
+
+
+@router.get(
+    "/{public_id}/review",
+    response={
+        200: list[ReviewQuestionOut],
+        403: Message,
+        404: Message,
+        409: Message,
+        422: RefusedOut,
+    },
+    summary="Your review of the submitted revision",
+)
+def your_review(request: HttpRequest, public_id: UUID) -> ReviewAnswer:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    try:
+        answered = review.review_of(draft, by=_member(request))
+    except _REFUSALS as error:
+        return _refusal(error)
+    return Status(200, [review_question_out(each) for each in answered])
+
+
+@router.put(
+    "/{public_id}/review/answers/{question_id}",
+    response={200: ReviewQuestionOut, 403: Message, 404: Message, 409: Message, 422: RefusedOut},
+    summary="Answer one question",
+)
+def answer(
+    request: HttpRequest, public_id: UUID, question_id: str, body: GivenIn
+) -> Status[ReviewQuestionOut] | Status[Message] | Status[RefusedOut]:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    try:
+        answered = review.answer(draft, question_id, body.given, by=_member(request))
+    except _REFUSALS as error:
+        return _refusal(error)
+    return Status(200, review_question_out(answered))
+
+
+@router.get(
+    "/{public_id}/events", response={200: list[EventOut], 404: Message}, summary="The draft's log"
+)
+def events(request: HttpRequest, public_id: UUID) -> Status[list[EventOut]] | Status[Message]:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    return Status(
+        200,
+        [
+            EventOut(
+                kind=event.kind,
+                by=None if event.by is None else MemberOut.of(event.by),
+                at=event.at,
+                revision=event.revision,
+                reason=event.reason,
+                self_approved=event.self_approved,
+                answered=event.answered,
+                wrong=event.wrong,
+            )
+            for event in history(draft)
+        ],
     )
