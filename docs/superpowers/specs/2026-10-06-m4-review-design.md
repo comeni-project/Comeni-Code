@@ -1,6 +1,6 @@
 # M4.5 — Review
 
-**Status: written 2026-10-06, for the operator's review.** The fifth part of M4 (#74), issue
+**Status: agreed 2026-10-06.** The fifth part of M4 (#74), issue
 #123. Designed with the operator in conversation on 2026-10-06, section by section. It builds on
 M4.4's drafts (archived spec `2026-10-05-m4-drafts-design.md`): a draft, its revisions, its
 contributors and its checklist.
