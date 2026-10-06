@@ -92,6 +92,17 @@ def _live() -> IndexBuild | None:
     return IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).order_by("-id").first()
 
 
+def _last_good() -> str | None:
+    """The commit of the latest applied build that came from a commit, if any."""
+    build = (
+        IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED)
+        .exclude(commit="")
+        .order_by("-id")
+        .first()
+    )
+    return None if build is None else build.commit
+
+
 def _refused_before(head: str) -> bool:
     last = IndexBuild.objects.filter(commit=head).order_by("-id").first()
     return last is not None and last.outcome == IndexBuild.Outcome.REFUSED
@@ -116,7 +127,11 @@ def _round(source: Source) -> Followed:
     live = _live()
     built: IndexBuild | None = None
     stale = want is None or live is None or live.commit != want
-    if stale and not (want is not None and _refused_before(want)):
+    if stale and want is not None and _refused_before(want):
+        # main's head was refused: keep main's last good build live, never another folder's.
+        want = _last_good()
+        stale = want is not None and live is not None and live.commit != want
+    if stale:
         with source.checkout(want) as folder:
             built = rebuild_index(folder, commit=want or "")
     live = _live()

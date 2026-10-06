@@ -116,3 +116,57 @@ def test_a_landing_merged_through_close_records_its_merge(
     with pytest.raises(landing.NotFailed):
         landing.close(Landing.objects.get(pk=made.pk), fake)
     assert Landing.objects.get(pk=made.pk).merge_commit == "merge-1"
+
+
+# ── The checkpoint review ────────────────────────────────────────────────────────────────────────
+
+
+def test_one_landing_github_cannot_check_does_not_stop_the_others(
+    merged: tuple[Landing, FakeGitHub], otto: User
+) -> None:
+    first, fake = merged
+    draft = drafts.open_existing("tpm", by=otto)
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=otto, revision=1, reason="r", self_approved=True)
+    second = landing.run(landing.start([draft.public_id], by=otto), fake)
+    fake.merged.add(second.pull_number or 0)
+    landing.watch(second, fake)
+    fake.main, fake.trees["c1"] = "c1", FIXTURES
+    fake.ancestry.add(("merge-2", "c1"))
+    real = fake.contains
+
+    def flaky(ancestor: str, commit: str) -> bool:
+        if ancestor == "merge-1":
+            from code_api.studio.github import GitHubError
+
+            raise GitHubError("GitHub answered 404: No common ancestor.")
+        return real(ancestor, commit)
+
+    fake.contains = flaky  # type: ignore[method-assign]
+    assert follow.follow(GitHubSource(fake)).landed == 1
+    assert Draft.objects.get(node_id="tpm", state="landed")
+    assert Draft.objects.get(node_id="salmon").state == "approved"
+
+
+def test_a_merge_seen_while_the_broker_is_down_still_answers(
+    otto: User,
+    settings: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    django_capture_on_commit_callbacks: Any,
+) -> None:
+    def down() -> None:
+        raise ConnectionError("the broker is down")
+
+    monkeypatch.setattr("code_api.studio.tasks.land.delay", lambda public_id: None)
+    monkeypatch.setattr("code_api.studio.tasks.follow_main.delay", down)
+    settings.CODE_GITHUB_APP = object()
+    rebuild_index(FIXTURES, commit="c0")
+    draft = drafts.open_existing("salmon", by=otto)
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=otto, revision=1, reason="r", self_approved=True)
+    fake = FakeGitHub()
+    made = landing.run(landing.start([draft.public_id], by=otto), fake)
+    fake.merged.add(made.pull_number or 0)
+    with django_capture_on_commit_callbacks(execute=True):
+        watched = landing.watch(made, fake)  # the queued follow fails; beat follows later
+    assert watched.state == "merged"

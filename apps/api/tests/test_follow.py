@@ -104,3 +104,15 @@ def test_the_configured_source_follows_the_settings(settings: Any, tmp_path: Pat
 def test_beat_follows_main_every_five_minutes(settings: Any) -> None:
     entry = settings.CELERY_BEAT_SCHEDULE["studio-follow-main"]
     assert (entry["task"], entry["schedule"]) == ("code_api.studio.tasks.follow_main", 300)
+
+
+def test_a_folder_build_is_put_back_even_while_mains_head_is_refused(broken: Path) -> None:
+    # The checkpoint review: main's head refused, then a --root build; main's last good build wins.
+    fake = FakeGitHub(main="c1", trees={"c1": FIXTURES, "c2": broken})
+    follow.follow(GitHubSource(fake))
+    fake.main = "c2"
+    follow.follow(GitHubSource(fake))  # refused
+    follow.follow(FolderSource(FIXTURES))  # a stray manual build
+    back = follow.follow(GitHubSource(fake)).build
+    assert back is not None and (back.commit, back.outcome) == ("c1", "applied")
+    assert follow.follow(GitHubSource(fake)).build is None  # and it settles

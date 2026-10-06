@@ -95,7 +95,7 @@ def start(public_ids: list[UUID], *, by: User) -> Landing:
                 LandingDraft.objects.create(
                     landing=made, draft=locked, revision=drafts.latest(locked).number
                 )
-            transaction.on_commit(lambda: _queue(made))
+            transaction.on_commit(lambda: _queue(made), robust=True)  # beat runs a lost one
     except IntegrityError:
         # Another landing took one of these drafts between the check and the insert.
         for draft in batch:
@@ -371,7 +371,7 @@ def _merged(locked: Landing, merge_commit: str) -> None:
     """Record a merge and ask the follower to look at main now (M4F.4)."""
     locked.state, locked.reason, locked.merge_commit = Landing.State.MERGED, "", merge_commit
     locked.save(update_fields=["state", "reason", "merge_commit"])
-    transaction.on_commit(_follow_now)
+    transaction.on_commit(_follow_now, robust=True)  # a broker down is caught up by beat
 
 
 def _follow_now() -> None:
@@ -387,8 +387,13 @@ def mark_landed(commit: str, contains: Callable[[str, str], bool]) -> int:
     held = Landing.objects.filter(state=Landing.State.MERGED, entries__live=True).exclude(
         merge_commit=""
     )
-    for made in held.distinct():
-        if not contains(made.merge_commit, commit):
+    for made in held.distinct().order_by("id"):
+        try:
+            if not contains(made.merge_commit, commit):
+                continue
+        except GitHubError as error:
+            # One landing GitHub cannot check never stops the others; the next round asks again.
+            log.warning("landing %s: cannot check its merge: %s", made.public_id, error)
             continue
         with transaction.atomic():
             for entry in made.entries.filter(live=True).select_related("draft"):
