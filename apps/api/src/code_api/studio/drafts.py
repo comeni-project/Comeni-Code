@@ -255,16 +255,14 @@ def verify(draft: Draft) -> list[Problem]:
     return _checked(draft)[1]
 
 
-def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
-    """The draft's node and every problem it has (M4W.5): `code-schema`'s own graph rules, as
-    `validate` runs them, with the draft's node in place of its indexed version against every
-    other node in the index, plus the draft's own warnings. A link to another draft's new node is
-    missing until that node lands. Like the routes, it loads the whole index per call (M2P4.3)."""
-    node, problems = node_of(draft)
-    if node is None:
-        return None, problems
+def in_place(standing: list[Draft]) -> list[Problem]:
+    """Every problem of `standing` together (M4W.5, M4L.3): `code-schema`'s graph rules, as
+    `validate` runs them, with each draft's latest revision in place of its indexed node, against
+    every other node in the index, plus each draft's own problems. A draft that no longer reads
+    adds its problems and stays out of the graph."""
     nodes: dict[str, Node] = {}
     folders: dict[str, str] = {}
+    problems: list[Problem] = []
     with transaction.atomic():
         # Under the rebuild's lock, shared, so no rebuild commits between listing the nodes and
         # reading each (#174).
@@ -274,13 +272,26 @@ def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
             indexed = node_from_index(row.id)
             assert indexed is not None
             nodes[row.id], folders[row.id] = indexed, row.folder
-    nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
+    for draft in standing:
+        node, own = node_of(draft)
+        problems.extend(own)
+        if node is not None:
+            nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
     link_lines = {
         node_id: locate_links(write_node_yaml(each), file=f"{folders[node_id]}/{NODE_FILE}")
         for node_id, each in nodes.items()
     }
     every = [*problems, *graph_problems(nodes, folders, link_lines)]
-    return node, sorted(every, key=Problem.sort_key)
+    return sorted(every, key=Problem.sort_key)
+
+
+def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
+    """The draft's node and every problem it has, against the index (M4W.5). A link to another
+    draft's new node is missing until that node lands. It loads the whole index per call."""
+    node, problems = node_of(draft)
+    if node is None:
+        return None, problems
+    return node, in_place([draft])
 
 
 @dataclass(frozen=True)
