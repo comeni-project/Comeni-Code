@@ -124,6 +124,20 @@ local index.
 **Done when** #125's check holds, reworded with M4F.1: a commit in the fake GitHub is indexed
 within one round; a refused commit leaves the old index; a draft flips to landed.
 
+## Notes from the build
+
+- **A refused head falls back to `main`'s last good build** (#216): M4F.1's step 2 only skipped a
+  refused head, so a stray folder build stayed live while `main` was refused. Now the round keeps
+  the latest applied build that came from a commit, and "main wins" holds in that case too.
+- **One landing GitHub cannot check never stops the others** (#216): each merged landing's
+  `contains` call is tried on its own, in order; an error is logged and retried next round.
+- **Queueing after a merge or a landing is robust** (#216): a broker that is down no longer turns a
+  committed merge into a 500; beat's timer catches up.
+- **Tarballs refuse absolute and `..` paths outright**, and the root is read from what was
+  unpacked: Python's `data` filter strips a leading `/` quietly rather than refusing it.
+- **The command says "Nothing built"** when the index is already at the source's head, or that head
+  was refused before; its exit codes and other lines are unchanged.
+
 ## Not in this part
 
 Webhooks; the screens (M4.9); `providers.yaml` in `comeni-code-content` (content for M4.9's first
