@@ -5,24 +5,23 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-06** (M4.5 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-06** (M4.6 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
 - **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, #119–#127 of #74, back end
   first, screens last; the reasons are in the archived *M4 in parts* entry. (2026-09-29)
-- **M4.1–M4.5 are done** (#119–#123): the block document (#139); exam pools (#151); accounts and
-  roles (#164); drafts and checks (#177); review (#190). **M4.6, landing through the GitHub App
-  (#124), is next.** (2026-09-29 to 2026-10-06)
+- **M4.1–M4.6 are done** (#119–#124): the block document (#139); exam pools (#151); accounts and
+  roles (#164); drafts and checks (#177); review (#190); landing (#205). **M4.7, following the
+  content repository (#125), is next.** (2026-09-29 to 2026-10-06)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
 
 - **Every defect gets an issue first**, `mechanical` or `protocol` (`docs/internals/walking.md`);
   the plan is a sub-issue tree; deferred minors go in one `deferred` issue. (2026-09-29)
-- **A phase is split into parts; each is spec → plan → test-first build → journal entry**, the
-  operator approving the parts list and each spec (R5). A part is built natively with a
-  fresh-reviewer checkpoint mid-plan and one over the branch. (2026-09-17, 2026-09-29)
+- **A phase is split into parts; each is spec → plan → test-first build → journal entry** (R5),
+  the operator approving each; a fresh reviewer mid-plan and over the branch. (2026-09-17, 09-29)
 - **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
 - **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
   built without stopping, still issues and tests first, a fresh reviewer at the end. (2026-10-05)
@@ -36,9 +35,8 @@ line is in [the archive](journal/archive/).
 - **The body is blocks**: text between top-level fences, `:::{try} <id>` then `:::`, and
   `:::{misconception|caveat|convention} <title>` … `:::`. Fences follow CommonMark; later kinds are
   refused by name until M6; a body its blocks would not write back unchanged is CS0415. (2026-09-29)
-- **Every problem has a declared code** in `code_schema/diagnostics.yml` (`CS`, `CW`, `CA`, bands
-  of 100, never renumbered), a test naming it, `code-schema explain`, and a generated
-  `docs/reference/diagnostics.md`. (2026-09-29)
+- **Every problem has a declared code** in `code_schema/diagnostics.yml` (bands of 100, never
+  renumbered), a test naming it, `code-schema explain` and `docs/reference/diagnostics.md`. (09-29)
 - **Three link kinds, each with a reason**: *needs*, *goes deeper*, *related* (on both nodes, at
   most four). *helps* and *any-of* are refused until content needs them. (2026-09-18, 2026-09-19)
 - **A need is what understanding the claim requires**, never a tool or an implementation detail:
@@ -49,23 +47,17 @@ line is in [the archive](journal/archive/).
   folder or a draft by one path. `minutes` is 1 to 600 (CS0023, #175). (2026-10-05)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
-- **A question composes an answer**: `Answer = ChoiceAnswer | NumberAnswer`, inside `TryQuestion`
-  (hints, never the answer) or `ExamQuestion` (no hints, an optional `level`, a `misconception`
-  per wrong option naming a callout). One reader in `code_schema.questions` serves both pools.
-  (2026-09-20, 2026-10-05) **`code_schema.grading.is_right`** grades a given answer by the web's
-  rule, a choice by its option's index. (2026-10-06)
-- **An exam pool** (`code_schema.exam`, CS08xx): at most 40 questions, ids not shared with try
-  questions. Under 4 is a *warning*: the node is left out of self-tests. **Exam answers are not a
-  secret in v1**: the content repository is public and self-tests certify nothing (spec M4E.6).
-  (2026-10-05)
-- **Warnings never refuse** (M4E.4): `Problem.refuses` reads the registry; `Content.errors` is what
-  `validate` (exit 1, `::error` vs `::warning`), the weaver and `rebuild_index` refuse on.
-  (2026-10-05)
+- **A question composes an answer** (`ChoiceAnswer | NumberAnswer`) in a `TryQuestion` (hints) or
+  an `ExamQuestion` (no hints, a `misconception` per wrong option); one reader serves both, and
+  `code_schema.grading.is_right` grades by the web's rule, a choice by index. (2026-09-20 to 10-06)
+- **An exam pool** (`code_schema.exam`, CS08xx): at most 40, ids apart from try questions; under 4
+  is a *warning* (left out of self-tests). **Exam answers are not a secret in v1** (M4E.6). (10-05)
+- **Warnings never refuse** (M4E.4): `Content.errors` is what `validate` (exit 1), the weaver and
+  `rebuild_index` refuse on; `Problem.refuses` reads the registry. (2026-10-05)
 - **`code_schema.records`** reads every nested list of mappings; `Node.blocks` is a property over
   the body; `block_json` / `block_from_json` are the one block codec. (2026-10-05)
-- `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route from no background to *Salmon* and nine
-  nodes beside it; TPM carries the one exam pool, of four. Tests never read the real content
-  repository. (2026-09-19, 2026-10-05)
+- `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route to *Salmon*; TPM has the one exam pool.
+  Tests never read the real content repository. (2026-09-19, 2026-10-05)
 
 ## The index and the API (`apps/api`)
 
@@ -75,12 +67,10 @@ line is in [the archive](journal/archive/).
 - `GET /api/nodes/{id}` (neighbours, *needed by*, resources, questions, and the body as `blocks`,
   never `body`), `/api/routes`, `/api/search`, `/api/health`; 404 for a miss, 503 before any build;
   error bodies carry a `code`. (2026-09-19 to 2026-09-29)
-- **`code_api/content/reads.py` holds every read** (with `unbuilt()` for 503, `missing()` for 404)
-  and `code_api/content/schemas.py` every response schema. The index stores blocks only:
-  migration 0005 dropped `Node.body`. Exam pools are their own `ExamQuestion` table (0006); **no
-  endpoint sends them** until the self-test spec decides. (2026-10-05)
-- **Index numbers are text** (jsonb drops exponents); `content.snapshot` reads rows back as nodes.
-  (2026-10-05)
+- **`code_api/content/reads.py` holds every read** (`unbuilt()` 503, `missing()` 404), and
+  `code_api/content/schemas.py` every schema. The index stores blocks only; exam pools are their
+  own table, and **no endpoint sends them** until the self-test spec decides. (2026-10-05)
+- **Index numbers are text** (jsonb drops exponents); `content.snapshot` reads rows back. (10-05)
 - **Each request loads the whole index**: fine at 26 nodes; later cached per digest. (2026-09-20)
 
 ## Accounts (`code_api.accounts`)
@@ -109,6 +99,16 @@ line is in [the archive](journal/archive/).
   counts, never blocks. Nobody approves their own draft, except an operator with a reason, marked
   `self_approved`. (2026-10-06)
 
+## Landing (`code_api/studio/landing.py`)
+
+- **An operator lands approved drafts as one commit and one pull request**, opened by the GitHub App
+  through the Git Data API with **no checkout anywhere**: the batch is checked in place against the
+  index, any worker lands it, beat polls it. Provenance: `@login` or a display name, never an
+  email; auto-merge on. Off unless `CODE_GITHUB_APP_*` are set. (2026-10-06)
+- **A draft is in one live landing** (Postgres); a stale one (its folder's tree changed since its
+  starting commit) is dropped, CA0306–CA0308. A failed landing holds its drafts until closed; every
+  failure ends it in words; a claim token keeps recovery and a slow worker apart. (2026-10-06)
+
 ## The weaver and search (`code-weaver`, pure)
 
 - `weave` walks *needs* back from the goals, orders by region then first-reached, byte-identical
@@ -134,9 +134,8 @@ line is in [the archive](journal/archive/).
 - `docker compose up -d --wait` runs Postgres 18 (:5433), Redis 8 (:6380), migrate, the API, the
   worker, beat and web on 127.0.0.1:8090; `ops/stack-check.sh` checks it. (2026-09-21)
 - CI runs `python`, `web` and `stack`; `main` here and in `comeni-code-content` takes only green
-  pull requests, with no bypass. (2026-09-17)
-- `comeni-code-content` runs `code-schema validate` pinned to a Comeni-Code commit; the pin moves
-  only by a pull request there. (2026-09-18)
+  pull requests, with no bypass. There, `review` passes Studio's app and `MAINTAINERS`; anyone
+  else needs a maintainer's approval (#102). (2026-09-17, 2026-10-06)
 
 ## Decided, and not to reopen
 
@@ -146,27 +145,24 @@ line is in [the archive](journal/archive/).
   steps is in the MVP. (2026-09-17)
 - **Self-tests** from exam pools are v1's mastery system, scored per node, never graded. (2026-09-17)
 - **M4**: blocks thin; back end first; invite-only email and GitHub sign-in; Studio lands as a
-  GitHub App; a sign-in shared with Labs (#101) kept open; #102 in M4.6's spec. (2026-09-29)
+  GitHub App; a sign-in shared with Labs (#101) kept open; #102 decided (above). (2026-09-29)
 - One colour per meaning (W10): teal is your route, blue selected; five regions are not five
   colours. *Read / Watch* is on First steps only. (2026-09-20, 2026-09-21)
 
 ## Open
 
-- **M4 spec questions**: webhook or polling (M4.7); which real node lands first (M4.9). (2026-09-29)
-- **For landing (M4.6)**: it lands `approved` drafts at their approved revision and says
-  *self-approved* in the pull request; a *related* link needs both drafts landed together; whether
-  a region change moves the folder; a base that changed is refused. (2026-10-05, 2026-10-06)
+- **For M4.7**: fill `IndexBuild.commit` (until then landing drops every changed draft, CA0308),
+  mark drafts landed, webhook or polling. **M4.9**: register the app; which node lands first. (10-06)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
-- **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139 and #189;
-  large floats given as answers read back from jsonb as integers (#188). (2026-10-05, 2026-10-06)
+- **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
+  #203 and #204; large floats given as answers read back from jsonb as integers (#188). (10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
 - `providers.yaml` is not in `comeni-code-content` yet; whether `IndexBuild` rows need pruning;
   three light chip pairs under 4.5 : 1, kept by the operator; jsdom 29 until Node 24.15 (issue 32).
   (2026-09-17 to 2026-09-20)
-- R8 of the architecture spec: search, institutional sign-in, the consent spec, review of content
-  pull requests not from Studio (#102). (2026-09-17)
+- R8 of the architecture spec: search, institutional sign-in, the consent spec. (2026-09-17)
 
 ## Known traps
 
@@ -178,10 +174,10 @@ line is in [the archive](journal/archive/).
 - **An app must declare every workspace package it imports**; the image installs only those.
   (2026-09-20)
 - **Stop a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17)
-- **`comeni-code-content` holds no nodes yet**; its validator is pinned at M4.2's merge, `38d09dc`.
-  (2026-10-05)
+- **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at M4.2's
+  merge, `38d09dc`, and the pin moves only by a pull request there. (2026-09-18, 2026-10-05)
 - **Podman, not Docker, on this machine**: `podman start code-dev-postgres code-dev-redis` after a
-  reboot (:5433, :6380); Compose is not set up again. (2026-10-05)
+  reboot, or when tests cannot connect (:5433, :6380); Compose is not set up. (2026-10-05, 10-06)
 - **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
   `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). Two pytest
   runs on one Postgres break each other. The canvas shows *Page not found* here. Merged branches
@@ -193,7 +189,11 @@ line is in [the archive](journal/archive/).
   so a later text replacement can miss: assert each test setup step. (2026-10-05)
 - **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
   then refuses every write behind it. (2026-10-05)
-- **CI may not start when a pull request opens**: close and reopen it. (2026-10-05)
+- **CI may not start when a pull request opens**: close and reopen it. **`Closes #1, #2` closes
+  only #1**: one keyword per issue. (2026-10-05, 2026-10-06)
+- **GitHub's compare lists at most 300 files**, page 1 only. **Celery acknowledges on delivery**: a
+  task lost with its worker is not redelivered. **importlib mode keeps a test's folder off the
+  path**: a helper beside the tests needs `pythonpath`. (2026-10-06)
 - **A migration test pinning one app** gets the others' models at whatever state: pin `accounts`
   too, or `User` has no `role`. (2026-10-06)
 - **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
