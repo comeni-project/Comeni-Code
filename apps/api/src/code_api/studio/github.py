@@ -6,11 +6,13 @@ call has a timeout, and every failure is a `GitHubError` whose message is a sent
 """
 
 import functools
+import tarfile
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Protocol
 
 import jwt
@@ -20,6 +22,7 @@ from django.conf import settings
 from code_api.config.landing import GitHubApp
 
 TIMEOUT: float = 10
+MAX_TARBALL = 50 * 1024 * 1024  # bytes; content is text (M4F.2)
 API_VERSION = "2022-11-28"
 _EARLY = 300  # a token is renewed five minutes before it expires
 
@@ -60,6 +63,7 @@ class PullState:
     closed: bool
     conflict: bool
     failed: tuple[tuple[str, str], ...]  # each failed check's name and link
+    merge_commit: str = ""  # GitHub's merge commit, once merged (M4F.3)
 
 
 class GitHub(Protocol):
@@ -74,6 +78,8 @@ class GitHub(Protocol):
     def pull_state(self, number: int) -> PullState: ...
     def close_pull(self, number: int) -> None: ...
     def find_pull(self, branch: str) -> Pull | None: ...
+    def tarball(self, commit: str, into: Path) -> Path: ...
+    def contains(self, ancestor: str, commit: str) -> bool: ...
 
 
 _tokens: dict[str, tuple[str, float]] = {}
@@ -256,6 +262,7 @@ class Client:
             closed=pull["state"] == "closed" and not pull["merged"],
             conflict=pull.get("mergeable") is False,
             failed=failed,
+            merge_commit=str(pull.get("merge_commit_sha") or "") if pull["merged"] else "",
         )
 
     def close_pull(self, number: int) -> None:
@@ -270,6 +277,66 @@ class Client:
             return None
         data = found[0]
         return Pull(number=int(data["number"]), url=str(data["html_url"]), node_id=data["node_id"])
+
+    def tarball(self, commit: str, into: Path) -> Path:
+        """A commit's content, unpacked in `into`; its root folder is returned. GitHub answers
+        with a redirect to a signed download, which `requests` follows without our token. The
+        archive is capped in size and unpacked with tarfile's `data` filter, which refuses
+        absolute paths, `..` and links that leave the folder (M4F.2)."""
+        url = f"{self.repo}/tarball/{commit}"
+        archive = into / f"{commit}.tar.gz"
+        try:
+            with requests.get(
+                url,
+                stream=True,
+                timeout=TIMEOUT,
+                headers={
+                    "Authorization": f"Bearer {self._token()}",
+                    "X-GitHub-Api-Version": API_VERSION,
+                },
+            ) as answer:
+                if answer.status_code >= 400:
+                    raise GitHubError(
+                        f"GitHub answered {answer.status_code} for the tarball of {commit}.",
+                        answer.status_code,
+                    )
+                size = 0
+                with archive.open("wb") as out:
+                    for chunk in answer.iter_content(chunk_size=1 << 16):
+                        size += len(chunk)
+                        if size > MAX_TARBALL:
+                            raise GitHubError(
+                                f"The tarball of {commit} is larger than {MAX_TARBALL} bytes."
+                            )
+                        out.write(chunk)
+        except requests.Timeout as error:
+            raise GitHubError(f"GitHub did not answer within {TIMEOUT} seconds.") from error
+        except requests.RequestException as error:
+            raise GitHubError(f"GitHub could not be reached: {error}.") from error
+        try:
+            with tarfile.open(archive) as unpacked:
+                for member in unpacked.getmembers():
+                    # tarfile's `data` filter would strip a leading / quietly; refuse it, and `..`.
+                    if member.name.startswith("/") or ".." in Path(member.name).parts:
+                        raise GitHubError(
+                            f"The tarball of {commit} has a path outside its folder: {member.name}."
+                        )
+                unpacked.extractall(into, filter="data")
+        except (tarfile.TarError, OSError) as error:
+            raise GitHubError(f"The tarball of {commit} could not be unpacked: {error}.") from error
+        finally:
+            archive.unlink(missing_ok=True)
+        roots = [path for path in into.iterdir() if path.is_dir()]
+        if len(roots) != 1:
+            raise GitHubError(f"The tarball of {commit} has {len(roots)} top folders, not one.")
+        return roots[0]
+
+    @_expected
+    def contains(self, ancestor: str, commit: str) -> bool:
+        """Whether `commit` has `ancestor` in its history: compare's status only, never its file
+        list (which stops at 300 files)."""
+        status = self._call("GET", f"/compare/{ancestor}...{commit}")["status"]
+        return status in ("identical", "ahead")
 
 
 def from_settings() -> GitHub | None:

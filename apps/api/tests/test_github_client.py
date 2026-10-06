@@ -1,10 +1,13 @@
 """The GitHub client (M4.6 spec, M4L.4), against a local HTTP stub: GitHub is never reached."""
 
+import io
 import json
+import tarfile
 import threading
 import time
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 
 import jwt
@@ -30,6 +33,7 @@ class Stub:
 
     def __init__(self) -> None:
         self.routes: dict[tuple[str, str], tuple[int, Any]] = {}
+        self.raw: dict[tuple[str, str], bytes] = {}
         self.seen: list[tuple[str, str, dict[str, str], Any]] = []
         self.delay = 0.0
 
@@ -44,6 +48,14 @@ def stub() -> Iterator[tuple[Stub, GitHubApp]]:
             body = json.loads(self.rfile.read(length)) if length else None
             state.seen.append((self.command, self.path, dict(self.headers), body))
             time.sleep(state.delay)
+            if (self.command, self.path) in state.raw:
+                payload = state.raw[(self.command, self.path)]
+                self.send_response(200)
+                self.send_header("Content-Type", "application/x-gzip")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+                return
             status, answer = state.routes.get(
                 (self.command, self.path), (404, {"message": "Not Found"})
             )
@@ -256,3 +268,89 @@ def test_a_key_github_cannot_use_is_an_error_in_words(stub: tuple[Stub, GitHubAp
     )
     with pytest.raises(GitHubError, match="could not sign in to GitHub as the app"):
         Client(broken).head()
+
+
+def _tar(members: dict[str, bytes], links: dict[str, str] | None = None) -> bytes:
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
+        for name, data in members.items():
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            archive.addfile(info, io.BytesIO(data))
+        for name, target in (links or {}).items():
+            info = tarfile.TarInfo(name)
+            info.type, info.linkname = tarfile.SYMTYPE, target
+            archive.addfile(info)
+    return buffer.getvalue()
+
+
+def test_a_tarball_is_unpacked_to_its_root(stub: tuple[Stub, GitHubApp], tmp_path: Path) -> None:
+    state, app = stub
+    state.raw[("GET", f"{REPO}/tarball/c1")] = _tar(
+        {"owner-repo-c1/regions.yaml": b"regions: []\n", "owner-repo-c1/a/b/node.yaml": b"id: b\n"}
+    )
+    root = Client(app).tarball("c1", tmp_path)
+    assert root == tmp_path / "owner-repo-c1"
+    assert (root / "a" / "b" / "node.yaml").read_text() == "id: b\n"
+
+
+@pytest.mark.parametrize(
+    "members, links",
+    [
+        ({"owner-repo-c1/../../evil": b"x"}, None),
+        ({"/etc/evil": b"x"}, None),
+        ({"owner-repo-c1/ok": b"x"}, {"owner-repo-c1/out": "/etc/passwd"}),
+    ],
+    ids=["dot-dot", "absolute", "link-out"],
+)
+def test_a_tarball_that_leaves_its_folder_is_refused(
+    stub: tuple[Stub, GitHubApp],
+    tmp_path: Path,
+    members: dict[str, bytes],
+    links: dict[str, str] | None,
+) -> None:
+    state, app = stub
+    state.raw[("GET", f"{REPO}/tarball/c1")] = _tar(members, links)
+    into = tmp_path / "into"
+    into.mkdir()
+    with pytest.raises(GitHubError, match="tarball"):
+        Client(app).tarball("c1", into)
+    assert not (tmp_path / "evil").exists()
+
+
+def test_a_tarball_past_the_cap_is_refused(
+    stub: tuple[Stub, GitHubApp], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    state, app = stub
+    monkeypatch.setattr(github, "MAX_TARBALL", 10)
+    state.raw[("GET", f"{REPO}/tarball/c1")] = _tar({"owner-repo-c1/big": b"x" * 1000})
+    with pytest.raises(GitHubError, match="larger than"):
+        Client(app).tarball("c1", tmp_path)
+
+
+@pytest.mark.parametrize(
+    "status, held", [("identical", True), ("ahead", True), ("behind", False), ("diverged", False)]
+)
+def test_contains_reads_compares_status(
+    stub: tuple[Stub, GitHubApp], status: str, held: bool
+) -> None:
+    state, app = stub
+    state.routes[("GET", f"{REPO}/compare/m1...h1")] = (200, {"status": status, "files": []})
+    assert Client(app).contains("m1", "h1") is held
+
+
+def test_a_merged_pull_request_names_its_merge_commit(stub: tuple[Stub, GitHubApp]) -> None:
+    state, app = stub
+    state.routes[("GET", f"{REPO}/pulls/7")] = (
+        200,
+        {
+            "merged": True,
+            "state": "closed",
+            "mergeable": None,
+            "merge_commit_sha": "m7",
+            "head": {"sha": "h7"},
+        },
+    )
+    state.routes[("GET", f"{REPO}/commits/h7/check-runs?per_page=100")] = (200, {"check_runs": []})
+    state.routes[("GET", f"{REPO}/commits/h7/status")] = (200, {"statuses": []})
+    assert Client(app).pull_state(7).merge_commit == "m7"

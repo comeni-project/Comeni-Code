@@ -1,8 +1,10 @@
 """A fake of the GitHub API behind Studio's client (M4.6 spec, M4L.7): commits, branches and pull
 requests in memory. Tests set `files` on `main`, then read what a landing made."""
 
+import shutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from code_api.studio.github import GitHubError, Pull, PullState
 
@@ -28,6 +30,8 @@ class FakeGitHub:
     conflicts: set[int] = field(default_factory=set)
     closed: set[int] = field(default_factory=set)
     calls: list[str] = field(default_factory=list)
+    trees: dict[str, Path] = field(default_factory=dict)  # a commit's content folder
+    ancestry: set[tuple[str, str]] = field(default_factory=set)  # (ancestor, commit) besides ==
 
     def _step(self, name: str) -> None:
         self.calls.append(name)
@@ -93,6 +97,7 @@ class FakeGitHub:
             closed=number in self.closed and number not in self.merged,
             conflict=number in self.conflicts,
             failed=self.checks.get(number, ()),
+            merge_commit=f"merge-{number}" if number in self.merged else "",
         )
 
     def close_pull(self, number: int) -> None:
@@ -107,3 +112,13 @@ class FakeGitHub:
                     number=number, url=f"https://github.test/pull/{number}", node_id=f"PR_{number}"
                 )
         return None
+
+    def tarball(self, commit: str, into: Path) -> Path:
+        self._step("tarball")
+        root = into / f"repo-{commit}"
+        shutil.copytree(self.trees[commit], root)
+        return root
+
+    def contains(self, ancestor: str, commit: str) -> bool:
+        self._step("contains")
+        return ancestor == commit or (ancestor, commit) in self.ancestry
