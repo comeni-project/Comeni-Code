@@ -149,9 +149,15 @@ CELERY_TIMEZONE = TIME_ZONE
 # Autodiscovery searches INSTALLED_APPS only; task modules outside a Django app are named here, or a
 # worker rejects their tasks as unregistered (found by hand in the part 4 scratch build).
 CELERY_IMPORTS = ("code_api.health.tasks",)
+# Seconds between looks at open and failed landings' pull requests (M4L.4).
+WATCH_LANDINGS_SECONDS = 120
 CELERY_BEAT_SCHEDULE = {
     "health-heartbeat": {
         "task": "code_api.health.tasks.heartbeat",
         "schedule": HEARTBEAT_INTERVAL_SECONDS,
+    },
+    "studio-watch-landings": {
+        "task": "code_api.studio.tasks.watch_landings",
+        "schedule": WATCH_LANDINGS_SECONDS,
     },
 }

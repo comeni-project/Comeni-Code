@@ -266,3 +266,50 @@ def _land(made: Landing, client: GitHub) -> Landing:
             landing=made,
         )
     return made
+
+
+class NotFailed(Exception):
+    def __init__(self, state: str) -> None:
+        super().__init__(state)
+        self.state = state
+
+
+def watch(made: Landing, client: GitHub) -> Landing:
+    """The poller's step for one landing (M4L.4): merged, failed, open again, or closed."""
+    with transaction.atomic():
+        locked = Landing.objects.select_for_update().get(pk=made.pk)
+        if locked.state not in (Landing.State.OPEN, Landing.State.FAILED):
+            return locked
+        assert locked.pull_number is not None
+        try:
+            found = client.pull_state(locked.pull_number)
+        except GitHubError:
+            return locked  # GitHub is down; the next round asks again
+        if found.merged:
+            locked.state, locked.reason = Landing.State.MERGED, ""
+        elif found.closed:
+            return _end(locked, Landing.State.CLOSED, "The pull request was closed on GitHub.")
+        elif found.conflict:
+            locked.state, locked.reason = (
+                Landing.State.FAILED,
+                "The pull request conflicts with main.",
+            )
+        elif found.failed:
+            name, link = found.failed[0]
+            locked.state, locked.reason = Landing.State.FAILED, f"{name} failed: {link}"
+        else:
+            locked.state, locked.reason = Landing.State.OPEN, ""
+        locked.save(update_fields=["state", "reason"])
+        return locked
+
+
+def close(made: Landing, client: GitHub) -> Landing:
+    """An operator closes a failed landing: its pull request and branch go, its drafts are free."""
+    with transaction.atomic():
+        locked = Landing.objects.select_for_update().get(pk=made.pk)
+        if locked.state != Landing.State.FAILED:
+            raise NotFailed(locked.state)
+        assert locked.pull_number is not None
+        client.close_pull(locked.pull_number)
+        client.delete_branch(locked.branch)
+        return _end(locked, Landing.State.CLOSED, locked.reason)

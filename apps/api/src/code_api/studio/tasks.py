@@ -12,3 +12,12 @@ def land(public_id: str) -> None:
     client = github.from_settings()
     if found is not None and client is not None:
         landing.run(found, client)
+
+
+@shared_task(name="code_api.studio.tasks.watch_landings")
+def watch_landings() -> None:
+    client = github.from_settings()
+    if client is None:
+        return
+    for each in Landing.objects.filter(state__in=[Landing.State.OPEN, Landing.State.FAILED]):
+        landing.watch(each, client)
