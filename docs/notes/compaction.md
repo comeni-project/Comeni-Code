@@ -11,7 +11,7 @@ Borrowed as a discipline, with no store and no tool.
 | Layer | What it is | Rules |
 |---|---|---|
 | **`journal/`** | the raw log: one dated entry per working session | append-only. Written once and never edited |
-| **`now.md`** | the consolidated state: what is true today | organised **by topic, not by date**. Each line cites the entry it came from, e.g. `(2026-09-21)`. At most **200 lines** (150 until 2026-10-05, raised by the operator); `tests/repo/test_doc_sizes.py` holds that |
+| **`now.md`** | the consolidated state: what is true today | organised **by topic, not by date**. Each line cites the entry it came from, e.g. `(2026-09-21)`. At most **250 lines** (150 until 2026-10-05, 200 until 2026-10-06, each raised by the operator); `tests/repo/test_doc_sizes.py` holds that |
 
 `journal/archive/` holds entries that have been compacted. `journal/` itself holds only entries
 **not yet compacted**, so its size is how much is pending.

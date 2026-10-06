@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-BUDGETS = {"CLAUDE.md": 300, "docs/notes/now.md": 200}
+BUDGETS = {"CLAUDE.md": 300, "docs/notes/now.md": 250}
 
 
 @pytest.mark.parametrize(("name", "budget"), BUDGETS.items())
