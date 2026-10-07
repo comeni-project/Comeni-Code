@@ -259,10 +259,37 @@
       "page": "studio"
     },
     {
-      "file": "Team.dc.html",
-      "title": "S14 · Team — members, roles and invites",
+      "file": "WorkbenchSettings.dc.html",
+      "title": "S3 · Workbench — Settings",
       "x": 3360,
       "y": 6100,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "WorkbenchLinks.dc.html",
+      "title": "S3 · Workbench — Links",
+      "x": 0,
+      "y": 7720,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "WorkbenchResources.dc.html",
+      "title": "S3 · Workbench — Resources",
+      "x": 1800,
+      "y": 7720,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "Team.dc.html",
+      "title": "S14 · Team — members, roles and invites",
+      "x": 3600,
+      "y": 7720,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -522,9 +549,33 @@
       "page": "studio"
     },
     {
-      "id": "note-team",
+      "id": "note-workbenchsettings",
       "x": 3360,
       "y": 5850,
+      "w": 620,
+      "text": "M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.",
+      "page": "studio"
+    },
+    {
+      "id": "note-workbenchlinks",
+      "x": 0,
+      "y": 7470,
+      "w": 620,
+      "text": "M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.",
+      "page": "studio"
+    },
+    {
+      "id": "note-workbenchresources",
+      "x": 1800,
+      "y": 7470,
+      "w": 620,
+      "text": "M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.",
+      "page": "studio"
+    },
+    {
+      "id": "note-team",
+      "x": 3600,
+      "y": 7470,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
       "page": "studio"
