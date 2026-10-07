@@ -250,8 +250,11 @@ class VerifyOut(Schema):
 
 
 class ChecklistOut(Schema):
+    """The checklist, and the problems behind it, so Checks is one request (M4K.6)."""
+
     passed: bool
     items: list[ItemOut]
+    problems: list[ProblemOut] = []
 
 
 # ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────
@@ -355,9 +358,16 @@ class BuildOut(Schema):
     problems: list[str]
 
 
+class RegionChoiceOut(Schema):
+    id: str
+    name: str
+
+
 class IndexOut(Schema):
     live: BuildOut | None
     latest: BuildOut | None
     main_head: str | None
     checked_at: datetime | None
     behind: bool
+    # The regions a node can be in, in regions.yaml's order, for the workbench (M4K.6).
+    regions: list[RegionChoiceOut]

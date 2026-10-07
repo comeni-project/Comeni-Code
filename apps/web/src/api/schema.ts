@@ -52,6 +52,7 @@ export interface ApiSchemas {
   ProviderOut: ProviderOut;
   QuestionOut: QuestionOut;
   RefusedOut: RefusedOut;
+  RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
   RejectIn: RejectIn;
   ResourceIn: ResourceIn;
@@ -115,14 +116,29 @@ export interface CheckOut {
   name: string;
   status: "ok" | "down";
 }
+/**
+ * The checklist, and the problems behind it, so Checks is one request (M4K.6).
+ */
 export interface ChecklistOut {
   items: ItemOut[];
   passed: boolean;
+  problems?: ProblemOut[];
 }
 export interface ItemOut {
   detail: string;
   passed: boolean;
   rule: string;
+}
+/**
+ * One problem, as `code-schema validate` reports it; `text` is its printed line.
+ */
+export interface ProblemOut {
+  code: string;
+  field: string | null;
+  file: string;
+  line: number | null;
+  message: string;
+  text: string;
 }
 export interface DraftNodeOut {
   blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
@@ -220,17 +236,6 @@ export interface MemberOut {
   public_id: string;
   role: string;
 }
-/**
- * One problem, as `code-schema validate` reports it; `text` is its printed line.
- */
-export interface ProblemOut {
-  code: string;
-  field: string | null;
-  file: string;
-  line: number | null;
-  message: string;
-  text: string;
-}
 export interface DraftSummaryOut {
   base_digest: string;
   contributors: MemberOut[];
@@ -309,6 +314,11 @@ export interface IndexOut {
   latest: BuildOut | null;
   live: BuildOut | null;
   main_head: string | null;
+  regions: RegionChoiceOut[];
+}
+export interface RegionChoiceOut {
+  id: string;
+  name: string;
 }
 export interface InsertBlockIn {
   at: number;

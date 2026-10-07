@@ -9,9 +9,9 @@ from ninja import Router
 
 from code_api.accounts.access import studio
 from code_api.accounts.roles import Role
-from code_api.content.models import IndexBuild
+from code_api.content.models import IndexBuild, Region
 from code_api.studio.follow import MAIN_KEY
-from code_api.studio.schemas import BuildOut, IndexOut
+from code_api.studio.schemas import BuildOut, IndexOut, RegionChoiceOut
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
 
@@ -42,4 +42,8 @@ def index(request: HttpRequest) -> IndexOut:
         main_head=head,
         checked_at=None if checked is None else datetime.fromisoformat(checked),
         behind=head is not None and (live is None or live.commit != head),
+        regions=[
+            RegionChoiceOut(id=region.id, name=region.name)
+            for region in Region.objects.order_by("position")
+        ],
     )

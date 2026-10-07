@@ -51,8 +51,16 @@ def test_an_empty_index_answers_with_nothing(ada: User) -> None:
         "main_head": None,
         "checked_at": None,
         "behind": False,
+        "regions": [],
     }
 
 
 def test_the_index_route_is_the_teams(client: Client) -> None:
     assert client.get("/api/studio/index").json()["code"] == "CA0101"
+
+
+def test_the_index_route_lists_the_regions_in_order(ada: User) -> None:
+    follow.follow(GitHubSource(FakeGitHub(main="c1", trees={"c1": FIXTURES})))
+    regions = signed_in(ada).get("/api/studio/index").json()["regions"]
+    assert len(regions) == 6
+    assert set(regions[0]) == {"id", "name"}
