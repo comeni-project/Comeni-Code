@@ -135,6 +135,10 @@ within one round; a refused commit leaves the old index; a draft flips to landed
   committed merge into a 500; beat's timer catches up.
 - **Tarballs refuse absolute and `..` paths outright**, and the root is read from what was
   unpacked: Python's `data` filter strips a leading `/` quietly rather than refusing it.
+- **Every build records its source's kind** (`IndexBuild.source`, #217): the fallback uses only
+  `main`'s own builds and skips a commit refused since; only the GitHub source falls back, so a
+  folder source is never relabelled as another commit. A source the command cannot read is
+  CA0007, exit 2.
 - **The command says "Nothing built"** when the index is already at the source's head, or that head
   was refused before; its exit codes and other lines are unchanged.
 
