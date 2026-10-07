@@ -25,9 +25,10 @@ export function StudioShell() {
   const { pathname, search } = useLocation();
   let inside: ReactNode = null;
   let role: string | null = null;
-  if (me.isError) {
-    inside = <ErrorNotice error={me.error} />;
-  } else if (me.isSuccess) {
+  // An answer already held stands when asking again fails: the open page is kept.
+  if (me.data === undefined) {
+    if (me.isError) inside = <ErrorNotice error={me.error} />;
+  } else {
     const user = me.data.user;
     const page = pageAt(pathname);
     if (user === null) {

@@ -1,21 +1,30 @@
 // L15 · Join (M4.8a spec, M4S.1): with an invite, an account on the invite's address; without
-// one, not yet. Accepting holds the invite in the session first, so sign-up can take it (M4A.2).
+// one, not yet; signed in, sign out first. Accepting holds the invite in the session first, so
+// sign-up can take it (M4A.2).
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { acceptInvite, ROLE_LABEL, type Role } from "../api/accounts";
 import { FormRefused, signUp } from "../api/auth";
-import { useAuthChange, useInvite } from "../api/queries";
+import { useAuthChange, useInvite, useMe } from "../api/queries";
 import { PRIMARY } from "../layout/buttons";
 import { ErrorNotice } from "../layout/ErrorNotice";
 import { AuthCard, AuthPage, FormErrors } from "./AuthCard";
 import { Field } from "./Field";
 import { NotYet } from "./NotYet";
 import { ProviderButtons } from "./ProviderButtons";
+import { SignOutFirst } from "./SignOutFirst";
 
 export function JoinPage() {
   const { token } = useParams();
-  return <AuthPage>{token === undefined ? <NotYet /> : <Invited token={token} />}</AuthPage>;
+  const signedIn = useMe().data?.user ?? null;
+  let inside = <NotYet />;
+  if (token !== undefined && signedIn !== null) {
+    inside = <SignOutFirst email={signedIn.email} back={`/join/${token}`} />;
+  } else if (token !== undefined) {
+    inside = <Invited token={token} />;
+  }
+  return <AuthPage>{inside}</AuthPage>;
 }
 
 function Invited({ token }: { token: string }) {

@@ -1,9 +1,12 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { answering, renderAt, SIGNED_OUT } from "../test-kit";
+import { leave } from "../layout/leave";
+import { answering, renderAt, SIGNED_OUT, signedInAs } from "../test-kit";
 import { JoinPage } from "./JoinPage";
+
+vi.mock("../layout/leave", () => ({ leave: vi.fn() }));
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -72,6 +75,24 @@ describe("JoinPage", () => {
     renderAt("/join/tok", routes);
     await screen.findByLabelText("Password");
     expect(screen.queryByText(/With a provider/)).toBeNull();
+  });
+
+  it("asks a signed-in member to sign out first, and comes back to the invite", async () => {
+    const fake = answering({
+      "GET /api/me": signedInAs("operator"),
+      "GET /api/invites/tok": INVITE,
+      "DELETE /_allauth/browser/v1/auth/session": { status: 401, body: { status: 401 } },
+    });
+    renderAt("/join/tok", routes);
+    expect(
+      await screen.findByText(
+        "You’re signed in as ada@example.org. Sign out to accept this invite.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Password")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await waitFor(() => expect(leave).toHaveBeenCalledWith("/join/tok"));
+    expect(fake.mock.calls.some(([url]) => url.endsWith("/accept"))).toBe(false);
   });
 
   it("shows the API's sentence for a spent invite", async () => {

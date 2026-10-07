@@ -1,4 +1,5 @@
-import { screen, waitFor } from "@testing-library/react";
+import { focusManager } from "@tanstack/react-query";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -83,5 +84,25 @@ describe("StudioShell", () => {
     await userEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));
     await waitFor(() => expect(leave).toHaveBeenCalledWith("/"));
     expect(screen.queryByTestId("where")).toBeNull();
+  });
+
+  it("keeps the open page when asking again fails", async () => {
+    let asked = 0;
+    answering({
+      "GET /api/me": () => {
+        asked += 1;
+        return asked === 1
+          ? signedInAs("operator")
+          : { status: 503, body: { detail: "The database is down." } };
+      },
+    });
+    studio("/studio/team");
+    expect(await screen.findByText("Team page")).toBeInTheDocument();
+    act(() => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+    await waitFor(() => expect(asked).toBe(2));
+    expect(screen.getByText("Team page")).toBeInTheDocument();
   });
 });

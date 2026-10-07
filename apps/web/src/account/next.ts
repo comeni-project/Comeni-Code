@@ -17,7 +17,8 @@ export function safeNext(raw: string | null): string {
   if (raw === null || !raw.startsWith("/")) return "/";
   const url = new URL(raw, HERE);
   const path = decoded(url.pathname);
-  if (url.origin !== HERE || path === null) return "/";
+  // `/.//host` normalises to the path `//host`, which a browser reads as another site.
+  if (url.origin !== HERE || path === null || url.pathname.startsWith("//")) return "/";
   const account = ACCOUNT_PAGES.some((page) => path === page || path.startsWith(`${page}/`));
   return account ? "/" : `${url.pathname}${url.search}${url.hash}`;
 }

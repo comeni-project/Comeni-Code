@@ -14,6 +14,17 @@ describe("safeNext", () => {
     expect(safeNext("/\t/evil.example")).toBe("/");
   });
 
+  it("refuses a path that normalises to another site", () => {
+    for (const raw of [
+      "/.//evil.example",
+      "/..//evil.example",
+      "/%2e//evil.example",
+      "/a/..//evil.example",
+    ]) {
+      expect(safeNext(raw)).toBe("/");
+    }
+  });
+
   it("keeps the query and fragment of a path on this site", () =>
     expect(safeNext("/route?goal=salmon#map")).toBe("/route?goal=salmon#map"));
 
