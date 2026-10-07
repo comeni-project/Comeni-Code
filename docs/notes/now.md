@@ -5,15 +5,15 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-06** (M4.6 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-06** (M4.7 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
 - **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, #119–#127 of #74, back end
   first, screens last; the reasons are in the archived *M4 in parts* entry. (2026-09-29)
-- **M4.1–M4.6 are done** (#119–#124): the block document (#139); exam pools (#151); accounts and
-  roles (#164); drafts and checks (#177); review (#190); landing (#205). **M4.7, following the
-  content repository (#125), is next.** (2026-09-29 to 2026-10-06)
+- **M4.1–M4.7 are done** (#119–#125): the block document (#139); exam pools (#151); accounts and
+  roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218). **M4.8,
+  sign-in, team and the workbench (#126), is next**: the first screens. (2026-09-29 to 2026-10-06)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -61,8 +61,8 @@ line is in [the archive](journal/archive/).
 
 ## The index and the API (`apps/api`)
 
-- `manage.py rebuild_index` fills the index from files, **all or nothing**, one `IndexBuild` row
-  per attempt; `--root`, else `CODE_CONTENT_ROOT`, no default. (2026-09-19)
+- **The index is rebuilt all or nothing**, one `IndexBuild` row per attempt, each with its commit
+  and its source's kind (`github` or `folder`). (2026-09-19, 2026-10-06)
 - Everything outside the index names a node by id, never a foreign key. (2026-09-19)
 - `GET /api/nodes/{id}` (neighbours, *needed by*, resources, questions, and the body as `blocks`,
   never `body`), `/api/routes`, `/api/search`, `/api/health`; 404 for a miss, 503 before any build;
@@ -109,6 +109,21 @@ line is in [the archive](journal/archive/).
   starting commit) is dropped, CA0306–CA0308. A failed landing holds its drafts until closed; every
   failure ends it in words; a claim token keeps recovery and a slow worker apart. (2026-10-06)
 
+## Following `main` (`code_api/studio/follow.py`)
+
+- **One reconciler, `follow(source)`**: `main`'s head against the live build; if they differ, build
+  from the head's tarball (no checkout); then merged landings whose merge commit the live build
+  contains have their drafts marked **`landed`** (final; frees the node). One try-lock. (10-06)
+- **One `Source` interface, two sources, one factory**: `GitHubSource` (the app's client) and
+  `FolderSource`, picked by `configured_source()`. Beat (every 5 minutes), the landing poller (on a
+  merge) and `manage.py rebuild_index` all call `follow`; `--root` is a folder source. (2026-10-06)
+- **`main` wins**: a stray folder build is put back next round; a refused head falls back to
+  `main`'s own last good build, never a folder build, never a commit refused since; the command
+  exits 2 (CA0007) when its source cannot be read. (2026-10-06)
+- **`GET /api/studio/index`** (any member): the live build, the latest attempt and its problems,
+  `main`'s last-seen head (a cache entry the follower writes), `behind`. Health stays up/down.
+  (2026-10-06)
+
 ## The weaver and search (`code-weaver`, pure)
 
 - `weave` walks *needs* back from the goals, orders by region then first-reached, byte-identical
@@ -151,15 +166,16 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **For M4.7**: fill `IndexBuild.commit` (until then landing drops every changed draft, CA0308),
-  mark drafts landed, webhook or polling. **M4.9**: register the app; which node lands first. (10-06)
+- **For M4.9**: register the app; which node lands first; `providers.yaml` must land in
+  `comeni-code-content` first, or following its real `main` is refused. Webhooks later. (10-06)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203 and #204; large floats given as answers read back from jsonb as integers (#188). (10-06)
+  #203, #204, #216 and #217; large floats given as answers read back from jsonb as integers
+  (#188). (2026-10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
-- `providers.yaml` is not in `comeni-code-content` yet; whether `IndexBuild` rows need pruning;
+- Whether `IndexBuild` rows need pruning (a folder source adds one every round);
   three light chip pairs under 4.5 : 1, kept by the operator; jsdom 29 until Node 24.15 (issue 32).
   (2026-09-17 to 2026-09-20)
 - R8 of the architecture spec: search, institutional sign-in, the consent spec. (2026-09-17)
@@ -194,6 +210,9 @@ line is in [the archive](journal/archive/).
 - **GitHub's compare lists at most 300 files**, page 1 only. **Celery acknowledges on delivery**: a
   task lost with its worker is not redelivered. **importlib mode keeps a test's folder off the
   path**: a helper beside the tests needs `pythonpath`. (2026-10-06)
+- **tarfile's `data` filter strips a leading `/` instead of refusing it**: check member names
+  yourself. **`transaction.on_commit` is not robust by default**: pass `robust=True` for a nudge
+  whose failure must not turn a saved change into a 500. (2026-10-06)
 - **A migration test pinning one app** gets the others' models at whatever state: pin `accounts`
   too, or `User` has no `role`. (2026-10-06)
 - **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
