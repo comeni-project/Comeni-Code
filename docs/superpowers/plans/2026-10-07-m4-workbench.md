@@ -1025,6 +1025,10 @@ git commit -m "feat(web): try questions in the workbench — M4.8b.6"
 
 ### Task 7: Settings and Links
 
+The layouts are the `WorkbenchSettings` and `WorkbenchLinks` boards: one card of fields with the
+*Each field saves when you leave it.* note and a Discard card under it; three link lists, each a
+node id and a reason with *Remove* and *+ Link*.
+
 **Files:**
 - Create: `apps/web/src/studio/workbench/SettingsTab.tsx`, `LinksTab.tsx`, `LinkList.tsx`,
   `SettingsTab.test.tsx`, `LinksTab.test.tsx`
@@ -1064,6 +1068,9 @@ git commit -m "feat(web): Settings and Links in the workbench — M4.8b.7"
 ---
 
 ### Task 8: Resources
+
+The layout is the `WorkbenchResources` board: *+ Resource* above the cards; one card open with
+every field; the others closed with *Edit* and *Remove*.
 
 **Files:**
 - Create: `apps/web/src/studio/workbench/ResourcesTab.tsx`, `ResourceCard.tsx`,
@@ -1145,7 +1152,8 @@ git commit -m "feat(web): Checks and Submit — asked only while shown — M4.8b
 - [ ] **Step 1: The whole suite with CI's environment** (pytest, ruff, mypy, Django's checks, the
   migration check; the web's lint, typecheck, tests and build). Expected: all green.
 
-- [ ] **Step 2: Walk *done when*** with `runserver` and the production build (`vite preview
+- [ ] **Step 2: Walk *done when*** beside the S19, S3, `WorkbenchSettings`, `WorkbenchLinks` and
+  `WorkbenchResources` boards on the canvas, with `runserver` and the production build (`vite preview
   --port 5173`), colours compared in headless Chrome (`--user-data-dir` of its own): an invited
   author creates a node from Drafts; writes a text block, a try question and a callout; adds a
   resource, a *needs* link and the settings; Checks passes all but the exam pool; four exam

@@ -114,7 +114,12 @@ route (the index answer is where the team reads the index).
 ## M4K.7 The boards, the build and *done when*
 
 **Boards:** S19 Drafts was added to `.design/build_pages.mjs` (with a Drafts entry in every
-Studio board's rail) and approved; the workbench follows S3.
+Studio board's rail) and approved; the Content tab follows S3. **Settings, Links and Resources**
+have boards of their own (`WorkbenchSettings`, `WorkbenchLinks`, `WorkbenchResources`), drawn by
+`workbench({ tab, body })` inside the S3 board's header and preview, without what this part
+leaves out (the writing guide, presence, Problem, Score and the other preview tabs, click to
+edit). They were designed on the canvas (https://claude.ai/artifact/1NUmoDUfo1x2oZ7ywhvCxx) from
+the S3 board's own markup, then ported to the generator, with the design audit's fixes (#249).
 
 **Folders:** `studio/drafts/` (the page, the new-node form, the open-existing finder);
 `studio/workbench/` (the page and header, `Outline`, `BlockList`, `BlockEditor`, `TryEditor`,
