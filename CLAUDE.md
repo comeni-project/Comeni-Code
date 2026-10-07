@@ -235,7 +235,7 @@ push through.
   `npm run tokens` in `apps/web`; a test fails until the committed `tokens.css` matches.
 - **Screens are compared with the published canvas in a browser**, at the page's real width, in
   light at 1440 as well as dark — never with a board regenerated in the same change. The canvas
-  is at https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa.
+  is at https://claude.ai/artifact/1NUmoDUfo1x2oZ7ywhvCxx.
 - **Research is cited** in the spec that uses it.
 - **Commits** follow the house style: `docs(spec): …`, `design: …`, `feat`/`fix`/… for code. One
   logical change per commit; the body says why.

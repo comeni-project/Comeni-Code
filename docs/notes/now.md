@@ -213,7 +213,7 @@ line is in [the archive](journal/archive/).
   reboot, or when tests cannot connect (:5433, :6380); Compose is not set up. (2026-10-05, 10-06)
 - **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
   `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). Two pytest
-  runs on one Postgres break each other. The canvas is under another claude.ai account (*Page not found* here); the local boards match it. Merged branches
+  runs on one Postgres break each other. The canvas is the Design artifact named in CLAUDE.md; republish it from the generator. Merged branches
   are kept: retarget a stacked pull request first. (2026-09-29, 2026-10-05)
 - **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
   ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
