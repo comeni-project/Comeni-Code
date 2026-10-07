@@ -114,6 +114,24 @@
       "page": "learn"
     },
     {
+      "file": "SignIn.dc.html",
+      "title": "L14 · Sign in — one button per configured provider",
+      "x": 2000,
+      "y": 9120,
+      "w": 1440,
+      "h": 860,
+      "page": "learn"
+    },
+    {
+      "file": "Join.dc.html",
+      "title": "L15 · Join — with an invite, and without",
+      "x": 0,
+      "y": 10960,
+      "w": 1440,
+      "h": 860,
+      "page": "learn"
+    },
+    {
       "file": "Requests.dc.html",
       "title": "S7 · Requests — a triage queue for dozens",
       "x": 0,
@@ -229,6 +247,15 @@
       "y": 6100,
       "w": 1440,
       "h": 1260,
+      "page": "studio"
+    },
+    {
+      "file": "Team.dc.html",
+      "title": "S14 · Team — members, roles and invites",
+      "x": 1560,
+      "y": 6100,
+      "w": 1680,
+      "h": 1060,
       "page": "studio"
     },
     {
@@ -358,6 +385,22 @@
       "page": "learn"
     },
     {
+      "id": "note-signin",
+      "x": 2000,
+      "y": 8870,
+      "w": 620,
+      "text": "Reached from: Sign in in the top bar (signed out), Studio while signed out (with ?next=).\nLeads to: where you came from.\nM4.8a: the provider buttons come from allauth’s config, one generic button each (GitHub today, ORCID when its keys are set); email and password below. Create an account leads to Join.",
+      "page": "learn"
+    },
+    {
+      "id": "note-join",
+      "x": 0,
+      "y": 10710,
+      "w": 620,
+      "text": "Reached from: an invite email (/join/<token>), Create an account (/join), a GitHub sign-in Code doesn’t know (/sign-in/error).\nM4.8a: sign-up is invite-only until learner accounts open; one component says so honestly for every way in. The invite fixes the address and the role.",
+      "page": "learn"
+    },
+    {
       "id": "note-requests",
       "x": 0,
       "y": -250,
@@ -459,6 +502,14 @@
       "y": 5850,
       "w": 620,
       "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.",
+      "page": "studio"
+    },
+    {
+      "id": "note-team",
+      "x": 1560,
+      "y": 5850,
+      "w": 620,
+      "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
       "page": "studio"
     },
     {

@@ -771,6 +771,99 @@ function account() {
 ${foot}`;
 }
 
+// ── Accounts: sign in, join, team (M4.8a) ───────────────────────
+// Providers are drawn from allauth's config, one button each; GitHub is the only one configured.
+const field = (name, value, { hint = '', locked = false, mask = false } = {}) => `<label style="display:flex;flex-direction:column;gap:6px">
+  <span style="font-size:13px;font-weight:500">${name}</span>
+  <span style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;border:1px solid ${c.border2};background:${locked ? c.bg : c.surface};font-size:14px;color:${value ? c.ink : c.ink3}">${locked ? `<span style="color:${c.ink3};display:flex">${ic.lock}</span>` : ''}${mask ? '••••••••••••' : value}</span>
+  ${hint ? `<span style="font-size:12.5px;color:${c.ink3}">${hint}</span>` : ''}
+</label>`;
+const ghMark = `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.46-.15.46-.33v-1.2c-1.9.41-2.3-.8-2.3-.8-.31-.79-.76-1-.76-1-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.61 1.04 1.6.74 1.99.57.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.36 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.61-1.6 3.19-3.11 3.36.24.21.46.62.46 1.25v1.85c0 .18.12.4.47.33A6.8 6.8 0 0 0 8 1.2z" style="fill:currentColor"></path></svg>`;
+const provider = (name) => `<span style="display:flex;align-items:center;justify-content:center;gap:10px;height:44px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14px;font-weight:500">${ghMark}Continue with ${name}</span>`;
+const orRule = `<div style="display:flex;align-items:center;gap:12px;font-size:12.5px;color:${c.ink3}"><span style="flex:1;height:1px;background:${c.border}"></span>or<span style="flex:1;height:1px;background:${c.border}"></span></div>`;
+const wide = (button) => button.replace('display:inline-flex;', 'display:flex;justify-content:center;');
+const signedOutBar = learnBar().replace(avatar, secondary(c, 'Sign in'));
+const authCard = (inner) => `<div style="${panel(c)};width:420px;padding:32px;display:flex;flex-direction:column;gap:18px">${inner}</div>`;
+
+function signIn() {
+  return page(1440, 860, `${signedOutBar}
+  <main style="flex:1;display:flex;justify-content:center;padding-top:72px">
+    ${authCard(`
+      <div style="display:flex;flex-direction:column;gap:6px">${h1('Sign in', 26)}<span style="font-size:14px;color:${c.ink2}">to keep your routes and what you know, and to open Studio if you’re on the team.</span></div>
+      ${provider('GitHub')}
+      ${orRule}
+      ${field('Email', '[email]')}
+      ${field('Password', '', { mask: true })}
+      <div style="display:flex;justify-content:flex-end;margin-top:-8px"><a href="#" style="font-size:13px">Forgot your password?</a></div>
+      ${wide(primary(c, 'Sign in'))}
+      <span style="font-size:13.5px;color:${c.ink2};text-align:center">New here? <a href="#">Create an account</a></span>`)}
+  </main>`);
+}
+
+function join() {
+  const invited = authCard(`
+    ${blueTag('Invite · author')}
+    <div style="display:flex;flex-direction:column;gap:6px">${h1('Join the Studio team', 26)}<span style="font-size:14px;color:${c.ink2}">[Operator name] invited you to write nodes for Comeni Code. The invite works once and expires on [date].</span></div>
+    ${field('Email', '[invitee email]', { locked: true, hint: 'The address the invite was sent to.' })}
+    ${field('Password', '', { mask: true, hint: 'At least 10 characters.' })}
+    ${wide(primary(c, 'Create your account'))}
+    ${orRule}
+    ${provider('GitHub')}
+    <span style="font-size:12.5px;color:${c.ink3}">With GitHub, your account still takes the invite’s address.</span>`);
+  const closed = authCard(`
+    ${greyTag('Not open yet')}
+    <div style="display:flex;flex-direction:column;gap:6px">${h1('Learner accounts are coming', 26)}<span style="font-size:14px;line-height:1.6;color:${c.ink2}">You can’t create an account yet. Everything in Comeni Code works without one: routes, pages and questions are all here.</span></div>
+    <span style="font-size:14px;line-height:1.6;color:${c.ink2}">On the team? Open the link in your invite email.</span>
+    ${secondary(c, 'Back to Start').replace('display:inline-flex;', 'display:inline-flex;align-self:flex-start;')}`);
+  const col = (cap, inner) => `<div style="display:flex;flex-direction:column;gap:12px"><span style="${label(c)}">${cap}</span>${inner}</div>`;
+  return page(1440, 860, `${signedOutBar}
+  <main style="flex:1;display:flex;justify-content:center;align-items:flex-start;gap:56px;padding-top:56px">
+    ${col('/join/[token] · a pending invite', invited)}
+    ${col('/join, /sign-in/error · no invite', closed)}
+  </main>`);
+}
+
+function team() {
+  const roles = (on) => seg(c, ['Author', 'Reviewer', 'Operator'], on);
+  const th = (s, extra = '') => `<span style="${label(c)};${extra}">${s}</span>`;
+  const row = (cells, cols, extra = '') => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:16px;padding:12px 18px;border-top:1px solid ${c.border};font-size:13.5px;${extra}">${cells.join('')}</div>`;
+  const MCOLS = '1.3fr 1.6fr auto 110px 120px';
+  const who = (n, e) => [`<span style="font-weight:500">${n}</span>`, `<span style="color:${c.ink2}">${e}</span>`];
+  const members = [
+    [...who('[Operator name]', '[email]'), roles(2), `<span style="color:${c.ink3}">you</span>`, ''],
+    [...who('[Reviewer name]', '[email]'), roles(1), greenTag('Active'), secondary(c, 'Deactivate')],
+    [...who('[Author name]', '[email]'), roles(0), greenTag('Active'), secondary(c, 'Deactivate')],
+    [...who('[Former author]', '[email]'), roles(0), greyTag('Deactivated'), ''],
+  ];
+  const ICOLS = '1.6fr 110px 1fr 100px';
+  const invites = [
+    [`<span>[invitee email]</span>`, `<span style="color:${c.ink2}">Author</span>`, `<span style="color:${c.ink2}">Expires [date]</span>`, secondary(c, 'Withdraw')],
+    [`<span>[invitee email]</span>`, `<span style="color:${c.ink2}">Reviewer</span>`, `<span style="color:${c.ink2}">Expires [date]</span>`, secondary(c, 'Withdraw')],
+  ];
+  const inviteForm = card(`
+    <span style="font-size:14.5px;font-weight:600">Invite someone</span>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:end;gap:12px">
+      ${field('Email', '[their email]')}
+      <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">Role</span>${roles(0)}</div>
+      ${primary(c, 'Send invite')}
+    </div>
+    <span style="font-size:12.5px;color:${c.ink3}">They get a link that works once, for 7 days. Authors write; reviewers also approve; operators also land and manage the team.</span>`);
+  const notice = `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:${c.openSoft};color:${c.open};font-size:13.5px">Studio needs an active operator; make someone else an operator first. ${mono('CA0108', `font-size:12px;color:${c.ink3}`)}</div>`;
+  return studio('Team', `
+    ${titleRow('Team', 'Who writes, reviews and lands content. Only operators see this page.')}
+    ${inviteForm}
+    ${notice}
+    <div style="${panel(c)};overflow:hidden">
+      <div style="padding:14px 18px;display:flex;justify-content:space-between"><span style="font-size:14.5px;font-weight:600">Members</span><span style="font-size:12.5px;color:${c.ink3}">4</span></div>
+      ${row([th('Name'), th('Email'), th('Role'), th('Status'), ''], MCOLS, 'padding-block:8px')}
+      ${members.map((m) => row(m, MCOLS)).join('')}
+    </div>
+    <div style="${panel(c)};overflow:hidden">
+      <div style="padding:14px 18px;display:flex;justify-content:space-between"><span style="font-size:14.5px;font-weight:600">Pending invites</span><span style="font-size:12.5px;color:${c.ink3}">2</span></div>
+      ${invites.map((r) => row(r, ICOLS)).join('')}
+    </div>`, 1680, 1060);
+}
+
 // ── Studio shell ────────────────────────────────────────────────
 const NAV_ICON = {
   Inbox: 'M2.5 9.5h3l1 2h3l1-2h3M3.5 3.5h9l1 6v3h-11v-3z',
@@ -2089,6 +2182,8 @@ const LEARN = [
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],
   ['Knowledge', 'L9 · Your knowledge — areas that may not connect', knowledge(), 1440, 1480, 'Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.'],
   ['AccountMenu', 'Account menu', account(), 320, 420, 'Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.'],
+  ['SignIn', 'L14 · Sign in — one button per configured provider', signIn(), 1440, 860, 'Reached from: Sign in in the top bar (signed out), Studio while signed out (with ?next=).\nLeads to: where you came from.\nM4.8a: the provider buttons come from allauth\u2019s config, one generic button each (GitHub today, ORCID when its keys are set); email and password below. Create an account leads to Join.'],
+  ['Join', 'L15 · Join — with an invite, and without', join(), 1440, 860, 'Reached from: an invite email (/join/<token>), Create an account (/join), a GitHub sign-in Code doesn\u2019t know (/sign-in/error).\nM4.8a: sign-up is invite-only until learner accounts open; one component says so honestly for every way in. The invite fixes the address and the role.'],
 ];
 const STUDIO = [
   ['Requests', 'S7 · Requests — a triage queue for dozens', requests(), 1680, 1000, 'Reached from: Inbox, the rail.\nLeads to: Implementing (accept), an existing node (merge), or a declined note the learner sees.\nSaved views, filters with counts, a dense table with duplicates collapsed, a detail pane, a bulk bar and one-key decisions (Linear’s triage pattern). The model proposes and groups; only a person moves a request, and each decision is logged.'],
@@ -2104,6 +2199,7 @@ const STUDIO = [
   ['Assistant', 'S15 · Assistant — chat that acts through the content API', assistant(), 1680, 1060, 'Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.'],
   ['AIUsage', 'S16 · AI — usage', usage(), 1680, 1180, 'Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.'],
   ['AIModels', 'S17 · AI — models, budgets and scoring', models(), 1440, 1260, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.'],
+  ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [
   ['IdentityCodeLight', 'Identity · Code light', code(T.light), 1280, 860],
