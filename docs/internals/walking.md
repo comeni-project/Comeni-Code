@@ -4,7 +4,7 @@ How a session in the running app turns into fixes and decisions without anything
 quietly worked around. Adopted from Comeni Labs on 2026-09-29, with the same labels.
 
 A **walk** is driving the running app in a browser beside the
-[published canvas](https://claude.ai/artifact/WGDwxV8gHZwSxyzSQAJKPa), at the page's real width, in
+[published canvas](https://claude.ai/artifact/1NUmoDUfo1x2oZ7ywhvCxx), at the page's real width, in
 light and dark. Every screen in M3 was walked, and every walk found defects no test suite could.
 From M5 a walk also means a session with a real model.
 

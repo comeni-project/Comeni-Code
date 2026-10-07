@@ -53,8 +53,7 @@
       <h2 style="margin:10px 0 0;font-size:23px;font-weight:600;letter-spacing:-.01em">Learn it</h2>
       <div style="display:flex;flex-direction:column;gap:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-          <p style="margin:0;font-size:15px;line-height:1.65;color:#474D63;max-width:66ch;max-width:52ch">Read our explanation below, or watch first. Each outside resource was picked by a reviewer for the part of this page it covers.</p>
-          <div style="display:flex;padding:3px;border-radius:10px;background:#F4F5F8;border:1px solid #E1E4EC"><span style="padding:5px 13px;border-radius:7px;font-size:12.5px;color:#474D63">Read</span><span style="padding:5px 13px;border-radius:7px;font-size:12.5px;background:#FFFFFF;color:#171A26;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)">Watch</span></div>
+          <p style="margin:0;font-size:15px;line-height:1.65;color:#474D63;max-width:66ch;max-width:52ch">Each outside resource was picked by a reviewer for the part of this page it covers.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px"><span style="display:{{ tags }};align-self:flex-start;align-items:center;gap:4px;padding:1px 7px;border-radius:5px;background:#171A26;color:#F4F5F8;font-family:'Geist Mono', ui-monospace, monospace;font-size:10.5px">{% resource kind="video" display="embed" %}</span>
         <div style="display:grid;grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr);gap:0;border-radius:14px;overflow:hidden;border:1px solid #E1E4EC;background:#FFFFFF">
@@ -242,9 +241,9 @@ TTA -> TAG</pre></div>
   </main>
 </div>
 </x-dc>
-<script data-dc-script data-props='{"showBlocks":{"editor":"boolean","default":true,"section":"Node page"}}'>
+<script data-dc-script data-props='{"showBlocks":{"editor":"boolean","default":false,"section":"Node page"}}'>
 class Component extends DCLogic {
-  renderVals() { return { tags: (this.props.showBlocks ?? true) ? 'inline-flex' : 'none' }; }
+  renderVals() { return { tags: (this.props.showBlocks ?? false) ? 'inline-flex' : 'none' }; }
 }
 </script>
 </body>
