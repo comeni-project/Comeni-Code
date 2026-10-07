@@ -6,7 +6,8 @@ import pytest
 from django.conf import settings
 from django.test import Client, override_settings
 
-from code_api.config.auth import github_providers, mailers
+from code_api.config import auth
+from code_api.config.auth import mailers, social_providers
 from code_api.config.env import Env
 
 pytestmark = pytest.mark.django_db
@@ -38,16 +39,27 @@ def test_allauths_own_pages_are_off(client: Client) -> None:
 
 
 def test_github_is_off_without_a_client() -> None:
-    assert github_providers(env()) == {}
+    assert social_providers(env()) == {}
 
 
 def test_github_is_on_with_a_client() -> None:
-    providers = github_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
+    providers = social_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
     assert providers["github"]["APPS"] == [{"client_id": "Iv1.abc", "secret": "s3cret"}]
 
 
+def test_every_provider_in_the_table_is_read(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A second entry, on GitHub's fields for the test: the table, not the code, names providers.
+    from code_api.config.providers import PROVIDERS, Provider
+
+    orcid = Provider("orcid", "github_client_id", "github_client_secret", ("/authenticate",))
+    monkeypatch.setattr(auth, "PROVIDERS", (*PROVIDERS, orcid))
+    providers = social_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
+    assert sorted(providers) == ["github", "orcid"]
+    assert providers["orcid"]["SCOPE"] == ["/authenticate"]
+
+
 def test_the_config_lists_github_when_it_is_set(client: Client) -> None:
-    providers = github_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
+    providers = social_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
     with override_settings(SOCIALACCOUNT_PROVIDERS=providers):
         body = client.get("/_allauth/browser/v1/config").json()
     assert [provider["id"] for provider in body["data"]["socialaccount"]["providers"]] == ["github"]

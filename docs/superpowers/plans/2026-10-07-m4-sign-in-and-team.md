@@ -70,9 +70,7 @@ def test_every_provider_in_the_table_is_read(monkeypatch: pytest.MonkeyPatch) ->
 
     orcid = Provider("orcid", "github_client_id", "github_client_secret", ("/authenticate",))
     monkeypatch.setattr(auth, "PROVIDERS", (*PROVIDERS, orcid))
-    providers = social_providers(
-        env(github_client_id="Iv1.abc", github_client_secret="s3cret")
-    )
+    providers = social_providers(env(github_client_id="Iv1.abc", github_client_secret="s3cret"))
     assert sorted(providers) == ["github", "orcid"]
     assert providers["orcid"]["SCOPE"] == ["/authenticate"]
 ```
@@ -132,15 +130,13 @@ def social_providers(env: Env) -> dict[str, Any]:
   `_github_in_pairs` with:
 
 ```python
-    @model_validator(mode="after")
-    def _providers_in_pairs(self) -> Self:
-        for provider in PROVIDERS:
-            if (getattr(self, provider.client_id) is None) != (
-                getattr(self, provider.secret) is None
-            ):
-                first, second = provider.client_id.upper(), provider.secret.upper()
-                raise ValueError(f"set both CODE_{first} and CODE_{second}, or neither")
-        return self
+@model_validator(mode="after")
+def _providers_in_pairs(self) -> Self:
+    for provider in PROVIDERS:
+        if (getattr(self, provider.client_id) is None) != (getattr(self, provider.secret) is None):
+            first, second = provider.client_id.upper(), provider.secret.upper()
+            raise ValueError(f"set both CODE_{first} and CODE_{second}, or neither")
+    return self
 ```
 
 - [ ] **Step 6: Run the tests.**
