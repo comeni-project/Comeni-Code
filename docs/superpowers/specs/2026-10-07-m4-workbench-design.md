@@ -24,7 +24,9 @@ It decides:
 **Built:**
 
 - **S19 Drafts** (`/studio/drafts`, authors and above, a new `STUDIO_PAGES` entry): the open
-  drafts with *Mine*, *All open* and *In review* views; **New node** (id, title, claim, region,
+  drafts with *Mine*, *All open* and *In review* views, each row naming the node id, its region
+  (the folder's first part), revision, contributors and state — a draft's summary carries no
+  title, and reading every draft's files to show one is not worth the request; **New node** (id, title, claim, region,
   level, minutes); **Edit a node that exists** (find it, open a draft of its live version).
 - **S3 Workbench** (`/studio/drafts/:id`), as on the board minus what later phases bring:
   - the header: breadcrumb, title, *Draft* and level tags, *Saved … ago*, *Open preview in a new
@@ -36,13 +38,14 @@ It decides:
     with B, I and Link; try with its question editor; callout), add between blocks (text, try,
     callout), ↑ ↓ and a drag handle to move, delete;
   - the right panel: **Preview** (desktop or phone, drawn by the Node page's `Body`) and **Checks**
-    (Verify's problems and the checklist items, in the API's words); clicking a block in the
-    preview opens it in the editor.
+    (Verify's problems and the checklist items, in the API's words). A block opens from the
+    outline; a click in the preview would land on its try questions' own buttons.
 
 Links and Settings are not named in #126; a new node cannot pass its checks without them, so the
 operator put them in.
 
-**Not built** (the board shows them; their phase brings them): judge scores, the rubric strip and
+**Not built** (the board shows them; their phase brings them): the Drafts table's title and level
+columns; judge scores, the rubric strip and
 *Redraft with AI* (M5); figure, image, math, example and problem blocks (refused by the format
 until M6); Cite and Term; *[Reviewer B] is viewing*; History; the Problem tab (hidden); the
 outline's per-block problem dots (they need each block's line range from the API).
