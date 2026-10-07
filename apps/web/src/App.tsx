@@ -1,5 +1,6 @@
 // The paths the app answers (M3 part 3 spec, M3P3.2). Part 4 adds /route, part 5 /node/:id.
 import { Route, Routes, useLocation } from "react-router";
+import { RequestResetPage, ResetPasswordPage } from "./account/ResetPassword";
 import { SignInPage } from "./account/SignInPage";
 import { HealthPage } from "./health/HealthPage";
 import { Specimen } from "./identity/Specimen";
@@ -34,6 +35,8 @@ export function App() {
       <Route path="/route" element={<RoutePage />} />
       <Route path="/node/:id" element={<NodePage />} />
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/reset-password" element={<RequestResetPage />} />
+      <Route path="/reset-password/:key" element={<ResetPasswordPage />} />
       <Route path="/health" element={<HealthPage />} />
       <Route path="/identity" element={<Specimen />} />
       <Route path="*" element={<NotFound />} />
