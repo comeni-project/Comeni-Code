@@ -13,7 +13,7 @@ interface Props {
 export function RoleSwitch({ label, value, onChange, disabled = false }: Props) {
   const name = useId();
   return (
-    <fieldset className="flex self-start rounded-control border border-border bg-bg p-[3px]">
+    <fieldset className="flex w-fit rounded-control border border-border bg-bg p-[3px]">
       <legend className="sr-only">{label}</legend>
       {ROLES.map((role) => (
         <label

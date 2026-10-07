@@ -1,9 +1,13 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { leave } from "../layout/leave";
 import { answering, renderAt, SIGNED_OUT, signedInAs } from "../test-kit";
 import { StudioHome } from "./StudioHome";
 import { StudioShell } from "./StudioShell";
+
+vi.mock("../layout/leave", () => ({ leave: vi.fn() }));
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -62,6 +66,22 @@ describe("StudioShell", () => {
     answering({ "GET /api/me": { status: 503, body: { detail: "The database is down." } } });
     studio("/studio/team");
     expect(await screen.findByText("The database is down.")).toBeInTheDocument();
+    expect(screen.queryByTestId("where")).toBeNull();
+  });
+
+  it("signs out to Start, not to Sign in", async () => {
+    let signedIn = true;
+    answering({
+      "GET /api/me": () => (signedIn ? signedInAs("operator") : SIGNED_OUT),
+      "DELETE /_allauth/browser/v1/auth/session": () => {
+        signedIn = false;
+        return { status: 401, body: { status: 401 } };
+      },
+    });
+    studio("/studio/team");
+    await userEvent.click(await screen.findByRole("button", { name: "Account" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Sign out" }));
+    await waitFor(() => expect(leave).toHaveBeenCalledWith("/"));
     expect(screen.queryByTestId("where")).toBeNull();
   });
 });

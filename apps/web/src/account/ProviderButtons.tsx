@@ -25,9 +25,11 @@ interface Props {
   prepare?: () => Promise<unknown>;
   /** Where the "or" rule goes, against the form beside the buttons. */
   rule: "before" | "after";
+  /** A line under the buttons, shown only when there are buttons. */
+  note?: string;
 }
 
-export function ProviderButtons({ next, prepare, rule }: Props) {
+export function ProviderButtons({ next, prepare, rule, note }: Props) {
   const providers = useProviders().data ?? [];
   const [failed, setFailed] = useState<Error | null>(null);
   if (providers.length === 0) return null;
@@ -59,6 +61,7 @@ export function ProviderButtons({ next, prepare, rule }: Props) {
           Continue with {provider.name}
         </button>
       ))}
+      {note !== undefined && <p className="text-[12.5px] text-ink-3">{note}</p>}
       {failed !== null && <p className="text-[13.5px] text-open">{sentenceOf(failed)}</p>}
       {rule === "after" && <OrRule />}
     </>

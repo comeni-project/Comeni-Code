@@ -87,10 +87,12 @@ function Invited({ token }: { token: string }) {
           Create your account
         </button>
       </form>
-      <ProviderButtons next="/studio" prepare={() => acceptInvite(token)} rule="before" />
-      <p className="text-[12.5px] text-ink-3">
-        With a provider, your account still takes the invite’s address.
-      </p>
+      <ProviderButtons
+        next="/studio"
+        prepare={() => acceptInvite(token)}
+        rule="before"
+        note="With a provider, your account still takes the invite’s address."
+      />
     </AuthCard>
   );
 }

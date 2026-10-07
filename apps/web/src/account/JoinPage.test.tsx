@@ -63,6 +63,17 @@ describe("JoinPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("speaks of providers only when there are some", async () => {
+    answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "GET /_allauth/browser/v1/config": { body: { data: {} } },
+    });
+    renderAt("/join/tok", routes);
+    await screen.findByLabelText("Password");
+    expect(screen.queryByText(/With a provider/)).toBeNull();
+  });
+
   it("shows the API's sentence for a spent invite", async () => {
     answering({
       "GET /api/me": SIGNED_OUT,

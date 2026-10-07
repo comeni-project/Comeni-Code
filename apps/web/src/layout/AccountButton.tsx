@@ -1,6 +1,7 @@
 // The top bar's account cell (M4S.1): Sign in when signed out, else the avatar and its menu.
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
+import { safeNext } from "../account/next";
 import { useMe } from "../api/queries";
 import { AccountMenu } from "./AccountMenu";
 import { SECONDARY } from "./buttons";
@@ -13,7 +14,7 @@ export function AccountButton() {
   // A failed or odd answer is treated as signed out: the bar never blocks a learner's page.
   const user = me.data?.user ?? null;
   if (user === null) {
-    const next = encodeURIComponent(`${pathname}${search}`);
+    const next = encodeURIComponent(safeNext(`${pathname}${search}`));
     return (
       <Link to={`/sign-in?next=${next}`} className={SECONDARY}>
         Sign in
