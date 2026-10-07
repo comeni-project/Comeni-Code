@@ -864,12 +864,121 @@ function team() {
     </div>`, 1680, 1060);
 }
 
+// ── Drafts (M4.8b) ──────────────────────────────────────────────
+function drafts() {
+  // What a draft's summary carries (M4K.1): its node id, region (the folder), revision, contributors and state.
+  const cols = 'minmax(0, 1.4fr) 150px 100px minmax(0, 1fr) 110px';
+  const stateTag = (s) => (s === 'Open' ? greenTag(s) : s === 'In review' ? blueTag(s) : greyTag(s));
+  const row = ([id, region, rev, who, state]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:12px;padding:0 16px;height:52px;border-top:1px solid ${c.border};font-size:13.5px">
+    <a style="font-family:${MONO};font-size:13px;font-weight:500;color:${c.sel};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${id}</a>
+    <span style="color:${c.ink2}">${region}</span>
+    <span style="color:${c.ink3};font-variant-numeric:tabular-nums">rev ${rev}</span>
+    <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${who}</span>
+    <span style="display:flex;justify-content:flex-end">${stateTag(state)}</span></div>`;
+  const rows = [
+    ['de-bruijn-graphs', 'Algorithms', 14, '[Author name]', 'Open'],
+    ['k-mers', 'Algorithms', 6, '[Author name]', 'Open'],
+  ];
+  const select = (name, value) => `<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">${name}</span><span style="display:flex;align-items:center;justify-content:space-between;height:40px;padding:0 12px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14px">${value}<span style="color:${c.ink3};display:flex">${ic.chevron}</span></span></label>`;
+  const newNode = card(`
+    <span style="font-size:14.5px;font-weight:600">New node</span>
+    ${field('Node id', 'k-mer-counting', { hint: 'Lowercase words joined by dashes; it names the folder.' })}
+    ${field('Title', '[Title]')}
+    ${field('Claim', '[One sentence: what a learner can do after this node]')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${select('Region', 'Algorithms')}${select('Level', 'Introductory')}</div>
+    ${field('Minutes', '20')}
+    ${wide(primary(c, 'Create the draft'))}`, 'gap:14px');
+  const existing = card(`
+    <span style="font-size:14.5px;font-weight:600">Edit a node that exists</span>
+    ${qSearch('Find a node by name or id', 330).replace('width:330px;height:34px', 'box-sizing:border-box;width:100%;height:40px')}
+    <span style="font-size:12.5px;color:${c.ink3}">Opens a draft of its live version. A node has one draft at a time.</span>`);
+  return studio('Drafts', `
+    ${titleRow('Drafts', 'Nodes being written. Open one to keep working, or start a new node.')}
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:20px;min-height:0">
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        ${qViews([['Mine', 2, 1], ['All open', 5], ['In review', 2]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
+        <div style="${panel(c)};overflow:hidden">
+          <div style="display:grid;grid-template-columns:${cols};gap:12px;padding:10px 16px;font-size:11.5px;color:${c.ink3}"><span>Node</span><span>Region</span><span>Revision</span><span>Who wrote it</span><span></span></div>
+          ${rows.map(row).join('')}
+        </div>
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:16px">${newNode}${existing}</aside>
+    </div>`, 1680, 1000);
+}
+
+// ── Workbench tabs without a board of their own (M4.8b) ─────────
+// Their bodies; workbench(view) draws them inside the S3 board's own header and preview.
+const benchInput = `box-sizing:border-box;height:40px;padding:0 12px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font:inherit;font-weight:400;font-size:14px;color:${c.ink}`;
+const benchMono = benchInput.replace('font:inherit;', `font-family:${MONO};`).replace('font-size:14px', 'font-size:13px');
+const benchLabel = `display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:${c.ink}`;
+const benchHint = `font-size:12.5px;font-weight:400;color:${c.ink3}`;
+const benchCard = `${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px`;
+const benchNote = `margin:0;font-size:13px;color:${c.ink2};line-height:1.5`;
+const benchBtn = (t, ink = c.ink) => `<button type="button" style="display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px;border-radius:9px;background:${c.surface};border:1px solid ${c.border2};color:${ink};font:inherit;font-size:13px;font-weight:500">${t}</button>`;
+const benchField = (name, value, { hint = '', mono = false, problem = '' } = {}) => `<label style="${benchLabel}">${name}<input value="${value}" style="${(mono ? benchMono : benchInput).replace(c.border2, problem ? c.open : c.border2)}">${hint ? `<span style="${benchHint}">${hint}</span>` : ''}${problem ? `<span style="font-size:12.5px;font-weight:400;color:${c.open}">${problem}</span>` : ''}</label>`;
+const benchArea = (name, value, { problem = '' } = {}) => `<label style="${benchLabel}">${name}<textarea rows="2" style="${benchInput.replace('height:40px;padding:0 12px', 'padding:9px 12px;line-height:1.45;resize:vertical').replace(c.border2, problem ? c.open : c.border2)}">${value}</textarea>${problem ? `<span style="font-size:12.5px;font-weight:400;color:${c.open}">${problem}</span>` : ''}</label>`;
+const benchSelect = (name, options, hint = '') => `<label style="${benchLabel}">${name}<select style="${benchInput};padding:0 10px">${options.map((o) => `<option>${o}</option>`).join('')}</select>${hint ? `<span style="${benchHint}">${hint}</span>` : ''}</label>`;
+const benchBody = (inner) => `<section style="display:flex;flex-direction:column;gap:16px;min-width:0;overflow:auto">${inner}</section>`;
+
+function benchSettings() {
+  return benchBody(`
+    <form style="${benchCard}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h2 style="margin:0;font-size:14.5px;font-weight:600">The node</h2><span style="${benchHint}">Each field saves when you leave it.</span></div>
+      ${benchField('Title', 'de Bruijn graphs')}
+      ${benchArea('Claim', 'Build a de Bruijn graph from a set of reads, read sequences off it, and explain why assemblers use it. Then recognise the marks errors leave.', { problem: '[Verify’s sentence about the claim, in the API’s words]' })}
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:12px">
+        ${benchSelect('Region', ['Algorithms', 'Sequencing', 'Quantification', 'Biology', 'Statistics', 'Single-cell'])}
+        ${benchSelect('Level', ['Intermediate', 'First steps', 'Foundations', 'Introductory', 'Advanced'], 'Describes the node, never the learner.')}
+        ${benchField('Minutes', '35', { hint: '1 to 600.' })}
+      </div>
+    </form>
+    <section style="${benchCard};gap:10px">
+      <h2 style="margin:0;font-size:14.5px;font-weight:600">Discard this draft</h2>
+      <p style="${benchNote}">The draft and its revisions stay in the log, but it cannot be reopened. To keep writing later, leave it open instead.</p>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">${benchBtn('Discard this draft', c.open)}<span style="${benchHint}">You, someone who saved it, or an operator.</span></div>
+    </section>`);
+}
+
+function benchLinks() {
+  const cols = 'display:grid;grid-template-columns:220px minmax(0, 1fr) auto;gap:10px;align-items:center';
+  const row = ([node, reason]) => `<div style="${cols}"><input aria-label="Node" value="${node}" style="${benchMono}"><input aria-label="Reason" value="${reason}" style="${benchInput}">${benchBtn('Remove')}</div>`;
+  const list = (title, sub, rows, after = '') => `
+    <fieldset style="${benchCard};margin:0;gap:10px">
+      <legend style="float:left;width:100%;padding:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px"><span style="font-size:14.5px;font-weight:600">${title}</span><span style="${benchHint}">${sub}</span></legend>
+      ${rows.length ? `<div style="${cols};${benchHint}"><span>Node</span><span>Reason</span><span style="width:84px"></span></div>` : ''}${rows.map(row).join('')}
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">${benchBtn('+ Link', c.sel)}${after}</div>
+    </fieldset>`;
+  return benchBody(`
+    <p style="${benchNote}">Each list saves when you leave it. Only <b style="font-weight:600;color:${c.ink}">needs</b> builds routes; a link names a node by its id.</p>
+    ${list('Needs', 'what understanding this node requires', [['k-mers', 'The graph’s edges are a read’s k-mers.'], ['sequencing-reads', 'Assembly starts from reads.']])}
+    ${list('Goes deeper', 'where a curious learner goes next', [['compacted-dbg', 'Real assemblers compact the graph’s unbranched paths.']])}
+    ${list('Related', 'what a learner might read instead', [['overlap-graphs', 'The older way to assemble reads.']], `<span style="${benchHint}">At most four.</span>`)}`);
+}
+
+function benchResources() {
+  const closed = (kind, title, covers) => `<section style="${panel(c)};padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:14px;font-weight:600">${kind} · ${title}</span><span style="font-size:12.5px;color:${c.ink2}">${covers}</span></div><div style="display:flex;gap:8px">${benchBtn('Edit')}${benchBtn('Remove')}</div></section>`;
+  return benchBody(`
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px"><p style="${benchNote}">Outside videos and readings that teach this node, each with its provider, the part that covers it, and its licence.</p>${benchBtn('+ Resource', c.sel)}</div>
+    <form style="${benchCard}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0;font-size:14.5px;font-weight:600">Video · Khan Academy</h2>${benchBtn('Remove')}</div>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:12px">${benchSelect('Kind', ['Video', 'Reading', 'Tutorial'])}${benchSelect('Provider', ['Khan Academy', 'OpenStax', 'Galaxy Training'])}${benchSelect('Display', ['Link', 'Embed'], 'Embed only where the provider allows.')}</div>
+      ${benchField('URL', 'https://www.khanacademy.org/[path]', { mono: true })}
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px">${benchField('Video', 'youtube:[id]', { mono: true })}${benchField('Part', '2:10–7:45', { hint: 'The part that covers this node.' })}</div>
+      ${benchField('Covers', 'Why overlapping reads are assembled through their k-mers.')}
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px">${benchSelect('Licence', ['CC BY-NC-SA', 'CC BY', 'CC BY-SA', 'CC0'])}${benchSelect('Level', ['Introductory', 'First steps', 'Foundations', 'Intermediate', 'Advanced'])}</div>
+      <span style="${benchHint}">The card saves when you leave it.</span>
+    </form>
+    ${closed('Reading', 'OpenStax Biology 2e · §17.1', 'The genome-sequencing section that sets up assembly.')}
+    ${closed('Tutorial', 'Galaxy Training · De Bruijn graph assembly', 'Assemble a small genome yourself, in Galaxy.')}`);
+}
+
 // ── Studio shell ────────────────────────────────────────────────
 const NAV_ICON = {
   Inbox: 'M2.5 9.5h3l1 2h3l1-2h3M3.5 3.5h9l1 6v3h-11v-3z',
   Requests: 'M4 14V2.5M4 3h8l-2 3 2 3H4',
   Implementing: 'M3 13l7-7M9 3l4 4-2 2-4-4zM2.5 13.5l1.5-1.5',
   Review: 'M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM5 8l2 2 4-4',
+  Drafts: 'M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3',
   Graph: 'M4 4.5a1.5 1.5 0 1 0 0-.01M12 4.5a1.5 1.5 0 1 0 0-.01M8 12.5a1.5 1.5 0 1 0 0-.01M5.3 4h5.4M4.8 5.3l2.4 5.4M11.2 5.3l-2.4 5.4',
   Tracks: 'M2 8h12M4 8a1.8 1.8 0 1 0 0-.01M12 8a1.8 1.8 0 1 0 0-.01M8 8a1.8 1.8 0 1 0 0-.01',
   Weekly: 'M2.5 4h11v9.5h-11zM2.5 7h11M5.5 2.5v3M10.5 2.5v3',
@@ -882,7 +991,7 @@ const NAV_ICON = {
 };
 const navIcon = (n, col) => `<svg width="18" height="18" viewBox="0 0 16 16"><path d="${NAV_ICON[n]}" style="fill:none;stroke:${col};stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"></path></svg>`;
 function studio(active, inner, w = 1440, h = 900, { collapsed = false } = {}) {
-  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
+  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Drafts', 3], ['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
   const it = (n, count) => `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:14px;${n === active ? `background:${c.surface};border:1px solid ${c.border};font-weight:600` : `border:1px solid transparent;color:${c.ink2}`}">${navIcon(n, n === active ? c.ink : c.ink3)}<span style="flex:1">${n}</span>${count ? `<span style="font-size:11.5px;padding:0 7px;border-radius:999px;background:${n === active ? c.selSoft : c.bg};color:${n === active ? c.sel : c.ink3}">${count}</span>` : ''}</div>`;
   const icn = (n, count) => `<div title="${n}" style="position:relative;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;${n === active ? `background:${c.surface};border:1px solid ${c.border}` : 'border:1px solid transparent'}">${navIcon(n, n === active ? c.ink : c.ink3)}${count ? `<span style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:${c.sel};border:2px solid ${c.bg}"></span>` : ''}</div>`;
   const toggle = (dir) => `<span title="${dir === 'in' ? 'Collapse' : 'Expand'} the menu · [" style="width:28px;height:28px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};display:flex;align-items:center;justify-content:center;color:${c.ink2}"><svg width="14" height="14" viewBox="0 0 16 16"><path d="${dir === 'in' ? 'M10 3.5L5.5 8 10 12.5' : 'M6 3.5L10.5 8 6 12.5'}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>`;
@@ -1171,7 +1280,10 @@ function weaveReview() {
 }
 
 // ── S3 Node workbench — CMS editing: outline · blocks · side panels ─
-function workbench() {
+// view: an M4.8b tab ({ tab, body }) drawn inside this board's header and preview, without what
+// M4.8b leaves out (the writing guide, presence, the submit list open, Problem, Score and the rest).
+function workbench(view) {
+  const m4 = view !== undefined;
   const outline = [['claim', 'What you’ll be able to do', 'ok', 0, '4.6'], ['resource', 'Video · genome assembly', 'draft', 0, '4.1'], ['text', 'The problem it solves', 'ok', 0, '4.4'], ['figure', 'read-tiling', 'ok', 0, '4.8'], ['text', 'From reads to k-mers', 'warn', 1, '2.9'], ['figure', 'kmer-window', 'bad', 0, '—'], ['try', 'How many 5-mers…', 'draft', 0, '3.8'], ['text', 'Building the graph', 'ok', 0, '4.3'], ['try', 'Follow the green path', 'ok', 0, '4.5'], ['math', 'Formal definition', 'ok', 0, '4.7'], ['text', 'Two conventions', 'ok', 0, '4.2'], ['figure', 'compare-graphs', 'ok', 0, '4.6'], ['image', 'Assembly graph (Bandage)', 'warn', 0, '—'], ['example', 'Worked example', 'ok', 0, '4.9'], ['callout', 'Common mix-up', 'ok', 0, '4.0'], ['problem', 'Construct a de Bruijn graph', 'draft', 0, '3.4']];
   const scoreCol = (v) => v === '—' ? c.ink3 : parseFloat(v) < 3 ? c.open : parseFloat(v) < 4 ? c.meas : c.ink2;
   const stDot = (s) => `<span style="width:8px;height:8px;border-radius:50%;flex:none;${s === 'ok' ? `background:${c.ink3}` : s === 'warn' ? `background:${c.measBar}` : s === 'bad' ? `background:${c.open}` : `border:1.5px solid ${c.ink3}`}"></span>`;
@@ -1207,27 +1319,27 @@ function workbench() {
   const inner = `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
       <div style="display:flex;flex-direction:column;gap:4px">
-        <span style="font-size:12.5px;color:${c.ink3}">Graph › Algorithms › de Bruijn graphs</span>
+        <span style="font-size:12.5px;color:${c.ink3}">${m4 ? 'Drafts' : 'Graph'} › Algorithms › de Bruijn graphs</span>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="font-size:24px;font-weight:600">de Bruijn graphs</span>
-          ${blueTag('Draft')}${levelTag('Intermediate')}<a style="font-size:12.5px">writing guide</a>
-          <span style="font-size:12.5px;color:${c.ink3}">Saved 2 min ago · live version from 3 Sep</span>
-          <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:${c.ink2}"><span style="width:22px;height:22px;border-radius:50%;background:${c.lineSoft};color:${c.btn};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">RB</span>[Reviewer B] is viewing</span>
+          ${blueTag('Draft')}${levelTag('Intermediate')}${m4 ? '' : '<a style="font-size:12.5px">writing guide</a>'}
+          <span style="font-size:12.5px;color:${c.ink3}">${m4 ? 'Revision 14 · saved just now' : 'Saved 2 min ago · live version from 3 Sep'}</span>
+          ${m4 ? '' : `<span style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:${c.ink2}"><span style="width:22px;height:22px;border-radius:50%;background:${c.lineSoft};color:${c.btn};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">RB</span>[Reviewer B] is viewing</span>`}
         </div>
       </div>
       <div style="position:relative;display:flex;align-items:center;gap:8px">
         ${secondary(c, 'Open preview in a new tab')}
         <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;background:${c.btn};color:${c.btnInk};font-size:14px;font-weight:600;box-shadow:0 3px 0 ${c.btnSh}">Submit for review ${ic.chevron}</span>
-        <div style="position:absolute;right:0;top:52px;z-index:2;width:340px;${panel(c)};box-shadow:${c.float};padding:14px;display:flex;flex-direction:column;gap:8px">
+        ${m4 ? '' : `<div style="position:absolute;right:0;top:52px;z-index:2;width:340px;${panel(c)};box-shadow:${c.float};padding:14px;display:flex;flex-direction:column;gap:8px">
           <span style="font-size:13.5px;font-weight:600">Before you submit</span>
           ${[[1, 'Claim and needs approved'], [0, '1 sentence without a source', 'From reads to k-mers'], [0, 'Figure check failed', 'kmer-window · readable at phone width'], [0, 'Image needs a licence', 'Assembly graph (Bandage)'], [1, 'Every figure and image has alt text'], [1, 'Worked example recomputed']].map(([ok, t, d]) => `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><div style="display:flex;flex-direction:column"><span style="font-weight:${ok ? 400 : 600};color:${ok ? c.ink2 : c.ink}">${t}</span>${d ? `<a style="font-size:12px">${d}</a>` : ''}</div></div>`).join('')}
           <span style="padding:8px 12px;border-radius:9px;background:${c.border};color:${c.ink3};font-size:13px;font-weight:600;text-align:center">Fix 3 items to submit</span>
-        </div>
+        </div>`}
       </div>
     </div>
-    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content', 1], ['Resources'], ['Exam pool'], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
-    <div style="flex:1;display:grid;grid-template-columns:230px minmax(0, 1fr) 520px;gap:18px;min-height:0">
-      <aside style="display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden">
+    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${(m4 ? ['Content', 'Resources', 'Exam pool', 'Links', 'Settings'].map((t) => [t, t === view.tab]) : [['Content', 1], ['Resources'], ['Exam pool'], ['Links'], ['Problem'], ['Settings']]).map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
+    <div style="flex:1;display:grid;grid-template-columns:${m4 ? 'minmax(0, 1fr) 520px' : '230px minmax(0, 1fr) 520px'};gap:18px;min-height:0">
+      ${m4 ? view.body : `<aside style="display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px"><span style="font-size:13px;font-weight:600">Outline</span><span style="font-size:11.5px;color:${c.ink3}">16 blocks · score</span></div>
         ${outline.map(([t, n, s, on, sc]) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;${on ? `background:${c.selSoft}` : ''}">${stDot(s)}<span style="font-family:${MONO};font-size:10.5px;color:${c.ink3};width:52px;flex:none">${t}</span><span style="font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:${on ? 600 : 400}">${n}</span><span style="font-family:${MONO};font-size:11px;color:${scoreCol(sc)};font-variant-numeric:tabular-nums">${sc}</span></div>`).join('')}
         <div style="display:flex;flex-direction:column;gap:4px;padding-top:10px;margin-top:6px;border-top:1px solid ${c.border};font-size:11.5px;color:${c.ink2}">
@@ -1274,16 +1386,16 @@ function workbench() {
         ${collapsed('try', 'How many 5-mers does a 100-base read contain?', greyTag('draft'))}
         ${adder}
         ${collapsed('text', 'Building the graph', stDot('ok'))}
-      </section>
+      </section>`}
 
       <aside style="${panel(c)};display:flex;flex-direction:column;min-height:0;overflow:hidden">
-        <div style="display:flex;border-bottom:1px solid ${c.border}">${[['Preview', 0, 1], ['Checks', 3], ['Score', 0], ['Sources', 2], ['History'], ['Comments', 1]].map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
+        <div style="display:flex;border-bottom:1px solid ${c.border}">${(m4 ? [['Preview', 0, 1], ['Checks', 3]] : [['Preview', 0, 1], ['Checks', 3], ['Score', 0], ['Sources', 2], ['History'], ['Comments', 1]]).map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
           ${seg(c, ['Desktop', 'Phone'], 0)}
-          <span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:${c.ink2}"><span style="width:30px;height:18px;border-radius:9px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF"></span></span>Click to edit</span>
+          ${m4 ? '' : `<span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:${c.ink2}"><span style="width:30px;height:18px;border-radius:9px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF"></span></span>Click to edit</span>`}
         </div>
         <div style="padding:0 14px 14px;overflow:hidden">${preview}</div>
-        <div style="margin-top:auto;padding:10px 14px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3};line-height:1.45">Updates as you type. Clicking a block in the preview opens it in the editor. <b style="color:${c.ink2};font-weight:500">History</b> compares this draft with the live version; <b style="color:${c.ink2};font-weight:500">Sources</b> shows which links resolve.</div>
+        <div style="margin-top:auto;padding:10px 14px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3};line-height:1.45">${m4 ? 'Drawn in your browser from the saved draft; it changes with each save.' : `Updates as you type. Clicking a block in the preview opens it in the editor. <b style="color:${c.ink2};font-weight:500">History</b> compares this draft with the live version; <b style="color:${c.ink2};font-weight:500">Sources</b> shows which links resolve.`}</div>
       </aside>
     </div>`;
   return studio('Graph', inner, 1680, 1060, { collapsed: true });
@@ -2199,6 +2311,10 @@ const STUDIO = [
   ['Assistant', 'S15 · Assistant — chat that acts through the content API', assistant(), 1680, 1060, 'Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.'],
   ['AIUsage', 'S16 · AI — usage', usage(), 1680, 1180, 'Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.'],
   ['AIModels', 'S17 · AI — models, budgets and scoring', models(), 1440, 1260, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.'],
+  ['Drafts', 'S19 · Drafts — your open drafts, and a new node', drafts(), 1680, 1000, 'Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.'],
+  ['WorkbenchSettings', 'S3 · Workbench — Settings', workbench({ tab: 'Settings', body: benchSettings() }), 1680, 1060, 'M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.'],
+  ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
+  ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [
