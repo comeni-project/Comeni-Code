@@ -77,13 +77,14 @@ operator asked to avoid; allauth's own per-provider settings pages — headless 
 - **`api/client.ts`** gains `sendJson(method, url, body?)`, the one way to write: it sends the
   `X-CSRFToken` header from Django's `csrftoken` cookie (readable by design; the session cookie is
   HttpOnly) and words failures the way `getJson` does.
-- **`api/auth.ts`** wraps allauth's headless calls: `fetchAuthConfig`, `signIn`, `signUp`,
+- **`api/auth.ts`** wraps allauth's headless calls: `fetchProviders`, `signIn`, `signUp`,
   `signOut`, `requestPasswordReset`, `resetPassword`, `continueWith`. allauth answers errors as
   `{errors: [{message, param}]}`; `auth.ts` turns them into one `FormRefused` error holding the
   messages by field, so a form shows each beside its input.
-- **`api/team.ts`** wraps the accounts API: the invite lookup and accept, the team's members and
-  invites, and their changes.
-- **`api/queries.ts`** keeps every key (spec M4R.5): `me`, `authConfig`, `invite(token)`,
+- **`api/accounts.ts`** wraps the accounts API: `/api/me`, the invite lookup and accept, the
+  team's members and invites, and their changes; it also holds the roles in rank order and
+  `canActAs`, the web's one copy of `roles.py`'s rule.
+- **`api/queries.ts`** keeps every key (spec M4R.5): `me`, `providers`, `invite(token)`,
   `teamMembers`, `teamInvites`. Every auth mutation (sign in, sign up, sign out) invalidates `me`;
   every team change invalidates the two team keys. **`useMe()` is the one answer** the top bar,
   the account menu, the Studio gate and the Team page read.
@@ -151,7 +152,7 @@ allauth's `HEADLESS_FRONTEND_URLS` and the invite links already point at (M4A.3)
 (`StudioShell`, `pages.ts`, and `team/` with the page and its three panels).
 
 **Tests.** pytest for the provider registry and its `Env` check. vitest for every component and
-for `auth.ts`, `team.ts` and `sendJson` with `fetch` stubbed: the gate's four rows, the rail
+for `auth.ts`, `accounts.ts` and `sendJson` with `fetch` stubbed: the gate's four rows, the rail
 filtered by role, `NotYet` on every way in, provider buttons drawn from the config, errors beside
 their fields, the Team page's changes and refusals.
 
