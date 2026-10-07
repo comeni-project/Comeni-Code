@@ -151,6 +151,8 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_IMPORTS = ("code_api.health.tasks",)
 # Seconds between looks at open and failed landings' pull requests (M4L.4).
 WATCH_LANDINGS_SECONDS = 120
+# Seconds between looks at the content repository's main (M4F.4).
+FOLLOW_SECONDS = 300
 CELERY_BEAT_SCHEDULE = {
     "health-heartbeat": {
         "task": "code_api.health.tasks.heartbeat",
@@ -159,5 +161,9 @@ CELERY_BEAT_SCHEDULE = {
     "studio-watch-landings": {
         "task": "code_api.studio.tasks.watch_landings",
         "schedule": WATCH_LANDINGS_SECONDS,
+    },
+    "studio-follow-main": {
+        "task": "code_api.studio.tasks.follow_main",
+        "schedule": FOLLOW_SECONDS,
     },
 }

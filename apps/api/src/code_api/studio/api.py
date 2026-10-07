@@ -194,7 +194,7 @@ def open_draft(
 
 @router.get("", response=list[DraftSummaryOut], summary="The drafts in one state")
 def open_drafts(
-    request: HttpRequest, state: Literal["open", "submitted", "approved"] = "open"
+    request: HttpRequest, state: Literal["open", "submitted", "approved", "landed"] = "open"
 ) -> list[DraftSummaryOut]:
     """Open drafts by default; `?state=submitted` is the review queue (M4R.6)."""
     return [

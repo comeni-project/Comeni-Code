@@ -1564,6 +1564,17 @@ codes:
       A rebuild is all or nothing: content with any problem changes nothing, so a route is never
       silently shortened by a skipped node (M1P5.2).
 
+  CA0007:
+    emitted_by: api
+    concern: index
+    says: the content source could not be read
+    refuses: true
+    fix: |
+      Check the GitHub App's settings and GitHub's status, then run the command again.
+    explanation: |
+      rebuild_index follows the configured source; when it is main on GitHub and GitHub cannot
+      be reached, nothing could start, which is exit 2, not a refused build (M4F.2).
+
   # ── CA0100–CA0199 · accounts and access ────────────────────────────────────────────────────
 
   CA0101:

@@ -137,6 +137,8 @@ class IndexBuild(models.Model):
     digest = models.TextField()
     # The content commit, when the caller knows it; the rebuild never runs git.
     commit = models.TextField(blank=True)
+    # The kind of source it came from: "github" (main) or "folder"; empty before M4.7 (M4F.2).
+    source = models.TextField(blank=True)
     node_count = models.PositiveIntegerField()
     # The validator's messages, exactly as it words them; empty when applied.
     problems = models.JSONField(default=list)

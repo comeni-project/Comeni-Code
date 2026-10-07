@@ -105,3 +105,36 @@ def test_a_path_that_is_not_a_folder_exits_2(tmp_path: Path, name: str) -> None:
     assert caught.value.returncode == 2
     assert str(path) in str(caught.value)
     assert (IndexBuild.objects.count(), dump()) == (1, before)
+
+
+def test_the_command_follows_the_configured_source(settings: Settings) -> None:
+    # No --root: the command is follow(configured_source()) — here the folder setting.
+    settings.CODE_GITHUB_APP, settings.CODE_CONTENT_ROOT = None, FIXTURES
+    run()
+    assert IndexBuild.objects.get().outcome == "applied"
+
+
+def test_the_command_lives_beside_follow() -> None:
+    from django.core.management import get_commands
+
+    assert get_commands()["rebuild_index"] == "code_api.studio"
+
+
+def test_a_source_github_cannot_serve_exits_2(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The final review: a network error is "cannot start", never a traceback with refusal's code.
+    from fake_github import FakeGitHub
+
+    from code_api.studio import follow as following
+    from code_api.studio.follow import GitHubSource
+
+    fake = FakeGitHub(fail_with="GitHub answered 502: Bad Gateway.", fail_on="head")
+    monkeypatch.setattr(following, "configured_source", lambda: GitHubSource(fake))
+    monkeypatch.setattr(
+        "code_api.studio.management.commands.rebuild_index.configured_source",
+        lambda: GitHubSource(fake),
+    )
+    with pytest.raises(CommandError, match="^CA0007 GitHub answered 502") as caught:
+        run()
+    assert caught.value.returncode == 2

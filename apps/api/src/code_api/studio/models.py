@@ -20,6 +20,7 @@ class Draft(models.Model):
         OPEN = "open"
         SUBMITTED = "submitted"
         APPROVED = "approved"
+        LANDED = "landed"  # final: its landing merged and the index holds it (M4F.3)
         DISCARDED = "discarded"
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -110,6 +111,7 @@ class DraftEvent(models.Model):
         SENT_BACK = "sent_back"
         DISCARDED = "discarded"
         LANDING = "landing"
+        LANDED = "landed"
 
     draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="events")
     kind = models.CharField(max_length=16, choices=Kind.choices)
@@ -158,6 +160,8 @@ class Landing(models.Model):
     branch = models.TextField(blank=True)
     pull_number = models.PositiveIntegerField(null=True, blank=True)
     pull_url = models.TextField(blank=True)
+    # GitHub's merge commit, once merged: a build containing it lands the drafts (M4F.3).
+    merge_commit = models.TextField(blank=True)
     reason = models.TextField(blank=True)  # why it was refused or failed, in words
     # When a worker took it; a landing claimed long ago and still pending was interrupted (#203).
     claimed_at = models.DateTimeField(null=True, blank=True)

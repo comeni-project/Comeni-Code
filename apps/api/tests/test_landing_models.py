@@ -47,3 +47,16 @@ def test_a_new_landing_is_pending_and_has_a_public_id(otto: User) -> None:
     assert landing.state == "pending"
     assert landing.public_id is not None
     assert Landing.LIVE == ("pending", "open", "failed", "merged")
+
+
+def test_a_landed_draft_frees_its_node(otto: User) -> None:
+    draft = drafts.open_existing("tpm", by=otto)
+    record(draft, DraftEvent.Kind.LANDED, by=None, revision=1)
+    draft.state = "landed"
+    draft.save(update_fields=["state"])
+    assert replay(draft.events.order_by("id")) == "landed"
+    assert drafts.open_existing("tpm", by=otto).state == "open"  # a new draft of the same node
+
+
+def test_a_landing_has_a_merge_commit(otto: User) -> None:
+    assert Landing.objects.create(started_by=otto).merge_commit == ""

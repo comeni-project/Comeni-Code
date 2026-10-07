@@ -7,6 +7,7 @@ landing, which Postgres holds, so landings need no lock and run on any worker.
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import timedelta
 from uuid import UUID
@@ -94,7 +95,7 @@ def start(public_ids: list[UUID], *, by: User) -> Landing:
                 LandingDraft.objects.create(
                     landing=made, draft=locked, revision=drafts.latest(locked).number
                 )
-            transaction.on_commit(lambda: _queue(made))
+            transaction.on_commit(lambda: _queue(made), robust=True)  # beat runs a lost one
     except IntegrityError:
         # Another landing took one of these drafts between the check and the insert.
         for draft in batch:
@@ -366,6 +367,52 @@ def _land(made: Landing, client: GitHub) -> Landing:
     return made
 
 
+def _merged(locked: Landing, merge_commit: str) -> None:
+    """Record a merge and ask the follower to look at main now (M4F.4)."""
+    locked.state, locked.reason, locked.merge_commit = Landing.State.MERGED, "", merge_commit
+    locked.save(update_fields=["state", "reason", "merge_commit"])
+    transaction.on_commit(_follow_now, robust=True)  # a broker down is caught up by beat
+
+
+def _follow_now() -> None:
+    from code_api.studio import tasks  # the tasks module imports this one
+
+    tasks.follow_main.delay()
+
+
+def mark_landed(commit: str, contains: Callable[[str, str], bool]) -> int:
+    """Every merged landing whose merge commit `commit` contains: its held drafts become landed,
+    and it lets them go (M4F.3). Safe to repeat: a landed draft is no longer held."""
+    count = 0
+    held = Landing.objects.filter(state=Landing.State.MERGED, entries__live=True).exclude(
+        merge_commit=""
+    )
+    for made in held.distinct().order_by("id"):
+        try:
+            if not contains(made.merge_commit, commit):
+                continue
+        except GitHubError as error:
+            # One landing GitHub cannot check never stops the others; the next round asks again.
+            log.warning("landing %s: cannot check its merge: %s", made.public_id, error)
+            continue
+        with transaction.atomic():
+            for entry in made.entries.filter(live=True).select_related("draft"):
+                draft = Draft.objects.select_for_update().get(pk=entry.draft.pk)
+                draft.state = Draft.State.LANDED
+                draft.save(update_fields=["state"])
+                record(
+                    draft,
+                    DraftEvent.Kind.LANDED,
+                    by=None,
+                    revision=entry.revision,
+                    reason=f"in the index at {commit[:12]}",
+                    landing=made,
+                )
+                count += 1
+            made.entries.filter(live=True).update(live=False)
+    return count
+
+
 class NotFailed(Exception):
     def __init__(self, state: str) -> None:
         super().__init__(state)
@@ -384,7 +431,8 @@ def watch(made: Landing, client: GitHub) -> Landing:
         except GitHubError:
             return locked  # GitHub is down; the next round asks again
         if found.merged:
-            locked.state, locked.reason = Landing.State.MERGED, ""
+            _merged(locked, found.merge_commit)
+            return locked
         elif found.closed:
             return _end(locked, Landing.State.CLOSED, "The pull request was closed on GitHub.")
         elif found.conflict:
@@ -419,8 +467,7 @@ def close(made: Landing, client: GitHub) -> Landing:
         assert locked.pull_number is not None
         found = client.pull_state(locked.pull_number)
         if found.merged:
-            locked.state, locked.reason = Landing.State.MERGED, ""
-            locked.save(update_fields=["state", "reason"])
+            _merged(locked, found.merge_commit)
             merged = True
         else:
             if not found.closed:

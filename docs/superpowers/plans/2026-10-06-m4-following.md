@@ -69,7 +69,7 @@ archived: `docs/superpowers/specs/archive/2026-10-06-m4-landing-design.md`.
   `ancestry: set[tuple[str, str]]` (`(ancestor, commit)` pairs that hold besides equality);
   `pull_state` reports `merge_commit=f"merge-{number}"` for a merged pull request.
 
-- [ ] **Step 1: Write the failing tests** — append to `apps/api/tests/test_github_client.py`. The
+- [x] **Step 1: Write the failing tests** — append to `apps/api/tests/test_github_client.py`. The
   stub learns raw bytes: in `Stub.__init__` add `self.raw: dict[tuple[str, str], bytes] = {}`, and
   in `_answer`, before the JSON route lookup:
 
@@ -175,13 +175,13 @@ def test_a_merged_pull_request_names_its_merge_commit(stub: tuple[Stub, GitHubAp
 
 (Imports to add: `import io`, `import tarfile`, `from pathlib import Path`.)
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_github_client.py -q`
 Expected: FAIL — `AttributeError: 'Client' object has no attribute 'tarball'` (and `contains`,
 `merge_commit`).
 
-- [ ] **Step 3: Implement** — in `github.py`: `merge_commit: str = ""` as the last field of
+- [x] **Step 3: Implement** — in `github.py`: `merge_commit: str = ""` as the last field of
   `PullState`; `merge_commit=str(pull.get("merge_commit_sha") or "") if pull["merged"] else ""` in
   `pull_state`; the two protocol methods; and on `Client`:
 
@@ -264,12 +264,12 @@ def contains(self, ancestor: str, commit: str) -> bool:
 
 and in its `pull_state`, `merge_commit=f"merge-{number}" if number in self.merged else ""`.
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_github_client.py -q && uv run mypy`
 Expected: PASS; mypy clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api/src/code_api/studio/github.py apps/api/tests/fake_github.py apps/api/tests/test_github_client.py
@@ -292,7 +292,7 @@ git commit -m "feat(studio): the client reads tarballs, ancestry and merge commi
   `Landing.merge_commit = models.TextField(blank=True)`; the drafts list accepts
   `?state=landed`.
 
-- [ ] **Step 1: Write the failing tests** — append to `apps/api/tests/test_landing_models.py`:
+- [x] **Step 1: Write the failing tests** — append to `apps/api/tests/test_landing_models.py`:
 
 ```python
 def test_a_landed_draft_frees_its_node(otto: User) -> None:
@@ -308,12 +308,12 @@ def test_a_landing_has_a_merge_commit(otto: User) -> None:
     assert Landing.objects.create(started_by=otto).merge_commit == ""
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_landing_models.py -q`
 Expected: FAIL — `KeyError: 'landed'` in `replay`, and no `merge_commit`.
 
-- [ ] **Step 3: Implement** — `LANDED = "landed"` in `Draft.State` (after `APPROVED`) and in
+- [x] **Step 3: Implement** — `LANDED = "landed"` in `Draft.State` (after `APPROVED`) and in
   `DraftEvent.Kind`; in `Landing`, after `pull_url`:
 
 ```python
@@ -326,12 +326,12 @@ Expected: FAIL — `KeyError: 'landed'` in `replay`, and no `merge_commit`.
 `uv run python apps/api/manage.py makemigrations studio --name landed`, and
 `uv run ruff check --fix` on the migration.
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_landing_models.py apps/api/tests/test_review_log.py apps/api/tests/test_drafts.py -q && uv run python apps/api/manage.py makemigrations --check --dry-run`
 Expected: PASS; "No changes detected".
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api/src/code_api/studio apps/api/tests/test_landing_models.py
@@ -361,7 +361,7 @@ git commit -m "feat(studio): landed drafts and a landing's merge commit — M4.7
   - `FOLLOW_LOCK = 5_172_032`; `MAIN_KEY = "studio:follow:main"` (cache: `{"head", "checked_at"}`).
 - Task 4 fills step 3 (`landing.mark_landed`); here `landed` is always 0.
 
-- [ ] **Step 1: Write the failing tests** — `apps/api/tests/test_follow.py`:
+- [x] **Step 1: Write the failing tests** — `apps/api/tests/test_follow.py`:
 
 ```python
 """The index follows main (M4.7 spec, M4F.1–M4F.2). Needs Compose's Postgres."""
@@ -508,12 +508,12 @@ def test_a_second_follow_while_one_runs_skips() -> None:
     assert follow.follow(FolderSource(FIXTURES)).build is not None  # free again
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_follow.py apps/api/tests/test_follow_lock.py -q`
 Expected: FAIL — `ImportError: cannot import name 'follow' from 'code_api.studio'`.
 
-- [ ] **Step 3: Implement** — `apps/api/src/code_api/studio/follow.py`:
+- [x] **Step 3: Implement** — `apps/api/src/code_api/studio/follow.py`:
 
 ```python
 """The index follows the content repository's main (M4.7 spec, M4F.1–M4F.2).
@@ -640,16 +640,16 @@ def _round(source: Source) -> Followed:
     return Followed(build=built, landed=0)
 ```
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_follow.py apps/api/tests/test_follow_lock.py -q && uv run mypy`
 Expected: PASS; mypy clean.
 
-- [ ] **Step 5: Watch the lock guard fail**: make `follow` skip the try-lock (call `_round`
+- [x] **Step 5: Watch the lock guard fail**: make `follow` skip the try-lock (call `_round`
   directly), run `test_follow_lock.py` — Expected: FAIL (a build is made while the lock is held).
   Restore; PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/api/src/code_api/studio/follow.py apps/api/tests/test_follow.py apps/api/tests/test_follow_lock.py
@@ -671,7 +671,7 @@ git commit -m "feat(studio): follow(source), the index follows main — M4.7.3"
   bool]) -> int` — the number of drafts marked; `watch` and `close` record `merge_commit` when
   they see a merge and queue `tasks.follow_main` on commit.
 
-- [ ] **Step 1: Write the failing tests** — `apps/api/tests/test_follow_landed.py`:
+- [x] **Step 1: Write the failing tests** — `apps/api/tests/test_follow_landed.py`:
 
 ```python
 """Drafts become landed once the live build contains their landing's merge (M4F.3)."""
@@ -794,12 +794,12 @@ def test_a_landing_merged_through_close_records_its_merge(
     assert Landing.objects.get(pk=made.pk).merge_commit == "merge-1"
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_follow_landed.py -q`
 Expected: FAIL — `merge_commit == ""`, and `tasks.follow_main` does not exist.
 
-- [ ] **Step 3: Implement** — in `landing.py`:
+- [x] **Step 3: Implement** — in `landing.py`:
 
 ```python
 def _merged(locked: Landing, merge_commit: str) -> None:
@@ -867,12 +867,12 @@ def follow_main() -> None:
 
 (`from code_api.studio import follow, github, landing`.)
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_follow_landed.py apps/api/tests/test_follow.py apps/api/tests/test_landing_watch.py apps/api/tests/test_landing_run.py -q && uv run mypy`
 Expected: PASS; mypy clean.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api/src/code_api/studio apps/api/tests/test_follow_landed.py
@@ -898,7 +898,7 @@ a sub-issue of #125, Critical and Important fixed test-first before Task 5.
 - Consumes: `follow`, `FolderSource`, `configured_source` (Task 3).
 - Produces: `CELERY_BEAT_SCHEDULE["studio-follow-main"]` every `FOLLOW_SECONDS = 300`.
 
-- [ ] **Step 1: Write the failing tests** — append to `test_rebuild_command.py`:
+- [x] **Step 1: Write the failing tests** — append to `test_rebuild_command.py`:
 
 ```python
 def test_the_command_follows_the_configured_source(settings: Settings) -> None:
@@ -922,12 +922,12 @@ def test_beat_follows_main_every_five_minutes(settings: Any) -> None:
     assert (entry["task"], entry["schedule"]) == ("code_api.studio.tasks.follow_main", 300)
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_rebuild_command.py apps/api/tests/test_follow.py -q`
 Expected: FAIL — the command is `code_api.content`'s; no beat entry.
 
-- [ ] **Step 3: Implement** — `git mv` the command into the studio app and make its `handle`:
+- [x] **Step 3: Implement** — `git mv` the command into the studio app and make its `handle`:
 
 ```python
 def handle(self, *args: Any, **options: Any) -> None:
@@ -961,12 +961,12 @@ with its docstring saying it is `follow` over `--root` (with `--commit`) or the 
 `WATCH_LANDINGS_SECONDS`: `FOLLOW_SECONDS = 300  # between looks at main (M4F.4)` and the beat entry
 `"studio-follow-main": {"task": "code_api.studio.tasks.follow_main", "schedule": FOLLOW_SECONDS}`.
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_rebuild_command.py apps/api/tests/test_follow.py -q && uv run mypy`
 Expected: PASS, every earlier command test unchanged and green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A apps/api
@@ -989,7 +989,7 @@ git commit -m "feat(studio): rebuild_index wraps follow, and beat follows main �
   `checked_at: datetime | None`, `behind: bool`); router at `/api/studio/index`,
   `studio(Role.AUTHOR)`.
 
-- [ ] **Step 1: Write the failing tests** — `apps/api/tests/test_index_api.py`:
+- [x] **Step 1: Write the failing tests** — `apps/api/tests/test_index_api.py`:
 
 ```python
 """What the team sees of the index (M4F.5). Needs Compose's Postgres."""
@@ -1052,12 +1052,12 @@ def test_the_index_route_is_the_teams(client: Client) -> None:
     assert client.get("/api/studio/index").json()["code"] == "CA0101"
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `uv run pytest apps/api/tests/test_index_api.py -q`
 Expected: FAIL — 404.
 
-- [ ] **Step 3: Implement** — schemas in `studio/schemas.py`:
+- [x] **Step 3: Implement** — schemas in `studio/schemas.py`:
 
 ```python
 class BuildOut(Schema):
@@ -1130,12 +1130,12 @@ def index(request: HttpRequest) -> IndexOut:
 Mount it in `code_api/api.py`: `api.add_router("/studio/index", index_router)`. Regenerate
 `openapi.json` and the web's types (in `node:24-alpine`, `npm ci` then `npm run api-types`).
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `uv run pytest apps/api/tests/test_index_api.py apps/api/tests/test_openapi_and_docs.py -q && uv run mypy`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api apps/web/src/api/schema.ts
@@ -1146,21 +1146,21 @@ git commit -m "feat(studio): GET /api/studio/index, the index and main — M4.7.
 
 ### Task 7: The whole suite with CI's env, and the web's checks (M4.7.7)
 
-- [ ] **Step 1:** run every check CI runs (the suite with CI's env to a file, ruff, format, mypy,
+- [x] **Step 1:** run every check CI runs (the suite with CI's env to a file, ruff, format, mypy,
   `check`, `makemigrations --check`, and the web's lint, typecheck, test and build in
   `node:24-alpine`); every exit code 0, read from the file, never through a pipe.
-- [ ] **Step 2:** commit any fix with its own test, citing its sub-issue.
+- [x] **Step 2:** commit any fix with its own test, citing its sub-issue.
 
 ---
 
 ### Task 8: Docs, the journal, and the pull request (M4.7.8)
 
-- [ ] **Step 1:** `CLAUDE.md`'s layout line: the content app's `rebuild_index` moves to studio;
+- [x] **Step 1:** `CLAUDE.md`'s layout line: the content app's `rebuild_index` moves to studio;
   add "follow.py: the index follows main (a reconciler over a GitHub or folder source)".
-- [ ] **Step 2:** the spec's **Notes from the build**, for every ruling taken.
-- [ ] **Step 3:** #125's check reworded (M4F.6).
-- [ ] **Step 4:** the journal entry.
-- [ ] **Step 5:** the final whole-branch review (fresh reviewer, most capable model, this plan's
+- [x] **Step 2:** the spec's **Notes from the build**, for every ruling taken.
+- [x] **Step 3:** #125's check reworded (M4F.6).
+- [x] **Step 4:** the journal entry.
+- [x] **Step 5:** the final whole-branch review (fresh reviewer, most capable model, this plan's
   Review Focus); findings in a sub-issue of #125, Critical and Important fixed test-first.
 - [ ] **Step 6:** push, open the pull request (closing #125 and its sub-issues, **one `Closes`
   keyword per issue**), watch CI without blocking, and report. Merge only on the operator's yes.

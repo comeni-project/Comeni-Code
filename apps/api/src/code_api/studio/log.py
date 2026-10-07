@@ -15,6 +15,7 @@ AFTER: dict[str, str] = {
     Kind.APPROVED: Draft.State.APPROVED,
     Kind.SENT_BACK: Draft.State.OPEN,
     Kind.DISCARDED: Draft.State.DISCARDED,
+    Kind.LANDED: Draft.State.LANDED,
     Kind.LANDING: Draft.State.APPROVED,  # it leaves the draft approved; M4.7 moves it on
 }
 
