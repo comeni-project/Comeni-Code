@@ -223,16 +223,11 @@ function code(c) {
   return `${head(c)}
 <div style="width:1280px;height:860px;display:flex;flex-direction:column;background:${c.bg};color:${c.ink};font-family:${UI};overflow:hidden">
   <header style="height:60px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 28px;border-bottom:1px solid ${c.border}">
-    <div style="display:flex;align-items:center;gap:28px">
-      ${logo(c, 'Comeni Code')}
-      <nav style="display:flex;align-items:center;gap:4px;font-size:14px">${navItem(c, 'Home', true)}${navItem(c, 'Review')}${navItem(c, 'Weekly')}${navItem(c, 'Knowledge')}</nav>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="display:flex;align-items:center;gap:8px;width:230px;height:34px;padding:0 12px;border-radius:9px;border:1px solid ${c.border2};background:${c.surface};color:${c.ink3};font-size:13px">
-        <svg width="14" height="14" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M11 11l3.5 3.5" style="stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg>
-        Search stops, e.g. CIGAR</div>
-      ${seg(c, ['Learn', 'Studio'], 0)}
-    </div>
+    ${logo(c, 'Comeni Code')}
+    <div style="display:flex;align-items:center;gap:10px;width:460px;height:38px;padding:0 14px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};color:${c.ink3};font-size:14px">
+      <svg width="15" height="15" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M11 11l3.5 3.5" style="stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg>
+      <span>Search topics, tools and goals</span><span style="margin-left:auto;font-family:${MONO};font-size:11px;padding:1px 6px;border:1px solid ${c.border};border-radius:5px">/</span></div>
+    <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;border-radius:999px;border:1px solid ${c.border};background:${c.surface};color:${c.ink2}"><span style="width:26px;height:26px;border-radius:50%;background:${c.selSoft};color:${c.sel};display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="6" r="3" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M2.5 14c.8-2.6 2.9-4 5.5-4s4.7 1.4 5.5 4" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg></span><svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg></span>
   </header>
 
   <main style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 390px;gap:20px;padding:22px 28px 24px;min-height:0">

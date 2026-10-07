@@ -68,7 +68,7 @@ const OTHERS = [
 ];
 const ZONES = [['Biology', 0, 230], ['Sequencing', 230, 590], ['Algorithms', 590, 910], ['Quantification', 910, 1330]];
 function network({ sel = null, edit = false, showOthers = true, detail = 2 } = {}) {
-  const txt = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 11.5}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
+  const txt = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 12.5}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
   const stop = (x, y, st, kind, small) => {
     const r = kind === 'thr' || kind === 'goal' ? 10 : kind === 'inter' ? 8.5 : small ? 5 : 6.5;
     if (st === 'missing') return `<circle cx="${x}" cy="${y}" r="${r}" style="fill:${c.surface};stroke:${c.ink3};stroke-width:2;stroke-dasharray:3 3"></circle>`;
@@ -224,7 +224,7 @@ const MLINKS = [
   ['M280 430 H340 L410 500 H730 L940 290', 1],
 ];
 function routeMetro({ sel = 'reftx', fresh = false, h = 530 } = {}) {
-  const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 12}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
+  const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || 'middle'}" style="font-family:${o.mono ? MONO : UI};font-size:${o.size || 13}px;font-weight:${o.w || 500};fill:${o.fill || c.ink}">${s}</text>`;
   let s = `<svg viewBox="-240 0 1560 ${h}" width="100%" style="display:block">`;
   MLINES.forEach(([d, , dashed]) => {
     s += `<path d="${d}" style="fill:none;stroke:${c.line};stroke-width:7;stroke-linecap:round;stroke-linejoin:round"></path>`;
@@ -316,7 +316,7 @@ function route() {
   const milestone = (kind, title, sub, state) => `<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid ${c.border}">
     <span style="width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;font-weight:600;${state === 'blocked' ? `border:1.5px dashed ${c.ink3};color:${c.ink3}` : state === 'end' ? `background:${c.ink};color:${c.bg}` : `background:${c.selSoft};color:${c.sel}`}">${kind}</span>
     <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14px;font-weight:600;color:${state === 'blocked' ? c.ink3 : c.ink}">${title}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div></div>`;
-  return page(1440, 1480, `${learnBar()}
+  return page(1440, 1300, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 36px 32px;min-height:0">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
       <div style="display:flex;flex-direction:column;gap:8px">
@@ -332,7 +332,7 @@ function route() {
       <div style="display:flex;flex-direction:column;gap:2px;min-width:190px"><span style="font-size:22px;font-weight:600">7 stops to go</span><span style="font-size:13px;color:${c.ink2}">about 2 h 20 min · 6 of 13 settled</span></div>
       <div style="display:flex;flex-direction:column;gap:2px;min-width:200px;padding-left:24px;border-left:1px solid ${c.border}"><span style="font-size:14px;font-weight:600">About 5 days</span><span style="font-size:12.5px;color:${c.ink2}">at your usual 30 min a day</span></div>
       <div style="display:flex;gap:20px;flex:1;padding-left:24px;border-left:1px solid ${c.border}">
-        ${lineProg('Data line', 2, 4, '2 to go')}${lineProg('Reads line', 2, 4, 'blocked at 4', c.ink3)}${lineProg('Index line', 0, 2, '2 to go')}
+        ${lineProg('Data line', 2, 4, '2 to go')}${lineProg('Reads line', 2, 4, 'waits on Selective alignment', c.ink3)}${lineProg('Index line', 0, 2, '2 to go')}
       </div>
     </div>
 
@@ -375,9 +375,9 @@ function route() {
           <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:13.5px;font-weight:600">Step back suggested · k-mers</span><span style="font-size:12.5px;color:${c.ink2}">After your answer on de Bruijn graphs. A 10-minute detour; the route order doesn’t change.</span></div>
           ${secondary(c, 'Take the detour')}</div>`)}
       ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Milestones</span><span style="font-size:12px;color:${c.ink3}">a problem proves each line</span></div>
-        ${milestone('P', 'Split reads between two isoforms', 'Data line · rung 2 · after Expectation–maximisation', 'open')}
-        ${milestone('P', 'Rebuild a sequence from its k-mers', 'Index line · rung 3 · after de Bruijn graphs', 'open')}
-        ${milestone('P', 'Place reads on transcripts', 'Reads line · waiting for Selective alignment to be written · follow', 'blocked')}
+        ${milestone('›_', 'Split reads between two isoforms', 'Data line · rung 2 · after Expectation–maximisation', 'open')}
+        ${milestone('›_', 'Rebuild a sequence from its k-mers', 'Index line · rung 3 · after de Bruijn graphs', 'open')}
+        ${milestone('›_', 'Place reads on transcripts', 'Reads line · waiting for Selective alignment to be written · follow', 'blocked')}
         ${milestone('Labs', 'Run salmon quant on your own reads', 'The end of the route · a ready pipeline in Comeni Labs', 'end')}`)}
     </div>
   </main>`);
@@ -492,8 +492,7 @@ function node() {
       ${H2('Learn it')}
       <div style="display:flex;flex-direction:column;gap:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-          ${p('Read our explanation below, or watch first. Each outside resource was picked by a reviewer for the part of this page it covers.', 'max-width:52ch')}
-          ${seg(c, ['Read', 'Watch'], 1)}
+          ${p('Each outside resource was picked by a reviewer for the part of this page it covers.', 'max-width:52ch')}
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">${blockTag('{% resource kind="video" display="embed" %}')}
         <div style="display:grid;grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr);gap:0;border-radius:14px;overflow:hidden;border:1px solid ${c.border};background:${c.surface}">
@@ -650,9 +649,9 @@ spells    ACGTTAG</pre></div>
 ${body}
 </div>
 </x-dc>
-<script data-dc-script data-props='{"showBlocks":{"editor":"boolean","default":true,"section":"Node page"}}'>
+<script data-dc-script data-props='{"showBlocks":{"editor":"boolean","default":false,"section":"Node page"}}'>
 class Component extends DCLogic {
-  renderVals() { return { tags: (this.props.showBlocks ?? true) ? 'inline-flex' : 'none' }; }
+  renderVals() { return { tags: (this.props.showBlocks ?? false) ? 'inline-flex' : 'none' }; }
 }
 </script>
 </body>
@@ -666,11 +665,10 @@ function explore() {
     <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13.5px;font-weight:600">${title}</span><span style="color:${c.ink3}">${ic.chevron}</span></div>
     ${opts.map(([n, k, on]) => `<div style="display:flex;align-items:center;gap:9px;padding:4px 0;font-size:13.5px;color:${k === 0 ? c.ink3 : c.ink}"><span style="width:16px;height:16px;border-radius:4px;flex:none;display:flex;align-items:center;justify-content:center;${on ? `background:${c.sel}` : `border:1.5px solid ${c.border2}`}">${on ? ic.check('#FFFFFF') : ''}</span><span style="flex:1">${n}</span><span style="font-size:12px;color:${c.ink3};font-variant-numeric:tabular-nums">${k}</span></div>`).join('')}</div>`;
   const applied = (s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 11px;border-radius:999px;background:${c.selSoft};color:${c.sel};font-size:12.5px;font-weight:500">${s}<span style="display:flex">${ic.close}</span></span>`;
-  const row = (n, kind, regions, held, total, left, learners, mine) => `<div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 150px 190px 110px 100px;align-items:center;gap:16px;padding:12px 16px;border-top:1px solid ${c.border};${mine ? `background:${c.lineSoft}` : ''}">
+  const row = (n, kind, regions, held, total, left, learners, mine) => `<div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 170px 210px 100px;align-items:center;gap:16px;padding:12px 16px;border-top:1px solid ${c.border};${mine ? `background:${c.lineSoft}` : ''}">
     <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:14.5px;font-weight:600">${n}</span>${greyTag(kind)}</div><span style="font-size:12px;color:${c.ink3}">${regions}</span></div>
     <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:2px">${Array.from({ length: total }, (_, i) => `<span style="flex:1;height:5px;border-radius:2px;background:${i < held ? c.settled : c.border2}"></span>`).join('')}</div><span style="font-size:12px;color:${c.ink2}">You hold ${held} of ${total}</span></div>
     <span style="font-size:13px;color:${c.ink2}">${left}</span>
-    <span style="font-size:12.5px;color:${c.ink3};font-variant-numeric:tabular-nums">${learners}</span>
     <div style="display:flex;justify-content:flex-end">${mine ? secondary(c, 'Continue') : `<a style="font-size:13px;font-weight:600">Start</a>`}</div></div>`;
   return page(1440, 1120, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:26px 32px;min-height:0">
@@ -694,7 +692,7 @@ function explore() {
           <div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:${c.ink3}">Sort</span><span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9px;border:1px solid ${c.border2};background:${c.surface};font-size:13px">Most of it already held ${ic.chevron}</span>${seg(c, ['List', 'Network'], 0)}</div>
         </div>
         <div style="${panel(c)};overflow:hidden">
-          <div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 150px 190px 110px 100px;gap:16px;padding:9px 16px;font-size:12px;color:${c.ink3}"><span>Track</span><span>Your progress</span><span>Left for you</span><span>Learners</span><span></span></div>
+          <div style="display:grid;grid-template-columns:minmax(0, 1.6fr) 170px 210px 100px;gap:16px;padding:9px 16px;font-size:12px;color:${c.ink3}"><span>Track</span><span>Your progress</span><span>Left for you</span><span></span></div>
           ${row('Quality control of a sequencing run', 'Method', 'Sequencing · Foundations → Intermediate', 5, 6, '1 node · about 15 min', '1,204')}
           ${row('Learn Salmon', 'Tool', 'Quantification · Algorithms · First steps → Advanced', 6, 13, '7 nodes · about 2 h 20 min', '412', true)}
           ${row('Learn STAR', 'Tool', 'Alignment · First steps → Advanced', 5, 11, '6 nodes · about 1 h 50 min', '318')}
@@ -703,7 +701,7 @@ function explore() {
           ${row('Call variants with GATK', 'Tool', 'Variants · Alignment · First steps → Advanced', 6, 16, '10 nodes · about 4 h', '203')}
           ${row('Single-cell RNA-seq basics', 'Method', 'Single-cell · Quantification · Foundations → Advanced', 5, 15, '10 nodes · about 4 h 30 min', '151')}
         </div>
-        <span style="font-size:12px;color:${c.ink3}">Sample numbers. The Network view shows only the tracks that match your filters.</span>
+        <span style="font-size:12px;color:${c.ink3}">The Network view shows only the tracks that match your filters.</span>
       </section>
     </div>
   </main>`);
@@ -727,7 +725,7 @@ function knowledge() {
   const island = (title, sub, body, extra = '') => `<section style="${panel(c)};display:flex;flex-direction:column">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid ${c.border}"><div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:15px;font-weight:600">${title}</span><span style="font-size:12.5px;color:${c.ink3}">${sub}</span></div>${extra}</div>
     <div style="padding:8px 16px;${gridBg(c)}">${body}</div></section>`;
-  return page(1440, 1480, `${learnBar()}
+  return page(1440, 1000, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:26px 32px;min-height:0">
     <div style="display:flex;justify-content:space-between;align-items:flex-end">
       <div style="display:flex;flex-direction:column;gap:6px">${h1('Your knowledge', 32)}<span style="font-size:14px;color:${c.ink2}">What you’ve settled, grouped by what connects. A measurement, not a score.</span></div>
@@ -782,12 +780,13 @@ const ghMark = `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.2a
 const provider = (name) => `<span style="display:flex;align-items:center;justify-content:center;gap:10px;height:44px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14px;font-weight:500">${ghMark}Continue with ${name}</span>`;
 const orRule = `<div style="display:flex;align-items:center;gap:12px;font-size:12.5px;color:${c.ink3}"><span style="flex:1;height:1px;background:${c.border}"></span>or<span style="flex:1;height:1px;background:${c.border}"></span></div>`;
 const wide = (button) => button.replace('display:inline-flex;', 'display:flex;justify-content:center;');
-const signedOutBar = learnBar().replace(avatar, secondary(c, 'Sign in'));
+// The account pages' bar: no Sign in button on the page that is the sign-in.
+const signedOutBar = learnBar().replace(avatar, '<span></span>');
 const authCard = (inner) => `<div style="${panel(c)};width:420px;padding:32px;display:flex;flex-direction:column;gap:18px">${inner}</div>`;
 
 function signIn() {
   return page(1440, 860, `${signedOutBar}
-  <main style="flex:1;display:flex;justify-content:center;padding-top:72px">
+  <main style="flex:1;display:flex;justify-content:center;align-items:flex-start;padding-top:72px">
     ${authCard(`
       <div style="display:flex;flex-direction:column;gap:6px">${h1('Sign in', 26)}<span style="font-size:14px;color:${c.ink2}">to keep your routes and what you know, and to open Studio if you’re on the team.</span></div>
       ${provider('GitHub')}
@@ -802,7 +801,7 @@ function signIn() {
 
 function join() {
   const invited = authCard(`
-    ${blueTag('Invite · author')}
+    ${blueTag('Invite · author').replace('display:inline-flex;', 'display:inline-flex;align-self:flex-start;')}
     <div style="display:flex;flex-direction:column;gap:6px">${h1('Join the Studio team', 26)}<span style="font-size:14px;color:${c.ink2}">[Operator name] invited you to write nodes for Comeni Code. The invite works once and expires on [date].</span></div>
     ${field('Email', '[invitee email]', { locked: true, hint: 'The address the invite was sent to.' })}
     ${field('Password', '', { mask: true, hint: 'At least 10 characters.' })}
@@ -811,7 +810,7 @@ function join() {
     ${provider('GitHub')}
     <span style="font-size:12.5px;color:${c.ink3}">With GitHub, your account still takes the invite’s address.</span>`);
   const closed = authCard(`
-    ${greyTag('Not open yet')}
+    ${greyTag('Not open yet').replace('display:inline-flex;', 'display:inline-flex;align-self:flex-start;')}
     <div style="display:flex;flex-direction:column;gap:6px">${h1('Learner accounts are coming', 26)}<span style="font-size:14px;line-height:1.6;color:${c.ink2}">You can’t create an account yet. Everything in Comeni Code works without one: routes, pages and questions are all here.</span></div>
     <span style="font-size:14px;line-height:1.6;color:${c.ink2}">On the team? Open the link in your invite email.</span>
     ${secondary(c, 'Back to Start').replace('display:inline-flex;', 'display:inline-flex;align-self:flex-start;')}`);
@@ -826,8 +825,8 @@ function join() {
 function team() {
   const roles = (on) => seg(c, ['Author', 'Reviewer', 'Operator'], on);
   const th = (s, extra = '') => `<span style="${label(c)};${extra}">${s}</span>`;
-  const row = (cells, cols, extra = '') => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:16px;padding:12px 18px;border-top:1px solid ${c.border};font-size:13.5px;${extra}">${cells.join('')}</div>`;
-  const MCOLS = '1.3fr 1.6fr auto 110px 120px';
+  const row = (cells, cols, extra = '') => `<div style="display:grid;grid-template-columns:${cols};align-items:center;justify-items:start;gap:16px;padding:12px 18px;border-top:1px solid ${c.border};font-size:13.5px;${extra}">${cells.join('')}</div>`;
+  const MCOLS = '1.2fr 1.5fr 260px 110px 120px';
   const who = (n, e) => [`<span style="font-weight:500">${n}</span>`, `<span style="color:${c.ink2}">${e}</span>`];
   const members = [
     [...who('[Operator name]', '[email]'), roles(2), `<span style="color:${c.ink3}">you</span>`, ''],
@@ -848,11 +847,9 @@ function team() {
       ${primary(c, 'Send invite')}
     </div>
     <span style="font-size:12.5px;color:${c.ink3}">They get a link that works once, for 7 days. Authors write; reviewers also approve; operators also land and manage the team.</span>`);
-  const notice = `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:${c.openSoft};color:${c.open};font-size:13.5px">Studio needs an active operator; make someone else an operator first. ${mono('CA0108', `font-size:12px;color:${c.ink3}`)}</div>`;
   return studio('Team', `
     ${titleRow('Team', 'Who writes, reviews and lands content. Only operators see this page.')}
     ${inviteForm}
-    ${notice}
     <div style="${panel(c)};overflow:hidden">
       <div style="padding:14px 18px;display:flex;justify-content:space-between"><span style="font-size:14.5px;font-weight:600">Members</span><span style="font-size:12.5px;color:${c.ink3}">4</span></div>
       ${row([th('Name'), th('Email'), th('Role'), th('Status'), ''], MCOLS, 'padding-block:8px')}
@@ -1062,7 +1059,7 @@ function requests() {
   const row = ([t, title, prop, region, asked, blocks, age, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 14px;height:44px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : o.sel ? `background:${c.bg}` : ''}">
     ${qBox(o.sel)}${typeIcon(t === 'group' ? 'node' : t)}
     <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span>${o.group ? `<span style="font-size:11.5px;color:${c.ink3}">${o.group}</span>` : ''}</div>
-    <span style="color:${o.merge ? c.meas : o.existing ? c.btn : c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prop}</span>
+    <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prop}</span>
     <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${region}</span>
     <span style="text-align:right;font-variant-numeric:tabular-nums">${asked}</span>
     <span style="text-align:right;font-variant-numeric:tabular-nums;${blocks ? `color:${c.ink};font-weight:600` : `color:${c.ink3}`}">${blocks || '—'}</span>
@@ -1128,7 +1125,7 @@ function implementing() {
   const av = (n) => n ? `<span style="display:inline-flex;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:50%;background:${c.selSoft};color:${c.sel};font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center">${n.replace(/[^A-Z]/g, '')}</span>[${n}]</span>` : `<span style="color:${c.open};font-weight:500">Unassigned</span>`;
   const row = ([n, region, unb, asked, who, last, next, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 14px;height:42px;border-top:1px solid ${c.border};font-size:13px;${o.sel ? `background:${c.bg}` : ''}">
     ${qBox(o.sel)}
-    <div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>${o.stalled ? amberTag('No change in 16 d') : ''}</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0"><span style="max-width:100%;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>${o.stalled ? amberTag('No change in 16 d').replace('padding:2px 9px', 'padding:0 7px') : ''}</div>
     <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${region}</span>
     <span style="text-align:right;font-weight:600;font-variant-numeric:tabular-nums">${unb}</span>
     <span style="text-align:right;color:${c.ink2};font-variant-numeric:tabular-nums">${asked}</span>
@@ -1184,7 +1181,7 @@ function implementing() {
       </section>
       <aside style="display:flex;flex-direction:column;gap:14px">
         ${card(`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14.5px;font-weight:600">Team load</span><span style="font-size:11.5px;color:${c.ink3}">writing · reviewing</span></div>
-          ${load('Author A', 3, 2)}${load('Author B', 2, 1)}${load('Author C', 5, 1, 'busiest')}${load('Author D', 1, 0)}${load('Reviewer A', 0, 3)}${load('Reviewer B', 0, 1, 'has room')}
+          ${load('Author A', 3, 2)}${load('Author B', 2, 1)}${load('Author C', 5, 1)}${load('Author D', 1, 0)}${load('Reviewer A', 0, 3)}${load('Reviewer B', 0, 1)}
           <span style="font-size:12px;color:${c.ink3};line-height:1.45">Assigning suggests people with room and matching expertise. Nobody reviews their own node.</span>`)}
         ${card(`<span style="font-size:14.5px;font-weight:600">This week</span>
           <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px">
@@ -1625,8 +1622,7 @@ props:
   path: [ACG, CGT, GTT,
          TTA, TAG, AGC]
   bubble: { at: GTT, kmer: TCA }
-  tip: { at: CGT, kmer: GTA }</pre></div>
-            <div style="display:flex;gap:8px;padding:0 12px 12px">${secondary(c, 'Kept')}</div>`, 'kept')}
+  tip: { at: CGT, kmer: GTA }</pre></div>`, 'kept')}
           ${tool('insert_block(after: figure, type: try)', 'one accepted answer ✓',
             `<div style="display:flex;align-items:center;gap:12px;padding:12px">
               <span style="font-size:14px;flex:1">“Why does an error near the end of a read make a tip rather than a bubble?”</span>
@@ -1710,7 +1706,7 @@ function usage() {
   const meter = (pct) => `<div style="height:6px;border-radius:3px;background:${c.border2};margin-top:6px"><div style="width:${pct}%;height:6px;border-radius:3px;background:${pct > 80 ? c.measBar : c.ink2}"></div></div>`;
   const inner = `
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;align-items:baseline;gap:14px">${h1('AI', 26)}<span style="font-size:13px;color:${c.ink2}">Every model call Code makes, through one LiteLLM gateway. Sample numbers.</span></div>
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('AI', 26)}<span style="font-size:13px;color:${c.ink2}">Every model call Code makes, through one LiteLLM gateway.</span></div>
       <div style="display:flex;gap:10px;align-items:center">${seg(c, ['7 days', '30 days', '90 days'], 1)}${secondary(c, 'Export CSV')}</div>
     </div>
     ${aiTabs('Usage')}
@@ -1822,7 +1818,7 @@ function placement() {
         ${opt('A k-mer from the reference transcriptome')}
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:6px">
-        <span style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1px dashed ${c.border2};font-size:14px;color:${c.ink2}">I don’t know this yet</span>
+        ${secondary(c, 'I don’t know this yet')}
         ${primary(c, 'Check', '')}
       </div>
       <div style="display:flex;gap:12px;padding:14px 16px;border-radius:12px;background:${c.bg};font-size:13px;line-height:1.55;color:${c.ink2}">
@@ -2015,15 +2011,36 @@ function quality() {
 }
 
 // ── L13 Exam — self-tests from node exam pools (tutor spec T7.1) ──
-function examSetup() {
+// part: 'setup' (choose the scope and length) or 'test' (a test in progress).
+function examSetup(part) {
   const scope = (t, sub, n, on) => `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}">
     <span style="width:18px;height:18px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>
     <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14.5px;font-weight:600">${t}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div>
     <span style="font-family:${MONO};font-size:12px;color:${c.ink3}">${n}</span></div>`;
   const opt = (s, st) => `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:12px;font-size:15px;${st ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}"><span style="width:18px;height:18px;border-radius:50%;flex:none;${st ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span>${s}</div>`;
+  if (part === 'test') {
+    return page(1440, 760, `
+    ${focusBar('Test · Learn Salmon', progress(4, 4, 12), `<span style="font-size:13px;color:${c.ink2}">Stop and save</span>`)}
+      <div style="width:100%;max-width:860px;align-self:center;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:40px 36px">
+        <span style="${label(c)}">Question 5 of 12 · no hints in a test</span>
+        ${h1('A FASTQ record’s quality line reads <span style="font-family:' + MONO + '">II5+#</span>. Which base is the least reliable?', 26)}
+        <pre style="margin:0;padding:14px 16px;border-radius:10px;background:${c.surface};border:1px solid ${c.border};font-family:${MONO};font-size:14px;line-height:1.7;color:${c.ink}">@read_812
+GATTA
++
+II5+#</pre>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+          ${opt('Base 1 · G')}${opt('Base 3 · T')}${opt('Base 4 · T')}${opt('Base 5 · A', true)}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12.5px;color:${c.ink3}">The page this question comes from is shown with your results.</span>
+          ${primary(c, 'Next question', '')}
+        </div>
+      </div>
+  `);
+  }
   return page(1440, 860, `${learnBar()}
-  <main style="flex:1;display:grid;grid-template-columns:520px minmax(0, 1fr);gap:28px;padding:28px 36px;min-height:0">
-    <section style="${panel(c)};padding:22px 24px;display:flex;flex-direction:column;gap:18px;align-self:start">
+  <main style="flex:1;display:flex;justify-content:center;padding:28px 36px;min-height:0">
+    <section style="${panel(c)};padding:22px 24px;display:flex;flex-direction:column;gap:18px;align-self:start;width:560px">
       <div style="display:flex;flex-direction:column;gap:6px">
         <span style="${label(c)}">Learn Salmon · Test yourself</span>
         ${h1('Check what you know', 28)}
@@ -2046,29 +2063,8 @@ function examSetup() {
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12.5px;color:${c.ink3}">Last test on this route: 9 days ago</span>${primary(c, 'Start the test', '')}</div>
     </section>
-
-    <section style="display:flex;flex-direction:column;gap:0;border-radius:14px;overflow:hidden;border:1px solid ${c.border};background:${c.bg}">
-      <div style="padding:8px 14px;font-size:12px;color:${c.ink3};border-bottom:1px solid ${c.border};background:${c.surface}">In progress — what the test looks like</div>
-      ${focusBar('Test · Learn Salmon', progress(4, 4, 12), `<span style="font-size:13px;color:${c.ink2}">Stop and save</span>`)}
-      <div style="display:flex;flex-direction:column;gap:18px;padding:32px 40px">
-        <span style="${label(c)}">Question 5 of 12 · no hints in a test</span>
-        ${h1('A FASTQ record’s quality line reads <span style="font-family:' + MONO + '">II5+#</span>. Which base is the least reliable?', 26)}
-        <pre style="margin:0;padding:14px 16px;border-radius:10px;background:${c.surface};border:1px solid ${c.border};font-family:${MONO};font-size:14px;line-height:1.7;color:${c.ink}">@read_812
-GATTA
-+
-II5+#</pre>
-        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
-          ${opt('Base 1 · G')}${opt('Base 3 · T')}${opt('Base 4 · T')}${opt('Base 5 · A', true)}
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12.5px;color:${c.ink3}">The page this question comes from is shown with your results.</span>
-          ${primary(c, 'Next question', '')}
-        </div>
-      </div>
-    </section>
   </main>`);
 }
-
 function examResults() {
   const res = { dna: 'confirmed', expr: 'shaky', reads: 'confirmed', rnaseq: 'confirmed', fastq: 'notyet' };
   const pill = (x, y, st) => {
@@ -2083,7 +2079,7 @@ function examResults() {
     <span style="font-family:${MONO};font-size:12.5px;color:${c.ink2}">${got}</span>
     <span style="font-size:12.5px;color:${c.ink2};line-height:1.45">${why}</span>
     <span style="display:flex;justify-content:flex-end">${action}</span></div>`;
-  return page(1440, 1320, `${learnBar()}
+  return page(1440, 1160, `${learnBar()}
   <main style="flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 36px 32px;min-height:0">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px">
       <div style="display:flex;flex-direction:column;gap:6px">
@@ -2091,7 +2087,7 @@ function examResults() {
         ${h1('What the test showed', 32)}
         <span style="font-size:14.5px;color:${c.ink2}">What you’ve done so far · 12 questions · 16 min · 9 of 12 answered right</span>
       </div>
-      <div style="display:flex;gap:8px">${secondary(c, 'Review the answers')}${secondary(c, 'Test again')}${primary(c, 'Back to the route', '')}</div>
+      <div style="display:flex;gap:8px">${secondary(c, 'Review the answers')}${secondary(c, 'Test again')}${secondary(c, 'Back to the route')}</div>
     </div>
     <div style="display:flex;gap:14px">
       ${[['3 pages confirmed', 'they stay known on your route', c.ink], ['1 page shaky', 'added to your next review', c.meas], ['1 page not yet', 'back on your route, with a step back offered', c.open]].map(([t, sub, col]) => `<div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:14px 18px;${panel(c)}"><span style="font-size:18px;font-weight:600;color:${col}">${t}</span><span style="font-size:12.5px;color:${c.ink2}">${sub}</span></div>`).join('')}
@@ -2142,7 +2138,7 @@ function questionBuilder() {
         <span style="font-size:12.5px;color:${c.ink3}">Graph › Algorithms › de Bruijn graphs</span>
         <div style="display:flex;align-items:center;gap:12px"><span style="font-size:24px;font-weight:600">de Bruijn graphs</span>${blueTag('Exam pool · 5 of 6 approved')}</div>
       </div>
-      <div style="display:flex;gap:8px">${secondary(c, 'Draft a question with AI')}${primary(c, 'Submit Q6 for review', '')}</div>
+      <div style="display:flex;gap:8px">${secondary(c, 'Draft a question with AI')}${primary(c, 'Submit for review', '')}</div>
     </div>
     <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${[['Content'], ['Resources'], ['Exam pool', 1], ['Links'], ['Problem'], ['Settings']].map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
     <div style="flex:1;display:grid;grid-template-columns:230px minmax(0, 1fr) 460px;gap:18px;min-height:0">
@@ -2224,7 +2220,7 @@ function firstStepsNode() {
     return s + '</svg>';
   };
   const big = (t, st) => `<div style="display:flex;align-items:center;gap:14px;padding:18px 20px;border-radius:14px;font-size:19px;${st === 'right' ? `border:2.5px solid ${c.btn};background:${c.lineSoft}` : `border:1.5px solid ${c.border2};background:${c.surface}`}">${st === 'right' ? ic.check(c.btn) : `<span style="width:20px;height:20px;border-radius:50%;border:2px solid ${c.border2};flex:none"></span>`}${t}</div>`;
-  return page(1440, 2040, `${learnBar()}
+  return page(1440, 1940, `${learnBar()}
   <div style="height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 36px;border-bottom:1px solid ${c.border};background:${c.surface};font-size:15px;color:${c.ink2}">
     <span>On your route <b style="color:${c.ink};font-weight:600">Learn Salmon</b> · the very first stop</span>
     <span>1 of 2 questions</span>
@@ -2258,7 +2254,6 @@ function firstStepsNode() {
           <span style="font-size:19px;font-weight:600;color:${c.btn}">Right — 4 letters.</span>
           <span style="font-size:17px;line-height:1.55">DNA uses only A, T, G and C. Long strings of these 4 letters are enough to write every instruction a living thing needs.</span>
         </div>
-        <span style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:1.5px solid ${c.border2};font-size:16px;color:${c.ink2}">Show a hint</span>
       </section>
 
       <section style="display:flex;flex-direction:column;gap:16px">
@@ -2286,13 +2281,14 @@ const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
   ['Start', 'L1 · Start — what do you want to learn?', start(), 1440, 1300, 'Reached from: first visit, “Learn something new”, “Ask for a goal”, a search with no match.\nLeads to: placement, or the route.\nTargets are suggested and confirmed by the learner; the route is computed from what each page needs.'],
   ['Placement', 'L2 · Placement — the first station of the tutor loop', placement(), 1440, 800, 'Reached from: Start (“Place me first”), Route, Home.\nLeads to: the shortened route.\nOne question per candidate stop, no hints, no score (tutor spec T3). A right answer drops the stop and what only it needed; “I don’t know this yet” keeps it. The side panel shows the route shortening as you go. The goal itself is never tested out of.'],
-  ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1480, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route shows its level span and where it starts for you (T10.1) — levels describe pages, never you, and never change the route.'],
+  ['Route', 'L4 · Route — map, selected stop, next up, detours, milestones', route(), 1440, 1300, 'Reached from: Home, Start, Explore.\nLeads to: any ready node, following a missing node, the Labs pipeline at the end.\nTop: the outcome, honest time left with a pace estimate, progress per line (near goals keep people going). Map + selected-stop panel (the roadmap.sh pattern). Bottom: what can start now (max 4), a suggested step back when an answer revealed a gap (tutor spec T6.1 — a visit, not a change of order), and milestones — a problem per line, the Labs pipeline at the end. The route shows its level span and where it starts for you (T10.1) — levels describe pages, never you, and never change the route.'],
   ['Node', 'L5 · Node — learn it, blocks, questions with hints, a step back', node(), 1440, 5420, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
-  ['NodeFirstSteps', 'L5 · Node at First steps — design-round draft', firstStepsNode(), 1440, 2040, 'Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.'],
-  ['ExamSetup', 'L13 · Exam — set up, and a test in progress', examSetup(), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
-  ['ExamResults', 'L13 · Exam — results per page, on the route', examResults(), 1440, 1320, 'Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.'],
+  ['NodeFirstSteps', 'L5 · Node at First steps — design-round draft', firstStepsNode(), 1440, 1940, 'Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.'],
+  ['ExamSetup', 'L13 · Exam — set up', examSetup('setup'), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
+  ['ExamTest', 'L13 · Exam — a test in progress', examSetup('test'), 1440, 760, 'Reached from: Start the test.\nLeads to: results.\nNo hints and no answers until the end; stop and save keeps your place. The page a question comes from is shown only with the results.'],
+  ['ExamResults', 'L13 · Exam — results per page, on the route', examResults(), 1440, 1160, 'Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.'],
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],
-  ['Knowledge', 'L9 · Your knowledge — areas that may not connect', knowledge(), 1440, 1480, 'Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.'],
+  ['Knowledge', 'L9 · Your knowledge — areas that may not connect', knowledge(), 1440, 1000, 'Reached from: the account menu, “Your whole network” on Home.\nLeads to: any node, review, re-placement.\nAreas that share no nodes are drawn as separate maps and join automatically when a route links them. A List view covers everything as text.'],
   ['AccountMenu', 'Account menu', account(), 320, 420, 'Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.'],
   ['SignIn', 'L14 · Sign in — one button per configured provider', signIn(), 1440, 860, 'Reached from: Sign in in the top bar (signed out), Studio while signed out (with ?next=).\nLeads to: where you came from.\nM4.8a: the provider buttons come from allauth\u2019s config, one generic button each (GitHub today, ORCID when its keys are set); email and password below. Create an account leads to Join.'],
   ['Join', 'L15 · Join — with an invite, and without', join(), 1440, 860, 'Reached from: an invite email (/join/<token>), Create an account (/join), a GitHub sign-in Code doesn\u2019t know (/sign-in/error).\nM4.8a: sign-up is invite-only until learner accounts open; one component says so honestly for every way in. The invite fixes the address and the role.'],
