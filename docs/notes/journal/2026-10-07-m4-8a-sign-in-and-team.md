@@ -11,7 +11,7 @@
   `.design/build_pages.mjs` and approved on their own canvas
   (https://claude.ai/artifact/5M6KvcydPMWpVLAG9QQ6Jx).
 - **Checked.** 1037 Python tests pass with CI's environment, with mypy, ruff, Django's checks and
-  the migration check; the web app's lint, typecheck, 296 tests and build pass in `node:24-alpine`.
+  the migration check; the web app's lint, typecheck, 299 tests and build pass in `node:24-alpine`.
 - **Walked in Chrome** against `runserver` and the production build: signed out shows Sign in and
   Create an account shows *not yet*; an operator invited by `invite_operator` creates an account
   and lands on Team; invites an author, who lands in Studio with *Nothing in Studio for your role
@@ -34,6 +34,9 @@
 - #234 (a2b7957, c18474b, 6c07aef): `safeNext` parses addresses; `/api/me` hands out the CSRF
   cookie; words for a deactivated account and a rate limit; Join shows the address's error; signing
   out is a full load of Start; smaller fixes from the walk.
+- The final review (0a82846): `safeNext` refuses paths that normalise to `//host`; Studio keeps the
+  open page when asking `/api/me` again fails; an invite opened while signed in offers to sign
+  out and come back. Its minors are deferred to an issue of their own.
 
 ## Decisions, and why
 
