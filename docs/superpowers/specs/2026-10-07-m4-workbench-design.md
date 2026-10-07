@@ -93,7 +93,7 @@ The operator's rule: what can run in the browser stays there; requests are few a
 
 - **Open**: everything edits.
 - **Submitted, approved**: read only, with a line naming the state; a submitted draft's
-  contributors get **Withdraw**, which reopens it.
+  contributors and operators get **Withdraw** (the API's rule), which reopens it.
 - **Landed, discarded**: read only, with a link to the node or back to Drafts.
 - **Discard** (Settings): someone who saved the draft or an operator (the API's CA0206 otherwise);
   asks once, in place.
