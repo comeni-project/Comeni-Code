@@ -4,7 +4,9 @@
 // entry: Start's goals salmon and kallisto are not the Route page's goal salmon with kallisto known
 // (#137). The same question from two pages is one entry, on purpose: Start's preview is the route
 // with nothing known, which the Route page reuses.
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
+import { fetchProviders } from "./auth";
 import { fetchHealth } from "./health";
 import { fetchNode } from "./nodes";
 import { fetchRoute } from "./routes";
@@ -16,6 +18,11 @@ export const queryKeys = {
   route: (goals: readonly string[], known: readonly string[]) =>
     ["route", { goals: [...goals], known: [...known] }] as const,
   search: (words: string) => ["search", words] as const,
+  me: ["me"] as const,
+  providers: ["providers"] as const,
+  invite: (token: string) => ["invite", token] as const,
+  teamMembers: ["team", "members"] as const,
+  teamInvites: ["team", "invites"] as const,
 };
 
 export const useNode = (id: string) =>
@@ -51,3 +58,48 @@ export const useHealth = (pollMs: number | false) =>
     refetchInterval: pollMs,
     retry: false,
   });
+
+/** Who is signed in: the one answer the bar, the menu, the gate and Team read (M4S.3). */
+export const useMe = () =>
+  useQuery({ queryKey: queryKeys.me, queryFn: ({ signal }) => fetchMe(signal), retry: false });
+
+export const useProviders = () =>
+  useQuery({
+    queryKey: queryKeys.providers,
+    queryFn: ({ signal }) => fetchProviders(signal),
+    retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+export const useInvite = (token: string) =>
+  useQuery({
+    queryKey: queryKeys.invite(token),
+    queryFn: ({ signal }) => fetchInvite(token, signal),
+    retry: false,
+  });
+
+export const useMembers = () =>
+  useQuery({
+    queryKey: queryKeys.teamMembers,
+    queryFn: ({ signal }) => fetchMembers(signal),
+    retry: false,
+  });
+
+export const useInvites = () =>
+  useQuery({
+    queryKey: queryKeys.teamInvites,
+    queryFn: ({ signal }) => fetchInvites(signal),
+    retry: false,
+  });
+
+/** After signing in, up or out: ask again who is signed in. */
+export function useAuthChange() {
+  const client = useQueryClient();
+  return () => client.invalidateQueries({ queryKey: queryKeys.me });
+}
+
+/** After any team change: both of the team's lists are asked again. */
+export function useTeamChange() {
+  const client = useQueryClient();
+  return () => client.invalidateQueries({ queryKey: ["team"] });
+}

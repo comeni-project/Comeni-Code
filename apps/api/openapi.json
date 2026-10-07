@@ -2911,7 +2911,7 @@
     },
     "/api/me": {
       "get": {
-        "description": "Who is signed in, or null. Always 200: signed out is not an error (M4A.3).",
+        "description": "Who is signed in, or null. Always 200: signed out is not an error (M4A.3).\n\nIt also hands out the CSRF cookie: every page asks this first, so the first write in a fresh\nbrowser (a password reset opened from an email) carries a token (#234).",
         "operationId": "code_api_accounts_api_me",
         "parameters": [],
         "responses": {

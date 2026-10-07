@@ -3,7 +3,7 @@
 M0 part 2 spec, P2.3.
 """
 
-from code_api.config.auth import caches, github_providers, mailers
+from code_api.config.auth import caches, mailers, social_providers
 from code_api.config.env import Env, database_from_url
 from code_api.config.landing import github_app
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
@@ -100,7 +100,7 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
-SOCIALACCOUNT_PROVIDERS = github_providers(ENV)
+SOCIALACCOUNT_PROVIDERS = social_providers(ENV)
 
 # The session and CSRF cookies (M4A.3): HttpOnly, Lax, two weeks; Secure on a hosted stack.
 SESSION_COOKIE_HTTPONLY = True

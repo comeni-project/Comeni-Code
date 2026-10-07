@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiUnreachable, getJson, sentenceOf } from "./client";
+import { ApiUnreachable, csrfToken, getJson, sendJson, sentenceOf } from "./client";
 import { nodeUrl } from "./nodes";
 import { routeUrl } from "./routes";
 import { searchUrl } from "./search";
@@ -42,6 +42,11 @@ describe("getJson", () => {
       throw new TypeError("failed");
     });
     await expect(getJson("/api/search?q=a")).rejects.toThrow("network error");
+  });
+
+  it("does not take a 204 as an answer to a read", async () => {
+    vi.stubGlobal("fetch", async () => new Response(null, { status: 204 }));
+    await expect(getJson("/api/health")).rejects.toThrow("the response wasn't JSON");
   });
 
   it("says when the answer wasn't JSON", async () => {
@@ -104,5 +109,51 @@ describe("the urls", () => {
     expect(routeUrl(["salmon"], ["read-mapping"])).toBe(
       "/api/routes?goal=salmon&known=read-mapping",
     );
+  });
+});
+
+describe("sendJson", () => {
+  it("sends JSON with the CSRF cookie's token", async () => {
+    vi.stubGlobal("document", { cookie: "theme=dark; csrftoken=abc%3D1" });
+    const fake = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fake);
+    await expect(sendJson("POST", "/api/x", { a: 1 })).resolves.toEqual({ ok: true });
+    expect(fake).toHaveBeenCalledWith(
+      "/api/x",
+      expect.objectContaining({
+        method: "POST",
+        body: '{"a":1}',
+        headers: expect.objectContaining({ "X-CSRFToken": "abc=1" }),
+      }),
+    );
+  });
+
+  it("resolves nothing for a 204", async () => {
+    vi.stubGlobal("document", { cookie: "" });
+    vi.stubGlobal("fetch", async () => new Response(null, { status: 204 }));
+    await expect(sendJson("DELETE", "/api/x")).resolves.toBeUndefined();
+  });
+
+  it("carries the API's sentence out of a refusal", async () => {
+    vi.stubGlobal("document", { cookie: "" });
+    answers({ detail: "Studio needs an active operator.", code: "CA0108" }, 409);
+    await expect(sendJson("PATCH", "/api/team/members/x", {})).rejects.toMatchObject(
+      new ApiUnreachable("Studio needs an active operator.", 409),
+    );
+  });
+
+  it("returns an accepted status's body", async () => {
+    vi.stubGlobal("document", { cookie: "" });
+    answers({ status: 401 }, 401);
+    await expect(sendJson("DELETE", "/_allauth/x", undefined, [401])).resolves.toEqual({
+      status: 401,
+    });
+  });
+});
+
+describe("csrfToken", () => {
+  it("is empty without the cookie", () => {
+    vi.stubGlobal("document", { cookie: "theme=dark" });
+    expect(csrfToken()).toBe("");
   });
 });

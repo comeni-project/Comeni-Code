@@ -59,7 +59,7 @@ vitest + Testing Library, Biome.
 **Interfaces:**
 - Produces: `Provider(id, client_id, secret, scope)`, `PROVIDERS`, `social_providers(env) -> dict`.
 
-- [ ] **Step 1: Write the failing tests.** In `tests/test_allauth.py`, change the import to
+- [x] **Step 1: Write the failing tests.** In `tests/test_allauth.py`, change the import to
   `from code_api.config.auth import mailers, social_providers` and `from code_api.config import auth`,
   rename `github_providers` to `social_providers` in the three existing tests, and add:
 
@@ -75,11 +75,11 @@ def test_every_provider_in_the_table_is_read(monkeypatch: pytest.MonkeyPatch) ->
     assert providers["orcid"]["SCOPE"] == ["/authenticate"]
 ```
 
-- [ ] **Step 2: Run it to see it fail.**
+- [x] **Step 2: Run it to see it fail.**
   Run: `uv run pytest apps/api/tests/test_allauth.py -q`
   Expected: ImportError, `cannot import name 'social_providers'`.
 
-- [ ] **Step 3: Write `config/providers.py`.**
+- [x] **Step 3: Write `config/providers.py`.**
 
 ```python
 """Sign-in providers, as data (M4.8a spec, M4S.2).
@@ -105,7 +105,7 @@ PROVIDERS = (
 )
 ```
 
-- [ ] **Step 4: Replace `github_providers` in `config/auth.py`.**
+- [x] **Step 4: Replace `github_providers` in `config/auth.py`.**
 
 ```python
 def social_providers(env: Env) -> dict[str, Any]:
@@ -126,7 +126,7 @@ def social_providers(env: Env) -> dict[str, Any]:
   with `from code_api.config.providers import PROVIDERS` at the top. In `settings.py`, import
   `social_providers` and set `SOCIALACCOUNT_PROVIDERS = social_providers(ENV)`.
 
-- [ ] **Step 5: Generalise `Env`'s check.** In `config/env.py`, import `PROVIDERS` and replace
+- [x] **Step 5: Generalise `Env`'s check.** In `config/env.py`, import `PROVIDERS` and replace
   `_github_in_pairs` with:
 
 ```python
@@ -139,11 +139,11 @@ def _providers_in_pairs(self) -> Self:
     return self
 ```
 
-- [ ] **Step 6: Run the tests.**
+- [x] **Step 6: Run the tests.**
   Run: `uv run pytest apps/api/tests/test_allauth.py apps/api/tests/test_env.py -q`
   Expected: all pass (`test_a_github_client_needs_both_halves` still finds its sentence).
 
-- [ ] **Step 7: Lint, types, commit.**
+- [x] **Step 7: Lint, types, commit.**
   Run: `uv run ruff check . && uv run ruff format --check . && uv run mypy` — Expected: clean.
 
 ```bash
@@ -163,7 +163,7 @@ git commit -m "feat(api): sign-in providers are a table — M4.8a.1"
 - Produces: `csrfToken(): string`; `sendJson<T>(method, url, body?, accept?) => Promise<T>`
   (resolves `undefined` for 204); `getJson` unchanged in behaviour.
 
-- [ ] **Step 1: Write the failing tests** (append to `client.test.ts`; import `sendJson`,
+- [x] **Step 1: Write the failing tests** (append to `client.test.ts`; import `sendJson`,
   `csrfToken`; this file runs in `node`, so set `document` per test with a stub):
 
 ```ts
@@ -216,11 +216,11 @@ describe("csrfToken", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see it fail.**
+- [x] **Step 2: Run to see it fail.**
   Run: `$WEB npx vitest run src/api/client.test.ts`
   Expected: FAIL, `sendJson` is not exported.
 
-- [ ] **Step 3: Implement.** In `client.ts`, move the part of `getJson` after `fetch` into
+- [x] **Step 3: Implement.** In `client.ts`, move the part of `getJson` after `fetch` into
   `readAnswer` and add the two exports:
 
 ```ts
@@ -280,10 +280,10 @@ export async function sendJson<T>(
 
   `getJson` keeps its `fetch` call and ends with `return readAnswer<T>(response, accept);`.
 
-- [ ] **Step 4: Run the tests.**
+- [x] **Step 4: Run the tests.**
   Run: `$WEB npx vitest run src/api/client.test.ts` — Expected: all pass.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add apps/web/src/api/client.ts apps/web/src/api/client.test.ts
@@ -315,7 +315,7 @@ git commit -m "feat(web): sendJson, one way to write with the CSRF token — M4.
   - `test-kit.tsx`: `answering(answers)`, `renderAt(path, routes)`, `Where`, `SIGNED_OUT`,
     `signedInAs(role)`.
 
-- [ ] **Step 1: Write `test-kit.tsx`.**
+- [x] **Step 1: Write `test-kit.tsx`.**
 
 ```tsx
 // Test helpers for pages that ask the API: a fetch that answers by method and path, and a
@@ -370,7 +370,7 @@ export const signedInAs = (role: string, name = "Ada"): Answer => ({
 });
 ```
 
-- [ ] **Step 2: Write the failing tests** — `auth.test.ts`:
+- [x] **Step 2: Write the failing tests** — `auth.test.ts`:
 
 ```ts
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -485,11 +485,11 @@ describe("accounts", () => {
 });
 ```
 
-- [ ] **Step 3: Run to see them fail.**
+- [x] **Step 3: Run to see them fail.**
   Run: `$WEB npx vitest run src/api/auth.test.ts src/api/accounts.test.ts`
   Expected: FAIL, the modules do not exist.
 
-- [ ] **Step 4: Write `auth.ts`.**
+- [x] **Step 4: Write `auth.ts`.**
 
 ```ts
 // allauth's headless API for the browser (M4.3 spec, M4A.3; M4.8a spec, M4S.2–M4S.3).
@@ -587,7 +587,7 @@ export function continueWith(provider: string, next: string): void {
 }
 ```
 
-- [ ] **Step 5: Write `accounts.ts`.**
+- [x] **Step 5: Write `accounts.ts`.**
 
 ```ts
 // The accounts API (M4.3 spec, M4A.1–M4A.4): who is signed in, invites, and the team.
@@ -640,7 +640,7 @@ export const deactivate = (publicId: string) =>
   sendJson<TeamMemberOut>("POST", `/api/team/members/${publicId}/deactivate`);
 ```
 
-- [ ] **Step 6: Add the keys and hooks to `queries.ts`.** Add to `queryKeys`:
+- [x] **Step 6: Add the keys and hooks to `queries.ts`.** Add to `queryKeys`:
 
 ```ts
   me: ["me"] as const,
@@ -691,12 +691,12 @@ export function useTeamChange() {
 }
 ```
 
-- [ ] **Step 7: Run the tests, then the web checks.**
+- [x] **Step 7: Run the tests, then the web checks.**
   Run: `$WEB npx vitest run src/api` — Expected: all pass.
   Run: `$WEB sh -c "npm run lint && npm run typecheck"` — Expected: clean (fix Biome's format
   with `npx biome format --write` if it only reflows lines).
 
-- [ ] **Step 8: Commit.**
+- [x] **Step 8: Commit.**
 
 ```bash
 git add apps/web/src/api apps/web/src/test-kit.tsx
@@ -723,7 +723,7 @@ git commit -m "feat(web): the auth and accounts modules, and who is signed in �
   `Field({label, type?, value, onChange?, hint?, errors?, locked?, autoComplete?})`,
   `ProviderButtons({next, prepare?, rule})` with `rule: "before" | "after"`, `safeNext(raw)`.
 
-- [ ] **Step 1: Write the failing tests.** `next.test.ts`:
+- [x] **Step 1: Write the failing tests.** `next.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -807,10 +807,10 @@ describe("SignInPage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/account` — Expected: FAIL, modules missing.
 
-- [ ] **Step 3: Write the pieces.** `layout/buttons.ts`:
+- [x] **Step 3: Write the pieces.** `layout/buttons.ts`:
 
 ```ts
 // The two buttons of the identity (W10): primary green, and the bordered secondary.
@@ -1000,7 +1000,7 @@ export function ProviderButtons({ next, prepare, rule }: Props) {
 }
 ```
 
-- [ ] **Step 4: Write `SignInPage.tsx`.**
+- [x] **Step 4: Write `SignInPage.tsx`.**
 
 ```tsx
 // L14 · Sign in (M4.8a spec, M4S.1–M4S.2): providers first, then email and password.
@@ -1076,10 +1076,10 @@ export function SignInPage() {
   (Biome formats the `Field` props one per line; run its formatter rather than hand-wrapping.)
   In `App.tsx` add `<Route path="/sign-in" element={<SignInPage />} />`.
 
-- [ ] **Step 5: Run the tests.**
+- [x] **Step 5: Run the tests.**
   Run: `$WEB npx vitest run src/account` — Expected: all pass.
 
-- [ ] **Step 6: Lint, types, commit.**
+- [x] **Step 6: Lint, types, commit.**
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck"`.
 
 ```bash
@@ -1100,7 +1100,7 @@ git commit -m "feat(web): Sign in, with a button per configured provider — M4.
 - Consumes: `requestPasswordReset`, `resetPassword`, `FormRefused`, `AuthPage`, `AuthCard`,
   `FormErrors`, `Field`, `PRIMARY`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```tsx
 import { screen } from "@testing-library/react";
@@ -1162,10 +1162,10 @@ describe("resetting a password", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/account/ResetPassword.test.tsx` — Expected: FAIL, module missing.
 
-- [ ] **Step 3: Implement `ResetPassword.tsx`.**
+- [x] **Step 3: Implement `ResetPassword.tsx`.**
 
 ```tsx
 // Resetting a password (M4S.3): ask for a link, then set the password from it. allauth mails
@@ -1237,7 +1237,7 @@ export function ResetPasswordPage() {
 
   Add both routes to `App.tsx`.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
   Run: `$WEB npx vitest run src/account` — Expected: all pass.
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck"`.
 
@@ -1261,7 +1261,7 @@ git commit -m "feat(web): resetting a password — M4.8a.5"
   `useAuthChange`.
 - Produces: `NotYet()`, `JoinPage()`, `SignInErrorPage()`.
 
-- [ ] **Step 1: Write the failing tests.** `JoinPage.test.tsx`:
+- [x] **Step 1: Write the failing tests.** `JoinPage.test.tsx`:
 
 ```tsx
 import { screen } from "@testing-library/react";
@@ -1371,10 +1371,10 @@ describe("SignInErrorPage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/account` — Expected: FAIL, modules missing.
 
-- [ ] **Step 3: Write `NotYet.tsx`.**
+- [x] **Step 3: Write `NotYet.tsx`.**
 
 ```tsx
 // Every way someone without an invite tries to make an account ends here (M4S.1). When learner
@@ -1405,7 +1405,7 @@ export function NotYet() {
 }
 ```
 
-- [ ] **Step 4: Write `JoinPage.tsx`.**
+- [x] **Step 4: Write `JoinPage.tsx`.**
 
 ```tsx
 // L15 · Join (M4.8a spec, M4S.1): with an invite, an account on the invite's address; without
@@ -1487,7 +1487,7 @@ function Invited({ token }: { token: string }) {
   (The board's line naming who invited you and the expiry date needs fields `InviteOut` does not
   have; the lead says what the API knows. Recorded as a ruling.)
 
-- [ ] **Step 5: Write `SignInErrorPage.tsx`.**
+- [x] **Step 5: Write `SignInErrorPage.tsx`.**
 
 ```tsx
 // /sign-in/error, where allauth sends a provider sign-in it stopped (M4A.3). An account Code
@@ -1521,7 +1521,7 @@ export function SignInErrorPage() {
 
   Add the three routes to `App.tsx`.
 
-- [ ] **Step 6: Run, lint, commit.**
+- [x] **Step 6: Run, lint, commit.**
   Run: `$WEB npx vitest run src/account` — Expected: all pass.
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck"`.
 
@@ -1530,7 +1530,7 @@ git add apps/web/src/account apps/web/src/App.tsx
 git commit -m "feat(web): Join through an invite, and an honest not-yet — M4.8a.6"
 ```
 
-- [ ] **Step 7: Checkpoint review.** Dispatch a fresh reviewer (opus) on
+- [x] **Step 7: Checkpoint review.** Dispatch a fresh reviewer (opus) on
   `git diff main...HEAD` with this plan and the spec; file its findings as one issue
   (*M4.8a checkpoint review — findings*), fix Critical and Important test-first, and ledger the
   rest.
@@ -1550,7 +1550,7 @@ git commit -m "feat(web): Join through an invite, and an honest not-yet — M4.8
 - Consumes: `useMe`, `useAuthChange`, `signOut`, `SECONDARY`.
 - Produces: `Mark({ studio? })`, `AccountButton()`, `AccountMenu({ user, onClose })`.
 
-- [ ] **Step 1: Write the failing tests.** `AccountButton.test.tsx`:
+- [x] **Step 1: Write the failing tests.** `AccountButton.test.tsx`:
 
 ```tsx
 import { screen } from "@testing-library/react";
@@ -1625,10 +1625,10 @@ describe("AccountButton", () => {
   });
 ```
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/layout` — Expected: FAIL, `AccountButton` missing.
 
-- [ ] **Step 3: Move the logo into `Mark.tsx`** (the `<Link to="/">…</Link>` block of `TopBar`,
+- [x] **Step 3: Move the logo into `Mark.tsx`** (the `<Link to="/">…</Link>` block of `TopBar`,
   unchanged), with one addition for Studio:
 
 ```tsx
@@ -1660,7 +1660,7 @@ export function Mark({ studio = false }: { studio?: boolean }) {
 
   Update the file's header comment: the account cell is M4.8a's (M4S.1).
 
-- [ ] **Step 4: Write `AccountButton.tsx` and `AccountMenu.tsx`.**
+- [x] **Step 4: Write `AccountButton.tsx` and `AccountMenu.tsx`.**
 
 ```tsx
 // The top bar's account cell (M4S.1): Sign in when signed out, else the avatar and its menu.
@@ -1754,13 +1754,13 @@ export function AccountMenu({ user, onClose }: { user: MemberOut; onClose: () =>
 }
 ```
 
-- [ ] **Step 5: Run the layout tests, then the whole web suite.**
+- [x] **Step 5: Run the layout tests, then the whole web suite.**
   Run: `$WEB npx vitest run src/layout` — Expected: all pass.
   Run: `$WEB npm test` — Expected: all pass. A page test that now fails because its `fetch`
   stub answers `/api/me` with a page's body or counts calls: give that stub an `/api/me` answer
   (`SIGNED_OUT`), never change what the test asserts about the page; ledger each as a ruling.
 
-- [ ] **Step 6: Lint, types, commit.**
+- [x] **Step 6: Lint, types, commit.**
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck"`.
 
 ```bash
@@ -1785,7 +1785,7 @@ git commit -m "feat(web): the account button and menu in the top bar — M4.8a.7
   `pageAt(pathname)`, `pagesFor(role)`; `StudioShell` (renders `<Outlet />` behind the gate);
   `StudioHome`.
 
-- [ ] **Step 1: Write the failing tests.** `pages.test.ts`:
+- [x] **Step 1: Write the failing tests.** `pages.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1877,10 +1877,10 @@ describe("StudioShell", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/studio` — Expected: FAIL, modules missing.
 
-- [ ] **Step 3: Write `pages.ts`.**
+- [x] **Step 3: Write `pages.ts`.**
 
 ```ts
 // Studio's pages, as data (M4S.4): the rail draws the ones a role can open, and the shell's gate
@@ -1914,7 +1914,7 @@ export const pagesFor = (role: string): StudioPage[] =>
   STUDIO_PAGES.filter((page) => canActAs(role, page.minRole));
 ```
 
-- [ ] **Step 4: Write the shell.** `StudioBar.tsx`:
+- [x] **Step 4: Write the shell.** `StudioBar.tsx`:
 
 ```tsx
 // Studio's top bar, as on the S-boards: the mark with its tag, search (drawn, not yet working),
@@ -2070,7 +2070,7 @@ export function StudioHome() {
 
   (Task 9 adds `team`.)
 
-- [ ] **Step 5: Run, lint, commit.**
+- [x] **Step 5: Run, lint, commit.**
   Run: `$WEB npx vitest run src/studio` — Expected: all pass (the test's own `team` route
   stands in for the page).
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck"`.
@@ -2095,7 +2095,7 @@ git commit -m "feat(web): the Studio shell, one gate and a rail from a table —
   `ErrorNotice`.
 - Produces: `TeamPage()`, `RoleSwitch({label, value, onChange, disabled?})`.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
 
 ```tsx
 import { screen, within } from "@testing-library/react";
@@ -2215,10 +2215,10 @@ describe("TeamPage", () => {
   The own-row role switch stays enabled so the last-operator refusal (Review Focus 5) can be
   reached; the API is what refuses.
 
-- [ ] **Step 2: Run to see them fail.**
+- [x] **Step 2: Run to see them fail.**
   Run: `$WEB npx vitest run src/studio/team` — Expected: FAIL, modules missing.
 
-- [ ] **Step 3: Write the components.** `RoleSwitch.tsx`:
+- [x] **Step 3: Write the components.** `RoleSwitch.tsx`:
 
 ```tsx
 // The Author · Reviewer · Operator switch of the S14 board, as a radio group.
@@ -2496,7 +2496,7 @@ export function TeamPage() {
 
   In `App.tsx`, inside the `/studio` route: `<Route path="team" element={<TeamPage />} />`.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
   Run: `$WEB npx vitest run src/studio` — Expected: all pass.
   Run: `$WEB sh -c "npx biome format --write src && npm run lint && npm run typecheck && npm test && npm run build"`
   — Expected: clean, all pass, build succeeds.
@@ -2516,13 +2516,13 @@ git commit -m "feat(web): Team — invites, roles and deactivating — M4.8a.9"
 - Create: `docs/notes/journal/2026-10-07-m4-8a-sign-in-and-team.md`
 - Modify: this plan (ticks)
 
-- [ ] **Step 1: The whole suite with CI's environment.**
+- [x] **Step 1: The whole suite with CI's environment.**
   Run (from the root, with CI's variables as in `now.md`): `uv run pytest -q`,
   `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, and
   `$WEB sh -c "npm run lint && npm run typecheck && npm test && npm run build"`.
   Expected: all green.
 
-- [ ] **Step 2: Walk *done when* in Chrome**, with `runserver`, a worker and `npm run dev`
+- [x] **Step 2: Walk *done when* in Chrome**, with `runserver`, a worker and `npm run dev`
   running (`npm run dev` under podman with `--network host`), beside the L14, L15 and S14
   boards (served from `.design/` on localhost), at 1440 in light and dark:
   1. Signed out: *Sign in* in the bar; *Create an account* → *Learner accounts are coming*.
@@ -2535,17 +2535,17 @@ git commit -m "feat(web): Team — invites, roles and deactivating — M4.8a.9"
   5. Sign out: the bar shows *Sign in*; `/studio/team` sends you to Sign in.
   Every difference from a board is fixed or recorded in the spec's notes, with why.
 
-- [ ] **Step 3: Docs.** Update `CLAUDE.md`'s `apps/web/` layout entry with
+- [x] **Step 3: Docs.** Update `CLAUDE.md`'s `apps/web/` layout entry with
   `account/ (sign in, join, reset, not-yet, the account menu's pieces)` and
   `studio/ (the shell, its gate and rail from pages.ts, team/)`; add *Notes from the build* to the
   spec (each ruling and board difference); write the journal entry (where things stand, what
   changed with hashes, decisions, what is next: M4.8b). Run `uv run pytest tests/repo -q`.
 
-- [ ] **Step 4: Final review.** A fresh reviewer (opus) over `git diff main...HEAD` with the spec
+- [x] **Step 4: Final review.** A fresh reviewer (opus) over `git diff main...HEAD` with the spec
   and this plan; findings filed as *M4.8a final review — findings*; Critical and Important fixed
   test-first; minors deferred to issues.
 
-- [ ] **Step 5: Commit, push, open the pull request** (`Closes #<n>` once per line for each
+- [x] **Step 5: Commit, push, open the pull request** (`Closes #<n>` once per line for each
   M4.8a sub-issue). Merge only on the operator's yes.
 
 ```bash

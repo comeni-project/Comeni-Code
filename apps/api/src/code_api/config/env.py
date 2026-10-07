@@ -12,6 +12,8 @@ from urllib.parse import unquote, urlsplit
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from code_api.config.providers import PROVIDERS
+
 
 class Env(BaseSettings):
     model_config = SettingsConfigDict(
@@ -75,11 +77,13 @@ class Env(BaseSettings):
         return value.rstrip("/")
 
     @model_validator(mode="after")
-    def _github_in_pairs(self) -> Self:
-        if (self.github_client_id is None) != (self.github_client_secret is None):
-            raise ValueError(
-                "set both CODE_GITHUB_CLIENT_ID and CODE_GITHUB_CLIENT_SECRET, or neither"
-            )
+    def _providers_in_pairs(self) -> Self:
+        for provider in PROVIDERS:
+            if (getattr(self, provider.client_id) is None) != (
+                getattr(self, provider.secret) is None
+            ):
+                first, second = provider.client_id.upper(), provider.secret.upper()
+                raise ValueError(f"set both CODE_{first} and CODE_{second}, or neither")
         return self
 
     @field_validator("github_api_url")

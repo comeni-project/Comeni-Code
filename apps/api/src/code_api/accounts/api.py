@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import connection, transaction
 from django.http import HttpRequest
+from django.middleware.csrf import get_token
 from ninja import Router, Schema, Status
 from ninja.utils import check_csrf
 from pydantic import field_validator
@@ -86,7 +87,12 @@ class PendingInviteOut(Schema):
 
 @router.get("/me", response=MeOut)
 def me(request: HttpRequest) -> MeOut:
-    """Who is signed in, or null. Always 200: signed out is not an error (M4A.3)."""
+    """Who is signed in, or null. Always 200: signed out is not an error (M4A.3).
+
+    It also hands out the CSRF cookie: every page asks this first, so the first write in a fresh
+    browser (a password reset opened from an email) carries a token (#234).
+    """
+    get_token(request)
     user = request.user
     return MeOut(user=MemberOut.of(user) if isinstance(user, User) else None)
 

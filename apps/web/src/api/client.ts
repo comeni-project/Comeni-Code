@@ -43,6 +43,11 @@ export async function getJson<T>(
   } catch {
     throw new ApiUnreachable("network error");
   }
+  return readAnswer<T>(response, accept);
+}
+
+/** The JSON of an answer, or why there is none, as `getJson` and `sendJson` both read it. */
+async function readAnswer<T>(response: Response, accept: readonly number[]): Promise<T> {
   const usable = response.ok || accept.includes(response.status);
   let body: unknown;
   try {
@@ -58,6 +63,45 @@ export async function getJson<T>(
     throw new ApiUnreachable(detailOf(body) ?? `HTTP ${response.status}`, response.status);
   }
   return body as T;
+}
+
+/**
+ * Django's CSRF cookie, which every write carries back as `X-CSRFToken` (M4S.3). It is readable
+ * on purpose; the session cookie is the HttpOnly one.
+ */
+export function csrfToken(): string {
+  const prefix = "csrftoken=";
+  const found = document.cookie.split("; ").find((part) => part.startsWith(prefix));
+  return found === undefined ? "" : decodeURIComponent(found.slice(prefix.length));
+}
+
+/**
+ * Write to the API (M4S.3): JSON in, JSON out (nothing for a 204), failures worded as `getJson`
+ * words them; `accept` lists statuses whose body is an answer, not a failure.
+ */
+export async function sendJson<T>(
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  url: string,
+  body?: unknown,
+  accept: readonly number[] = [],
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: body === undefined ? null : JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiUnreachable("network error");
+  }
+  // A write may answer 204, nothing; a read never should (health says "HTTP 204" for one).
+  if (response.status === 204) return undefined as T;
+  return readAnswer<T>(response, accept);
 }
 
 /**

@@ -1,16 +1,26 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Specimen } from "./Specimen";
 
-afterEach(() => document.documentElement.removeAttribute("data-theme"));
+// The top bar asks who is signed in; that question never answers here.
+beforeEach(() => {
+  vi.stubGlobal("fetch", () => new Promise(() => {}));
+});
+afterEach(() => {
+  document.documentElement.removeAttribute("data-theme");
+  vi.unstubAllGlobals();
+});
 
 describe("Specimen", () => {
   it("says every colour role in words, not colour alone", () => {
     render(
-      <MemoryRouter>
-        <Specimen />
-      </MemoryRouter>,
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <Specimen />
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
     for (const role of [
       "Route · valid",
@@ -25,9 +35,11 @@ describe("Specimen", () => {
 
   it("switches the theme attribute, and system removes it", () => {
     render(
-      <MemoryRouter>
-        <Specimen />
-      </MemoryRouter>,
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <Specimen />
+        </MemoryRouter>
+      </QueryClientProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: "dark" }));
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");

@@ -99,6 +99,12 @@ def test_me_is_null_for_nobody(client: Client) -> None:
     assert response.json() == {"user": None}
 
 
+def test_me_hands_out_the_csrf_cookie(client: Client) -> None:
+    # Every page asks /api/me first, so the first write in a fresh browser has a token (#234).
+    response = client.get("/api/me")
+    assert "csrftoken" in response.cookies
+
+
 def test_me_names_the_signed_in_member(client: Client) -> None:
     user = User.objects.create_user("ada@example.org", name="Ada", role=Role.AUTHOR)
     client.force_login(user)

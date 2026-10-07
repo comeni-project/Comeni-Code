@@ -7,24 +7,22 @@ settings. `settings.py` calls each once.
 from typing import Any
 
 from code_api.config.env import Env
+from code_api.config.providers import PROVIDERS
 
 
-def github_providers(env: Env) -> dict[str, Any]:
-    """allauth's provider table: GitHub when its OAuth client is set, else nothing."""
-    if env.github_client_id is None or env.github_client_secret is None:
-        return {}
-    return {
-        "github": {
-            "APPS": [
-                {
-                    "client_id": env.github_client_id,
-                    "secret": env.github_client_secret.get_secret_value(),
-                }
-            ],
-            # The profile and the verified addresses; the account takes the invite's email (M4A.2).
-            "SCOPE": ["read:user", "user:email"],
+def social_providers(env: Env) -> dict[str, Any]:
+    """allauth's provider table: every provider in `PROVIDERS` whose client is set (M4S.2)."""
+    table: dict[str, Any] = {}
+    for provider in PROVIDERS:
+        client_id = getattr(env, provider.client_id)
+        secret = getattr(env, provider.secret)
+        if client_id is None or secret is None:
+            continue
+        table[provider.id] = {
+            "APPS": [{"client_id": client_id, "secret": secret.get_secret_value()}],
+            "SCOPE": list(provider.scope),
         }
-    }
+    return table
 
 
 def caches(env: Env) -> dict[str, Any]:

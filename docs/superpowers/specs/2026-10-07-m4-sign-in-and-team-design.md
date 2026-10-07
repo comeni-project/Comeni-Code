@@ -170,6 +170,25 @@ their fields, the Team page's changes and refusals.
 GitHub sign-in is checked by its tests and by the button's redirect; a real round trip needs an
 OAuth app, which is registered only with the operator (M4.9).
 
+## Notes from the build
+
+- **Signing out is a full page load of Start** (`layout/leave.ts`), not a router move. The router
+  commits a move inside a transition, so from a Studio page the gate saw the sign-out first and
+  sent you to Sign in; a full load also drops what the signed-in session cached.
+- **`/api/me` hands out the CSRF cookie** (#234): a reset link opened in a fresh browser had no
+  token for its first write, since only allauth's own views set one. Every page asks `/api/me`
+  first.
+- **`safeNext` parses the address as a browser does** (#234): `/\host` and `/<tab>/host` were
+  read as other sites. A read's 204 stays a failure; only a write's 204 is an empty answer.
+- **Join's lead names the role and that the invite works once**, not who invited you or when it
+  expires: the invite lookup returns only the address and the role.
+- **The role switch is real radio inputs** drawn as the board's segmented control.
+- **Colours were compared in headless Chrome**: the Chrome used for the walk has Dark Reader,
+  which whitens every page. Sign in (light, dark, phone) and Join match L14 and L15; Team was
+  checked for layout and behaviour.
+- The last-operator refusal was not walked (the development database has two operators); the API
+  and web tests cover it.
+
 ## Not in this part
 
 ORCID itself (one registry entry when its keys exist); changing your email or name; reactivating

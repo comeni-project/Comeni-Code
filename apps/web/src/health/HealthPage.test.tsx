@@ -98,11 +98,15 @@ describe("HealthPage", () => {
   });
 
   it("checks again when asked", async () => {
-    const fetch = vi.fn(async () => json(200, report("ok")));
+    // The top bar also asks who is signed in (M4.8a); only the health questions are counted.
+    const fetch = vi.fn(async (url: string) =>
+      url === "/api/me" ? json(200, { user: null }) : json(200, report("ok")),
+    );
     vi.stubGlobal("fetch", fetch);
     renderPage();
     await waitFor(() => expect(status()).toHaveTextContent("All 3 checks ok"));
     fireEvent.click(screen.getByRole("button", { name: "Check now" }));
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    const asked = () => fetch.mock.calls.filter(([url]) => url === "/api/health");
+    await waitFor(() => expect(asked()).toHaveLength(2));
   });
 });

@@ -1,0 +1,127 @@
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Route } from "react-router";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { leave } from "../layout/leave";
+import { answering, renderAt, SIGNED_OUT, signedInAs } from "../test-kit";
+import { JoinPage } from "./JoinPage";
+
+vi.mock("../layout/leave", () => ({ leave: vi.fn() }));
+
+afterEach(() => vi.unstubAllGlobals());
+
+const routes = (
+  <>
+    <Route path="/join" element={<JoinPage />} />
+    <Route path="/join/:token" element={<JoinPage />} />
+  </>
+);
+const INVITE = { body: { email: "new@example.org", role: "author" } };
+
+describe("JoinPage", () => {
+  it("says learner accounts are coming, without an invite", () => {
+    answering({ "GET /api/me": SIGNED_OUT });
+    renderAt("/join", routes);
+    expect(
+      screen.getByRole("heading", { name: "Learner accounts are coming" }),
+    ).toBeInTheDocument();
+  });
+
+  it("creates the account with the invite's address and lands in Studio", async () => {
+    const fake = answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "POST /api/invites/tok/accept": INVITE,
+      "POST /_allauth/browser/v1/auth/signup": { body: { status: 200 } },
+    });
+    renderAt("/join/tok", routes);
+    expect(await screen.findByLabelText("Email")).toHaveValue("new@example.org");
+    await userEvent.type(screen.getByLabelText("Password"), "a long password");
+    await userEvent.click(screen.getByRole("button", { name: "Create your account" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio");
+    const order = fake.mock.calls.map(([url, init]) => `${init?.method ?? "GET"} ${url}`);
+    expect(order.indexOf("POST /api/invites/tok/accept")).toBeLessThan(
+      order.indexOf("POST /_allauth/browser/v1/auth/signup"),
+    );
+  });
+
+  it("shows allauth's sentence about the address (#234)", async () => {
+    answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "POST /api/invites/tok/accept": INVITE,
+      "POST /_allauth/browser/v1/auth/signup": {
+        status: 400,
+        body: {
+          status: 400,
+          errors: [{ message: "A user is already registered with this email.", param: "email" }],
+        },
+      },
+    });
+    renderAt("/join/tok", routes);
+    await userEvent.type(await screen.findByLabelText("Password"), "a long password");
+    await userEvent.click(screen.getByRole("button", { name: "Create your account" }));
+    expect(
+      await screen.findByText("A user is already registered with this email."),
+    ).toBeInTheDocument();
+  });
+
+  it("speaks of providers only when there are some", async () => {
+    answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "GET /_allauth/browser/v1/config": { body: { data: {} } },
+    });
+    renderAt("/join/tok", routes);
+    await screen.findByLabelText("Password");
+    expect(screen.queryByText(/With a provider/)).toBeNull();
+  });
+
+  it("asks a signed-in member to sign out first, and comes back to the invite", async () => {
+    const fake = answering({
+      "GET /api/me": signedInAs("operator"),
+      "GET /api/invites/tok": INVITE,
+      "DELETE /_allauth/browser/v1/auth/session": { status: 401, body: { status: 401 } },
+    });
+    renderAt("/join/tok", routes);
+    expect(
+      await screen.findByText(
+        "You’re signed in as ada@example.org. Sign out to accept this invite.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Password")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await waitFor(() => expect(leave).toHaveBeenCalledWith("/join/tok"));
+    expect(fake.mock.calls.some(([url]) => url.endsWith("/accept"))).toBe(false);
+  });
+
+  it("shows the API's sentence for a spent invite", async () => {
+    answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/old": {
+        status: 410,
+        body: { detail: "This invite has expired; ask for a new one.", code: "CA0104" },
+      },
+    });
+    renderAt("/join/old", routes);
+    expect(
+      await screen.findByText("This invite has expired; ask for a new one."),
+    ).toBeInTheDocument();
+  });
+
+  it("does not sign up when the invite was spent meanwhile", async () => {
+    const fake = answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "POST /api/invites/tok/accept": {
+        status: 410,
+        body: { detail: "This invite has been used already.", code: "CA0106" },
+      },
+    });
+    renderAt("/join/tok", routes);
+    await userEvent.type(await screen.findByLabelText("Password"), "a long password");
+    await userEvent.click(screen.getByRole("button", { name: "Create your account" }));
+    expect(await screen.findByText("This invite has been used already.")).toBeInTheDocument();
+    expect(fake.mock.calls.some(([url]) => url.endsWith("/auth/signup"))).toBe(false);
+  });
+});
