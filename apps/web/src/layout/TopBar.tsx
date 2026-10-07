@@ -1,7 +1,9 @@
-// The top bar every page shares: the transit-line mark, and search (W6.1, M3 part 3 spec).
-// The account menu waits for M4, so the bar does not draw one.
+// The top bar every page shares: the transit-line mark, search (W6.1, M3 part 3 spec), and the
+// account cell (M4.8a spec, M4S.1), beside whatever a page puts there.
 import { type ReactNode, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { AccountButton } from "./AccountButton";
+import { Mark } from "./Mark";
 
 export const SEARCH_LABEL = "Search topics, tools and goals";
 
@@ -38,30 +40,7 @@ export function TopBar({ children }: { children?: ReactNode }) {
 
   return (
     <header className="grid h-15 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-6 border-b border-border bg-bg px-7 md:grid-cols-[1fr_minmax(0,460px)_1fr]">
-      <Link to="/" className="flex shrink-0 items-center gap-2.5">
-        <svg width="30" height="16" viewBox="0 0 30 16" aria-hidden="true">
-          <line
-            x1="3"
-            y1="8"
-            x2="27"
-            y2="8"
-            className="stroke-line"
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-          {[4, 15, 26].map((cx) => (
-            <circle
-              key={cx}
-              cx={cx}
-              cy="8"
-              r="3.5"
-              className="fill-surface stroke-ink"
-              strokeWidth="2"
-            />
-          ))}
-        </svg>
-        <span className="text-[17px] font-bold tracking-[-0.01em]">Comeni Code</span>
-      </Link>
+      <Mark />
 
       <search className="flex min-w-0 items-center">
         <form onSubmit={onSubmit} className="w-full">
@@ -93,8 +72,10 @@ export function TopBar({ children }: { children?: ReactNode }) {
         </form>
       </search>
 
-      {/* The account menu waits for M4; the cell keeps the search in the middle. */}
-      <div className="flex justify-end">{children}</div>
+      <div className="flex items-center justify-end gap-3">
+        {children}
+        <AccountButton />
+      </div>
     </header>
   );
 }

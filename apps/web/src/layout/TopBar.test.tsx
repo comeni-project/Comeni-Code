@@ -1,7 +1,9 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { answering, SIGNED_OUT } from "../test-kit";
 import { TopBar } from "./TopBar";
 
 const FIELD = "Search topics, tools and goals";
@@ -13,13 +15,34 @@ function Where() {
 
 const bar = () =>
   render(
-    <MemoryRouter initialEntries={["/health"]}>
-      <TopBar />
-      <Where />
-    </MemoryRouter>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={["/health"]}>
+        <TopBar />
+        <Where />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 
+beforeEach(() => {
+  answering({ "GET /api/me": SIGNED_OUT });
+});
+afterEach(() => vi.unstubAllGlobals());
+
 describe("TopBar", () => {
+  it("shows the account cell beside what a page puts there", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <TopBar>
+            <span>theme</span>
+          </TopBar>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(screen.getByText("theme")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Sign in" })).toBeInTheDocument();
+  });
+
   it("sends what was typed to the Start page", async () => {
     bar();
     await userEvent.type(screen.getByLabelText(FIELD), "why my reads don't map{Enter}");
