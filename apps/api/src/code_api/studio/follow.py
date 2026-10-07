@@ -11,7 +11,7 @@ from collections.abc import Iterator
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 from django.conf import settings
 from django.core.cache import cache
@@ -28,6 +28,11 @@ MAIN_KEY = "studio:follow:main"
 
 
 class Source(Protocol):
+    @property
+    def kind(self) -> str:
+        """Recorded on each build: "github" (main) or "folder"."""
+        ...
+
     def head(self) -> str | None: ...
     def checkout(self, head: str | None) -> AbstractContextManager[Path]: ...
     def contains(self, ancestor: str, commit: str) -> bool: ...
@@ -40,6 +45,7 @@ class FolderSource:
 
     path: Path
     commit: str = ""
+    kind: ClassVar[str] = "folder"
 
     def head(self) -> str | None:
         return self.commit or None
@@ -58,6 +64,7 @@ class GitHubSource:
     folder deleted afterwards."""
 
     client: GitHub
+    kind: ClassVar[str] = "github"
 
     def head(self) -> str | None:
         return self.client.head()
@@ -93,9 +100,10 @@ def _live() -> IndexBuild | None:
 
 
 def _last_good() -> str | None:
-    """The commit of the latest applied build that came from a commit, if any."""
+    """The commit of main's latest applied build: from the GitHub source only, never a folder
+    build that was given a commit (the final review)."""
     build = (
-        IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED)
+        IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED, source=GitHubSource.kind)
         .exclude(commit="")
         .order_by("-id")
         .first()
@@ -122,20 +130,25 @@ def follow(source: Source) -> Followed:
 
 def _round(source: Source) -> Followed:
     want = source.head()
-    if want is not None:
+    if want is not None and source.kind == GitHubSource.kind:
         cache.set(MAIN_KEY, {"head": want, "checked_at": timezone.now().isoformat()}, None)
     live = _live()
     built: IndexBuild | None = None
-    stale = want is None or live is None or live.commit != want
-    if stale and want is not None and _refused_before(want):
-        # main's head was refused: keep main's last good build live, never another folder's.
+    stale = want is None or live is None or live.commit != want or live.source != source.kind
+    if stale and source.kind == GitHubSource.kind and want is not None and _refused_before(want):
+        # main's head was refused: keep main's last good build live, never another folder's — and
+        # not one refused since (a stricter validator), which would be fetched every round.
         want = _last_good()
-        stale = want is not None and live is not None and live.commit != want
+        stale = (
+            want is not None
+            and not _refused_before(want)
+            and (live is None or live.commit != want or live.source != source.kind)
+        )
     if stale:
         with source.checkout(want) as folder:
-            built = rebuild_index(folder, commit=want or "")
+            built = rebuild_index(folder, commit=want or "", source=source.kind)
     live = _live()
-    landed = (
-        0 if live is None or not live.commit else landing.mark_landed(live.commit, source.contains)
-    )
+    landed = 0
+    if live is not None and live.commit and live.source == source.kind:
+        landed = landing.mark_landed(live.commit, source.contains)
     return Followed(build=built, landed=landed)

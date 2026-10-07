@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 from code_api.content.models import IndexBuild
 from code_api.studio.follow import FolderSource, configured_source, follow
+from code_api.studio.github import GitHubError
 
 
 class Command(BaseCommand):
@@ -31,7 +32,11 @@ class Command(BaseCommand):
             raise CommandError("CA0004 set CODE_CONTENT_ROOT or pass --root", returncode=2)
         if isinstance(source, FolderSource) and not source.path.is_dir():
             raise CommandError(f"CA0005 {source.path} is not a folder", returncode=2)
-        done = follow(source)
+        try:
+            done = follow(source)
+        except GitHubError as error:
+            # Cannot start: the source could not be read. Never refusal's exit 1 (the final review).
+            raise CommandError(f"CA0007 {error}", returncode=2) from error
         build = done.build
         if build is None:
             self.stdout.write(

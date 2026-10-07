@@ -118,3 +118,23 @@ def test_the_command_lives_beside_follow() -> None:
     from django.core.management import get_commands
 
     assert get_commands()["rebuild_index"] == "code_api.studio"
+
+
+def test_a_source_github_cannot_serve_exits_2(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The final review: a network error is "cannot start", never a traceback with refusal's code.
+    from fake_github import FakeGitHub
+
+    from code_api.studio import follow as following
+    from code_api.studio.follow import GitHubSource
+
+    fake = FakeGitHub(fail_with="GitHub answered 502: Bad Gateway.", fail_on="head")
+    monkeypatch.setattr(following, "configured_source", lambda: GitHubSource(fake))
+    monkeypatch.setattr(
+        "code_api.studio.management.commands.rebuild_index.configured_source",
+        lambda: GitHubSource(fake),
+    )
+    with pytest.raises(CommandError, match="^CA0007 GitHub answered 502") as caught:
+        run()
+    assert caught.value.returncode == 2

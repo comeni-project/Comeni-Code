@@ -1190,6 +1190,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A rebuild is all or nothing: content with any problem changes nothing, so a route is never silently shortened by a skipped node (M1P5.2).
 
+#### CA0007 — the content source could not be read
+
+*Refuses.*
+
+**Fix.** Check the GitHub App's settings and GitHub's status, then run the command again.
+
+**Why.** rebuild_index follows the configured source; when it is main on GitHub and GitHub cannot be reached, nothing could start, which is exit 2, not a refused build (M4F.2).
+
 ### CA0100–CA0199 · accounts
 
 #### CA0101 — a Studio route was asked by nobody signed in

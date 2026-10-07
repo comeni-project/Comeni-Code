@@ -200,7 +200,7 @@ def _question_rows(content: Content) -> list[Question]:
     ]
 
 
-def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
+def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBuild:
     """Replace the index with `root`'s content, or change nothing and record why.
 
     A refusal is an outcome, returned; only an unexpected failure while applying raises, after
@@ -213,6 +213,7 @@ def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
             outcome=IndexBuild.Outcome.REFUSED,
             digest=digest,
             commit=commit,
+            source=source,
             node_count=len(content.folders),
             problems=[str(problem) for problem in content.errors],
         )
@@ -237,5 +238,6 @@ def rebuild_index(root: Path, *, commit: str = "") -> IndexBuild:
             outcome=IndexBuild.Outcome.APPLIED,
             digest=digest,
             commit=commit,
+            source=source,
             node_count=len(content.nodes),
         )

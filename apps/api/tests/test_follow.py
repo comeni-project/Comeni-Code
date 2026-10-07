@@ -116,3 +116,39 @@ def test_a_folder_build_is_put_back_even_while_mains_head_is_refused(broken: Pat
     back = follow.follow(GitHubSource(fake)).build
     assert back is not None and (back.commit, back.outcome) == ("c1", "applied")
     assert follow.follow(GitHubSource(fake)).build is None  # and it settles
+
+
+# ── The final review: main wins, and only main's own builds count as its last good one ──────────
+
+
+def test_a_folder_build_with_a_commit_is_not_mains_last_good_build(broken: Path) -> None:
+    fake = FakeGitHub(main="c1", trees={"c1": FIXTURES, "c2": broken})
+    follow.follow(GitHubSource(fake))
+    fake.main = "c2"
+    follow.follow(GitHubSource(fake))  # refused
+    follow.follow(FolderSource(FIXTURES, "test123"))  # rebuild_index --root … --commit test123
+    back = follow.follow(GitHubSource(fake)).build
+    assert back is not None and (back.commit, back.source) == ("c1", "github")
+
+
+def test_a_folder_source_never_relabels_its_content_as_another_commit(broken: Path) -> None:
+    fake = FakeGitHub(main="c1", trees={"c1": FIXTURES, "c2": broken})
+    follow.follow(GitHubSource(fake))
+    fake.main = "c2"
+    follow.follow(GitHubSource(fake))  # c2 refused
+    built = follow.follow(FolderSource(FIXTURES, "c2")).build  # asked for explicitly
+    assert built is not None and (built.commit, built.source) == ("c2", "folder")
+
+
+def test_a_fallback_commit_refused_too_is_not_fetched_every_round(broken: Path) -> None:
+    fake = FakeGitHub(main="c1", trees={"c1": FIXTURES, "c2": broken})
+    follow.follow(GitHubSource(fake))
+    fake.main = "c2"
+    follow.follow(GitHubSource(fake))  # c2 refused
+    follow.follow(FolderSource(FIXTURES))  # live is now a folder build
+    fake.trees["c1"] = broken  # a stricter validator now refuses c1 as well
+    follow.follow(GitHubSource(fake))  # falls back to c1: refused
+    fetched = fake.calls.count("tarball")
+    follow.follow(GitHubSource(fake))
+    follow.follow(GitHubSource(fake))
+    assert fake.calls.count("tarball") == fetched
