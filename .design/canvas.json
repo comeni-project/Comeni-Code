@@ -250,9 +250,18 @@
       "page": "studio"
     },
     {
+      "file": "Drafts.dc.html",
+      "title": "S19 · Drafts — your open drafts, and a new node",
+      "x": 1560,
+      "y": 6100,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
       "file": "Team.dc.html",
       "title": "S14 · Team — members, roles and invites",
-      "x": 1560,
+      "x": 3360,
       "y": 6100,
       "w": 1680,
       "h": 1060,
@@ -505,8 +514,16 @@
       "page": "studio"
     },
     {
-      "id": "note-team",
+      "id": "note-drafts",
       "x": 1560,
+      "y": 5850,
+      "w": 620,
+      "text": "Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.",
+      "page": "studio"
+    },
+    {
+      "id": "note-team",
+      "x": 3360,
       "y": 5850,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",

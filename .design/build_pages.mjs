@@ -864,12 +864,57 @@ function team() {
     </div>`, 1680, 1060);
 }
 
+// ── Drafts (M4.8b) ──────────────────────────────────────────────
+function drafts() {
+  const cols = 'minmax(0, 1.6fr) 130px 120px 90px 150px 120px 90px';
+  const stateTag = (s) => (s === 'Open' ? greenTag(s) : s === 'In review' ? blueTag(s) : greyTag(s));
+  const row = ([title, id, region, level, rev, who, saved, state]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:12px;padding:0 16px;height:52px;border-top:1px solid ${c.border};font-size:13.5px">
+    <div style="display:flex;flex-direction:column;min-width:0"><span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</span>${mono(id, `font-size:11.5px;color:${c.ink3}`)}</div>
+    <span style="color:${c.ink2}">${region}</span>
+    <span style="color:${c.ink2}">${level}</span>
+    <span style="color:${c.ink3};font-variant-numeric:tabular-nums">rev ${rev}</span>
+    <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${who}</span>
+    <span style="color:${c.ink3};font-size:12.5px">${saved}</span>
+    <span style="display:flex;justify-content:flex-end">${stateTag(state)}</span></div>`;
+  const rows = [
+    ['de Bruijn graphs', 'de-bruijn-graphs', 'Algorithms', 'Intermediate', 14, '[Author name]', '2 min ago', 'Open'],
+    ['k-mers', 'k-mers', 'Algorithms', 'Introductory', 6, '[Author name]', 'yesterday', 'Open'],
+    ['Read quality', 'read-quality', 'Sequencing', 'Foundations', 3, '[Author name], [Reviewer name]', '3 days ago', 'In review'],
+  ];
+  const select = (name, value) => `<label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:500">${name}</span><span style="display:flex;align-items:center;justify-content:space-between;height:40px;padding:0 12px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14px">${value}<span style="color:${c.ink3};display:flex">${ic.chevron}</span></span></label>`;
+  const newNode = card(`
+    <span style="font-size:14.5px;font-weight:600">New node</span>
+    ${field('Node id', 'k-mer-counting', { hint: 'Lowercase words joined by dashes; it names the folder.' })}
+    ${field('Title', '[Title]')}
+    ${field('Claim', '[One sentence: what a learner can do after this node]')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${select('Region', 'Algorithms')}${select('Level', 'Introductory')}</div>
+    ${field('Minutes', '20')}
+    ${primary('Create the draft')}`, 'gap:14px');
+  const existing = card(`
+    <span style="font-size:14.5px;font-weight:600">Edit a node that exists</span>
+    ${qSearch('Find a node by name or id', 330)}
+    <span style="font-size:12.5px;color:${c.ink3}">Opens a draft of its live version. A node has one draft at a time.</span>`);
+  return studio('Drafts', `
+    ${titleRow('Drafts', 'Nodes being written. Open one to keep working, or start a new node.')}
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 380px;gap:20px;min-height:0">
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        ${qViews([['Mine', 2, 1], ['All open', 5], ['In review', 2]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
+        <div style="${panel(c)};overflow:hidden">
+          <div style="display:grid;grid-template-columns:${cols};gap:12px;padding:10px 16px;font-size:11.5px;color:${c.ink3}"><span>Node</span><span>Region</span><span>Level</span><span>Revision</span><span>Who wrote it</span><span>Last saved</span><span></span></div>
+          ${rows.map(row).join('')}
+        </div>
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:16px">${newNode}${existing}</aside>
+    </div>`, 1680, 1000);
+}
+
 // ── Studio shell ────────────────────────────────────────────────
 const NAV_ICON = {
   Inbox: 'M2.5 9.5h3l1 2h3l1-2h3M3.5 3.5h9l1 6v3h-11v-3z',
   Requests: 'M4 14V2.5M4 3h8l-2 3 2 3H4',
   Implementing: 'M3 13l7-7M9 3l4 4-2 2-4-4zM2.5 13.5l1.5-1.5',
   Review: 'M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM5 8l2 2 4-4',
+  Drafts: 'M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3',
   Graph: 'M4 4.5a1.5 1.5 0 1 0 0-.01M12 4.5a1.5 1.5 0 1 0 0-.01M8 12.5a1.5 1.5 0 1 0 0-.01M5.3 4h5.4M4.8 5.3l2.4 5.4M11.2 5.3l-2.4 5.4',
   Tracks: 'M2 8h12M4 8a1.8 1.8 0 1 0 0-.01M12 8a1.8 1.8 0 1 0 0-.01M8 8a1.8 1.8 0 1 0 0-.01',
   Weekly: 'M2.5 4h11v9.5h-11zM2.5 7h11M5.5 2.5v3M10.5 2.5v3',
@@ -882,7 +927,7 @@ const NAV_ICON = {
 };
 const navIcon = (n, col) => `<svg width="18" height="18" viewBox="0 0 16 16"><path d="${NAV_ICON[n]}" style="fill:none;stroke:${col};stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"></path></svg>`;
 function studio(active, inner, w = 1440, h = 900, { collapsed = false } = {}) {
-  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
+  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Drafts', 3], ['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
   const it = (n, count) => `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:14px;${n === active ? `background:${c.surface};border:1px solid ${c.border};font-weight:600` : `border:1px solid transparent;color:${c.ink2}`}">${navIcon(n, n === active ? c.ink : c.ink3)}<span style="flex:1">${n}</span>${count ? `<span style="font-size:11.5px;padding:0 7px;border-radius:999px;background:${n === active ? c.selSoft : c.bg};color:${n === active ? c.sel : c.ink3}">${count}</span>` : ''}</div>`;
   const icn = (n, count) => `<div title="${n}" style="position:relative;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;${n === active ? `background:${c.surface};border:1px solid ${c.border}` : 'border:1px solid transparent'}">${navIcon(n, n === active ? c.ink : c.ink3)}${count ? `<span style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:${c.sel};border:2px solid ${c.bg}"></span>` : ''}</div>`;
   const toggle = (dir) => `<span title="${dir === 'in' ? 'Collapse' : 'Expand'} the menu · [" style="width:28px;height:28px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};display:flex;align-items:center;justify-content:center;color:${c.ink2}"><svg width="14" height="14" viewBox="0 0 16 16"><path d="${dir === 'in' ? 'M10 3.5L5.5 8 10 12.5' : 'M6 3.5L10.5 8 6 12.5'}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>`;
@@ -2199,6 +2244,7 @@ const STUDIO = [
   ['Assistant', 'S15 · Assistant — chat that acts through the content API', assistant(), 1680, 1060, 'Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.'],
   ['AIUsage', 'S16 · AI — usage', usage(), 1680, 1180, 'Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.'],
   ['AIModels', 'S17 · AI — models, budgets and scoring', models(), 1440, 1260, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.'],
+  ['Drafts', 'S19 · Drafts — your open drafts, and a new node', drafts(), 1680, 1000, 'Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [
