@@ -44,6 +44,11 @@ describe("getJson", () => {
     await expect(getJson("/api/search?q=a")).rejects.toThrow("network error");
   });
 
+  it("does not take a 204 as an answer to a read", async () => {
+    vi.stubGlobal("fetch", async () => new Response(null, { status: 204 }));
+    await expect(getJson("/api/health")).rejects.toThrow("the response wasn't JSON");
+  });
+
   it("says when the answer wasn't JSON", async () => {
     vi.stubGlobal("fetch", async () => new Response("<html>", { status: 200 }));
     await expect(getJson("/api/search?q=a")).rejects.toThrow("the response wasn't JSON");

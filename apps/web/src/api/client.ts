@@ -46,10 +46,9 @@ export async function getJson<T>(
   return readAnswer<T>(response, accept);
 }
 
-/** The status and JSON of an answer, as `getJson` and `sendJson` both read it. */
+/** The JSON of an answer, or why there is none, as `getJson` and `sendJson` both read it. */
 async function readAnswer<T>(response: Response, accept: readonly number[]): Promise<T> {
   const usable = response.ok || accept.includes(response.status);
-  if (usable && response.status === 204) return undefined as T;
   let body: unknown;
   try {
     body = await response.json();
@@ -100,6 +99,8 @@ export async function sendJson<T>(
   } catch {
     throw new ApiUnreachable("network error");
   }
+  // A write may answer 204, nothing; a read never should (health says "HTTP 204" for one).
+  if (response.status === 204) return undefined as T;
   return readAnswer<T>(response, accept);
 }
 
