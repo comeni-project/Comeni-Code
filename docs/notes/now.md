@@ -5,15 +5,18 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-06** (M4.7 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-07** (M4.8a closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
 - **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, #119–#127 of #74, back end
   first, screens last; the reasons are in the archived *M4 in parts* entry. (2026-09-29)
 - **M4.1–M4.7 are done** (#119–#125): the block document (#139); exam pools (#151); accounts and
-  roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218). **M4.8,
-  sign-in, team and the workbench (#126), is next**: the first screens. (2026-09-29 to 2026-10-06)
+  roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218).
+  (2026-09-29 to 2026-10-06)
+- **M4.8 (#126) is three slices**, each with its own spec, plan and pull request: M4.8a sign-in and
+  the team (#220, done in #236), **M4.8b the workbench (#221) is next**, M4.8c the exam pool
+  (#222). (2026-10-07)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -25,6 +28,8 @@ line is in [the archive](journal/archive/).
 - **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
 - **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
   built without stopping, still issues and tests first, a fresh reviewer at the end. (2026-10-05)
+- **New screens are drawn as boards** with `.design/build_pages.mjs`'s own helpers, regenerated
+  (Node 24 under podman) and shown on a Design canvas for approval before any spec. (2026-10-07)
 - **The app before the pages**: content and finishing polish wait for the end of the MVP; screens
   still match the original boards as closely as possible. (2026-09-29)
 
@@ -75,8 +80,11 @@ line is in [the archive](journal/archive/).
 
 ## Accounts (`code_api.accounts`)
 
-- **django-allauth, headless**, all under `/_allauth/` (Vite and nginx both forward it); GitHub is
-  off until its client id and secret are set, and no OAuth app is registered. (2026-10-05)
+- **django-allauth, headless**, all under `/_allauth/` (Vite and nginx both forward it). Sign-in
+  providers are a table, `apps/api/src/code_api/config/providers.py`, read by the settings and
+  `Env`'s pair check; GitHub is off until its client is set; no OAuth app exists. (10-05, 10-07)
+- **`/api/me` hands out the CSRF cookie**: every page asks it first, so a fresh browser's first
+  write has a token (#234). (2026-10-07)
 - **A user is keyed by email and a `public_id` UUID** (#101's key; the integer key never leaves
   the database), with one role, author < reviewer < operator, checked by `can_act_as`. (2026-10-05)
 - **Sign-up only through an invite** (hashed token, single-use, seven days), by password or
@@ -133,7 +141,16 @@ line is in [the archive](journal/archive/).
 ## The web app (`apps/web`)
 
 - React Router: `/` Start (L1), `/route` (L4), `/node/:id` (L5, and its First steps form), `/health`,
-  `/identity`. Page state lives in the URL: `q`, `goal`, `known`, `stop`, `view`. (2026-09-21)
+  `/identity`, the account pages and `/studio/*`. Page state lives in the URL. (2026-09-21, 10-07)
+- **Accounts on the web** (M4.8a): *Sign in* for everyone, one button per provider allauth's config
+  lists; `NotYet` answers every way in without an invite; `safeNext` keeps return addresses on the
+  site; signing out is a full load of Start (`layout/leave.ts`). (2026-10-07)
+- **Studio's shell has one gate**: `STUDIO_PAGES` (`studio/pages.ts`) lists each page and its role;
+  the rail draws what a role can open and the gate checks the same entry. Team (S14) is the first
+  page. (2026-10-07)
+- **`sendJson` is the one write** (CSRF header; only a write's 204 is empty); `auth.ts` wraps
+  allauth, `accounts.ts` the accounts API and `canActAs`; `useMe` is the one *who am I*;
+  `test-kit.tsx` answers fetch by method and path in tests. (2026-10-07)
 - **The Route map is the canvas's metro map**, a pure layout whose gaps widen for climbs and
   crowded labels, so any route shape holds (`shapes.fixture.ts`). (2026-09-21, 2026-09-29)
 - **The Node page** lists resources in *Learn it* (embedded where a provider allows), draws the
@@ -171,7 +188,7 @@ line is in [the archive](journal/archive/).
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203, #204, #216 and #217; large floats given as answers read back from jsonb as integers
+  #203, #204, #216, #217, #234 and #235 (M4.8a's account menu and smaller ones); large floats given as answers read back from jsonb as integers
   (#188). (2026-10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
@@ -196,7 +213,7 @@ line is in [the archive](journal/archive/).
   reboot, or when tests cannot connect (:5433, :6380); Compose is not set up. (2026-10-05, 10-06)
 - **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
   `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). Two pytest
-  runs on one Postgres break each other. The canvas shows *Page not found* here. Merged branches
+  runs on one Postgres break each other. The canvas is under another claude.ai account (*Page not found* here); the local boards match it. Merged branches
   are kept: retarget a stacked pull request first. (2026-09-29, 2026-10-05)
 - **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
   ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
@@ -210,6 +227,11 @@ line is in [the archive](journal/archive/).
 - **GitHub's compare lists at most 300 files**, page 1 only. **Celery acknowledges on delivery**: a
   task lost with its worker is not redelivered. **importlib mode keeps a test's folder off the
   path**: a helper beside the tests needs `pythonpath`. (2026-10-06)
+- **This Chrome runs Dark Reader**, which whitens every page: compare colours with headless
+  `google-chrome-stable --user-data-dir=<scratch>` (the default profile is held by the open
+  browser). **`vite preview` serves 404 after a rebuild**: restart it. (2026-10-07)
+- **React Router moves inside a transition**: a query refreshed right after `navigate` can re-render
+  the old page first (Studio's gate redirected a sign-out). (2026-10-07)
 - **tarfile's `data` filter strips a leading `/` instead of refusing it**: check member names
   yourself. **`transaction.on_commit` is not robust by default**: pass `robust=True` for a nudge
   whose failure must not turn a saved change into a 500. (2026-10-06)
