@@ -69,6 +69,7 @@ function Invited({ token }: { token: string }) {
           value={email}
           locked
           hint="The address the invite was sent to."
+          errors={refused.email}
         />
         <Field
           label="Password"

@@ -24,9 +24,13 @@ interface AllauthAnswer {
 export const fetchProviders = async (signal?: AbortSignal): Promise<Provider[]> =>
   (await getJson<ConfigAnswer>(`${BASE}/config`, signal)).data.socialaccount?.providers ?? [];
 
+// allauth's refusals that carry no sentence of their own. A 401 to a sign-in is a deactivated
+// account here (no other pending step is configured).
 const WITHOUT_SENTENCE: Record<number, string> = {
+  401: "This account can’t sign in; it may have been deactivated. Ask an operator.",
   403: "Sign-up needs an invite.",
   409: "You are signed in already.",
+  429: "Too many tries; wait a few minutes and try again.",
 };
 
 /** allauth refused a form: its sentences, by the field they are about ("" for the form). */
@@ -57,7 +61,7 @@ async function post(path: string, body: unknown, done: readonly number[] = [200]
     "POST",
     `${BASE}${path}`,
     body,
-    [400, 401, 403, 409],
+    [400, 401, 403, 409, 429],
   );
   if (!done.includes(answer.status)) throw FormRefused.of(answer);
 }

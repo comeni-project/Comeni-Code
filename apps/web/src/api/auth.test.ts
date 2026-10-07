@@ -45,6 +45,21 @@ describe("auth", () => {
     expect(refused.byField[""]).toEqual(["Sign-up needs an invite."]);
   });
 
+  it("words a deactivated account and too many tries (#234)", async () => {
+    answering({
+      "POST /_allauth/browser/v1/auth/login": { status: 401, body: { status: 401 } },
+    });
+    const inactive = (await signIn("a@b.c", "x").catch((e: unknown) => e)) as FormRefused;
+    expect(inactive.byField[""]).toEqual([
+      "This account can’t sign in; it may have been deactivated. Ask an operator.",
+    ]);
+    answering({
+      "POST /_allauth/browser/v1/auth/login": { status: 429, body: { status: 429 } },
+    });
+    const limited = (await signIn("a@b.c", "x").catch((e: unknown) => e)) as FormRefused;
+    expect(limited.byField[""]).toEqual(["Too many tries; wait a few minutes and try again."]);
+  });
+
   it("takes allauth's 401 as signed out", async () => {
     answering({
       "DELETE /_allauth/browser/v1/auth/session": { status: 401, body: { status: 401 } },

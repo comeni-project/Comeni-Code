@@ -42,6 +42,27 @@ describe("JoinPage", () => {
     );
   });
 
+  it("shows allauth's sentence about the address (#234)", async () => {
+    answering({
+      "GET /api/me": SIGNED_OUT,
+      "GET /api/invites/tok": INVITE,
+      "POST /api/invites/tok/accept": INVITE,
+      "POST /_allauth/browser/v1/auth/signup": {
+        status: 400,
+        body: {
+          status: 400,
+          errors: [{ message: "A user is already registered with this email.", param: "email" }],
+        },
+      },
+    });
+    renderAt("/join/tok", routes);
+    await userEvent.type(await screen.findByLabelText("Password"), "a long password");
+    await userEvent.click(screen.getByRole("button", { name: "Create your account" }));
+    expect(
+      await screen.findByText("A user is already registered with this email."),
+    ).toBeInTheDocument();
+  });
+
   it("shows the API's sentence for a spent invite", async () => {
     answering({
       "GET /api/me": SIGNED_OUT,
