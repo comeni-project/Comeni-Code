@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; background: #F4F5F8; }
+    a { color: #2F6FEB; text-decoration: none; } a:hover { color: #171A26; }
+  </style>
+</helmet>
+<div style="width:1440px;height:860px;display:flex;flex-direction:column;background:#F4F5F8;color:#171A26;font-family:'Lexend', system-ui, sans-serif;overflow:hidden">
+<header style="height:60px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 28px;border-bottom:1px solid #E1E4EC;background:#F4F5F8">
+  <div style="display:flex;align-items:center;gap:10px">
+  <svg width="30" height="16" viewBox="0 0 30 16"><line x1="3" y1="8" x2="27" y2="8" style="stroke:#0F9D7A;stroke-width:4;stroke-linecap:round"></line><circle cx="4" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle><circle cx="15" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle><circle cx="26" cy="8" r="3.5" style="fill:#FFFFFF;stroke:#171A26;stroke-width:2"></circle></svg>
+  <span style="font-size:17px;font-weight:700;letter-spacing:-.01em">Comeni Code</span></div>
+  <div style="display:flex;align-items:center;gap:10px;width:460px;height:38px;padding:0 14px;border-radius:10px;border:1px solid #C9CEDB;background:#FFFFFF;color:#666C84;font-size:14px">
+    <svg width="15" height="15" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" style="fill:none;stroke:currentColor;stroke-width:1.6"></circle><path d="M11 11l3.5 3.5" style="stroke:currentColor;stroke-width:1.6;stroke-linecap:round"></path></svg><span>Search topics, tools and goals</span><span style="margin-left:auto;font-family:'Geist Mono', ui-monospace, monospace;font-size:11px;padding:1px 6px;border:1px solid #E1E4EC;border-radius:5px">/</span></div>
+  <span style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;background:#FFFFFF;border:1px solid #C9CEDB;color:#171A26;font-size:13px;font-weight:500">Sign in</span>
+</header>
+  <main style="flex:1;display:flex;justify-content:center;padding-top:72px">
+    <div style="background:#FFFFFF;border:1px solid #E1E4EC;border-radius:14px;width:420px;padding:32px;display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;flex-direction:column;gap:6px"><h1 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance">Sign in</h1><span style="font-size:14px;color:#474D63">to keep your routes and what you know, and to open Studio if you’re on the team.</span></div>
+      <span style="display:flex;align-items:center;justify-content:center;gap:10px;height:44px;border-radius:10px;border:1px solid #C9CEDB;background:#FFFFFF;font-size:14px;font-weight:500"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1.2a6.8 6.8 0 0 0-2.15 13.25c.34.06.46-.15.46-.33v-1.2c-1.9.41-2.3-.8-2.3-.8-.31-.79-.76-1-.76-1-.62-.42.05-.41.05-.41.68.05 1.04.7 1.04.7.61 1.04 1.6.74 1.99.57.06-.44.24-.74.43-.91-1.51-.17-3.1-.76-3.1-3.36 0-.74.27-1.35.7-1.83-.07-.17-.3-.86.07-1.8 0 0 .57-.18 1.87.7a6.5 6.5 0 0 1 3.4 0c1.3-.88 1.87-.7 1.87-.7.37.94.14 1.63.07 1.8.44.48.7 1.09.7 1.83 0 2.61-1.6 3.19-3.11 3.36.24.21.46.62.46 1.25v1.85c0 .18.12.4.47.33A6.8 6.8 0 0 0 8 1.2z" style="fill:currentColor"></path></svg>Continue with GitHub</span>
+      <div style="display:flex;align-items:center;gap:12px;font-size:12.5px;color:#666C84"><span style="flex:1;height:1px;background:#E1E4EC"></span>or<span style="flex:1;height:1px;background:#E1E4EC"></span></div>
+      <label style="display:flex;flex-direction:column;gap:6px">
+  <span style="font-size:13px;font-weight:500">Email</span>
+  <span style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;border:1px solid #C9CEDB;background:#FFFFFF;font-size:14px;color:#171A26">[email]</span>
+  
+</label>
+      <label style="display:flex;flex-direction:column;gap:6px">
+  <span style="font-size:13px;font-weight:500">Password</span>
+  <span style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;border:1px solid #C9CEDB;background:#FFFFFF;font-size:14px;color:#666C84">••••••••••••</span>
+  
+</label>
+      <div style="display:flex;justify-content:flex-end;margin-top:-8px"><a href="#" style="font-size:13px">Forgot your password?</a></div>
+      <span style="display:flex;justify-content:center;align-items:center;gap:8px;padding:10px 26px;border-radius:10px;background:#0B7F63;color:#FFFFFF;font-size:14.5px;font-weight:600;box-shadow:0 3px 0 #075C48">Sign in</span>
+      <span style="font-size:13.5px;color:#474D63;text-align:center">New here? <a href="#">Create an account</a></span></div>
+  </main>
+</div>
+</x-dc>
+</body>
+</html>
