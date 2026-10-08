@@ -4,11 +4,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { queryKeys } from "../../api/queries";
-import type { DraftNodeOut } from "../../api/schema";
+import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { BlockEditor } from "./BlockEditor";
 import { deleteBlock, moveBlock } from "./edits";
 import { firstWords } from "./Outline";
+import { newQuestion, questionIn } from "./question";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { useDraftEdit } from "./useDraftEdit";
@@ -17,6 +18,15 @@ import { useDraftEdit } from "./useDraftEdit";
 export interface Opened {
   at: number;
   fresh: Block | null;
+  question?: TryQuestionIn | undefined;
+}
+
+/** The editor for a block already there: a try brings its question. */
+export function existing(node: DraftNodeOut, at: number): Opened {
+  const block = node.blocks[at];
+  const found =
+    block?.kind === "try" ? node.questions.find((q) => q.id === block.question) : undefined;
+  return { at, fresh: null, question: found && questionIn(found) };
 }
 
 const BLANK = {
@@ -25,12 +35,14 @@ const BLANK = {
 } as const satisfies Record<string, Block>;
 const ADDS = [
   ["text", "Add a text block"],
+  ["try", "Add a try block"],
   ["callout", "Add a callout"],
 ] as const;
 const TOOL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40";
 
 interface Props {
   draftId: string;
+  nodeId: string;
   node: DraftNodeOut;
   editable: boolean;
   opened: Opened | null;
@@ -38,7 +50,7 @@ interface Props {
   close: (opened: Opened) => void;
 }
 
-export function BlockList({ draftId, node, editable, opened, open, close }: Props) {
+export function BlockList({ draftId, nodeId, node, editable, opened, open, close }: Props) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
   const [confirming, setConfirming] = useState<number | null>(null);
@@ -52,6 +64,7 @@ export function BlockList({ draftId, node, editable, opened, open, close }: Prop
       at={o.at}
       insert={o.fresh !== null}
       initial={block}
+      question={o.question}
       onClose={() => close(o)}
     />
   );
@@ -65,7 +78,7 @@ export function BlockList({ draftId, node, editable, opened, open, close }: Prop
               key={kind}
               type="button"
               aria-label={label}
-              onClick={() => open({ at, fresh: BLANK[kind] })}
+              onClick={() => open(fresh(at, kind))}
               className="rounded-[6px] border border-border-2 bg-surface px-2 py-0.5 font-mono text-[11.5px] text-sel"
             >
               + {kind}
@@ -75,6 +88,11 @@ export function BlockList({ draftId, node, editable, opened, open, close }: Prop
         <span className="h-px flex-1 bg-border" />
       </div>
     );
+  const fresh = (at: number, kind: (typeof ADDS)[number][0]): Opened => {
+    if (kind !== "try") return { at, fresh: BLANK[kind] };
+    const question = newQuestion(nodeId, node.questions);
+    return { at, fresh: { kind: "try", question: question.id }, question };
+  };
   const freshAt = (at: number) =>
     opened !== null && opened.fresh !== null && opened.at === at && editor(opened, opened.fresh);
 
@@ -148,7 +166,7 @@ export function BlockList({ draftId, node, editable, opened, open, close }: Prop
                     type="button"
                     aria-label={`Edit block ${n}`}
                     className={TOOL}
-                    onClick={() => open({ at, fresh: null })}
+                    onClick={() => open(existing(node, at))}
                   >
                     Edit
                   </button>

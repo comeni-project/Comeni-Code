@@ -2,15 +2,17 @@
 // outline and the rows open the same one.
 import { useState } from "react";
 import type { DraftNodeOut } from "../../api/schema";
-import { BlockList, type Opened } from "./BlockList";
+import { BlockList, existing, type Opened } from "./BlockList";
 import { Outline } from "./Outline";
 
 export function ContentTab({
   draftId,
+  nodeId,
   node,
   editable,
 }: {
   draftId: string;
+  nodeId: string;
   node: DraftNodeOut;
   editable: boolean;
 }) {
@@ -19,9 +21,10 @@ export function ContentTab({
   const close = (which: Opened) => setOpened((now) => (now === which ? null : now));
   return (
     <div className="grid gap-[18px] lg:grid-cols-[200px_minmax(0,1fr)]">
-      <Outline node={node} onOpen={editable ? (at) => setOpened({ at, fresh: null }) : null} />
+      <Outline node={node} onOpen={editable ? (at) => setOpened(existing(node, at)) : null} />
       <BlockList
         draftId={draftId}
+        nodeId={nodeId}
         node={node}
         editable={editable}
         opened={opened}

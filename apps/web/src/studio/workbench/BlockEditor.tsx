@@ -12,6 +12,7 @@ import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
+import { TryEditor } from "./TryEditor";
 import { useDraftEdit } from "./useDraftEdit";
 
 export interface BlockEditorProps {
@@ -24,24 +25,32 @@ export interface BlockEditorProps {
 }
 
 /** A new block with nothing in it is not worth a request. */
-function empty(block: Block): boolean {
+function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   if (block.kind === "text") return block.markdown.trim() === "";
   if (block.kind === "callout") return block.title.trim() === "" && block.markdown.trim() === "";
-  return false;
+  return question === undefined || question.ask.trim() === "";
 }
+
+/** What is sent: hints without the empty lines a half-typed list has. */
+const cleaned = (question: TryQuestionIn | undefined) =>
+  question && { ...question, hints: question.hints.filter((hint) => hint.trim() !== "") };
 
 export function BlockEditor({ draftId, at, insert, initial, question, onClose }: BlockEditorProps) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
   const [block, setBlock] = useState<Block>(initial);
-  const changed = JSON.stringify(block) !== JSON.stringify(initial);
+  const [asked, setAsked] = useState(question);
+  const changed =
+    JSON.stringify(block) !== JSON.stringify(initial) ||
+    JSON.stringify(cleaned(asked)) !== JSON.stringify(question);
   useLeaveWarning(changed);
 
   const commit = () => {
     if (edit.isPending) return;
-    if (!changed || (insert && empty(block))) return onClose();
+    if (!changed || (insert && empty(block, asked))) return onClose();
     const sent = block as BlockIn;
-    edit.mutate(insert ? insertBlock(at, sent, question) : updateBlock(at, sent, question), {
+    const q = cleaned(asked);
+    edit.mutate(insert ? insertBlock(at, sent, q) : updateBlock(at, sent, q), {
       onSuccess: onClose,
     });
   };
@@ -59,6 +68,9 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
           />
         )}
         {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
+        {block.kind === "try" && asked !== undefined && (
+          <TryEditor question={asked} onChange={setAsked} />
+        )}
         {refusal !== null && (
           <RefusalNotice
             refusal={refusal}

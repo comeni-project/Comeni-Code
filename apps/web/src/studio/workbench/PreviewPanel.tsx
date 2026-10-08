@@ -18,7 +18,7 @@ export function PreviewPanel({ node }: { node: DraftNodeOut }) {
               aria-pressed={on}
               onClick={() => setPhone(name === "Phone")}
               className={`rounded-[7px] px-[13px] py-[5px] text-[12.5px] ${
-                on ? "bg-surface font-semibold text-ink" : "text-ink-2"
+                on ? "bg-surface font-semibold text-ink shadow-sm" : "text-ink-2"
               }`}
             >
               {name}

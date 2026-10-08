@@ -26,7 +26,12 @@ const TABS: readonly Tab[] = [
     key: "content",
     label: "Content",
     body: (draft, node) => (
-      <ContentTab draftId={draft.public_id} node={node} editable={editable(draft)} />
+      <ContentTab
+        draftId={draft.public_id}
+        nodeId={draft.node_id}
+        node={node}
+        editable={editable(draft)}
+      />
     ),
   },
   { key: "resources", label: "Resources", body: () => null },
