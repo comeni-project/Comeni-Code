@@ -85,6 +85,24 @@ describe("TryEditor", () => {
     expect(screen.queryByLabelText("Option 3")).toBeNull();
   });
 
+  it("saves a removed option when you then leave the block", async () => {
+    const fake = bench();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    await userEvent.click(screen.getByRole("button", { name: "+ Option" }));
+    await userEvent.type(screen.getByLabelText("Option 3"), "95");
+    await userEvent.click(screen.getByRole("heading", { level: 1 }));
+    await vi.waitFor(() =>
+      expect(fake.mock.calls.filter(([, i]) => i?.method === "PUT")).toHaveLength(1),
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    await userEvent.click(screen.getByRole("button", { name: "+ Option" }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove option 1" }));
+    await userEvent.click(screen.getByRole("heading", { level: 1 }));
+    await vi.waitFor(() =>
+      expect(fake.mock.calls.filter(([, i]) => i?.method === "PUT")).toHaveLength(2),
+    );
+  });
+
   it("switches to a number, and sends the answer as a number", async () => {
     const fake = bench();
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));

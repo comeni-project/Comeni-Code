@@ -2,12 +2,12 @@
 // or an operator may withdraw it; approved, landed and discarded ones say so and point onward.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
-import { canActAs } from "../../api/accounts";
 import { withdrawDraft } from "../../api/drafts";
 import { queryKeys, useMe } from "../../api/queries";
 import type { DraftOut } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { mayTakeBack } from "./who";
 
 const LINE = "flex flex-wrap items-center gap-3 rounded-control bg-surface px-4 py-3 text-[13.5px]";
 
@@ -37,10 +37,7 @@ export function StateLine({ draft }: { draft: DraftOut }) {
 
 function Submitted({ draft }: { draft: DraftOut }) {
   const client = useQueryClient();
-  const me = useMe().data?.user;
-  const may =
-    me != null &&
-    (canActAs(me.role, "operator") || draft.contributors.some((c) => c.public_id === me.public_id));
+  const may = mayTakeBack(useMe().data?.user, draft);
   const withdraw = useMutation({
     mutationFn: () => withdrawDraft(draft.public_id),
     onSuccess: (saved) => client.setQueryData(queryKeys.draft(draft.public_id), saved),

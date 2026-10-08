@@ -8,7 +8,9 @@ import { ErrorNotice } from "../../layout/ErrorNotice";
 import { ContentTab } from "./ContentTab";
 import { ExamPoolTab } from "./ExamPoolTab";
 import { Header } from "./Header";
+import { LinksTab } from "./LinksTab";
 import { PreviewPanel } from "./PreviewPanel";
+import { SettingsTab } from "./SettingsTab";
 import { StateLine } from "./StateLine";
 
 /** A draft takes edits only while open and while its files read (M4K.1). */
@@ -20,7 +22,7 @@ interface Tab {
   body: (draft: DraftOut, node: DraftNodeOut) => ReactNode;
 }
 
-// In the board's order. Resources, Links and Settings get their editors in M4.8b.7–8.
+// In the board's order. Resources gets its editor in M4.8b.8.
 const TABS: readonly Tab[] = [
   {
     key: "content",
@@ -36,8 +38,18 @@ const TABS: readonly Tab[] = [
   },
   { key: "resources", label: "Resources", body: () => null },
   { key: "exam", label: "Exam pool", body: (_, node) => <ExamPoolTab node={node} /> },
-  { key: "links", label: "Links", body: () => null },
-  { key: "settings", label: "Settings", body: () => null },
+  {
+    key: "links",
+    label: "Links",
+    body: (draft, node) => (
+      <LinksTab draftId={draft.public_id} node={node} editable={editable(draft)} />
+    ),
+  },
+  {
+    key: "settings",
+    label: "Settings",
+    body: (draft, node) => <SettingsTab draft={draft} node={node} editable={editable(draft)} />,
+  },
 ];
 
 export function WorkbenchPage() {

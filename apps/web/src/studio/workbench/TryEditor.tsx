@@ -1,7 +1,7 @@
 // A try block's question (M4K.3): the ask, a choice's options (one right, a misconception for a
 // wrong one) or a number's answer, unit and tolerance, the hints and the rationale. It edits the
 // question BlockEditor holds, which sends it with the block.
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Field } from "../../account/Field";
 import type { OptionIn, TryQuestionIn } from "../../api/schema";
 import { blankOptions } from "./question";
@@ -121,6 +121,8 @@ function Options({
   set: (at: number, option: OptionIn) => void;
 }) {
   const group = useId();
+  // Focus stays in the editor when an option goes, so leaving the block afterwards still saves it.
+  const add = useRef<HTMLButtonElement>(null);
   return (
     <div className="flex flex-col gap-2">
       {options.map((option, at) => {
@@ -146,7 +148,10 @@ function Options({
                 type="button"
                 aria-label={`Remove option ${n}`}
                 disabled={options.length <= 2}
-                onClick={() => onChange(options.filter((_, i) => i !== at))}
+                onClick={() => {
+                  add.current?.focus();
+                  onChange(options.filter((_, i) => i !== at));
+                }}
                 className="rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40"
               >
                 Remove
@@ -165,6 +170,7 @@ function Options({
         );
       })}
       <button
+        ref={add}
         type="button"
         onClick={() => onChange([...options, { text: "", right: false, misconception: "" }])}
         className="self-start text-[13px] font-medium text-sel"
