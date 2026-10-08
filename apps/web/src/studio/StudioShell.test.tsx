@@ -50,17 +50,10 @@ describe("StudioShell", () => {
     expect(screen.getByRole("link", { name: "Team" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("opens the first page a member can open", async () => {
-    answering({ "GET /api/me": signedInAs("operator") });
-    studio("/studio");
-    expect(await screen.findByText("Team page")).toBeInTheDocument();
-  });
-
-  it("says when there is nothing for a role yet", async () => {
+  it("opens Drafts for an author", async () => {
     answering({ "GET /api/me": signedInAs("author") });
     studio("/studio");
-    expect(await screen.findByText("Nothing in Studio for your role yet.")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Team" })).toBeNull();
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio/drafts");
   });
 
   it("shows the API's sentence when it cannot say who you are", async () => {

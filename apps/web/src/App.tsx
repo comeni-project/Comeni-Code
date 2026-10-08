@@ -10,6 +10,7 @@ import { TopBar } from "./layout/TopBar";
 import { NodePage } from "./node/NodePage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
+import { DraftsPage } from "./studio/drafts/DraftsPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
 import { TeamPage } from "./studio/team/TeamPage";
@@ -47,6 +48,7 @@ export function App() {
       <Route path="/reset-password/:key" element={<ResetPasswordPage />} />
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
+        <Route path="drafts" element={<DraftsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="*" element={<p className="text-[15px] text-ink-2">Nothing lives here.</p>} />
       </Route>
