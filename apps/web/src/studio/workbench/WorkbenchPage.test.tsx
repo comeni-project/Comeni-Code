@@ -4,8 +4,8 @@ import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftOut } from "../../api/schema";
 import { answering, renderAt, signedInAs } from "../../test-kit";
+import { DRAFT } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
-import { DRAFT } from "./workbench.fixture";
 
 afterEach(() => vi.unstubAllGlobals());
 

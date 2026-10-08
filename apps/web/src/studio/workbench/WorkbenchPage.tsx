@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
 import type { DraftNodeOut, DraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { ContentTab } from "./ContentTab";
 import { ExamPoolTab } from "./ExamPoolTab";
 import { Header } from "./Header";
 import { PreviewPanel } from "./PreviewPanel";
@@ -19,9 +20,15 @@ interface Tab {
   body: (draft: DraftOut, node: DraftNodeOut) => ReactNode;
 }
 
-// In the board's order. Content, Resources, Links and Settings get their editors in M4.8b.5–8.
+// In the board's order. Resources, Links and Settings get their editors in M4.8b.7–8.
 const TABS: readonly Tab[] = [
-  { key: "content", label: "Content", body: () => null },
+  {
+    key: "content",
+    label: "Content",
+    body: (draft, node) => (
+      <ContentTab draftId={draft.public_id} node={node} editable={editable(draft)} />
+    ),
+  },
   { key: "resources", label: "Resources", body: () => null },
   { key: "exam", label: "Exam pool", body: (_, node) => <ExamPoolTab node={node} /> },
   { key: "links", label: "Links", body: () => null },
