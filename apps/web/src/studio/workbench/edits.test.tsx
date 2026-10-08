@@ -79,6 +79,7 @@ describe("useDraftEdit", () => {
     expect(refusalOf(result.current.error)).toEqual({
       sentence: "This draft has moved on.",
       problems: [],
+      items: [],
       stale: true,
     });
   });

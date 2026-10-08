@@ -1,10 +1,11 @@
 // S3 · Workbench (M4.8b spec, M4K.1): one draft, opened with one GET. The header, the draft's state,
 // the tabs (kept in the address as ?tab=) and the preview; each tab's editor is its own file.
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
 import type { DraftNodeOut, DraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { ChecksPanel } from "./ChecksPanel";
 import { ContentTab } from "./ContentTab";
 import { ExamPoolTab } from "./ExamPoolTab";
 import { Header } from "./Header";
@@ -96,16 +97,40 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
         <section role="tabpanel" aria-label={tab.label} className="flex min-w-0 flex-col gap-3">
           {tab.body(draft, node)}
         </section>
-        <aside className="flex flex-col rounded-panel border border-border bg-surface">
-          <div className="border-b border-border px-3.5 py-2.5 text-[13px] font-semibold">
-            Preview
-          </div>
-          <div className="p-3.5">
-            <PreviewPanel node={node} />
-          </div>
-        </aside>
+        <SidePanel draftId={draft.public_id} node={node} />
       </div>
     </>
+  );
+}
+
+/** The right panel: the preview, or Checks — which asks the API only while it is shown. */
+function SidePanel({ draftId, node }: { draftId: string; node: DraftNodeOut }) {
+  const [checks, setChecks] = useState(false);
+  return (
+    <aside className="flex flex-col rounded-panel border border-border bg-surface">
+      <div role="tablist" aria-label="Side panel" className="flex border-b border-border">
+        {(["Preview", "Checks"] as const).map((name) => {
+          const on = (name === "Checks") === checks;
+          return (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => setChecks(name === "Checks")}
+              className={`px-3.5 py-2.5 text-[13px] ${
+                on ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--ink)]" : "text-ink-2"
+              }`}
+            >
+              {name}
+            </button>
+          );
+        })}
+      </div>
+      <div className="p-3.5">
+        {checks ? <ChecksPanel draftId={draftId} /> : <PreviewPanel node={node} />}
+      </div>
+    </aside>
   );
 }
 

@@ -1,11 +1,12 @@
 // The S3 board's header (M4K.1): where the draft sits, its title, state and level, its revision —
-// or when this page last saved it — and the preview in a tab of its own.
+// or when this page last saved it — the preview in a tab of its own, and Submit for review.
 import { useMutationState } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import type { DraftNodeOut, DraftOut } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import { LevelTag } from "../../node/tags";
+import { SubmitButton } from "./SubmitButton";
 
 const STATE: Record<string, string> = {
   open: "Draft",
@@ -38,14 +39,17 @@ export function Header({ draft, node }: { draft: DraftOut; node: DraftNodeOut })
           <Saved draft={draft} />
         </div>
       </div>
-      <a
-        href={`/studio/drafts/${draft.public_id}/preview`}
-        target="_blank"
-        rel="noreferrer"
-        className={SECONDARY}
-      >
-        Open preview in a new tab
-      </a>
+      <div className="flex items-center gap-2">
+        <a
+          href={`/studio/drafts/${draft.public_id}/preview`}
+          target="_blank"
+          rel="noreferrer"
+          className={SECONDARY}
+        >
+          Open preview in a new tab
+        </a>
+        {draft.state === "open" && <SubmitButton draft={draft} />}
+      </div>
     </header>
   );
 }
