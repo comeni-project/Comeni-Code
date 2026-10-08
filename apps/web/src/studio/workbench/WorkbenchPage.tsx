@@ -10,6 +10,7 @@ import { ExamPoolTab } from "./ExamPoolTab";
 import { Header } from "./Header";
 import { LinksTab } from "./LinksTab";
 import { PreviewPanel } from "./PreviewPanel";
+import { ResourcesTab } from "./ResourcesTab";
 import { SettingsTab } from "./SettingsTab";
 import { StateLine } from "./StateLine";
 
@@ -22,7 +23,7 @@ interface Tab {
   body: (draft: DraftOut, node: DraftNodeOut) => ReactNode;
 }
 
-// In the board's order. Resources gets its editor in M4.8b.8.
+// In the board's order.
 const TABS: readonly Tab[] = [
   {
     key: "content",
@@ -36,7 +37,13 @@ const TABS: readonly Tab[] = [
       />
     ),
   },
-  { key: "resources", label: "Resources", body: () => null },
+  {
+    key: "resources",
+    label: "Resources",
+    body: (draft, node) => (
+      <ResourcesTab draftId={draft.public_id} node={node} editable={editable(draft)} />
+    ),
+  },
   { key: "exam", label: "Exam pool", body: (_, node) => <ExamPoolTab node={node} /> },
   {
     key: "links",
