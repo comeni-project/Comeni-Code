@@ -14,6 +14,8 @@ import { DraftsPage } from "./studio/drafts/DraftsPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
 import { TeamPage } from "./studio/team/TeamPage";
+import { PreviewPage } from "./studio/workbench/PreviewPage";
+import { WorkbenchPage } from "./studio/workbench/WorkbenchPage";
 
 function NotFound() {
   const { pathname } = useLocation();
@@ -49,6 +51,8 @@ export function App() {
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
         <Route path="drafts" element={<DraftsPage />} />
+        <Route path="drafts/:id" element={<WorkbenchPage />} />
+        <Route path="drafts/:id/preview" element={<PreviewPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="*" element={<p className="text-[15px] text-ink-2">Nothing lives here.</p>} />
       </Route>
