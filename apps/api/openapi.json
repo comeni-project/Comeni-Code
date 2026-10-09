@@ -2079,6 +2079,20 @@
             ],
             "title": "Right Option"
           },
+          "right_steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Right Steps"
+          },
           "stem": {
             "items": {
               "discriminator": {
@@ -2170,6 +2184,7 @@
           "given",
           "right",
           "right_option",
+          "right_steps",
           "value",
           "tolerance",
           "rationale"

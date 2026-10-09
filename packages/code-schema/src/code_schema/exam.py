@@ -93,9 +93,18 @@ def _read_stem(entry: Entry, name: str, *, file: str) -> str | None:
     if not isinstance(stem, str) or not stem.strip():
         entry.problem("CS0816", f"the exam question {name} has no stem", key="stem")
         return None
-    blocks, starts, problems = parse_blocks(stem, file=file)
     key = entry.at("stem") or entry.line or 1
     at = key if "\n" in stem.rstrip("\n") or stem.endswith("\n") else key - 1
+    # YAML writes such a line only as an escaped string, never as `stem: |` (#264).
+    for number, line in enumerate(stem.split("\n"), start=1):
+        if "\t" in line or line != line.rstrip(" "):
+            entry.problem(
+                "CS0823",
+                f"a line of {name}'s stem ends in spaces or holds a tab",
+                line=number + at,
+            )
+            return None
+    blocks, starts, problems = parse_blocks(stem, file=file)
     for problem in problems:
         entry.field.problems.append(replace(problem, line=(problem.line or 1) + at))
     if problems:

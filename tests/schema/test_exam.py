@@ -436,3 +436,28 @@ def test_a_wrong_option_naming_nothing_is_a_warning(tmp_path: Path) -> None:
 
 def test_plain_is_true_or_false(tmp_path: Path) -> None:
     assert "CS0822" in codes(tmp_path, STEM_POOL.replace("plain: true", "plain: sometimes"))
+
+
+def test_a_stem_line_ending_in_spaces_or_holding_a_tab_is_refused(tmp_path: Path) -> None:
+    """#264: YAML cannot write such a stem as `stem: |`, so it would land rewritten as an escaped
+    string; it is refused instead, as CS0415 refuses what the blocks cannot carry."""
+    spaced = STEM_POOL.replace(
+        "      One read has a wrong base in its middle.\n",
+        "      One read has a wrong base in its middle.  \n",
+    )
+    tabbed = STEM_POOL.replace("      ACGTAGCA\n", "      ACGT\tAGCA\n")
+    assert (
+        "tpm/exam.yaml:7: exam: CS0823 "
+        "a line of mid-read-error's stem ends in spaces or holds a tab"
+        in lines(tmp_path, spaced, try_field=TRY)
+    )
+    (tmp_path / "tabbed").mkdir()
+    assert "CS0823" in codes(tmp_path / "tabbed", tabbed)
+
+
+def test_every_stem_is_written_as_a_literal_block() -> None:
+    from code_schema.writer import write_exam_yaml
+
+    node = read_content(Path(__file__).resolve().parents[1] / "fixtures" / "salmon").nodes["tpm"]
+    written = write_exam_yaml(node)
+    assert written.count("    stem: |\n") == len(node.exam)

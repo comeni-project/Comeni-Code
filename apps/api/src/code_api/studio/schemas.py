@@ -318,10 +318,12 @@ class ReviewQuestionOut(Schema):
     stem: list[BlockOut]  # an exam question's stem; a try question has none
     options: list[str] | None
     unit: str
-    steps: list[str] | None  # an order's steps, sorted, so the right order never shows first
+    # An order's steps by their text, not as written; once answered, `right_steps` (#264).
+    steps: list[str] | None
     given: Any
     right: bool | None
     right_option: int | None
+    right_steps: list[str] | None
     value: float | int | str | None
     tolerance: float | int | None
     rationale: str | None
@@ -334,6 +336,7 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
     value: float | int | str | None = None
     texts: list[str] | None = None
     steps: list[str] | None = None
+    right_steps: list[str] | None = None
     unit = ""
     match question.answer:
         case ChoiceAnswer(options=options):
@@ -348,6 +351,8 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
                 value = typed
         case OrderAnswer(steps=written):
             steps = sorted(written, key=str.casefold)
+            if shown:
+                right_steps = list(written)
     exam = isinstance(question, ExamQuestion)
     return ReviewQuestionOut(
         id=answered.asked.id,
@@ -361,6 +366,7 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
         given=answered.given,
         right=answered.right,
         right_option=right_option,
+        right_steps=right_steps,
         value=value,
         tolerance=tolerance,
         rationale=question.rationale if shown else None,

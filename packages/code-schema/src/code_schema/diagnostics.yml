@@ -1602,6 +1602,19 @@ codes:
     explanation: |
       `plain` marks a distractor wrong on purpose (M4Q.3).
 
+  CS0823:
+    emitted_by: schema
+    concern: exam
+    says: a stem line ends in spaces or holds a tab
+    refuses: true
+    fix: |
+      Remove the spaces at the end of the line, and write spaces for a tab; for a line break, end
+      the line with a backslash.
+    explanation: |
+      exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that
+      ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it
+      is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
+
   # ── CW0001–CW0099 · routes ──────────────────────────────────────────────────────────────────
 
   CW0001:

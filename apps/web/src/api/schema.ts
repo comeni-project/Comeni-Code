@@ -584,6 +584,7 @@ export interface ReviewQuestionOut {
   rationale: string | null;
   right: boolean | null;
   right_option: number | null;
+  right_steps: string[] | null;
   stem: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
   steps: string[] | null;
   tolerance: number | null;

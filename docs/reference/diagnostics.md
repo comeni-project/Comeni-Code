@@ -1212,6 +1212,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** `plain` marks a distractor wrong on purpose (M4Q.3).
 
+#### CS0823 — a stem line ends in spaces or holds a tab
+
+*Refuses.*
+
+**Fix.** Remove the spaces at the end of the line, and write spaces for a tab; for a line break, end the line with a backslash.
+
+**Why.** exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes

@@ -1,6 +1,7 @@
 // An order try (M4.8c spec, M4Q.6): the steps shuffled, each moved with its own Move up and Move
-// down — the keyboard's way, no drag needed — and checked in the order they stand.
-import { useState } from "react";
+// down — the keyboard's way, no drag needed — and checked in the order they stand. Focus follows
+// the moved step, and a status line says where it now stands (#264).
+import { useEffect, useRef, useState } from "react";
 import { CHECK } from "./SequenceAnswer";
 
 /** A shuffle that never hands the steps back in their right order. */
@@ -26,10 +27,25 @@ export function OrderAnswer({
   onCheck: (order: string[]) => void;
 }) {
   const [order, setOrder] = useState(steps);
+  const [moved, setMoved] = useState<{ step: string; by: number } | null>(null);
+  const buttons = useRef(new Map<string, HTMLButtonElement>());
   const move = (at: number, by: number) => {
     const next = [...order];
     [next[at], next[at + by]] = [next[at + by] as string, next[at] as string];
     setOrder(next);
+    setMoved({ step: next[at + by] as string, by });
+  };
+  // A step moved to an end disables the button pressed; focus goes to its other one.
+  useEffect(() => {
+    if (moved === null) return;
+    const at = order.indexOf(moved.step);
+    const edge = moved.by < 0 ? at === 0 : at === order.length - 1;
+    const by = edge ? -moved.by : moved.by;
+    buttons.current.get(`${moved.step}:${by < 0 ? "up" : "down"}`)?.focus();
+  }, [moved, order]);
+  const keep = (key: string) => (button: HTMLButtonElement | null) => {
+    if (button === null) buttons.current.delete(key);
+    else buttons.current.set(key, button);
   };
   return (
     <div className="flex flex-col gap-2.5">
@@ -42,6 +58,7 @@ export function OrderAnswer({
             <span className="min-w-0 flex-1">{step}</span>
             <button
               type="button"
+              ref={keep(`${step}:up`)}
               aria-label={`Move ${step} up`}
               disabled={disabled || at === 0}
               onClick={() => move(at, -1)}
@@ -51,6 +68,7 @@ export function OrderAnswer({
             </button>
             <button
               type="button"
+              ref={keep(`${step}:down`)}
               aria-label={`Move ${step} down`}
               disabled={disabled || at === order.length - 1}
               onClick={() => move(at, 1)}
@@ -61,6 +79,11 @@ export function OrderAnswer({
           </li>
         ))}
       </ol>
+      <p role="status" className="sr-only">
+        {moved === null
+          ? ""
+          : `${moved.step}, step ${order.indexOf(moved.step) + 1} of ${order.length}`}
+      </p>
       <button
         type="button"
         disabled={disabled}

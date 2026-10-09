@@ -95,6 +95,7 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         "given": None,
         "right": None,
         "right_option": None,
+        "right_steps": None,
         "value": None,
         "tolerance": None,
         "rationale": None,
@@ -165,6 +166,23 @@ def test_submitting_without_a_resource_is_ca0212(ada: User) -> None:
     response = call(ada, "post", at(draft, "/submit"), {"revision": 1})
     assert code_of(response) == (422, "CA0212")
     assert [item["rule"] for item in response.json()["items"]] == ["a resource"]
+
+
+def test_an_order_shows_its_written_steps_once_answered(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    """#264: as a choice shows its right option once answered, an order shows its key."""
+    draft = ready(ada)
+    call(ada, "post", at(draft, "/submit"), {"revision": 2})
+    steps = TPM_KEYS["tpm-steps"]
+    assert isinstance(steps, list)
+    before = next(
+        q for q in call(grace, "get", at(draft, "/review")).json() if q["id"] == "tpm-steps"
+    )
+    assert before["right_steps"] is None
+    given = list(reversed(steps))
+    after = call(grace, "put", at(draft, "/review/answers/tpm-steps"), {"given": given}).json()
+    assert (after["right"], after["right_steps"]) == (False, steps)
 
 
 def test_a_reviewer_who_contributed_is_ca0213(ada: User, grace: User, ready: Ready) -> None:
