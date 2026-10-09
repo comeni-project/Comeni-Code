@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { withdrawDraft } from "../../api/drafts";
-import { queryKeys, useMe } from "../../api/queries";
+import { draftMoved, useMe } from "../../api/queries";
 import type { DraftOut } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
@@ -40,7 +40,7 @@ function Submitted({ draft }: { draft: DraftOut }) {
   const may = mayTakeBack(useMe().data?.user, draft);
   const withdraw = useMutation({
     mutationFn: () => withdrawDraft(draft.public_id),
-    onSuccess: (saved) => client.setQueryData(queryKeys.draft(draft.public_id), saved),
+    onSuccess: (saved) => draftMoved(client, saved),
   });
   return (
     <div className="flex flex-col gap-2">

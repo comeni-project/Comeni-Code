@@ -11,6 +11,7 @@ import { LeaveToSave } from "./LeaveToSave";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { useDraftEdit } from "./useDraftEdit";
+import { useLeaveWarning } from "./useLeaveWarning";
 
 export const KINDS = ["video", "reading", "tutorial", "exercise"] as const;
 const DISPLAYS = ["link", "embed"] as const;
@@ -46,6 +47,7 @@ export function ResourceCard(props: {
   const initial = at === null ? BLANK : (list[at] as ResourceIn);
   const [r, setR] = useState(initial);
   const edit = useDraftEdit(draftId);
+  useLeaveWarning(JSON.stringify(r) !== JSON.stringify(initial));
   const put = <K extends keyof ResourceIn>(key: K, value: ResourceIn[K]) =>
     setR({ ...r, [key]: value });
   const leave = () => {
@@ -62,80 +64,78 @@ export function ResourceCard(props: {
   };
   const refusal = refusalOf(edit.error);
   return (
-    <div className={CARD}>
-      <LeaveToSave onLeave={leave}>
-        <legend className="float-left flex w-full items-center justify-between gap-3 p-0">
-          <span className="text-[14.5px] font-semibold">
-            {at === null ? "New resource" : titleOf(initial)}
-          </span>
-        </legend>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Choice label="Kind" value={r.kind} options={KINDS} onChange={(v) => put("kind", v)} />
+    <LeaveToSave onLeave={leave} className={CARD}>
+      <legend className="float-left flex w-full items-center justify-between gap-3 p-0">
+        <span className="text-[14.5px] font-semibold">
+          {at === null ? "New resource" : titleOf(initial)}
+        </span>
+      </legend>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Choice label="Kind" value={r.kind} options={KINDS} onChange={(v) => put("kind", v)} />
+        <Text
+          label="Provider"
+          value={r.provider}
+          onChange={(v) => put("provider", v)}
+          hint="Its id in providers.yaml."
+          mono
+        />
+        <Choice
+          label="Display"
+          value={r.display}
+          options={DISPLAYS}
+          onChange={(v) => put("display", v)}
+          hint="Embed only where the provider allows."
+        />
+      </div>
+      <Text label="URL" value={r.url} onChange={(v) => put("url", v)} mono />
+      {r.kind === "video" && (
+        <div className="grid gap-3 sm:grid-cols-2">
           <Text
-            label="Provider"
-            value={r.provider}
-            onChange={(v) => put("provider", v)}
-            hint="Its id in providers.yaml."
+            label="Video id"
+            value={r.video ?? ""}
+            onChange={(v) => put("video", v)}
+            hint="youtube:<id>"
             mono
           />
-          <Choice
-            label="Display"
-            value={r.display}
-            options={DISPLAYS}
-            onChange={(v) => put("display", v)}
-            hint="Embed only where the provider allows."
+          <Text
+            label="Part"
+            value={r.part ?? ""}
+            onChange={(v) => put("part", v)}
+            hint="The part that covers this node."
           />
         </div>
-        <Text label="URL" value={r.url} onChange={(v) => put("url", v)} mono />
-        {r.kind === "video" && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Text
-              label="Video id"
-              value={r.video ?? ""}
-              onChange={(v) => put("video", v)}
-              hint="youtube:<id>"
-              mono
-            />
-            <Text
-              label="Part"
-              value={r.part ?? ""}
-              onChange={(v) => put("part", v)}
-              hint="The part that covers this node."
-            />
-          </div>
-        )}
-        <Text label="Covers" value={r.covers} onChange={(v) => put("covers", v)} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Text label="Licence" value={r.licence} onChange={(v) => put("licence", v)} />
-          <Choice
-            label="Level"
-            value={r.level}
-            options={LEVELS}
-            shown={shownLevel}
-            onChange={(v) => put("level", v as Level)}
-          />
-        </div>
-        {refusal !== null && (
-          <RefusalNotice
-            refusal={refusal}
-            onReload={() => {
-              edit.reset();
-              onReload();
-            }}
-          />
-        )}
-        <div className="flex justify-end gap-2">
-          {onRemove !== undefined && (
-            <button type="button" className={SECONDARY} onClick={onRemove}>
-              Remove
-            </button>
-          )}
-          <button type="button" className={SECONDARY} disabled={edit.isPending} onClick={leave}>
-            Done
+      )}
+      <Text label="Covers" value={r.covers} onChange={(v) => put("covers", v)} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Text label="Licence" value={r.licence} onChange={(v) => put("licence", v)} />
+        <Choice
+          label="Level"
+          value={r.level}
+          options={LEVELS}
+          shown={shownLevel}
+          onChange={(v) => put("level", v as Level)}
+        />
+      </div>
+      {refusal !== null && (
+        <RefusalNotice
+          refusal={refusal}
+          onReload={() => {
+            edit.reset();
+            onReload();
+          }}
+        />
+      )}
+      <div className="flex justify-end gap-2">
+        {onRemove !== undefined && (
+          <button type="button" className={SECONDARY} onClick={onRemove}>
+            Remove
           </button>
-        </div>
-      </LeaveToSave>
-    </div>
+        )}
+        <button type="button" className={SECONDARY} disabled={edit.isPending} onClick={leave}>
+          Done
+        </button>
+      </div>
+    </LeaveToSave>
   );
 }
 

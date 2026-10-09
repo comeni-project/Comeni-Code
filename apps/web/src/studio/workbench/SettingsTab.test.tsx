@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftOut } from "../../api/schema";
-import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
+import { type Answer, answering, holding, renderAt, signedInAs } from "../../test-kit";
 import { DRAFT, NODE } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
 
@@ -50,6 +50,36 @@ describe("SettingsTab", () => {
       title: "k-mers, counted",
       revision: 3,
     });
+  });
+
+  it("keeps what you typed while an earlier save was in flight, and sends it (#255)", async () => {
+    const fake = bench();
+    const release = holding(fake, "PATCH /api/studio/drafts/d-1/fields");
+    const title = await screen.findByLabelText("Title");
+    await userEvent.type(title, ", counted");
+    await userEvent.click(screen.getByLabelText("Claim"));
+    await userEvent.type(title, " twice");
+    await userEvent.click(screen.getByLabelText("Claim"));
+    release({
+      body: {
+        draft: { ...DRAFT, revision: 4, node: { ...NODE, title: "k-mers, counted" } },
+        warnings: [],
+      },
+    });
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(2));
+    expect(JSON.parse(String(writes(fake)[1]?.[1]?.body))).toEqual({
+      title: "k-mers, counted twice",
+      revision: 4,
+    });
+    expect(title).toHaveValue("k-mers, counted twice");
+  });
+
+  it("asks before the page goes while a field holds unsaved text", async () => {
+    bench();
+    await userEvent.type(await screen.findByLabelText("Title"), ", counted");
+    const going = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(going);
+    expect(going.defaultPrevented).toBe(true);
   });
 
   it("sends nothing when you leave a field unchanged", async () => {

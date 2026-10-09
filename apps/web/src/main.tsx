@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App";
+import { QUERIES } from "./api/queries";
 import "./styles/app.css";
 
 const root = document.getElementById("root");
@@ -16,8 +17,7 @@ for (const family of ['"Lexend Variable"', '"Geist Mono Variable"']) {
   void document.fonts.load(`1em ${family}`);
 }
 
-// A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
-const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60_000 } } });
+const queryClient = new QueryClient({ defaultOptions: { queries: QUERIES } });
 
 createRoot(root).render(
   <StrictMode>

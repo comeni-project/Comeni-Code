@@ -4,7 +4,7 @@
 // entry: Start's goals salmon and kallisto are not the Route page's goal salmon with kallisto known
 // (#137). The same question from two pages is one entry, on purpose: Start's preview is the route
 // with nothing known, which the Route page reuses.
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
 import { fetchProviders } from "./auth";
 import { getJson } from "./client";
@@ -12,8 +12,12 @@ import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts"
 import { fetchHealth } from "./health";
 import { fetchNode } from "./nodes";
 import { fetchRoute } from "./routes";
-import type { IndexOut } from "./schema";
+import type { DraftOut, IndexOut } from "./schema";
 import { fetchSearch } from "./search";
+
+// A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
+// The app and the tests share this.
+export const QUERIES = { staleTime: 60_000 };
 
 export const queryKeys = {
   health: ["health"] as const,
@@ -144,3 +148,10 @@ export const useRegions = () =>
     staleTime: Number.POSITIVE_INFINITY,
     retry: false,
   });
+
+/** A draft made, or moved to another state: its answer in place, and the Drafts lists asked again
+ * when next shown (#255). */
+export function draftMoved(client: QueryClient, draft: DraftOut) {
+  client.setQueryData(queryKeys.draft(draft.public_id), draft);
+  return client.invalidateQueries({ queryKey: ["drafts"] });
+}

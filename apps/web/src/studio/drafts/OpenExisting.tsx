@@ -1,21 +1,25 @@
 // Edit a node that exists (S19): find it with the learners' search, open a draft of its live
 // version. A node with a draft already is said in the API's words (CA0202).
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { useNavigate } from "react-router";
 import { openDraft } from "../../api/drafts";
-import { useSearch } from "../../api/queries";
+import { draftMoved, useSearch } from "../../api/queries";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { shownLevel } from "../../start/format";
 
 export function OpenExisting() {
   const id = useId();
   const navigate = useNavigate();
+  const client = useQueryClient();
   const [words, setWords] = useState("");
   const results = useSearch(words).data?.results ?? [];
   const open = useMutation({
     mutationFn: (nodeId: string) => openDraft({ node_id: nodeId }),
-    onSuccess: (draft) => navigate(`/studio/drafts/${draft.public_id}`),
+    onSuccess: (draft) => {
+      void draftMoved(client, draft);
+      navigate(`/studio/drafts/${draft.public_id}`);
+    },
   });
   return (
     <section className="flex flex-col gap-2.5 rounded-panel border border-border bg-surface px-5 py-[18px]">

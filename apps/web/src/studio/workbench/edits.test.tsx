@@ -7,7 +7,7 @@ import type { DraftOut } from "../../api/schema";
 import { answering } from "../../test-kit";
 import { deleteBlock, fields, insertBlock, moveBlock, sendEdit } from "./edits";
 import { refusalOf } from "./refusal";
-import { useDraftEdit } from "./useDraftEdit";
+import { follow, useDraftEdit } from "./useDraftEdit";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -64,6 +64,28 @@ describe("useDraftEdit", () => {
     expect(fake.mock.calls.every(([url]) => url.endsWith("/fields"))).toBe(true);
   });
 
+  it("runs two saves left at once one after another, the second on the first's revision (#255)", async () => {
+    const client = new QueryClient();
+    client.setQueryData(queryKeys.draft("d-1"), draft(3));
+    const fake = answering({
+      "PATCH /api/studio/drafts/d-1/fields": (init) => ({
+        body: { draft: draft(JSON.parse(String(init?.body)).revision + 1), warnings: [] },
+      }),
+    });
+    const { result } = renderHook(() => [useDraftEdit("d-1"), useDraftEdit("d-1")] as const, {
+      wrapper: wrapper(client),
+    });
+    await act(() =>
+      Promise.all([
+        result.current[0].mutateAsync(fields({ title: "a" })),
+        result.current[1].mutateAsync(fields({ claim: "b" })),
+      ]),
+    );
+    expect(fake.mock.calls.map(([, init]) => JSON.parse(String(init?.body)).revision)).toEqual([
+      3, 4,
+    ]);
+  });
+
   it("says a stale save is stale, keeping the API's sentence", async () => {
     const client = new QueryClient();
     client.setQueryData(queryKeys.draft("d-1"), draft(3));
@@ -82,5 +104,19 @@ describe("useDraftEdit", () => {
       items: [],
       stale: true,
     });
+  });
+});
+
+describe("follow", () => {
+  it("follows a block through inserts, moves and deletes as the API makes them", () => {
+    const text = { kind: "text", markdown: "x" } as const;
+    expect(follow(2, [insertBlock(0, text)])).toBe(3);
+    expect(follow(2, [insertBlock(3, text)])).toBe(2);
+    expect(follow(2, [moveBlock(0, 4)])).toBe(1);
+    expect(follow(2, [moveBlock(4, 0)])).toBe(3);
+    expect(follow(2, [moveBlock(2, 0)])).toBe(0);
+    expect(follow(2, [deleteBlock(0)])).toBe(1);
+    expect(follow(2, [deleteBlock(2)])).toBeNull();
+    expect(follow(2, [fields({ title: "a" }), insertBlock(0, text), deleteBlock(1)])).toBe(2);
   });
 });

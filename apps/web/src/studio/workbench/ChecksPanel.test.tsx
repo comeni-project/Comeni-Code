@@ -71,6 +71,24 @@ describe("Checks", () => {
     expect(asked(fake)).toBe(0);
   });
 
+  it("asks nothing on Reload once hidden again (#255)", async () => {
+    const fake = bench(FAILING, {
+      "PUT /api/studio/drafts/d-1/blocks/0": {
+        status: 409,
+        body: { detail: "This draft has moved on to revision 4.", code: "CA0203" },
+      },
+    });
+    await userEvent.click(await screen.findByRole("tab", { name: "Checks" }));
+    await vi.waitFor(() => expect(asked(fake)).toBe(1));
+    await userEvent.click(screen.getByRole("tab", { name: "Preview" }));
+    await saveBlock();
+    await userEvent.click(await screen.findByRole("button", { name: "Reload" }));
+    await vi.waitFor(() =>
+      expect(fake.mock.calls.filter(([url]) => url === "/api/studio/drafts/d-1")).toHaveLength(2),
+    );
+    expect(asked(fake)).toBe(1);
+  });
+
   it("asks once when shown, and lists the items and problems", async () => {
     const fake = bench();
     await userEvent.click(await screen.findByRole("tab", { name: "Checks" }));

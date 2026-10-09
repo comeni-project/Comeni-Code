@@ -10,7 +10,10 @@ import { StudioShell } from "./StudioShell";
 
 vi.mock("../layout/leave", () => ({ leave: vi.fn() }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 const studio = (path: string) =>
   renderAt(
@@ -91,6 +94,8 @@ describe("StudioShell", () => {
     });
     studio("/studio/team");
     expect(await screen.findByText("Team page")).toBeInTheDocument();
+    const later = Date.now() + 61_000; // past the 60s the app keeps an answer fresh
+    vi.spyOn(Date, "now").mockReturnValue(later);
     act(() => {
       focusManager.setFocused(false);
       focusManager.setFocused(true);

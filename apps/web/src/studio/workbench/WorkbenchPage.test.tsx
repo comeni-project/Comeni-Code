@@ -1,9 +1,10 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Route } from "react-router";
+import { Link, Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftOut } from "../../api/schema";
 import { answering, renderAt, signedInAs } from "../../test-kit";
+import { DraftsPage } from "../drafts/DraftsPage";
 import { DRAFT } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
 
@@ -47,6 +48,39 @@ describe("WorkbenchPage", () => {
         ([url, init]) => String(url).endsWith("/withdraw") && init?.method === "POST",
       ),
     ).toBe(true);
+  });
+
+  it("asks for the Drafts list again after a withdraw (#255)", async () => {
+    const submitted = { ...DRAFT, state: "submitted", submitted_revision: 3 };
+    const fake = answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts?state=open": { body: [] },
+      "GET /api/studio/index": { body: { regions: [] } },
+      "GET /api/studio/drafts/d-1": { body: submitted },
+      "POST /api/studio/drafts/d-1/withdraw": { body: { ...submitted, state: "open" } },
+    });
+    renderAt(
+      "/studio/drafts",
+      <>
+        <Route
+          path="/studio/drafts"
+          element={
+            <>
+              <Link to="/studio/drafts/d-1">The draft</Link>
+              <DraftsPage />
+            </>
+          }
+        />
+        <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />
+      </>,
+    );
+    const lists = () => fake.mock.calls.filter(([url]) => url === "/api/studio/drafts?state=open");
+    await vi.waitFor(() => expect(lists()).toHaveLength(1));
+    await userEvent.click(screen.getByRole("link", { name: "The draft" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Withdraw" }));
+    await screen.findByRole("button", { name: "Submit for review" });
+    await userEvent.click(screen.getByRole("link", { name: "Drafts" }));
+    await vi.waitFor(() => expect(lists()).toHaveLength(2));
   });
 
   it("names the problems of a draft whose files no longer read", async () => {

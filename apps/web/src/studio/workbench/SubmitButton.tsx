@@ -4,7 +4,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { submitDraft } from "../../api/drafts";
-import { queryKeys, useDraftChecks } from "../../api/queries";
+import { draftMoved, useDraftChecks } from "../../api/queries";
 import type { DraftOut } from "../../api/schema";
 import { PRIMARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
@@ -28,7 +28,7 @@ function BeforeYouSubmit({ draft, onClose }: { draft: DraftOut; onClose: () => v
   const checks = useDraftChecks(draft.public_id, true);
   const submit = useMutation({
     mutationFn: () => submitDraft(draft.public_id, draft.revision),
-    onSuccess: (sent) => client.setQueryData(queryKeys.draft(draft.public_id), sent),
+    onSuccess: (sent) => draftMoved(client, sent),
   });
   const refusal = refusalOf(submit.error);
   const left = checks.data?.items.filter((item) => !item.passed).length ?? 0;

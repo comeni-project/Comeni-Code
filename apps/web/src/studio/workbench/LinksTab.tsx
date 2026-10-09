@@ -1,10 +1,10 @@
 // Links (the WorkbenchLinks board, M4K.3): the three kinds v1 has, each its own list. Only needs
 // builds routes; a link names a node by its id.
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../../api/queries";
 import type { DraftNodeOut } from "../../api/schema";
 import { NOTE } from "./bench";
 import { LinkList } from "./LinkList";
+import { reloadDraft } from "./useDraftEdit";
 
 export function LinksTab({
   draftId,
@@ -16,7 +16,7 @@ export function LinksTab({
   editable: boolean;
 }) {
   const client = useQueryClient();
-  const reload = () => void client.refetchQueries({ queryKey: queryKeys.draft(draftId) });
+  const reload = () => void reloadDraft(client, draftId);
   const common = { draftId, editable, onReload: reload };
   return (
     <>

@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useId, useState } from "react";
 import { discardDraft } from "../../api/drafts";
-import { queryKeys, useMe, useRegions } from "../../api/queries";
+import { draftMoved, useMe, useRegions } from "../../api/queries";
 import type { DraftNodeOut, DraftOut, FieldsIn, Level } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
@@ -179,7 +179,7 @@ function Discard({ draft }: { draft: DraftOut }) {
   const [asking, setAsking] = useState(false);
   const discard = useMutation({
     mutationFn: () => discardDraft(draft.public_id),
-    onSuccess: (gone) => client.setQueryData(queryKeys.draft(draft.public_id), gone),
+    onSuccess: (gone) => draftMoved(client, gone),
   });
   if (draft.state !== "open") return null;
   return (

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StudioResourceOut } from "../../api/schema";
-import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
+import { type Answer, answering, holding, renderAt, signedInAs } from "../../test-kit";
 import { DRAFT, NODE } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
 
@@ -95,6 +95,40 @@ describe("ResourcesTab", () => {
     );
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     expect(JSON.parse(String(writes(fake)[0]?.[1]?.body)).resources).toEqual([]);
+  });
+
+  it("removes from the list as saved, keeping an edit still in flight (#255)", async () => {
+    const both = { ...DRAFT, node: { ...NODE, resources: [KHAN, OPENSTAX] } };
+    const edited = { ...KHAN, covers: "Why reads are cut." };
+    const fake = answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts/d-1": { body: both },
+      "PUT /api/studio/drafts/d-1/resources": savedAs,
+    });
+    renderAt(
+      "/studio/drafts/d-1?tab=resources",
+      <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />,
+    );
+    const release = holding(fake, "PUT /api/studio/drafts/d-1/resources");
+    await userEvent.click(await screen.findByRole("button", { name: "Edit Video · khan-academy" }));
+    const covers = screen.getByLabelText("Covers");
+    await userEvent.clear(covers);
+    await userEvent.type(covers, edited.covers);
+    await userEvent.click(screen.getByRole("button", { name: "Remove Reading · openstax" }));
+    release({
+      body: { draft: { ...both, revision: 4, node: { ...NODE, resources: [edited, OPENSTAX] } } },
+    });
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(2));
+    expect(JSON.parse(String(writes(fake)[1]?.[1]?.body)).resources).toEqual([edited]);
+  });
+
+  it("asks before the page goes while a card holds unsaved changes", async () => {
+    bench();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit Video · khan-academy" }));
+    await userEvent.type(screen.getByLabelText("Covers"), " More.");
+    const going = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(going);
+    expect(going.defaultPrevented).toBe(true);
   });
 
   it("keeps the card's values and names the problems of a refused save", async () => {

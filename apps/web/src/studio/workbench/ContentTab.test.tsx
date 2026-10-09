@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftNodeOut } from "../../api/schema";
-import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
+import { type Answer, answering, holding, renderAt, signedInAs } from "../../test-kit";
 import { DRAFT, NODE } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
 
@@ -93,6 +93,54 @@ describe("ContentTab", () => {
       title: "Not every k works",
       markdown: "Too small and k-mers repeat.",
     });
+  });
+
+  it("opens the block you chose once an insert lands, and saves it in its new place (#255)", async () => {
+    const alpha = { kind: "text", markdown: "Alpha." } as const;
+    const beta = { kind: "text", markdown: "Beta." } as const;
+    const added = { kind: "text", markdown: "New." } as const;
+    const fake = bench({}, [alpha, beta]);
+    const release = holding(fake, "POST /api/studio/drafts/d-1/blocks");
+    const [top] = await screen.findAllByRole("button", { name: "Add a text block" });
+    await userEvent.click(top as HTMLElement);
+    await userEvent.type(screen.getByLabelText("Markdown"), "New.");
+    await userEvent.click(screen.getByRole("button", { name: "Edit block 2" })); // Beta, mid-save
+    release(saved(4, [added, alpha, beta]));
+    await vi.waitFor(() => expect(screen.getByLabelText("Markdown")).toHaveValue("Beta."));
+    await userEvent.type(screen.getByLabelText("Markdown"), " More.");
+    await userEvent.click(screen.getByRole("heading", { level: 1 }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(2));
+    expect(writes(fake)[1]?.[0]).toBe("/api/studio/drafts/d-1/blocks/2");
+  });
+
+  it("stays on a block whose save was refused when you pick another tab (#255)", async () => {
+    bench({
+      "PUT /api/studio/drafts/d-1/blocks/0": {
+        status: 409,
+        body: { detail: "This draft has moved on to revision 4.", code: "CA0203" },
+      },
+    });
+    await userEvent.click(await screen.findByRole("button", { name: /Edit block 1/ }));
+    await userEvent.type(screen.getByLabelText("Markdown"), " More.");
+    await userEvent.click(screen.getByRole("tab", { name: "Resources" }));
+    expect(await screen.findByText(/Someone else saved this draft/)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Content" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText("Markdown")).toHaveValue(
+      "The trick is to stop treating reads as units. More.",
+    );
+  });
+
+  it("goes to the tab you picked once the block's save lands", async () => {
+    bench({ "PUT /api/studio/drafts/d-1/blocks/0": saved(4) });
+    await userEvent.click(await screen.findByRole("button", { name: /Edit block 1/ }));
+    await userEvent.type(screen.getByLabelText("Markdown"), " More.");
+    await userEvent.click(screen.getByRole("tab", { name: "Resources" }));
+    await vi.waitFor(() =>
+      expect(screen.getByRole("tab", { name: "Resources" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      ),
+    );
   });
 
   it("keeps the text and offers Reload when someone else saved first", async () => {

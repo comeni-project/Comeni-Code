@@ -1,10 +1,10 @@
 // New node (S19): its id and fields; the API opens a draft of it and the workbench opens.
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Field } from "../../account/Field";
 import { openDraft } from "../../api/drafts";
-import { useRegions } from "../../api/queries";
+import { draftMoved, useRegions } from "../../api/queries";
 import type { Level } from "../../api/schema";
 import { PRIMARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
@@ -24,6 +24,7 @@ const LABEL = "flex flex-col gap-1.5 text-[13px] font-medium";
 
 export function NewNodeForm() {
   const navigate = useNavigate();
+  const client = useQueryClient();
   const regions = useRegions().data ?? [];
   const [id, setId] = useState("");
   const [title, setTitle] = useState("");
@@ -38,7 +39,10 @@ export function NewNodeForm() {
         node_id: id,
         new: { title, claim, region: chosen, level, minutes: Number(minutes) },
       }),
-    onSuccess: (draft) => navigate(`/studio/drafts/${draft.public_id}`),
+    onSuccess: (draft) => {
+      void draftMoved(client, draft);
+      navigate(`/studio/drafts/${draft.public_id}`);
+    },
   });
   const refusal = refusalOf(create.error);
   return (

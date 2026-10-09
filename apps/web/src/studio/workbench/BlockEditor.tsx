@@ -1,8 +1,7 @@
 // One block, open (M4K.3): edited here, saved when you leave it or press Done. Unchanged, or new
 // and left empty, it closes with no request; refused, it stays open with what you typed.
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { queryKeys } from "../../api/queries";
+import { useState } from "react";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
@@ -13,7 +12,8 @@ import { MarkdownField } from "./MarkdownField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { TryEditor } from "./TryEditor";
-import { useDraftEdit } from "./useDraftEdit";
+import { reloadDraft, useDraftEdit } from "./useDraftEdit";
+import { useLeaveWarning } from "./useLeaveWarning";
 
 export interface BlockEditorProps {
   draftId: string;
@@ -56,46 +56,37 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
   };
   const refusal = refusalOf(edit.error);
   return (
-    <div className="rounded-[10px] border-2 border-sel bg-surface p-3.5 shadow-[0_0_0_4px_var(--sel-soft)]">
-      <LeaveToSave onLeave={commit}>
-        <span className="font-mono text-[11px] text-ink-3">
-          {insert ? `new ${block.kind}` : `${block.kind} · block ${at + 1}`}
-        </span>
-        {block.kind === "text" && (
-          <MarkdownField
-            value={block.markdown}
-            onChange={(markdown) => setBlock({ ...block, markdown })}
-          />
-        )}
-        {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
-        {block.kind === "try" && asked !== undefined && (
-          <TryEditor question={asked} onChange={setAsked} />
-        )}
-        {refusal !== null && (
-          <RefusalNotice
-            refusal={refusal}
-            onReload={() => {
-              edit.reset();
-              void client.refetchQueries({ queryKey: queryKeys.draft(draftId) });
-            }}
-          />
-        )}
-        <div className="flex justify-end">
-          <button type="button" className={SECONDARY} disabled={edit.isPending} onClick={commit}>
-            Done
-          </button>
-        </div>
-      </LeaveToSave>
-    </div>
+    <LeaveToSave
+      onLeave={commit}
+      className="flex flex-col gap-2.5 rounded-[10px] border-2 border-sel bg-surface p-3.5 shadow-[0_0_0_4px_var(--sel-soft)]"
+    >
+      <span className="font-mono text-[11px] text-ink-3">
+        {insert ? `new ${block.kind}` : `${block.kind} · block ${at + 1}`}
+      </span>
+      {block.kind === "text" && (
+        <MarkdownField
+          value={block.markdown}
+          onChange={(markdown) => setBlock({ ...block, markdown })}
+        />
+      )}
+      {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
+      {block.kind === "try" && asked !== undefined && (
+        <TryEditor question={asked} onChange={setAsked} />
+      )}
+      {refusal !== null && (
+        <RefusalNotice
+          refusal={refusal}
+          onReload={() => {
+            edit.reset();
+            void reloadDraft(client, draftId);
+          }}
+        />
+      )}
+      <div className="flex justify-end">
+        <button type="button" className={SECONDARY} disabled={edit.isPending} onClick={commit}>
+          Done
+        </button>
+      </div>
+    </LeaveToSave>
   );
-}
-
-/** While something typed is not saved, the browser asks before the page goes. */
-function useLeaveWarning(unsaved: boolean) {
-  useEffect(() => {
-    if (!unsaved) return;
-    const ask = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", ask);
-    return () => window.removeEventListener("beforeunload", ask);
-  }, [unsaved]);
 }

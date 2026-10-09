@@ -2,7 +2,6 @@
 // every field, the others closed with Edit and Remove. Every change sends the whole list.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { queryKeys } from "../../api/queries";
 import type { DraftNodeOut, Level, ResourceIn, StudioResourceOut } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import { NOTE } from "./bench";
@@ -10,7 +9,7 @@ import { resources } from "./edits";
 import { RefusalNotice } from "./RefusalNotice";
 import { ResourceCard, titleOf } from "./ResourceCard";
 import { refusalOf } from "./refusal";
-import { useDraftEdit } from "./useDraftEdit";
+import { reloadDraft, useAfterSaves, useDraftEdit } from "./useDraftEdit";
 
 const toIn = (r: StudioResourceOut): ResourceIn => ({ ...r, level: r.level as Level });
 
@@ -26,12 +25,18 @@ export function ResourcesTab({
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
   const [open, setOpen] = useState<number | "new" | null>(null);
+  const after = useAfterSaves(draftId);
   const list = node.resources.map(toIn);
-  const reload = () => void client.refetchQueries({ queryKey: queryKeys.draft(draftId) });
-  const remove = (at: number) => {
-    setOpen(null);
-    edit.mutate(resources(list.filter((_, i) => i !== at)));
-  };
+  const reload = () => void reloadDraft(client, draftId);
+  // Opening a card or removing one waits for a save in flight; a removal is made from the list as
+  // saved, so it keeps the edit that just landed (#255).
+  const show = (which: number | "new") => after(() => setOpen(which));
+  const remove = (at: number) =>
+    after((draft) => {
+      setOpen(null);
+      const saved = (draft.node?.resources ?? []).map(toIn);
+      edit.mutate(resources(saved.filter((_, i) => i !== at)));
+    });
   const close = (which: number | "new") => () => setOpen((now) => (now === which ? null : now));
   const refusal = refusalOf(edit.error);
   return (
@@ -46,7 +51,7 @@ export function ResourcesTab({
             type="button"
             className={`${SECONDARY} text-sel`}
             disabled={open === "new"}
-            onClick={() => setOpen("new")}
+            onClick={() => show("new")}
           >
             + Resource
           </button>
@@ -87,7 +92,7 @@ export function ResourcesTab({
                   type="button"
                   aria-label={`Edit ${titleOf(r)}`}
                   className={SECONDARY}
-                  onClick={() => setOpen(at)}
+                  onClick={() => show(at)}
                 >
                   Edit
                 </button>

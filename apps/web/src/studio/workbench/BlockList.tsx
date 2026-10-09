@@ -3,16 +3,15 @@
 // leaves the first, which saves it. A draft that is not open shows the rows alone.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { queryKeys } from "../../api/queries";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { BlockEditor } from "./BlockEditor";
-import { deleteBlock, moveBlock } from "./edits";
+import { deleteBlock, type Edit, moveBlock } from "./edits";
 import { firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
-import { useDraftEdit } from "./useDraftEdit";
+import { follow, reloadDraft, useAfterSaves, useDraftEdit } from "./useDraftEdit";
 
 /** Which editor is open: an existing block's, or a new block's at a place. */
 export interface Opened {
@@ -46,13 +45,20 @@ interface Props {
   node: DraftNodeOut;
   editable: boolean;
   opened: Opened | null;
-  open: (opened: Opened) => void;
+  open: (at: number, make: (node: DraftNodeOut, at: number) => Opened) => void;
   close: (opened: Opened) => void;
 }
 
 export function BlockList({ draftId, nodeId, node, editable, opened, open, close }: Props) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
+  const after = useAfterSaves(draftId);
+  // A move or delete waits for a save in flight and acts on the blocks where they now are (#255).
+  const act = (places: number[], make: (...at: number[]) => Edit) =>
+    after((_, landed) => {
+      const now = places.map((at) => follow(at, landed));
+      if (now.every((at) => at !== null)) edit.mutate(make(...(now as number[])));
+    });
   const [confirming, setConfirming] = useState<number | null>(null);
   const last = node.blocks.length - 1;
   const refusal = refusalOf(edit.error);
@@ -78,7 +84,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
               key={kind}
               type="button"
               aria-label={label}
-              onClick={() => open(fresh(at, kind))}
+              onClick={() => open(at, (now, place) => fresh(now, place, kind))}
               className="rounded-[6px] border border-border-2 bg-surface px-2 py-0.5 font-mono text-[11.5px] text-sel"
             >
               + {kind}
@@ -88,9 +94,9 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
         <span className="h-px flex-1 bg-border" />
       </div>
     );
-  const fresh = (at: number, kind: (typeof ADDS)[number][0]): Opened => {
+  const fresh = (now: DraftNodeOut, at: number, kind: (typeof ADDS)[number][0]): Opened => {
     if (kind !== "try") return { at, fresh: BLANK[kind] };
-    const question = newQuestion(nodeId, node.questions);
+    const question = newQuestion(nodeId, now.questions);
     return { at, fresh: { kind: "try", question: question.id }, question };
   };
   const freshAt = (at: number) =>
@@ -103,7 +109,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
           refusal={refusal}
           onReload={() => {
             edit.reset();
-            void client.refetchQueries({ queryKey: queryKeys.draft(draftId) });
+            void reloadDraft(client, draftId);
           }}
         />
       )}
@@ -120,7 +126,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
               onDragOver={(e) => editable && e.preventDefault()}
               onDrop={(e) => {
                 const from = Number(e.dataTransfer.getData("text/plain"));
-                if (editable && from !== at) edit.mutate(moveBlock(from, at));
+                if (editable && from !== at) act([from, at], moveBlock);
               }}
               className="flex items-center gap-2.5 rounded-[10px] border border-border bg-surface px-3 py-[9px]"
             >
@@ -150,7 +156,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                     className="font-semibold text-open"
                     onClick={() => {
                       setConfirming(null);
-                      edit.mutate(deleteBlock(at));
+                      act([at], deleteBlock);
                     }}
                   >
                     Delete
@@ -166,7 +172,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                     type="button"
                     aria-label={`Edit block ${n}`}
                     className={TOOL}
-                    onClick={() => open(existing(node, at))}
+                    onClick={() => open(at, existing)}
                   >
                     Edit
                   </button>
@@ -175,7 +181,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                     aria-label={`Move block ${n} up`}
                     className={TOOL}
                     disabled={at === 0 || edit.isPending}
-                    onClick={() => edit.mutate(moveBlock(at, at - 1))}
+                    onClick={() => act([at], (now) => moveBlock(now, now - 1))}
                   >
                     ↑
                   </button>
@@ -184,7 +190,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                     aria-label={`Move block ${n} down`}
                     className={TOOL}
                     disabled={at === last || edit.isPending}
-                    onClick={() => edit.mutate(moveBlock(at, at + 1))}
+                    onClick={() => act([at], (now) => moveBlock(now, now + 1))}
                   >
                     ↓
                   </button>

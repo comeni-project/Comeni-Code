@@ -1,5 +1,6 @@
 // S3 · Workbench (M4.8b spec, M4K.1): one draft, opened with one GET. The header, the draft's state,
 // the tabs (kept in the address as ?tab=) and the preview; each tab's editor is its own file.
+import { useIsMutating } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
@@ -14,6 +15,8 @@ import { PreviewPanel } from "./PreviewPanel";
 import { ResourcesTab } from "./ResourcesTab";
 import { SettingsTab } from "./SettingsTab";
 import { StateLine } from "./StateLine";
+import { useAfterSaves } from "./useDraftEdit";
+import { useLeaveWarning } from "./useLeaveWarning";
 
 /** A draft takes edits only while open and while its files read (M4K.1). */
 export const editable = (draft: DraftOut): boolean => draft.state === "open" && draft.node !== null;
@@ -72,6 +75,8 @@ export function WorkbenchPage() {
 
 function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
   const [params, setParams] = useSearchParams();
+  const after = useAfterSaves(draft.public_id);
+  useLeaveWarning(useIsMutating({ mutationKey: ["draft-edit", draft.public_id] }) > 0);
   const tab = TABS.find((t) => t.key === params.get("tab")) ?? (TABS[0] as Tab);
   return (
     <>
@@ -84,7 +89,10 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
             type="button"
             role="tab"
             aria-selected={t === tab}
-            onClick={() => setParams(t.key === "content" ? {} : { tab: t.key }, { replace: true })}
+            // Another tab waits for a save in flight, and stays here if it is refused (#255).
+            onClick={() =>
+              after(() => setParams(t.key === "content" ? {} : { tab: t.key }, { replace: true }))
+            }
             className={`px-4 py-2 text-[13.5px] ${
               t === tab ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--ink)]" : "text-ink-2"
             }`}
