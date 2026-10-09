@@ -79,21 +79,31 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
       <div className="group flex items-center gap-2 py-0.5">
         <span className="h-px flex-1 bg-border" />
         <span className="flex gap-1.5 opacity-40 group-hover:opacity-100 group-focus-within:opacity-100">
-          {ADDS.map(([kind, label]) => (
-            <button
-              key={kind}
-              type="button"
-              aria-label={label}
-              onClick={() => open(at, (now, place) => fresh(now, place, kind))}
-              className="rounded-[6px] border border-border-2 bg-surface px-2 py-0.5 font-mono text-[11.5px] text-sel"
-            >
-              + {kind}
-            </button>
-          ))}
+          {ADDS.map(([kind, label]) => {
+            const beside = kind === "text" ? besideText(at) : undefined;
+            return (
+              <button
+                key={kind}
+                type="button"
+                aria-label={beside === undefined ? label : `Add text to block ${beside + 1}`}
+                onClick={() =>
+                  beside === undefined
+                    ? open(at, (now, place) => fresh(now, place, kind))
+                    : open(beside, existing)
+                }
+                className="rounded-[6px] border border-border-2 bg-surface px-2 py-0.5 font-mono text-[11.5px] text-sel"
+              >
+                + {kind}
+              </button>
+            );
+          })}
         </span>
         <span className="h-px flex-1 bg-border" />
       </div>
     );
+  // Two texts side by side are one block (#258): + text beside a text block opens that block,
+  // the one above first.
+  const besideText = (at: number) => [at - 1, at].find((i) => node.blocks[i]?.kind === "text");
   const fresh = (now: DraftNodeOut, at: number, kind: (typeof ADDS)[number][0]): Opened => {
     if (kind !== "try") return { at, fresh: BLANK[kind] };
     const question = newQuestion(nodeId, now.questions);

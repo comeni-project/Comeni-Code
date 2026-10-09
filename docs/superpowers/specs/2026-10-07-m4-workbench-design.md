@@ -178,5 +178,6 @@ deviation is a ruling, listed here with what it costs if wrong.
   differences: the Drafts form's Minutes is narrow and its finder has no magnifier; each link
   list's hint sits under its heading; the preview has no frame header; at 1440 *+ Resource* wraps
   under its note.
-- **Open:** adjacent text blocks are merged by code-schema with no paragraph break between them,
-  so *+ text* beside a text block runs its text into the neighbour's (#258, protocol).
+- **Adjacent texts (#258, decided by the operator, option 1).** code-schema joins text blocks
+  that end up side by side with a blank line, so they stay paragraphs; *+ text* beside a text
+  block opens that block (the one above first) instead of adding a block the body would merge.

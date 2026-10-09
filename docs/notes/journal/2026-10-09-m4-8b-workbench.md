@@ -45,10 +45,8 @@ walking against the API caught both.
 
 ## What is next
 
-1. **#258 (protocol)**: adjacent text blocks merge with no paragraph break; the operator chooses
-   an option, then it is built (recommended: join with a blank line, and *+ text* beside a text
-   block opens that block).
-2. The pull request for this branch, merged on the operator's yes; then compact this entry
-   (M4.8b closes) and update #74.
-3. M4.8c, the exam pool (#222): its brainstorm against the QuestionBuilder board.
-4. The deferred minors, listed in the pull request.
+1. The pull request (#259), merged on the operator's yes; then compact this entry (M4.8b closes)
+   and update #74. #258 was decided (option 1: a blank line between merged texts, *+ text* beside
+   a text block opens it) and built on the branch.
+2. M4.8c, the exam pool (#222): its brainstorm against the QuestionBuilder board.
+3. The deferred minors, listed in the pull request.

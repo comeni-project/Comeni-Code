@@ -57,7 +57,13 @@ describe("ContentTab", () => {
   });
 
   it("adds a text block on leaving it, and sends nothing for one closed empty", async () => {
-    const fake = bench({ "POST /api/studio/drafts/d-1/blocks": saved(4) });
+    const caveat = {
+      kind: "callout",
+      callout: "caveat",
+      title: "Mind k",
+      markdown: "Pick k.\n",
+    } as const;
+    const fake = bench({ "POST /api/studio/drafts/d-1/blocks": saved(4) }, [caveat]);
     const add = () => screen.getAllByRole("button", { name: "Add a text block" })[0] as HTMLElement;
     await screen.findByRole("heading", { level: 1 });
     await userEvent.click(add());
@@ -96,7 +102,7 @@ describe("ContentTab", () => {
   });
 
   it("opens the block you chose once an insert lands, and saves it in its new place (#255)", async () => {
-    const alpha = { kind: "text", markdown: "Alpha." } as const;
+    const alpha = { kind: "callout", callout: "caveat", title: "Alpha", markdown: "A.\n" } as const;
     const beta = { kind: "text", markdown: "Beta." } as const;
     const added = { kind: "text", markdown: "New." } as const;
     const fake = bench({}, [alpha, beta]);
@@ -141,6 +147,18 @@ describe("ContentTab", () => {
         "true",
       ),
     );
+  });
+
+  it("opens the text block beside a + text, not a new block (#258)", async () => {
+    const fake = bench();
+    const [above] = await screen.findAllByRole("button", { name: "Add text to block 1" });
+    await userEvent.click(above as HTMLElement);
+    expect(screen.getByLabelText("Markdown")).toHaveValue(
+      "The trick is to stop treating reads as units.",
+    );
+    expect(screen.getByText("text · block 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Add a text block" })).toBeNull();
+    expect(writes(fake)).toHaveLength(0);
   });
 
   it("keeps the text and offers Reload when someone else saved first", async () => {
