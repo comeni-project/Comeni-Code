@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-07** (M4.8a closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-09** (M4.8b closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
@@ -15,8 +15,8 @@ line is in [the archive](journal/archive/).
   roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218).
   (2026-09-29 to 2026-10-06)
 - **M4.8 (#126) is three slices**, each with its own spec, plan and pull request: M4.8a sign-in and
-  the team (#220, done in #236), **M4.8b the workbench (#221) is next**, M4.8c the exam pool
-  (#222). (2026-10-07)
+  the team (#220, done in #236), M4.8b the workbench (#221, done in #259), **M4.8c the exam pool
+  (#222) is next**, against the QuestionBuilder board. (2026-10-07, 2026-10-09)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -50,6 +50,8 @@ line is in [the archive](journal/archive/).
   and speaks GitHub annotations with `--format github`. (2026-09-18, 2026-10-05)
 - **Edits are pure** (`code_schema.edits`, `Node` in, `Node` out), and `parse_node_files` reads a
   folder or a draft by one path. `minutes` is 1 to 600 (CS0023, #175). (2026-10-05)
+- **A text block ends its last line** (#173); text blocks side by side are one block, joined with
+  a blank line so they stay paragraphs (#258). A try option has no `misconception` (#257). (10-09)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
 - **A question composes an answer** (`ChoiceAnswer | NumberAnswer`) in a `TryQuestion` (hints) or
@@ -146,8 +148,11 @@ line is in [the archive](journal/archive/).
   lists; `NotYet` answers every way in without an invite; `safeNext` keeps return addresses on the
   site; signing out is a full load of Start (`layout/leave.ts`). (2026-10-07)
 - **Studio's shell has one gate**: `STUDIO_PAGES` (`studio/pages.ts`) lists each page and its role;
-  the rail draws what a role can open and the gate checks the same entry. Team (S14) is the first
-  page. (2026-10-07)
+  the rail draws what a role can open and the gate checks the same entry. Drafts (S19) comes
+  first, then Team (S14). (2026-10-07, 2026-10-09)
+- **The workbench (S3)**: each edit is an `edits.ts` command sent by `useDraftEdit` (scoped per
+  draft, its answer cached; one GET to open, one write per save); editors save when left; a click
+  during a save waits for it (`useAfterSaves`, #255); Checks asked only while shown. (2026-10-09)
 - **`sendJson` is the one write** (CSRF header; only a write's 204 is empty); `auth.ts` wraps
   allauth, `accounts.ts` the accounts API and `canActAs`; `useMe` is the one *who am I*;
   `test-kit.tsx` answers fetch by method and path in tests. (2026-10-07)
@@ -188,7 +193,8 @@ line is in [the archive](journal/archive/).
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203, #204, #216, #217, #234 and #235 (M4.8a's account menu and smaller ones); large floats given as answers read back from jsonb as integers
+  #203, #204, #216, #217, #234, #235 (M4.8a's account menu and smaller ones) and #260 (M4.8b's);
+  large floats given as answers read back from jsonb as integers
   (#188). (2026-10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
@@ -230,6 +236,8 @@ line is in [the archive](journal/archive/).
 - **This Chrome runs Dark Reader**, which whitens every page: compare colours with headless
   `google-chrome-stable --user-data-dir=<scratch>` (the default profile is held by the open
   browser). **`vite preview` serves 404 after a rebuild**: restart it. (2026-10-07)
+- **Stubbed web tests never meet code-schema's rules**: walk against the API (#256, #257), with
+  `puppeteer-core` over headless Chrome's debugging port if Claude in Chrome is away. (10-09)
 - **React Router moves inside a transition**: a query refreshed right after `navigate` can re-render
   the old page first (Studio's gate redirected a sign-out). (2026-10-07)
 - **tarfile's `data` filter strips a leading `/` instead of refusing it**: check member names
