@@ -1108,6 +1108,37 @@ codes:
     explanation: |
       Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
 
+  CS0416:
+    emitted_by: schema
+    concern: body
+    says: a sequence block holds something other than letters
+    refuses: true
+    fix: |
+      Keep only the letters of the sequence, with spaces or line breaks between groups.
+    explanation: |
+      A sequence block draws bases or residues in groups of ten; anything else belongs in text
+      (M4.8c spec, M4Q.2).
+
+  CS0417:
+    emitted_by: schema
+    concern: body
+    says: a sequence block is empty
+    refuses: true
+    fix: |
+      Write the sequence between the fences, or remove the block.
+    explanation: |
+      An empty sequence block draws nothing (M4Q.2).
+
+  CS0418:
+    emitted_by: schema
+    concern: body
+    says: a sequence block has a title
+    refuses: true
+    fix: |
+      Put what the sequence is in the text before the block.
+    explanation: |
+      A sequence block holds letters only; the prose around it says what they are (M4Q.2).
+
   # ── CS0500–CS0599 · the graph ───────────────────────────────────────────────────────────────
 
   CS0501:

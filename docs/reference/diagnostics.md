@@ -828,6 +828,30 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
 
+#### CS0416 — a sequence block holds something other than letters
+
+*Refuses.*
+
+**Fix.** Keep only the letters of the sequence, with spaces or line breaks between groups.
+
+**Why.** A sequence block draws bases or residues in groups of ten; anything else belongs in text (M4.8c spec, M4Q.2).
+
+#### CS0417 — a sequence block is empty
+
+*Refuses.*
+
+**Fix.** Write the sequence between the fences, or remove the block.
+
+**Why.** An empty sequence block draws nothing (M4Q.2).
+
+#### CS0418 — a sequence block has a title
+
+*Refuses.*
+
+**Fix.** Put what the sequence is in the text before the block.
+
+**Why.** A sequence block holds letters only; the prose around it says what they are (M4Q.2).
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have

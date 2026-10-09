@@ -2,9 +2,10 @@
 
 body.md is Markdown with MyST colon-fence directives at the top level: `:::{try} <id>` then `:::`
 places a question; `:::{misconception|caveat|convention} <title>`, Markdown, then `:::` is a
-callout. Everything between directives is one text block, so blocks read and written back give the
-same text, byte for byte. Inside a code fence a directive is prose. W5.1's other blocks are refused
-by name until the phase that builds them.
+callout; `:::{sequence}`, letters, then `:::` is a sequence (M4.8c spec, M4Q.2). Everything between
+directives is one text block, so blocks read and written back give the same text, byte for byte.
+Inside a code fence a directive is prose. W5.1's other blocks are refused by name until the phase
+that builds them.
 """
 
 from __future__ import annotations
@@ -33,6 +34,7 @@ _OPTION = re.compile(r"^:[A-Za-z][\w-]*:")
 _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 _MARKDOC = re.compile(r"^\s*\{%.*%\}\s*$")
 _OLD_TRY = re.compile(r"^\s*\{%\s*try\s+([a-z0-9-]+)\s*%\}\s*$")
+_LETTERS = re.compile(r"^[A-Za-z\s]*$")
 
 
 @dataclass(frozen=True)
@@ -52,7 +54,25 @@ class Callout:
     markdown: str
 
 
-Block = Text | Try | Callout
+@dataclass(frozen=True)
+class SequenceBlock:
+    """DNA, RNA or protein letters, drawn monospaced in groups of ten (M4.8c spec, M4Q.2)."""
+
+    letters: str
+
+
+Block = Text | Try | Callout | SequenceBlock
+
+
+def block_text(block: Block) -> str:
+    """What a block carries as text, whatever its kind: nothing for a try."""
+    match block:
+        case Text(markdown=markdown) | Callout(markdown=markdown):
+            return markdown
+        case SequenceBlock(letters=letters):
+            return letters
+        case Try():
+            return ""
 
 
 def _content(line: str) -> str:
@@ -189,6 +209,20 @@ def parse_blocks(
                 blocks.append(Try(argument))
                 starts.append(number)
             continue
+        if name == "sequence":
+            letters = "".join(inner)
+            if argument:
+                problem("CS0418", ":::{sequence} takes no title", number)
+            elif not letters.strip():
+                problem("CS0417", "the sequence block is empty", number)
+            elif not _LETTERS.match(letters):
+                problem(
+                    "CS0416", "a sequence block holds only letters, spaces and line breaks", number
+                )
+            else:
+                blocks.append(SequenceBlock(letters))
+                starts.append(number)
+            continue
         if name in CALLOUTS:
             if not "".join(inner).strip():
                 problem("CS0411", f"the {name} callout is empty", number)
@@ -204,7 +238,7 @@ def parse_blocks(
             )
             continue
         message = f":::{{{name}}} is not a directive this format reads"
-        if close := difflib.get_close_matches(name, ["try", *CALLOUTS], n=1):
+        if close := difflib.get_close_matches(name, ["try", "sequence", *CALLOUTS], n=1):
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
     flush()
@@ -220,7 +254,7 @@ def write_blocks(blocks: Sequence[Block]) -> str:
     Blocks carry no line ending of their own, so the one their text already uses is taken — `\\r\\n`
     if any text or callout holds one — which keeps a Windows body byte for byte.
     """
-    carried = [block.markdown for block in blocks if not isinstance(block, Try)]
+    carried = [block_text(block) for block in blocks]
     newline = "\r\n" if any("\r\n" in text for text in carried) else "\n"
     out: list[str] = []
     for block in blocks:
@@ -228,6 +262,8 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             out.append(block.markdown)
         elif isinstance(block, Try):
             out.append(f":::{{try}} {block.question}{newline}:::{newline}")
+        elif isinstance(block, SequenceBlock):
+            out.append(f":::{{sequence}}{newline}{block.letters}:::{newline}")
         else:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
@@ -243,6 +279,8 @@ def block_json(block: Block) -> dict[str, str]:
             return {"kind": "try", "question": question}
         case Callout(kind=kind, title=title, markdown=markdown):
             return {"kind": "callout", "callout": kind, "title": title, "markdown": markdown}
+        case SequenceBlock(letters=letters):
+            return {"kind": "sequence", "letters": letters}
 
 
 def block_from_json(stored: dict[str, str]) -> Block:
@@ -252,6 +290,8 @@ def block_from_json(stored: dict[str, str]) -> Block:
             return Text(stored["markdown"])
         case "try":
             return Try(stored["question"])
+        case "sequence":
+            return SequenceBlock(stored["letters"])
         case "callout" if (kind := stored.get("callout")) in CALLOUTS:
             return Callout(kind, stored["title"], stored["markdown"])
         case other:

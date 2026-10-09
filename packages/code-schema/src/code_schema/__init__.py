@@ -11,6 +11,7 @@ from __future__ import annotations
 from code_schema.blocks import (
     Block,
     Callout,
+    SequenceBlock,
     Text,
     Try,
     block_from_json,
@@ -58,6 +59,7 @@ __all__ = [
     "Region",
     "Resource",
     "SequenceAnswer",
+    "SequenceBlock",
     "Text",
     "Try",
     "TryQuestion",

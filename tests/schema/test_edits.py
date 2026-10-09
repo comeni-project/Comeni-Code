@@ -22,7 +22,7 @@ from code_schema import (
     parse_node_files,
     read_content,
 )
-from code_schema.blocks import Callout, Text, Try
+from code_schema.blocks import Callout, SequenceBlock, Text, Try
 from code_schema.edits import (
     EditError,
     add_exam_question,
@@ -260,3 +260,8 @@ def test_blocks_that_would_read_back_otherwise_are_refused(block: Callout) -> No
 
     with pytest.raises(Unfaithful):
         insert_block(DBG, 2, block)
+
+
+def test_a_sequence_block_is_inserted() -> None:
+    edited = reread(insert_block(DBG, 1, SequenceBlock(letters="ACGTTGCA\n")))
+    assert SequenceBlock(letters="ACGTTGCA\n") in edited.blocks
