@@ -1,6 +1,6 @@
 # M4.8c — Exam questions as the board draws them
 
-**Status: proposed 2026-10-09, for the operator's review.** The third slice of M4.8 (#126),
+**Status: agreed 2026-10-09.** The third slice of M4.8 (#126),
 issue #222. Designed with the operator in conversation on 2026-10-09, section by section, against
 the S3 *Exam pool* board
 (`QuestionBuilder`). The operator's rule for it: **the boards are the truth, not the code** — so
