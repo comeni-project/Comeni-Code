@@ -57,7 +57,7 @@ Testing Library, Biome.
 - Produces: `ChecklistOut.problems: list[ProblemOut]`; `IndexOut.regions: list[RegionChoiceOut]`
   with `id`, `name`.
 
-- [ ] **Step 1: Write the failing tests.** In `test_draft_checks.py`:
+- [x] **Step 1: Write the failing tests.** In `test_draft_checks.py`:
 
 ```python
 def test_the_checklist_carries_verifys_problems(client: Client) -> None:
@@ -81,11 +81,11 @@ def test_the_index_route_lists_the_regions_in_order(ada: User) -> None:
     assert set(regions[0]) == {"id", "name"}
 ```
 
-- [ ] **Step 2: Run them to see them fail.**
+- [x] **Step 2: Run them to see them fail.**
   Run: `uv run pytest apps/api/tests/test_draft_checks.py apps/api/tests/test_index_api.py -q`
   Expected: two failures, `KeyError: 'problems'` and `KeyError: 'regions'`.
 
-- [ ] **Step 3: Implement.** In `drafts.py`, split the checklist so one check serves both answers:
+- [x] **Step 3: Implement.** In `drafts.py`, split the checklist so one check serves both answers:
 
 ```python
 def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
@@ -127,12 +127,12 @@ class RegionChoiceOut(Schema):
   `regions=[RegionChoiceOut(id=r.id, name=r.name) for r in Region.objects.order_by("position")]`
   (import `Region` from `code_api.content.models`).
 
-- [ ] **Step 4: Run the tests, the schema, the types.**
+- [x] **Step 4: Run the tests, the schema, the types.**
   Run: `uv run pytest apps/api/tests/test_draft_checks.py apps/api/tests/test_index_api.py apps/api/tests/test_review.py -q` — Expected: all pass.
   Run: `uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json`
   then `$WEB npm run api-types`. Run `uv run ruff check . && uv run ruff format --check . && uv run mypy`.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add apps/api apps/web/src/api/schema.ts
@@ -163,7 +163,7 @@ git commit -m "feat(api): the checklist carries Verify's problems; the index its
   - `useDraftEdit(id)`: a TanStack mutation over `Edit`, key `["draft-edit", id]`.
   - `refusal.ts`: `refusalOf(error) -> { sentence, problems, stale }`.
 
-- [ ] **Step 1: Write the failing tests.** Append to `client.test.ts`:
+- [x] **Step 1: Write the failing tests.** Append to `client.test.ts`:
 
 ```ts
   it("keeps an error's body", async () => {
@@ -263,11 +263,11 @@ describe("useDraftEdit", () => {
 });
 ```
 
-- [ ] **Step 2: Run them to see them fail.**
+- [x] **Step 2: Run them to see them fail.**
   Run: `$WEB npx vitest run src/api/client.test.ts src/studio/workbench` — Expected: FAIL (no
   `body`; the modules are missing).
 
-- [ ] **Step 3: Implement.** In `client.ts`, `ApiUnreachable` takes a third constructor argument
+- [x] **Step 3: Implement.** In `client.ts`, `ApiUnreachable` takes a third constructor argument
   `body?: unknown` stored as `readonly body: unknown`; `readAnswer`'s refusal passes `body`.
 
   `api/drafts.ts`:
@@ -456,11 +456,11 @@ export function refusalOf(error: Error | null): Refusal | null {
 }
 ```
 
-- [ ] **Step 4: Run the tests and checks.**
+- [x] **Step 4: Run the tests and checks.**
   Run: `$WEB npx vitest run src/api src/studio/workbench` — Expected: all pass.
   Run: `$WEB npm run -s lint` and `$WEB npm run -s typecheck` — Expected: clean.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
 ```bash
 git add apps/web/src
@@ -482,7 +482,7 @@ git commit -m "feat(web): one edit path — commands, one executor, and the draf
 - Produces: `STUDIO_PAGES` gains `{ path: "/studio/drafts", label: "Drafts", minRole: "author",
   place: "top" }`; `DraftsPage`; the workbench route is `/studio/drafts/:id` (Task 4).
 
-- [ ] **Step 1: Write the failing tests.** `pages.test.ts`'s expectations become
+- [x] **Step 1: Write the failing tests.** `pages.test.ts`'s expectations become
   `pagesFor("operator")` → `["Drafts", "Team"]`, `pagesFor("author")` → `["Drafts"]`, and
   `pageAt("/studio/drafts/d-1")?.label` → `"Drafts"`. In `StudioShell.test.tsx`, *says when there
   is nothing for a role yet* becomes:
@@ -579,9 +579,9 @@ describe("DraftsPage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.** Run: `$WEB npx vitest run src/studio` — Expected: FAIL.
+- [x] **Step 2: Run to see them fail.** Run: `$WEB npx vitest run src/studio` — Expected: FAIL.
 
-- [ ] **Step 3: Implement.** `pages.ts` adds the Drafts entry first, with the board's icon path
+- [x] **Step 3: Implement.** `pages.ts` adds the Drafts entry first, with the board's icon path
   `M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3`. `StudioHome` loses its empty branch
   (every role the gate lets in has Drafts):
 
@@ -668,7 +668,7 @@ export function DraftsPage() {
 
   In `App.tsx`, under `/studio`: `<Route path="drafts" element={<DraftsPage />} />`.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
   Run: `$WEB npx vitest run src/studio` — Expected: all pass. Lint and typecheck clean.
 
 ```bash
@@ -692,7 +692,7 @@ git commit -m "feat(web): Drafts — the open drafts, a new node, and a node tha
   `ContentTab`, `ResourcesTab`, `LinksTab` and `SettingsTab` are plugged into their tab slots by
   Tasks 5–8; until each lands, its slot renders nothing.
 
-- [ ] **Step 1: Write the failing tests.** `WorkbenchPage.test.tsx`:
+- [x] **Step 1: Write the failing tests.** `WorkbenchPage.test.tsx`:
 
 ```tsx
 import { screen } from "@testing-library/react";
@@ -754,9 +754,9 @@ describe("WorkbenchPage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.** `$WEB npx vitest run src/studio/workbench` — FAIL.
+- [x] **Step 2: Run to see them fail.** `$WEB npx vitest run src/studio/workbench` — FAIL.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
   - `WorkbenchPage.tsx` reads `:id`, `useDraft(id)`; while pending, *Loading the draft…*; on
     error, `ErrorNotice`; a draft with `node === null` shows its `problems`' text and nothing
     editable. Otherwise: `Header`, `StateLine`, a tab row (`role="tablist"`, each tab a
@@ -780,7 +780,7 @@ describe("WorkbenchPage", () => {
   - `App.tsx`: `<Route path="drafts/:id" element={<WorkbenchPage />} />` and
     `<Route path="drafts/:id/preview" element={<PreviewPage />} />` under `/studio`.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
@@ -804,7 +804,7 @@ git commit -m "feat(web): the workbench page — header, tabs, states and the pr
   `wrap(text, start, end, before, after) -> { text, start, end }`; `RefusalNotice({ refusal,
   onReload })`; `BlockEditor({ draftId, at, insert, initial, question?, onClose })`.
 
-- [ ] **Step 1: Write the failing tests.** `markdown.test.ts`:
+- [x] **Step 1: Write the failing tests.** `markdown.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -908,9 +908,9 @@ describe("ContentTab", () => {
 });
 ```
 
-- [ ] **Step 2: Run to see them fail.** `$WEB npx vitest run src/studio/workbench` — FAIL.
+- [x] **Step 2: Run to see them fail.** `$WEB npx vitest run src/studio/workbench` — FAIL.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
   - `LeaveToSave.tsx`:
 
 ```tsx
@@ -957,7 +957,7 @@ export function LeaveToSave({ onLeave, children }: { onLeave: () => void; childr
   - `ContentTab.tsx`: `Outline` and `BlockList` side by side, holding which editor is open.
   - Read only (`!editable(draft)`): `BlockList` shows rows without Edit, Move, Delete or Add.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
@@ -978,7 +978,7 @@ git commit -m "feat(web): Content — the outline, text and callout blocks, save
   unused n; a choice with two empty options, the first right); `questionIn(out: StudioQuestionOut)
   -> TryQuestionIn`.
 
-- [ ] **Step 1: Write the failing tests.** `question.test.ts`:
+- [x] **Step 1: Write the failing tests.** `question.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1006,15 +1006,15 @@ describe("question", () => {
   === true`; switching *Choice* to *Number* shows *Answer*, *Unit*, *Tolerance* and sends
   `kind: "number"` with `answer` as a number.
 
-- [ ] **Step 2: Run to see them fail.** FAIL: `TryEditor` missing.
+- [x] **Step 2: Run to see them fail.** FAIL: `TryEditor` missing.
 
-- [ ] **Step 3: Implement.** `question.ts` as tested. `TryEditor.tsx`: *Question* (textarea);
+- [x] **Step 3: Implement.** `question.ts` as tested. `TryEditor.tsx`: *Question* (textarea);
   *Choice* / *Number* (radio inputs, as `RoleSwitch` draws them); for a choice, one row per
   option (*Option N* text, *Right answer* radio, *Misconception* text) with *+ Option* and
   *Remove*; for a number, *Answer* (number), *Unit*, *Tolerance*; *Hints* (one per line);
   *Rationale*. It edits the question held by `BlockEditor`, which sends it with the block.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
@@ -1037,7 +1037,7 @@ node id and a reason with *Remove* and *+ Link*.
 **Interfaces:**
 - Consumes: `fields`, `links`, `useRegions`, `discardDraft`, `useDraftEdit`, `LeaveToSave`.
 
-- [ ] **Step 1: Write the failing tests.** `SettingsTab.test.tsx`: changing *Title* and leaving
+- [x] **Step 1: Write the failing tests.** `SettingsTab.test.tsx`: changing *Title* and leaving
   the field sends one `PATCH .../fields` with `{ title, revision }` only; leaving it unchanged
   sends nothing; a problem whose `field` is `title` in the draft's `problems` shows under
   *Title*; **Discard this draft** asks once (*Discard this draft? It cannot be reopened.*), and
@@ -1046,9 +1046,9 @@ node id and a reason with *Remove* and *+ Link*.
   .../links/needs` with the whole list; removing one does the same; *Goes deeper* and *Related*
   send to their own paths.
 
-- [ ] **Step 2: Run to see them fail.** FAIL.
+- [x] **Step 2: Run to see them fail.** FAIL.
 
-- [ ] **Step 3: Implement.** `SettingsTab.tsx`: each of *Title*, *Claim*, *Region* (select from
+- [x] **Step 3: Implement.** `SettingsTab.tsx`: each of *Title*, *Claim*, *Region* (select from
   `useRegions`), *Level* (select), *Minutes* (number) in its own `LeaveToSave` that sends
   `fields({ <name>: value })` when the value differs from the draft's; problems with that
   `field` under it; at the bottom, *Discard this draft* (contributors and operators), confirmed in
@@ -1058,7 +1058,7 @@ node id and a reason with *Remove* and *+ Link*.
   `LinkList`s — *Needs* (what understanding this node requires), *Goes deeper*, *Related* (at most
   four, said under the list).
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
@@ -1080,19 +1080,19 @@ every field; the others closed with *Edit* and *Remove*.
 **Interfaces:**
 - Consumes: `resources`, `useDraftEdit`, `LeaveToSave`, `Field`.
 
-- [ ] **Step 1: Write the failing tests.** `ResourcesTab.test.tsx`: **+ Resource** opens an empty
+- [x] **Step 1: Write the failing tests.** `ResourcesTab.test.tsx`: **+ Resource** opens an empty
   card; filling *Kind* (video/reading), *Provider*, *URL*, *Covers*, *Licence*, *Display*
   (embed/link), *Level* and leaving the card sends one `PUT .../resources` with the list; a card
   left empty sends nothing; **Remove** sends the list without it; a 422 shows the problems'
   `text` in the card and keeps its values.
 
-- [ ] **Step 2: Run to see them fail.** FAIL.
+- [x] **Step 2: Run to see them fail.** FAIL.
 
-- [ ] **Step 3: Implement.** `ResourceCard.tsx`: the fields of `ResourceIn` (*Video id* and *Part*
+- [x] **Step 3: Implement.** `ResourceCard.tsx`: the fields of `ResourceIn` (*Video id* and *Part*
   shown for a video), in one `LeaveToSave`. `ResourcesTab.tsx`: the cards; leaving a changed
   card sends `resources(all cards)`; the list is the draft's resources plus at most one new card.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
@@ -1111,7 +1111,7 @@ git commit -m "feat(web): Resources in the workbench — M4.8b.8"
 **Interfaces:**
 - Consumes: `useDraftChecks(id, enabled)`, `submitDraft`.
 
-- [ ] **Step 1: Write the failing tests.** `ChecksPanel.test.tsx`:
+- [x] **Step 1: Write the failing tests.** `ChecksPanel.test.tsx`:
   - with Checks hidden, no `GET .../checklist` is made, and a save sends no GET after it;
   - opening *Checks* makes one `GET .../checklist` and lists each item (*verifies clean*, *a
     level*, *a resource*, *four exam questions* with their details) and each problem's `text`;
@@ -1121,22 +1121,22 @@ git commit -m "feat(web): Resources in the workbench — M4.8b.8"
     true, **Submit** sends `POST .../submit` with `{ revision }`, and the page reads *Submitted
     for review — read only.*
 
-- [ ] **Step 2: Run to see them fail.** FAIL.
+- [x] **Step 2: Run to see them fail.** FAIL.
 
-- [ ] **Step 3: Implement.** `ChecksPanel.tsx`: `useDraftChecks(id, true)` (mounted only while
+- [x] **Step 3: Implement.** `ChecksPanel.tsx`: `useDraftChecks(id, true)` (mounted only while
   its tab is shown); items with a pass/fail mark and detail; problems as their `text`, refusing
   ones first. `SubmitButton.tsx`: the board's green button; a popover (open state local) that
   mounts `useDraftChecks(id, true)`; **Submit** → `submitDraft(id, draft.revision)` →
   `setQueryData(draft)`; a refusal (422 with `items`) lists them.
 
-- [ ] **Step 4: Run, lint, commit.**
+- [x] **Step 4: Run, lint, commit.**
 
 ```bash
 git add apps/web/src
 git commit -m "feat(web): Checks and Submit — asked only while shown — M4.8b.9"
 ```
 
-- [ ] **Step 5: Checkpoint review** (after this task, before the walk): a fresh reviewer (opus)
+- [x] **Step 5: Checkpoint review** (after this task, before the walk): a fresh reviewer (opus)
   over `git diff main...HEAD` with the spec, this plan and the ledger; findings filed as one
   issue, Critical and Important fixed test-first.
 
@@ -1149,10 +1149,10 @@ git commit -m "feat(web): Checks and Submit — asked only while shown — M4.8b
 - Modify: the spec (*Notes from the build*); this plan (ticks)
 - Create: `docs/notes/journal/2026-10-07-m4-8b-workbench.md`
 
-- [ ] **Step 1: The whole suite with CI's environment** (pytest, ruff, mypy, Django's checks, the
+- [x] **Step 1: The whole suite with CI's environment** (pytest, ruff, mypy, Django's checks, the
   migration check; the web's lint, typecheck, tests and build). Expected: all green.
 
-- [ ] **Step 2: Walk *done when*** beside the S19, S3, `WorkbenchSettings`, `WorkbenchLinks` and
+- [x] **Step 2: Walk *done when*** beside the S19, S3, `WorkbenchSettings`, `WorkbenchLinks` and
   `WorkbenchResources` boards on the canvas, with `runserver` and the production build (`vite preview
   --port 5173`), colours compared in headless Chrome (`--user-data-dir` of its own): an invited
   author creates a node from Drafts; writes a text block, a try question and a callout; adds a
@@ -1161,10 +1161,10 @@ git commit -m "feat(web): Checks and Submit — asked only while shown — M4.8b
   submits; the draft reads as submitted; Withdraw reopens it. Count the requests in the browser's
   network panel for one open and one save: one GET, one write.
 
-- [ ] **Step 3: Docs.** CLAUDE.md's layout, the spec's notes (each ruling and board difference),
+- [x] **Step 3: Docs.** CLAUDE.md's layout, the spec's notes (each ruling and board difference),
   the journal entry. `uv run pytest tests/repo -q`.
 
-- [ ] **Step 4: Final review.** A fresh reviewer (opus) over the branch; findings filed;
+- [x] **Step 4: Final review.** A fresh reviewer (opus) over the branch; findings filed;
   Critical and Important fixed test-first; minors deferred.
 
 - [ ] **Step 5: Commit, push, open the pull request** (one `Closes #n` per line for each M4.8b
