@@ -40,7 +40,7 @@ describe("ContentTab", () => {
     await userEvent.click(screen.getByRole("heading", { level: 1 })); // focus leaves the block
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     expect(sent(fake)).toEqual({
-      block: { kind: "text", markdown: "Slide a window of width k." },
+      block: { kind: "text", markdown: "Slide a window of width k.\n" }, // its last line ended (#256)
       question: null,
       revision: 3,
     });
@@ -69,7 +69,7 @@ describe("ContentTab", () => {
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     expect(sent(fake)).toEqual({
       at: 0,
-      block: { kind: "text", markdown: "First words." },
+      block: { kind: "text", markdown: "First words.\n" },
       question: null,
       revision: 3,
     });
@@ -91,7 +91,7 @@ describe("ContentTab", () => {
       kind: "callout",
       callout: "caveat",
       title: "Not every k works",
-      markdown: "Too small and k-mers repeat.",
+      markdown: "Too small and k-mers repeat.\n",
     });
   });
 

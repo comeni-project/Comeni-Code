@@ -31,6 +31,12 @@ function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   return question === undefined || question.ask.trim() === "";
 }
 
+/** What is sent: text that ends its last line, as every block in a body does (#256). */
+const ended = (block: Block): Block =>
+  block.kind === "try" || block.markdown.endsWith("\n")
+    ? block
+    : { ...block, markdown: `${block.markdown}\n` };
+
 /** What is sent: hints without the empty lines a half-typed list has. */
 const cleaned = (question: TryQuestionIn | undefined) =>
   question && { ...question, hints: question.hints.filter((hint) => hint.trim() !== "") };
@@ -48,7 +54,7 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
   const commit = () => {
     if (edit.isPending) return;
     if (!changed || (insert && empty(block, asked))) return onClose();
-    const sent = block as BlockIn;
+    const sent = ended(block) as BlockIn;
     const q = cleaned(asked);
     edit.mutate(insert ? insertBlock(at, sent, q) : updateBlock(at, sent, q), {
       onSuccess: onClose,
