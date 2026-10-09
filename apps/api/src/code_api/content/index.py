@@ -28,6 +28,8 @@ from code_schema import (
     ChoiceAnswer,
     Content,
     NumberAnswer,
+    OrderAnswer,
+    SequenceAnswer,
     TryQuestion,
     block_json,
     read_content,
@@ -141,17 +143,22 @@ def _resource_rows(content: Content) -> list[Resource]:
     ]
 
 
-def _fill_answer(row: Question | ExamQuestion, answer: Answer, *, misconceptions: bool) -> None:
-    """A choice fills options; a number its answer, unit and tolerance. Shared by both pools."""
+def _fill_answer(row: Question | ExamQuestion, answer: Answer, *, exam: bool) -> None:
+    """Each kind fills its own columns; a sequence's text sits in `answer` (M4Q.5). Shared by both
+    pools; only an exam's options carry a misconception and plain."""
     match answer:
         case ChoiceAnswer(options=options):
             row.options = [
                 {"text": option.text, "right": option.right}
-                | ({"misconception": option.misconception} if misconceptions else {})
+                | ({"misconception": option.misconception, "plain": option.plain} if exam else {})
                 for option in options
             ]
         case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
             row.answer, row.unit, row.tolerance = number_text(value), unit, number_text(tolerance)
+        case SequenceAnswer(value=text, accept=accept, exact=exact):
+            row.answer, row.accept, row.exact = text, list(accept), exact
+        case OrderAnswer(steps=steps):
+            row.steps = list(steps)
 
 
 def _question_row(node_id: str, position: int, question: TryQuestion) -> Question:
@@ -165,22 +172,25 @@ def _question_row(node_id: str, position: int, question: TryQuestion) -> Questio
         hints=list(question.hints),
         rationale=question.rationale,
     )
-    _fill_answer(row, question.answer, misconceptions=False)
+    _fill_answer(row, question.answer, exam=False)
     return row
 
 
 def _exam_row(node_id: str, position: int, question: SchemaExamQuestion) -> ExamQuestion:
-    """A try row's shape without hints (spec M4E.5); options keep their misconception."""
+    """A try row's shape without hints, with a title, a claim and a stem of blocks (M4E.5,
+    M4Q.5)."""
     row = ExamQuestion(
         node_id=node_id,
         position=position,
         question_id=question.id,
         kind=question.kind,
-        ask=question.ask,
+        title=question.title,
+        claim=question.claim,
+        stem=[block_json(block) for block in question.blocks],
         level=None if question.level is None else question.level.value,
         rationale=question.rationale,
     )
-    _fill_answer(row, question.answer, misconceptions=True)
+    _fill_answer(row, question.answer, exam=True)
     return row
 
 

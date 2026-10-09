@@ -6,8 +6,6 @@ with `regions_from_index` and `providers_from_index`, as CI checks the files. It
 every fixture node reads back byte for byte (tests/test_snapshot.py).
 """
 
-from typing import Any
-
 from code_api.content import models
 from code_api.content.numbers import number_from
 from code_schema import (
@@ -19,9 +17,11 @@ from code_schema import (
     Node,
     NumberAnswer,
     Option,
+    OrderAnswer,
     Provider,
     Region,
     Resource,
+    SequenceAnswer,
     TryQuestion,
     block_from_json,
     write_blocks,
@@ -48,23 +48,29 @@ def providers_from_index() -> dict[str, Provider]:
     }
 
 
-def _answer(
-    kind: str, options: list[dict[str, Any]], answer: Any, unit: str, tolerance: Any
-) -> Answer:
-    if kind == "choice":
-        return ChoiceAnswer(
-            options=tuple(
-                Option(
-                    text=option["text"],
-                    right=option["right"],
-                    misconception=option.get("misconception", ""),
+def _answer(row: models.Question | models.ExamQuestion) -> Answer:
+    """A row's answer, by its kind (M4Q.5)."""
+    match row.kind:
+        case "choice":
+            return ChoiceAnswer(
+                options=tuple(
+                    Option(
+                        text=option["text"],
+                        right=option["right"],
+                        misconception=option.get("misconception", ""),
+                        plain=option.get("plain", False),
+                    )
+                    for option in row.options
                 )
-                for option in options
             )
-        )
-    value = number_from(answer)
+        case "sequence":
+            assert row.answer is not None  # a sequence question always has its answer
+            return SequenceAnswer(value=row.answer, accept=tuple(row.accept), exact=row.exact)
+        case "order":
+            return OrderAnswer(steps=tuple(row.steps))
+    value = number_from(row.answer)
     assert value is not None  # a number question always has its answer
-    return NumberAnswer(value=value, unit=unit, tolerance=number_from(tolerance))
+    return NumberAnswer(value=value, unit=row.unit, tolerance=number_from(row.tolerance))
 
 
 def node_from_index(node_id: str) -> Node | None:
@@ -104,13 +110,7 @@ def node_from_index(node_id: str) -> Node | None:
             TryQuestion(
                 id=question.question_id,
                 ask=question.ask,
-                answer=_answer(
-                    question.kind,
-                    question.options,
-                    question.answer,
-                    question.unit,
-                    question.tolerance,
-                ),
+                answer=_answer(question),
                 hints=tuple(question.hints),
                 rationale=question.rationale,
             )
@@ -119,14 +119,10 @@ def node_from_index(node_id: str) -> Node | None:
         exam=tuple(
             ExamQuestion(
                 id=question.question_id,
-                ask=question.ask,
-                answer=_answer(
-                    question.kind,
-                    question.options,
-                    question.answer,
-                    question.unit,
-                    question.tolerance,
-                ),
+                title=question.title,
+                claim=question.claim,
+                stem=write_blocks([block_from_json(block) for block in question.stem]),
+                answer=_answer(question),
                 level=None if question.level is None else Level(question.level),
                 rationale=question.rationale,
             )

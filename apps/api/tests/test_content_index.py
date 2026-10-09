@@ -28,6 +28,8 @@ from code_schema import (
     ChoiceAnswer,
     Level,
     NumberAnswer,
+    OrderAnswer,
+    SequenceAnswer,
     block_json,
     read_content,
     read_node,
@@ -333,18 +335,25 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
     parsed = read_content(FIXTURES).nodes["tpm"].exam
     rows = list(ExamQuestion.objects.filter(node_id="tpm").order_by("position"))
     assert [row.question_id for row in rows] == [question.id for question in parsed]
-    assert [row.position for row in rows] == [0, 1, 2, 3]
+    assert [row.position for row in rows] == list(range(6))
     for row, question in zip(rows, parsed, strict=True):
-        assert (row.kind, row.ask, row.rationale) == (
+        assert (row.kind, row.title, row.claim, row.rationale) == (
             question.kind,
-            question.ask,
+            question.title,
+            question.claim,
             question.rationale,
         )
+        assert row.stem == [block_json(block) for block in question.blocks]
         assert row.level == (question.level.value if question.level else None)
         match question.answer:
             case ChoiceAnswer(options=options):
                 assert row.options == [
-                    {"text": o.text, "right": o.right, "misconception": o.misconception}
+                    {
+                        "text": o.text,
+                        "right": o.right,
+                        "misconception": o.misconception,
+                        "plain": o.plain,
+                    }
                     for o in options
                 ]
                 assert row.answer is None
@@ -355,12 +364,16 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
                     tolerance,
                 )
                 assert row.options == []
+            case SequenceAnswer(value=value, accept=accept, exact=exact):
+                assert (row.answer, row.accept, row.exact) == (value, list(accept), exact)
+            case OrderAnswer(steps=steps):
+                assert (row.steps, row.answer) == (list(steps), None)
 
 
 def test_only_tpm_has_a_pool_and_a_rebuild_replaces_it() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
-    assert ExamQuestion.objects.count() == 4
+    assert ExamQuestion.objects.count() == 6
     assert set(ExamQuestion.objects.values_list("node_id", flat=True)) == {"tpm"}
 
 
@@ -369,7 +382,7 @@ def test_a_refused_build_leaves_the_exam_pool_standing(tmp_path: Path) -> None:
     root = copy_of_fixtures(tmp_path)
     (root / "providers.yaml").unlink()
     assert rebuild_index(root).outcome == IndexBuild.Outcome.REFUSED
-    assert ExamQuestion.objects.filter(node_id="tpm").count() == 4
+    assert ExamQuestion.objects.filter(node_id="tpm").count() == 6
 
 
 def test_the_digest_covers_exam_yaml(tmp_path: Path) -> None:
