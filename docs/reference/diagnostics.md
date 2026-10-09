@@ -440,7 +440,7 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** The body places a question by its id (M3P1.3).
 
-#### CS0305 — a question has no kind
+#### CS0305 — a question names no kind (choice, number, sequence, order)
 
 *Refuses.*
 
@@ -639,6 +639,70 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Mark exactly one option right.
 
 **Why.** A choice has one right answer; several would need a different kind of question (M3P1.3).
+
+#### CS0330 — a sequence question has no answer
+
+*Refuses.*
+
+**Fix.** Write the answer as text under `answer:`.
+
+**Why.** A sequence question is answered by typing; without a right form nothing can be checked (M4.8c spec, M4Q.3).
+
+#### CS0331 — a sequence question's accepted answers are not a list of text
+
+*Refuses.*
+
+**Fix.** Write `accept:` as a list, one other right form per line.
+
+**Why.** Each accepted form is compared as the answer is, so an empty one would accept an empty answer (M4Q.3).
+
+#### CS0332 — a sequence question's exact is not true or false
+
+*Refuses.*
+
+**Fix.** Write `exact: true`, or leave it out to ignore case and spaces.
+
+**Why.** A sequence is matched forgivingly unless the author asks for exact (M4Q.3).
+
+#### CS0333 — an order question has no steps
+
+*Refuses.*
+
+**Fix.** Write the steps under `steps:`, one line each, in the right order.
+
+**Why.** The steps are written in the right order and shown shuffled (M4Q.3).
+
+#### CS0334 — an order question has fewer than 3 or more than 8 steps
+
+*Refuses.*
+
+**Fix.** Keep between 3 and 8 steps; split a longer process into two questions.
+
+**Why.** Two steps are a coin toss; past eight, ordering tests patience more than understanding (M4Q.3).
+
+#### CS0335 — two options say the same thing
+
+*Refuses.*
+
+**Fix.** Make every option say something different.
+
+**Why.** Distractors are distinct (tutor spec T7.1): two options that read the same make the question ambiguous, or one of them the right answer twice (M4Q.3).
+
+#### CS0336 — two steps of an order say the same thing
+
+*Refuses.*
+
+**Fix.** Make every step say something different.
+
+**Why.** Two steps that read the same leave more than one right order (M4Q.3).
+
+#### CS0337 — a question has a field of another kind
+
+*Refuses.*
+
+**Fix.** Keep only the fields of the question's kind, or change its kind.
+
+**Why.** Each kind is answered its own way, so a field of another kind is a question half rewritten (M4Q.3).
 
 ### CS0400–CS0499 · body
 
@@ -1059,6 +1123,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Ask at or near the node's level, or move the question to the node it fits.
 
 **Why.** A node holds exam questions at or near its own level, and review flags one two or more levels away (tutor spec T10.1). A warning: review decides.
+
+#### CS0822 — an option's plain is not true or false
+
+*Refuses.*
+
+**Fix.** Write `plain: true` on a wrong option that names no misconception, or leave it out.
+
+**Why.** `plain` marks a distractor wrong on purpose (M4Q.3).
 
 ## CW — code-weaver: routes and search
 

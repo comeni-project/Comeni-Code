@@ -14,7 +14,16 @@ import yaml
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
-from code_schema.questions import TRY_FIELD, Answer, ChoiceAnswer, NumberAnswer, Option, TryQuestion
+from code_schema.questions import (
+    TRY_FIELD,
+    Answer,
+    ChoiceAnswer,
+    NumberAnswer,
+    Option,
+    OrderAnswer,
+    SequenceAnswer,
+    TryQuestion,
+)
 from code_schema.resources import RESOURCE_FIELD, Resource
 
 # PyYAML folds long strings at 80 columns by default; a claim or a reason must stay on one line.
@@ -55,11 +64,13 @@ def _option(option: Option) -> dict[str, object]:
         written["right"] = True
     if option.misconception:
         written["misconception"] = option.misconception
+    if option.plain:
+        written["plain"] = True
     return written
 
 
 def _answer(answer: Answer) -> dict[str, object]:
-    """The answer's fields, in the spec's order (M3P1.3), whichever pool asks it (M4E.2)."""
+    """The answer's fields, in the spec's order (M3P1.3, M4Q.3), whichever pool asks it (M4E.2)."""
     match answer:
         case ChoiceAnswer(options=options):
             return {"options": [_option(option) for option in options]}
@@ -70,6 +81,15 @@ def _answer(answer: Answer) -> dict[str, object]:
             if tolerance is not None:
                 written["tolerance"] = tolerance
             return written
+        case SequenceAnswer(value=text, accept=accept, exact=exact):
+            typed: dict[str, object] = {"answer": text}
+            if accept:
+                typed["accept"] = list(accept)
+            if exact:
+                typed["exact"] = True
+            return typed
+        case OrderAnswer(steps=steps):
+            return {"steps": list(steps)}
 
 
 def _question(question: TryQuestion) -> dict[str, object]:

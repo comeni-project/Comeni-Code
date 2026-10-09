@@ -134,9 +134,11 @@ def test_a_figure_question_names_m6() -> None:
     assert codes(problems) == ["CS0306"]
 
 
-def test_another_kind_lists_the_two() -> None:
+def test_another_kind_lists_the_four() -> None:
     _, problems = parse(NUMBER.replace("kind: number", "kind: essay"))
-    assert messages(problems) == ['"essay" is not a kind of question (choice, number)']
+    assert messages(problems) == [
+        '"essay" is not a kind of question (choice, number, sequence, order)'
+    ]
     assert codes(problems) == ["CS0012"]
 
 

@@ -618,7 +618,7 @@ codes:
   CS0305:
     emitted_by: schema
     concern: questions
-    says: a question has no kind
+    says: a question names no kind (choice, number, sequence, order)
     refuses: true
     fix: |
       Add kind: choice or kind: number.
@@ -868,6 +868,91 @@ codes:
       Mark exactly one option right.
     explanation: |
       A choice has one right answer; several would need a different kind of question (M3P1.3).
+
+  CS0330:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question has no answer
+    refuses: true
+    fix: |
+      Write the answer as text under `answer:`.
+    explanation: |
+      A sequence question is answered by typing; without a right form nothing can be checked
+      (M4.8c spec, M4Q.3).
+
+  CS0331:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question's accepted answers are not a list of text
+    refuses: true
+    fix: |
+      Write `accept:` as a list, one other right form per line.
+    explanation: |
+      Each accepted form is compared as the answer is, so an empty one would accept an empty
+      answer (M4Q.3).
+
+  CS0332:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question's exact is not true or false
+    refuses: true
+    fix: |
+      Write `exact: true`, or leave it out to ignore case and spaces.
+    explanation: |
+      A sequence is matched forgivingly unless the author asks for exact (M4Q.3).
+
+  CS0333:
+    emitted_by: schema
+    concern: questions
+    says: an order question has no steps
+    refuses: true
+    fix: |
+      Write the steps under `steps:`, one line each, in the right order.
+    explanation: |
+      The steps are written in the right order and shown shuffled (M4Q.3).
+
+  CS0334:
+    emitted_by: schema
+    concern: questions
+    says: an order question has fewer than 3 or more than 8 steps
+    refuses: true
+    fix: |
+      Keep between 3 and 8 steps; split a longer process into two questions.
+    explanation: |
+      Two steps are a coin toss; past eight, ordering tests patience more than understanding
+      (M4Q.3).
+
+  CS0335:
+    emitted_by: schema
+    concern: questions
+    says: two options say the same thing
+    refuses: true
+    fix: |
+      Make every option say something different.
+    explanation: |
+      Distractors are distinct (tutor spec T7.1): two options that read the same make the
+      question ambiguous, or one of them the right answer twice (M4Q.3).
+
+  CS0336:
+    emitted_by: schema
+    concern: questions
+    says: two steps of an order say the same thing
+    refuses: true
+    fix: |
+      Make every step say something different.
+    explanation: |
+      Two steps that read the same leave more than one right order (M4Q.3).
+
+  CS0337:
+    emitted_by: schema
+    concern: questions
+    says: a question has a field of another kind
+    refuses: true
+    fix: |
+      Keep only the fields of the question's kind, or change its kind.
+    explanation: |
+      Each kind is answered its own way, so a field of another kind is a question half
+      rewritten (M4Q.3).
 
   # ── CS0400–CS0499 · the body ────────────────────────────────────────────────────────────────
 
@@ -1402,6 +1487,16 @@ codes:
     explanation: |
       A node holds exam questions at or near its own level, and review flags one two or more levels
       away (tutor spec T10.1). A warning: review decides.
+
+  CS0822:
+    emitted_by: schema
+    concern: exam
+    says: an option's plain is not true or false
+    refuses: true
+    fix: |
+      Write `plain: true` on a wrong option that names no misconception, or leave it out.
+    explanation: |
+      `plain` marks a distractor wrong on purpose (M4Q.3).
 
   # ── CW0001–CW0099 · routes ──────────────────────────────────────────────────────────────────
 
