@@ -14,7 +14,19 @@ from code_api.studio import review
 from code_api.studio.models import Draft, DraftEvent
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
-TPM_KEYS = {"tpm-sums-to": 1000000, "tpm-or-count": 0, "twice-as-long": 0, "tpm-of-a": 750000}
+TPM_KEYS: dict[str, object] = {
+    "tpm-sums-to": 1000000,
+    "tpm-or-count": 0,
+    "twice-as-long": 0,
+    "tpm-of-a": 750000,
+    "tpm-steps": [
+        "Count the reads on each transcript",
+        "Divide each count by the transcript's effective length",
+        "Add up the rates across the sample",
+        "Scale each rate so the rates add up to a million",
+    ],
+    "tpm-unit-name": "Transcripts per million",
+}
 
 
 @pytest.mark.django_db(transaction=True)

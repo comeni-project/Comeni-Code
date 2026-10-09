@@ -4,8 +4,8 @@ import re
 
 import pytest
 
-from code_schema import ChoiceAnswer, NumberAnswer, Option
-from code_schema.grading import NotAnAnswer, is_right
+from code_schema import ChoiceAnswer, NumberAnswer, Option, OrderAnswer, SequenceAnswer
+from code_schema.grading import NotAnAnswer, is_right, score
 
 CHOICE = ChoiceAnswer(options=(Option("A", right=True), Option("B"), Option("C")))
 
@@ -54,3 +54,54 @@ def test_a_number_refuses_what_is_not_a_finite_number(given: object) -> None:
     # 10**400 is valid JSON, and past a float: #188 found it raised OverflowError, a 500.
     with pytest.raises(NotAnAnswer, match="^a number question is answered with a finite number$"):
         is_right(NumberAnswer(value=0.5, tolerance=1), given)
+
+
+STEPS = OrderAnswer(steps=("A", "B", "C", "D"))
+
+
+def test_a_sequence_ignores_case_and_spaces() -> None:
+    answer = SequenceAnswer(value="ACGTTGA")
+    assert is_right(answer, "acg ttga") is True
+    assert is_right(answer, "ACGTTG") is False
+
+
+def test_an_exact_sequence_trims_only_its_ends() -> None:
+    answer = SequenceAnswer(value="FASTQ", exact=True)
+    assert is_right(answer, " FASTQ ") is True
+    assert is_right(answer, "fastq") is False
+
+
+def test_a_sequence_takes_an_accepted_form() -> None:
+    assert is_right(SequenceAnswer(value="FASTQ", accept=("fq",)), "FQ") is True
+
+
+def test_a_sequence_is_answered_with_text() -> None:
+    with pytest.raises(NotAnAnswer, match="^a sequence question is answered with text$"):
+        score(SequenceAnswer(value="A"), 1)
+
+
+@pytest.mark.parametrize(
+    ("given", "expected"),
+    [
+        (["A", "B", "C", "D"], 1.0),
+        (["A", "B", "D", "C"], 5 / 6),
+        (["B", "C", "D", "A"], 3 / 6),
+        (["D", "C", "B", "A"], 0.0),
+    ],
+)
+def test_an_order_scores_the_pairs_in_order(given: list[str], expected: float) -> None:
+    assert score(STEPS, given) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "given",
+    [["A", "B", "C"], ["A", "B", "C", "C"], ["A", "B", "C", "E"], "ABCD", [0, 1, 2, 3], None],
+)
+def test_an_order_is_given_every_step_once(given: object) -> None:
+    with pytest.raises(NotAnAnswer, match="^an order is answered with every step, once each$"):
+        score(STEPS, given)
+
+
+def test_only_a_full_order_is_right() -> None:
+    assert is_right(STEPS, ["A", "B", "D", "C"]) is False
+    assert is_right(STEPS, ["A", "B", "C", "D"]) is True

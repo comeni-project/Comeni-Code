@@ -5,6 +5,7 @@ import pytest
 from code_schema.blocks import (
     Block,
     Callout,
+    SequenceBlock,
     Text,
     Try,
     block_from_json,
@@ -199,3 +200,29 @@ def test_a_stored_kind_the_format_does_not_read_is_an_error() -> None:
 def test_a_stored_callout_of_a_kind_the_format_does_not_read_is_an_error() -> None:
     with pytest.raises(ValueError, match="note"):
         block_from_json({"kind": "callout", "callout": "note", "title": "", "markdown": "x"})
+
+
+SEQ = "A read:\n\n:::{sequence}\nACGTTGCA GGT\n:::\n"
+
+
+def test_a_sequence_block_is_read_and_written_back() -> None:
+    blocks, _, problems = parse_blocks(SEQ, file="body.md")
+    assert problems == []
+    assert blocks[1] == SequenceBlock("ACGTTGCA GGT\n")
+    assert write_blocks(blocks) == SEQ
+    assert block_from_json(block_json(blocks[1])) == blocks[1]
+
+
+def test_a_sequence_block_holds_letters_only() -> None:
+    _, _, problems = parse_blocks(":::{sequence}\nACGT-1\n:::\n", file="body.md")
+    assert [p.code for p in problems] == ["CS0416"]
+
+
+def test_a_sequence_block_is_not_empty() -> None:
+    _, _, problems = parse_blocks(":::{sequence}\n\n:::\n", file="body.md")
+    assert [p.code for p in problems] == ["CS0417"]
+
+
+def test_a_sequence_block_takes_no_title() -> None:
+    _, _, problems = parse_blocks(":::{sequence} a read\nACGT\n:::\n", file="body.md")
+    assert [p.code for p in problems] == ["CS0418"]

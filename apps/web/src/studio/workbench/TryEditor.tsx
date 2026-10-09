@@ -7,8 +7,8 @@ import type { OptionIn, TryQuestionIn } from "../../api/schema";
 import { blankOptions } from "./question";
 
 const OPTION = "flex flex-col gap-1.5 rounded-control border border-border p-2.5";
-const LABEL = "flex flex-col gap-1.5 text-[13px] font-medium";
-const BOX =
+export const LABEL = "flex flex-col gap-1.5 text-[13px] font-medium";
+export const BOX =
   "rounded-control border border-border-2 bg-surface px-3 py-2 text-[14px] font-normal outline-none focus:border-sel";
 
 export function TryEditor({
@@ -69,7 +69,7 @@ export function TryEditor({
         <div className="grid gap-2.5 sm:grid-cols-3">
           <NumberField
             label="Answer"
-            value={question.answer ?? null}
+            value={typeof question.answer === "number" ? question.answer : null}
             onChange={(answer) => onChange({ ...question, answer })}
           />
           <Field

@@ -5,6 +5,10 @@ A  ACGTTGCA   ACGT CGTT GTTG TTGC TGCA
 B  ACGTTGAA   ACGT CGTT GTTG TTGA TGAA
 ```
 
+:::{sequence}
+ACGTTGCA
+:::
+
 :::{try} kmers-per-read
 :::
 
@@ -19,6 +23,14 @@ textbook form for assembly puts (k − 1)-mers on the nodes and k-mers on the ed
 same idea.
 
 :::{try} shared-unitig
+:::
+
+Reading a path back is how an assembler spells a sequence: each edge adds one letter.
+
+:::{try} spell-the-path
+:::
+
+:::{try} assembly-order
 :::
 
 ## Further reading

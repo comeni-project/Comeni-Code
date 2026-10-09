@@ -18,12 +18,15 @@ const WITH_TRY: DraftNodeOut = {
       kind: "choice",
       ask: "How many 5-mers does a 100-base read contain?",
       options: [
-        { text: "96", right: true, misconception: "" },
-        { text: "100", right: false, misconception: "" },
+        { text: "96", right: true, misconception: "", plain: false },
+        { text: "100", right: false, misconception: "", plain: false },
       ],
       answer: null,
       unit: "",
       tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
       hints: ["A window needs five bases."],
       rationale: "One window starts at each of the first 96 bases.",
     },
@@ -138,5 +141,35 @@ describe("TryEditor", () => {
       "A window needs five bases.",
       "Count the windows.",
     ]);
+  });
+
+  it("shows a sequence or order try without an editor until the builder arrives (M4.8d)", async () => {
+    const order: DraftNodeOut = {
+      ...WITH_TRY,
+      questions: [
+        {
+          id: "k-mers-q1",
+          kind: "order",
+          ask: "Put the steps in order.",
+          options: null,
+          answer: null,
+          unit: "",
+          tolerance: null,
+          accept: [],
+          exact: false,
+          steps: ["Cut", "Build", "Walk"],
+          hints: [],
+          rationale: "Each needs the one before.",
+        },
+      ],
+    };
+    answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts/d-1": { body: { ...DRAFT, node: order } },
+    });
+    renderAt("/studio/drafts/d-1", <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    expect(screen.getByText(/Edited in the exam pool's builder \(M4\.8d\)/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Question")).toBeNull();
   });
 });

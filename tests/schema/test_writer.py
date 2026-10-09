@@ -282,18 +282,25 @@ def test_law_2_holds_for_a_node_that_teaches(tmp_path: Path) -> None:
 EXAM_CANONICAL = """\
 exam:
   - id: tpm-or-count
+    title: What does a transcript's TPM tell you?
     kind: choice
-    ask: What does a transcript's TPM tell you?
     level: foundations
+    stem: What does a transcript's TPM tell you?
     options:
       - text: Its share of the sample, corrected for length
         right: true
       - text: How many reads mapped to it
         misconception: TPM is not a count of reads
+      - text: How long the transcript is
+        plain: true
     rationale: TPM divides reads by length first, then scales, so it is a proportion.
   - id: tpm-sums-to
+    title: TPM adds up to what?
+    claim: knows TPM is a share of a million
     kind: number
-    ask: Across all transcripts in one sample, what do the TPM values add up to?
+    stem: |
+      Across all transcripts in one sample,
+      what do the TPM values add up to?
     answer: 1000000
     unit: TPM
     tolerance: 0
@@ -308,7 +315,9 @@ EXAMINED = replace(
     exam=(
         ExamQuestion(
             id="tpm-or-count",
-            ask="What does a transcript's TPM tell you?",
+            title="What does a transcript's TPM tell you?",
+            claim="",
+            stem="What does a transcript's TPM tell you?",
             answer=ChoiceAnswer(
                 options=(
                     Option(text="Its share of the sample, corrected for length", right=True),
@@ -316,6 +325,7 @@ EXAMINED = replace(
                         text="How many reads mapped to it",
                         misconception="TPM is not a count of reads",
                     ),
+                    Option(text="How long the transcript is", plain=True),
                 )
             ),
             level=Level.FOUNDATIONS,
@@ -323,7 +333,9 @@ EXAMINED = replace(
         ),
         ExamQuestion(
             id="tpm-sums-to",
-            ask="Across all transcripts in one sample, what do the TPM values add up to?",
+            title="TPM adds up to what?",
+            claim="knows TPM is a share of a million",
+            stem="Across all transcripts in one sample,\nwhat do the TPM values add up to?\n",
             answer=NumberAnswer(value=1000000, unit="TPM", tolerance=0),
             level=None,
             rationale="The shares are scaled so they add up to a million.",

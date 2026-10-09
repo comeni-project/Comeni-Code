@@ -1,14 +1,21 @@
 """What the Studio drafts API answers (M4.4 spec, M4W.4). Studio sees everything about a node,
 answers and the exam pool included: it is the team's, behind `studio(min_role)`."""
 
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from ninja import Schema
 
 from code_api.accounts.api import MemberOut
-from code_api.content.schemas import BlockOut, CalloutBlockOut, TextBlockOut, TryBlockOut
+from code_api.content.schemas import (
+    BlockOut,
+    CalloutBlockOut,
+    SequenceBlockOut,
+    TextBlockOut,
+    TryBlockOut,
+)
 from code_api.studio.review import Answered
 from code_schema import (
     Answer,
@@ -17,7 +24,10 @@ from code_schema import (
     ExamQuestion,
     Node,
     NumberAnswer,
+    OrderAnswer,
     Problem,
+    SequenceAnswer,
+    SequenceBlock,
     Text,
     Try,
     TryQuestion,
@@ -45,31 +55,46 @@ class StudioOptionOut(Schema):
     text: str
     right: bool
     misconception: str
+    plain: bool
 
 
 class StudioQuestionOut(Schema):
-    """A try question; `options` for a choice, `answer` (with unit and tolerance) for a number."""
+    """A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
+    as text with `accept` and `exact` for a sequence; `steps` for an order (M4Q.5)."""
 
     id: str
     kind: str
     ask: str
     options: list[StudioOptionOut] | None
-    answer: float | int | None
+    answer: float | int | str | None
     unit: str
     tolerance: float | int | None
+    accept: list[str]
+    exact: bool
+    steps: list[str] | None
     hints: list[str]
     rationale: str
 
 
 class StudioExamQuestionOut(Schema):
+    """An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
+    file holds, and whether the live index holds it unchanged."""
+
     id: str
     kind: str
-    ask: str
+    title: str
+    claim: str
+    stem: list[BlockOut]
+    stem_text: str
+    state: Literal["approved", "draft"]
     level: str | None
     options: list[StudioOptionOut] | None
-    answer: float | int | None
+    answer: float | int | str | None
     unit: str
     tolerance: float | int | None
+    accept: list[str]
+    exact: bool
+    steps: list[str] | None
     rationale: str
 
 
@@ -165,22 +190,37 @@ class RefusedOut(Schema):
 
 
 def _answer_out(answer: Answer) -> dict[str, object]:
+    """Each kind fills its own fields; the rest are empty (M4Q.5)."""
+    empty: dict[str, object] = {
+        "options": None,
+        "answer": None,
+        "unit": "",
+        "tolerance": None,
+        "accept": [],
+        "exact": False,
+        "steps": None,
+    }
     match answer:
         case ChoiceAnswer(options=options):
-            return {
+            return empty | {
                 "options": [
-                    StudioOptionOut(text=o.text, right=o.right, misconception=o.misconception)
+                    StudioOptionOut(
+                        text=o.text, right=o.right, misconception=o.misconception, plain=o.plain
+                    )
                     for o in options
-                ],
-                "answer": None,
-                "unit": "",
-                "tolerance": None,
+                ]
             }
         case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
-            return {"options": None, "answer": value, "unit": unit, "tolerance": tolerance}
+            return empty | {"answer": value, "unit": unit, "tolerance": tolerance}
+        case SequenceAnswer(value=text, accept=accept, exact=exact):
+            return empty | {"answer": text, "accept": list(accept), "exact": exact}
+        case OrderAnswer(steps=steps):
+            return empty | {"steps": list(steps)}
 
 
-def _block_out(block: Text | Try | Callout) -> TextBlockOut | TryBlockOut | CalloutBlockOut:
+def _block_out(
+    block: Text | Try | Callout | SequenceBlock,
+) -> TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut:
     match block:
         case Text(markdown=markdown):
             return TextBlockOut(kind="text", markdown=markdown)
@@ -188,6 +228,8 @@ def _block_out(block: Text | Try | Callout) -> TextBlockOut | TryBlockOut | Call
             return CalloutBlockOut(kind="callout", callout=kind, title=title, markdown=markdown)
         case Try(question=question):
             return TryBlockOut(kind="try", question=question)
+        case SequenceBlock(letters=letters):
+            return SequenceBlockOut(kind="sequence", letters=letters)
 
 
 def _question_out(question: TryQuestion) -> StudioQuestionOut:
@@ -201,18 +243,23 @@ def _question_out(question: TryQuestion) -> StudioQuestionOut:
     )
 
 
-def _exam_out(question: ExamQuestion) -> StudioExamQuestionOut:
+def _exam_out(question: ExamQuestion, live: Mapping[str, ExamQuestion]) -> StudioExamQuestionOut:
+    """Approved when the live index holds this question unchanged; else a draft (M4Q.5)."""
     return StudioExamQuestionOut(
         id=question.id,
         kind=question.kind,
-        ask=question.ask,
+        title=question.title,
+        claim=question.claim,
+        stem=[_block_out(block) for block in question.blocks],
+        stem_text=question.stem,
+        state="approved" if live.get(question.id) == question else "draft",
         level=None if question.level is None else question.level.value,
         rationale=question.rationale,
         **_answer_out(question.answer),  # type: ignore[arg-type]
     )
 
 
-def node_out(node: Node) -> DraftNodeOut:
+def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> DraftNodeOut:
     return DraftNodeOut(
         title=node.title,
         claim=node.claim,
@@ -238,7 +285,7 @@ def node_out(node: Node) -> DraftNodeOut:
             for r in node.resources
         ],
         questions=[_question_out(question) for question in node.questions],
-        exam=[_exam_out(question) for question in node.exam],
+        exam=[_exam_out(question, live or {}) for question in node.exam],
     )
 
 
@@ -267,13 +314,17 @@ class ReviewQuestionOut(Schema):
     id: str
     pool: Literal["try", "exam"]
     kind: str
-    ask: str
+    ask: str  # an exam question's title
+    stem: list[BlockOut]  # an exam question's stem; a try question has none
     options: list[str] | None
     unit: str
-    given: float | int | None
+    # An order's steps by their text, not as written; once answered, `right_steps` (#264).
+    steps: list[str] | None
+    given: Any
     right: bool | None
     right_option: int | None
-    value: float | int | None
+    right_steps: list[str] | None
+    value: float | int | str | None
     tolerance: float | int | None
     rationale: str | None
 
@@ -281,27 +332,41 @@ class ReviewQuestionOut(Schema):
 def review_question_out(answered: Answered) -> ReviewQuestionOut:
     question = answered.asked.question
     shown = answered.given is not None
-    right_option = value = tolerance = None
+    right_option = tolerance = None
+    value: float | int | str | None = None
+    texts: list[str] | None = None
+    steps: list[str] | None = None
+    right_steps: list[str] | None = None
+    unit = ""
     match question.answer:
         case ChoiceAnswer(options=options):
-            texts: list[str] | None = [option.text for option in options]
-            unit = ""
+            texts = [option.text for option in options]
             if shown:
                 right_option = next(i for i, option in enumerate(options) if option.right)
         case NumberAnswer(value=key, unit=unit, tolerance=within):
-            texts = None
             if shown:
                 value, tolerance = key, within
+        case SequenceAnswer(value=typed):
+            if shown:
+                value = typed
+        case OrderAnswer(steps=written):
+            steps = sorted(written, key=str.casefold)
+            if shown:
+                right_steps = list(written)
+    exam = isinstance(question, ExamQuestion)
     return ReviewQuestionOut(
         id=answered.asked.id,
         pool=answered.asked.pool,
         kind=question.kind,
-        ask=question.ask,
+        ask=question.title if exam else question.ask,  # type: ignore[union-attr]
+        stem=[_block_out(block) for block in question.blocks] if exam else [],  # type: ignore[union-attr]
         options=texts,
         unit=unit,
-        given=answered.given,  # type: ignore[arg-type]
+        steps=steps,
+        given=answered.given,
         right=answered.right,
         right_option=right_option,
+        right_steps=right_steps,
         value=value,
         tolerance=tolerance,
         rationale=question.rationale if shown else None,

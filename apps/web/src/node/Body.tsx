@@ -1,9 +1,11 @@
 // A node's blocks in the identity, each where the author put it (M3P5.5, M4.1.2): text as Markdown,
-// a try as its question, a callout as a boxed note.
+// a try as its question, a callout as a boxed note, a sequence in groups of ten (M4Q.2). A kind it
+// does not know yet draws nothing.
 import type { QuestionOut } from "../api/schema";
 import type { Block } from "./body";
 import { Callout } from "./Callout";
 import { componentsFor, Prose } from "./prose";
+import { SequenceBlock } from "./SequenceBlock";
 import { TryQuestion } from "./TryQuestion";
 
 export function Body({
@@ -39,6 +41,11 @@ export function Body({
             />
           );
         }
+        if (block.kind === "sequence") {
+          // biome-ignore lint/suspicious/noArrayIndexKey: sequences have no identity beyond their place
+          return <SequenceBlock key={`sequence:${index}`} letters={block.letters} />;
+        }
+        if (block.kind !== "try") return null; // a kind this page does not draw yet
         const question = byId.get(block.question);
         if (question === undefined) return null;
         asked += 1;

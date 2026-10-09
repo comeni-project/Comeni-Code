@@ -230,6 +230,28 @@ def test_a_choice_question_comes_with_its_options(client: Client) -> None:
     ]
 
 
+def test_a_sequence_and_an_order_question_come_with_their_answers(client: Client) -> None:
+    """M4.8c (spec M4Q.5): a page asks the new kinds, so it is sent what checks them."""
+    rebuild_index(FIXTURES)
+    questions = {q["id"]: q for q in get(client, "de-bruijn-graphs").json()["questions"]}
+    spelled, ordered = questions["spell-the-path"], questions["assembly-order"]
+    assert (spelled["kind"], spelled["answer"], spelled["accept"], spelled["exact"]) == (
+        "sequence",
+        "ACGTTG",
+        [],
+        False,
+    )
+    assert spelled["steps"] is None and spelled["options"] is None
+    assert ordered["kind"] == "order" and ordered["answer"] is None
+    assert ordered["steps"][0] == "Cut the reads into k-mers"
+
+
+def test_a_node_sends_a_sequence_block(client: Client) -> None:
+    rebuild_index(FIXTURES)
+    blocks = get(client, "de-bruijn-graphs").json()["blocks"]
+    assert {"kind": "sequence", "letters": "ACGTTGCA\n"} in blocks
+
+
 def test_a_node_with_neither_returns_empty_lists(client: Client) -> None:
     rebuild_index(FIXTURES)
     body = get(client, "probability").json()
@@ -260,6 +282,8 @@ def test_a_placed_question_is_a_try_block(client: Client) -> None:
     assert [block["question"] for block in blocks if block["kind"] == "try"] == [
         "kmers-per-read",
         "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
     ]
 
 

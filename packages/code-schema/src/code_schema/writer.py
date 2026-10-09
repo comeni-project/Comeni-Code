@@ -14,7 +14,16 @@ import yaml
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
-from code_schema.questions import TRY_FIELD, Answer, ChoiceAnswer, NumberAnswer, Option, TryQuestion
+from code_schema.questions import (
+    TRY_FIELD,
+    Answer,
+    ChoiceAnswer,
+    NumberAnswer,
+    Option,
+    OrderAnswer,
+    SequenceAnswer,
+    TryQuestion,
+)
 from code_schema.resources import RESOURCE_FIELD, Resource
 
 # PyYAML folds long strings at 80 columns by default; a claim or a reason must stay on one line.
@@ -32,6 +41,15 @@ class _IndentedDumper(yaml.SafeDumper):
 
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
+
+
+def _literal(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
+    """A stem's lines as a literal block (`stem: |`, M4Q.2); a one-line string stays plain."""
+    style = "|" if "\n" in value else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
+
+
+_IndentedDumper.add_representer(str, _literal)
 
 
 def _resource(resource: Resource) -> dict[str, object]:
@@ -55,11 +73,13 @@ def _option(option: Option) -> dict[str, object]:
         written["right"] = True
     if option.misconception:
         written["misconception"] = option.misconception
+    if option.plain:
+        written["plain"] = True
     return written
 
 
 def _answer(answer: Answer) -> dict[str, object]:
-    """The answer's fields, in the spec's order (M3P1.3), whichever pool asks it (M4E.2)."""
+    """The answer's fields, in the spec's order (M3P1.3, M4Q.3), whichever pool asks it (M4E.2)."""
     match answer:
         case ChoiceAnswer(options=options):
             return {"options": [_option(option) for option in options]}
@@ -70,6 +90,15 @@ def _answer(answer: Answer) -> dict[str, object]:
             if tolerance is not None:
                 written["tolerance"] = tolerance
             return written
+        case SequenceAnswer(value=text, accept=accept, exact=exact):
+            typed: dict[str, object] = {"answer": text}
+            if accept:
+                typed["accept"] = list(accept)
+            if exact:
+                typed["exact"] = True
+            return typed
+        case OrderAnswer(steps=steps):
+            return {"steps": list(steps)}
 
 
 def _question(question: TryQuestion) -> dict[str, object]:
@@ -82,10 +111,14 @@ def _question(question: TryQuestion) -> dict[str, object]:
 
 
 def _exam_question(question: ExamQuestion) -> dict[str, object]:
-    """M4E.1's order: a level only when the question sets its own."""
-    written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
+    """M4Q.2's order: a claim and a level only when the question sets its own."""
+    written: dict[str, object] = {"id": question.id, "title": question.title}
+    if question.claim:
+        written["claim"] = question.claim
+    written["kind"] = question.kind
     if question.level is not None:
         written["level"] = question.level.value
+    written["stem"] = question.stem
     written |= _answer(question.answer)
     written["rationale"] = question.rationale
     return written

@@ -440,7 +440,7 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** The body places a question by its id (M3P1.3).
 
-#### CS0305 — a question has no kind
+#### CS0305 — a question names no kind (choice, number, sequence, order)
 
 *Refuses.*
 
@@ -640,6 +640,70 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A choice has one right answer; several would need a different kind of question (M3P1.3).
 
+#### CS0330 — a sequence question has no answer
+
+*Refuses.*
+
+**Fix.** Write the answer as text under `answer:`.
+
+**Why.** A sequence question is answered by typing; without a right form nothing can be checked (M4.8c spec, M4Q.3).
+
+#### CS0331 — a sequence question's accepted answers are not a list of text
+
+*Refuses.*
+
+**Fix.** Write `accept:` as a list, one other right form per line.
+
+**Why.** Each accepted form is compared as the answer is, so an empty one would accept an empty answer (M4Q.3).
+
+#### CS0332 — a sequence question's exact is not true or false
+
+*Refuses.*
+
+**Fix.** Write `exact: true`, or leave it out to ignore case and spaces.
+
+**Why.** A sequence is matched forgivingly unless the author asks for exact (M4Q.3).
+
+#### CS0333 — an order question has no steps
+
+*Refuses.*
+
+**Fix.** Write the steps under `steps:`, one line each, in the right order.
+
+**Why.** The steps are written in the right order and shown shuffled (M4Q.3).
+
+#### CS0334 — an order question has fewer than 3 or more than 8 steps
+
+*Refuses.*
+
+**Fix.** Keep between 3 and 8 steps; split a longer process into two questions.
+
+**Why.** Two steps are a coin toss; past eight, ordering tests patience more than understanding (M4Q.3).
+
+#### CS0335 — two options say the same thing
+
+*Refuses.*
+
+**Fix.** Make every option say something different.
+
+**Why.** Distractors are distinct (tutor spec T7.1): two options that read the same make the question ambiguous, or one of them the right answer twice (M4Q.3).
+
+#### CS0336 — two steps of an order say the same thing
+
+*Refuses.*
+
+**Fix.** Make every step say something different.
+
+**Why.** Two steps that read the same leave more than one right order (M4Q.3).
+
+#### CS0337 — a question has a field of another kind
+
+*Refuses.*
+
+**Fix.** Keep only the fields of the question's kind, or change its kind.
+
+**Why.** Each kind is answered its own way, so a field of another kind is a question half rewritten (M4Q.3).
+
 ### CS0400–CS0499 · body
 
 #### CS0401 — body.md is empty
@@ -763,6 +827,30 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Write directive lines exactly as `:::{name} argument` and `:::`, with no extra spaces, nothing between a try's two lines, one line ending throughout, and a line ending after the last `:::`.
 
 **Why.** Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
+
+#### CS0416 — a sequence block holds something other than letters
+
+*Refuses.*
+
+**Fix.** Keep only the letters of the sequence, with spaces or line breaks between groups.
+
+**Why.** A sequence block draws bases or residues in groups of ten; anything else belongs in text (M4.8c spec, M4Q.2).
+
+#### CS0417 — a sequence block is empty
+
+*Refuses.*
+
+**Fix.** Write the sequence between the fences, or remove the block.
+
+**Why.** An empty sequence block draws nothing (M4Q.2).
+
+#### CS0418 — a sequence block has a title
+
+*Refuses.*
+
+**Fix.** Put what the sequence is in the text before the block.
+
+**Why.** A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 
 ### CS0500–CS0599 · graph
 
@@ -1059,6 +1147,78 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Ask at or near the node's level, or move the question to the node it fits.
 
 **Why.** A node holds exam questions at or near its own level, and review flags one two or more levels away (tutor spec T10.1). A warning: review decides.
+
+#### CS0815 — an exam question has no title
+
+*Refuses.*
+
+**Fix.** Give the question a one-line title, as Studio's list and a learner's results name it.
+
+**Why.** A stem may be long and hold blocks; the title names the question in one line (M4.8c spec, M4Q.2).
+
+#### CS0816 — an exam question has no stem
+
+*Refuses.*
+
+**Fix.** Write what the learner reads under `stem: |`.
+
+**Why.** The stem is the question as asked, built from the page's blocks (M4Q.2).
+
+#### CS0817 — a stem holds a try or a callout
+
+*Refuses.*
+
+**Fix.** Keep text and sequences in a stem; a misconception belongs in the body, named by an option.
+
+**Why.** A test asks one question at a time and gives no notes; callouts and try questions are the page's (M4Q.2).
+
+#### CS0818 — an exam choice offers fewer than 3 options
+
+*Refuses.*
+
+**Fix.** Add a wrong option that someone who misunderstands would pick.
+
+**Why.** With two options a learner who knows nothing scores half (M4Q.3).
+
+#### CS0819 — an option names a misconception and says plain
+
+*Refuses.*
+
+**Fix.** Keep the misconception, or say plain: true, not both.
+
+**Why.** `plain` says a wrong option names no misconception on purpose (M4Q.3).
+
+#### CS0820 — the right option says plain
+
+*Refuses.*
+
+**Fix.** Remove plain: true from the right option.
+
+**Why.** `plain` marks a wrong option; the right one is simply right (M4Q.3).
+
+#### CS0821 — a wrong option names no misconception and is not plain
+
+*Warns; never blocks.*
+
+**Fix.** Name the misconception callout this answer reflects, or write plain: true.
+
+**Why.** Every distractor names a misconception or is marked plain (tutor spec T7.1), so a forgotten one shows while a deliberate one is quiet. A warning: review decides (M4Q.3).
+
+#### CS0822 — an option's plain is not true or false
+
+*Refuses.*
+
+**Fix.** Write `plain: true` on a wrong option that names no misconception, or leave it out.
+
+**Why.** `plain` marks a distractor wrong on purpose (M4Q.3).
+
+#### CS0823 — a stem line ends in spaces or holds a tab
+
+*Refuses.*
+
+**Fix.** Remove the spaces at the end of the line, and write spaces for a tab; for a line break, end the line with a backslash.
+
+**Why.** exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
 
 ## CW — code-weaver: routes and search
 

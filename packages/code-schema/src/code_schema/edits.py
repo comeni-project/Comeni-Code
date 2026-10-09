@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import replace
 
-from code_schema.blocks import Block, Text, Try, parse_blocks, write_blocks
+from code_schema.blocks import Block, Text, Try, block_text, parse_blocks, write_blocks
 from code_schema.exam import ExamQuestion
 from code_schema.levels import Level
 from code_schema.links import Link
@@ -94,14 +94,15 @@ def _check_position(node: Node, at: int, *, inserting: bool = False) -> None:
 
 
 def _check_lines(node: Node, block: Block) -> None:
-    """A text or callout block ends its last line, in the body's line endings (#173): otherwise
-    its prose runs into the next block, or the body would not read back as its blocks."""
+    """A text, callout or sequence block ends its last line, in the body's line endings (#173):
+    otherwise its prose runs into the next block, or the body would not read back as its blocks."""
     if isinstance(block, Try):
         return
     crlf = "\r\n" in node.body
-    if not block.markdown.endswith("\n"):
+    text = block_text(block)
+    if not text.endswith("\n"):
         raise EditError("a block's text ends with a newline")
-    if ("\r\n" in block.markdown) != crlf or (crlf and "\n" in block.markdown.replace("\r\n", "")):
+    if ("\r\n" in text) != crlf or (crlf and "\n" in text.replace("\r\n", "")):
         ending = "\\r\\n" if crlf else "\\n"
         raise EditError(f"a block's text uses the body's line endings ({ending})")
 

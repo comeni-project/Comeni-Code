@@ -618,7 +618,7 @@ codes:
   CS0305:
     emitted_by: schema
     concern: questions
-    says: a question has no kind
+    says: a question names no kind (choice, number, sequence, order)
     refuses: true
     fix: |
       Add kind: choice or kind: number.
@@ -869,6 +869,91 @@ codes:
     explanation: |
       A choice has one right answer; several would need a different kind of question (M3P1.3).
 
+  CS0330:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question has no answer
+    refuses: true
+    fix: |
+      Write the answer as text under `answer:`.
+    explanation: |
+      A sequence question is answered by typing; without a right form nothing can be checked
+      (M4.8c spec, M4Q.3).
+
+  CS0331:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question's accepted answers are not a list of text
+    refuses: true
+    fix: |
+      Write `accept:` as a list, one other right form per line.
+    explanation: |
+      Each accepted form is compared as the answer is, so an empty one would accept an empty
+      answer (M4Q.3).
+
+  CS0332:
+    emitted_by: schema
+    concern: questions
+    says: a sequence question's exact is not true or false
+    refuses: true
+    fix: |
+      Write `exact: true`, or leave it out to ignore case and spaces.
+    explanation: |
+      A sequence is matched forgivingly unless the author asks for exact (M4Q.3).
+
+  CS0333:
+    emitted_by: schema
+    concern: questions
+    says: an order question has no steps
+    refuses: true
+    fix: |
+      Write the steps under `steps:`, one line each, in the right order.
+    explanation: |
+      The steps are written in the right order and shown shuffled (M4Q.3).
+
+  CS0334:
+    emitted_by: schema
+    concern: questions
+    says: an order question has fewer than 3 or more than 8 steps
+    refuses: true
+    fix: |
+      Keep between 3 and 8 steps; split a longer process into two questions.
+    explanation: |
+      Two steps are a coin toss; past eight, ordering tests patience more than understanding
+      (M4Q.3).
+
+  CS0335:
+    emitted_by: schema
+    concern: questions
+    says: two options say the same thing
+    refuses: true
+    fix: |
+      Make every option say something different.
+    explanation: |
+      Distractors are distinct (tutor spec T7.1): two options that read the same make the
+      question ambiguous, or one of them the right answer twice (M4Q.3).
+
+  CS0336:
+    emitted_by: schema
+    concern: questions
+    says: two steps of an order say the same thing
+    refuses: true
+    fix: |
+      Make every step say something different.
+    explanation: |
+      Two steps that read the same leave more than one right order (M4Q.3).
+
+  CS0337:
+    emitted_by: schema
+    concern: questions
+    says: a question has a field of another kind
+    refuses: true
+    fix: |
+      Keep only the fields of the question's kind, or change its kind.
+    explanation: |
+      Each kind is answered its own way, so a field of another kind is a question half
+      rewritten (M4Q.3).
+
   # ── CS0400–CS0499 · the body ────────────────────────────────────────────────────────────────
 
   CS0401:
@@ -1022,6 +1107,37 @@ codes:
       Write directive lines exactly as `:::{name} argument` and `:::`, with no extra spaces, nothing between a try's two lines, one line ending throughout, and a line ending after the last `:::`.
     explanation: |
       Studio writes a body back from its blocks, so a body is accepted only if that gives the same bytes (spec M4B.4). Anything the blocks cannot carry, such as trailing spaces on a directive line, is refused here rather than silently rewritten later.
+
+  CS0416:
+    emitted_by: schema
+    concern: body
+    says: a sequence block holds something other than letters
+    refuses: true
+    fix: |
+      Keep only the letters of the sequence, with spaces or line breaks between groups.
+    explanation: |
+      A sequence block draws bases or residues in groups of ten; anything else belongs in text
+      (M4.8c spec, M4Q.2).
+
+  CS0417:
+    emitted_by: schema
+    concern: body
+    says: a sequence block is empty
+    refuses: true
+    fix: |
+      Write the sequence between the fences, or remove the block.
+    explanation: |
+      An empty sequence block draws nothing (M4Q.2).
+
+  CS0418:
+    emitted_by: schema
+    concern: body
+    says: a sequence block has a title
+    refuses: true
+    fix: |
+      Put what the sequence is in the text before the block.
+    explanation: |
+      A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 
   # ── CS0500–CS0599 · the graph ───────────────────────────────────────────────────────────────
 
@@ -1402,6 +1518,102 @@ codes:
     explanation: |
       A node holds exam questions at or near its own level, and review flags one two or more levels
       away (tutor spec T10.1). A warning: review decides.
+
+  CS0815:
+    emitted_by: schema
+    concern: exam
+    says: an exam question has no title
+    refuses: true
+    fix: |
+      Give the question a one-line title, as Studio's list and a learner's results name it.
+    explanation: |
+      A stem may be long and hold blocks; the title names the question in one line (M4.8c spec,
+      M4Q.2).
+
+  CS0816:
+    emitted_by: schema
+    concern: exam
+    says: an exam question has no stem
+    refuses: true
+    fix: |
+      Write what the learner reads under `stem: |`.
+    explanation: |
+      The stem is the question as asked, built from the page's blocks (M4Q.2).
+
+  CS0817:
+    emitted_by: schema
+    concern: exam
+    says: a stem holds a try or a callout
+    refuses: true
+    fix: |
+      Keep text and sequences in a stem; a misconception belongs in the body, named by an option.
+    explanation: |
+      A test asks one question at a time and gives no notes; callouts and try questions are the
+      page's (M4Q.2).
+
+  CS0818:
+    emitted_by: schema
+    concern: exam
+    says: an exam choice offers fewer than 3 options
+    refuses: true
+    fix: |
+      Add a wrong option that someone who misunderstands would pick.
+    explanation: |
+      With two options a learner who knows nothing scores half (M4Q.3).
+
+  CS0819:
+    emitted_by: schema
+    concern: exam
+    says: an option names a misconception and says plain
+    refuses: true
+    fix: |
+      Keep the misconception, or say plain: true, not both.
+    explanation: |
+      `plain` says a wrong option names no misconception on purpose (M4Q.3).
+
+  CS0820:
+    emitted_by: schema
+    concern: exam
+    says: the right option says plain
+    refuses: true
+    fix: |
+      Remove plain: true from the right option.
+    explanation: |
+      `plain` marks a wrong option; the right one is simply right (M4Q.3).
+
+  CS0821:
+    emitted_by: schema
+    concern: exam
+    says: a wrong option names no misconception and is not plain
+    refuses: false
+    fix: |
+      Name the misconception callout this answer reflects, or write plain: true.
+    explanation: |
+      Every distractor names a misconception or is marked plain (tutor spec T7.1), so a forgotten
+      one shows while a deliberate one is quiet. A warning: review decides (M4Q.3).
+
+  CS0822:
+    emitted_by: schema
+    concern: exam
+    says: an option's plain is not true or false
+    refuses: true
+    fix: |
+      Write `plain: true` on a wrong option that names no misconception, or leave it out.
+    explanation: |
+      `plain` marks a distractor wrong on purpose (M4Q.3).
+
+  CS0823:
+    emitted_by: schema
+    concern: exam
+    says: a stem line ends in spaces or holds a tab
+    refuses: true
+    fix: |
+      Remove the spaces at the end of the line, and write spaces for a tab; for a line break, end
+      the line with a backslash.
+    explanation: |
+      exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that
+      ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it
+      is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
 
   # ── CW0001–CW0099 · routes ──────────────────────────────────────────────────────────────────
 

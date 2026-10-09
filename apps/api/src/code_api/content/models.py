@@ -98,28 +98,40 @@ class Question(models.Model):
     answer = models.TextField(null=True)
     unit = models.TextField(blank=True)
     tolerance = models.TextField(null=True)
+    # A sequence's other right forms and whether it is matched exactly; an order's steps in the
+    # right order (M4.8c spec, M4Q.5).
+    accept = models.JSONField(default=list)
+    exact = models.BooleanField(default=False)
+    steps = models.JSONField(default=list)
     hints = models.JSONField(default=list)
     rationale = models.TextField()
 
 
 class ExamQuestion(models.Model):
-    """One exam question (spec M4E.5): a try question's shape without hints, with a level.
+    """One exam question (spec M4E.5, M4.8c spec M4Q.5): a title, a claim and a stem of blocks,
+    an answer of any kind, no hints, a level.
 
     Its own table, so a listing of a node's try questions never needs a filter to stay one.
-    Options hold text, right and misconception; `level` is null when it is the node's own.
+    Options hold text, right, misconception and plain; `level` is null when it is the node's own;
+    `stem` holds the stem's blocks as `Node.blocks` holds a body.
     """
 
     node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="exam")
     position = models.PositiveIntegerField()
     question_id = models.TextField()
     kind = models.TextField(choices=[(kind, kind) for kind in QUESTION_KINDS])
-    ask = models.TextField()
+    title = models.TextField(default="")
+    claim = models.TextField(blank=True, default="")
+    stem = models.JSONField(default=list)
     options = models.JSONField(default=list)
     # The number as text (content.numbers): a float column wrote 1000000 back as 1000000.0, and
     # jsonb drops an exponent; text gives the node's files back byte for byte (M4W.2, #173).
     answer = models.TextField(null=True)
     unit = models.TextField(blank=True)
     tolerance = models.TextField(null=True)
+    accept = models.JSONField(default=list)
+    exact = models.BooleanField(default=False)
+    steps = models.JSONField(default=list)
     level = models.TextField(choices=[(level.value, level.value) for level in Level], null=True)
     rationale = models.TextField()
 

@@ -67,6 +67,7 @@ export interface ApiSchemas {
   SavedOut: SavedOut;
   SearchOut: SearchOut;
   SendBackIn: SendBackIn;
+  SequenceBlockOut: SequenceBlockOut;
   SideCardOut: SideCardOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
@@ -92,7 +93,8 @@ export interface ApproveIn {
  */
 export interface BlockIn {
   callout?: string;
-  kind: "text" | "try" | "callout";
+  kind: "text" | "try" | "callout" | "sequence";
+  letters?: string;
   markdown?: string;
   question?: string;
   title?: string;
@@ -141,7 +143,7 @@ export interface ProblemOut {
   text: string;
 }
 export interface DraftNodeOut {
-  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
+  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
   claim: string;
   exam: StudioExamQuestionOut[];
   goes_deeper: LinkOut[];
@@ -165,19 +167,38 @@ export interface TryBlockOut {
   kind: "try";
   question: string;
 }
+/**
+ * DNA, RNA or protein letters, drawn in groups of ten (M4.8c spec, M4Q.2).
+ */
+export interface SequenceBlockOut {
+  kind: "sequence";
+  letters: string;
+}
+/**
+ * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
+ * file holds, and whether the live index holds it unchanged.
+ */
 export interface StudioExamQuestionOut {
-  answer: number | null;
-  ask: string;
+  accept: string[];
+  answer: number | string | null;
+  claim: string;
+  exact: boolean;
   id: string;
   kind: string;
   level: string | null;
   options: StudioOptionOut[] | null;
   rationale: string;
+  state: "approved" | "draft";
+  stem: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  stem_text: string;
+  steps: string[] | null;
+  title: string;
   tolerance: number | null;
   unit: string;
 }
 export interface StudioOptionOut {
   misconception: string;
+  plain: boolean;
   right: boolean;
   text: string;
 }
@@ -186,16 +207,20 @@ export interface LinkOut {
   reason: string;
 }
 /**
- * A try question; `options` for a choice, `answer` (with unit and tolerance) for a number.
+ * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
+ * as text with `accept` and `exact` for a sequence; `steps` for an order (M4Q.5).
  */
 export interface StudioQuestionOut {
-  answer: number | null;
+  accept: string[];
+  answer: number | string | null;
   ask: string;
+  exact: boolean;
   hints: string[];
   id: string;
   kind: string;
   options: StudioOptionOut[] | null;
   rationale: string;
+  steps: string[] | null;
   tolerance: number | null;
   unit: string;
 }
@@ -265,18 +290,24 @@ export interface ExamIn {
   revision: number;
 }
 export interface ExamQuestionIn {
-  answer?: number | null;
-  ask: string;
+  accept?: string[];
+  answer?: number | string | null;
+  claim?: string;
+  exact?: boolean;
   id: string;
-  kind: "choice" | "number";
+  kind: "choice" | "number" | "sequence" | "order";
   level?: Level | null;
   options?: OptionIn[] | null;
   rationale: string;
+  stem: string;
+  steps?: string[] | null;
+  title: string;
   tolerance?: number | null;
   unit?: string;
 }
 export interface OptionIn {
   misconception?: string;
+  plain?: boolean;
   right?: boolean;
   text: string;
 }
@@ -327,13 +358,16 @@ export interface InsertBlockIn {
   revision: number;
 }
 export interface TryQuestionIn {
-  answer?: number | null;
+  accept?: string[];
+  answer?: number | string | null;
   ask: string;
+  exact?: boolean;
   hints: string[];
   id: string;
-  kind: "choice" | "number";
+  kind: "choice" | "number" | "sequence" | "order";
   options?: OptionIn[] | null;
   rationale: string;
+  steps?: string[] | null;
   tolerance?: number | null;
   unit?: string;
 }
@@ -410,7 +444,7 @@ export interface NewNodeIn {
   title: string;
 }
 export interface NodeOut {
-  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut)[];
+  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
   claim: string;
   folder: string;
   goes_deeper: SideCardOut[];
@@ -438,16 +472,22 @@ export interface SideCardOut {
 /**
  * A try question, its answer included: it is formative, and the page checks it (M3P1.4).
  *
- * Exam questions (T7.1) are scored, and their answers never leave the server.
+ * `options` for a choice; `answer`, a number with its unit and tolerance or a sequence's text
+ * with what else it accepts; `steps` for an order, in the right order — the page shuffles them
+ * (M4.8c spec, M4Q.5). Exam questions (T7.1) are scored, and their answers never leave the
+ * server.
  */
 export interface QuestionOut {
-  answer: number | null;
+  accept: string[];
+  answer: number | string | null;
   ask: string;
+  exact: boolean;
   hints: string[];
   id: string;
   kind: string;
   options: OptionOut[] | null;
   rationale: string;
+  steps: string[] | null;
   tolerance: number | null;
   unit: string | null;
 }
@@ -536,7 +576,7 @@ export interface ResultOut {
  */
 export interface ReviewQuestionOut {
   ask: string;
-  given: number | null;
+  given: unknown;
   id: string;
   kind: string;
   options: string[] | null;
@@ -544,9 +584,12 @@ export interface ReviewQuestionOut {
   rationale: string | null;
   right: boolean | null;
   right_option: number | null;
+  right_steps: string[] | null;
+  stem: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  steps: string[] | null;
   tolerance: number | null;
   unit: string;
-  value: number | null;
+  value: number | string | null;
 }
 export interface RevisionOut {
   change: string;

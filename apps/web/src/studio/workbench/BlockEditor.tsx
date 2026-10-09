@@ -5,13 +5,14 @@ import { useState } from "react";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
+import { NOTE } from "./bench";
 import { CalloutFields } from "./CalloutFields";
 import { insertBlock, updateBlock } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
-import { TryEditor } from "./TryEditor";
+import { BOX, LABEL, TryEditor } from "./TryEditor";
 import { reloadDraft, useDraftEdit } from "./useDraftEdit";
 import { useLeaveWarning } from "./useLeaveWarning";
 
@@ -28,14 +29,21 @@ export interface BlockEditorProps {
 function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   if (block.kind === "text") return block.markdown.trim() === "";
   if (block.kind === "callout") return block.title.trim() === "" && block.markdown.trim() === "";
+  if (block.kind === "sequence") return block.letters.trim() === "";
   return question === undefined || question.ask.trim() === "";
 }
 
 /** What is sent: text that ends its last line, as every block in a body does (#256). */
-const ended = (block: Block): Block =>
-  block.kind === "try" || block.markdown.endsWith("\n")
-    ? block
-    : { ...block, markdown: `${block.markdown}\n` };
+function ended(block: Block): Block {
+  if (block.kind === "try") return block;
+  if (block.kind === "sequence") {
+    return block.letters.endsWith("\n") ? block : { ...block, letters: `${block.letters}\n` };
+  }
+  return block.markdown.endsWith("\n") ? block : { ...block, markdown: `${block.markdown}\n` };
+}
+
+/** A try the workbench cannot edit yet: sequence and order arrive with the builder (M4.8d). */
+const LATER = new Set(["sequence", "order"]);
 
 /** What is sent: hints without the empty lines a half-typed list has. */
 const cleaned = (question: TryQuestionIn | undefined) =>
@@ -76,7 +84,22 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         />
       )}
       {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
-      {block.kind === "try" && asked !== undefined && (
+      {block.kind === "sequence" && (
+        <label className={LABEL}>
+          Letters
+          <textarea
+            value={block.letters}
+            rows={3}
+            spellCheck={false}
+            onChange={(e) => setBlock({ ...block, letters: e.target.value })}
+            className={`${BOX} font-mono`}
+          />
+        </label>
+      )}
+      {block.kind === "try" && asked !== undefined && LATER.has(asked.kind) && (
+        <p className={NOTE}>A {asked.kind} question. Edited in the exam pool's builder (M4.8d).</p>
+      )}
+      {block.kind === "try" && asked !== undefined && !LATER.has(asked.kind) && (
         <TryEditor question={asked} onChange={setAsked} />
       )}
       {refusal !== null && (

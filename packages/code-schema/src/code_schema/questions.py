@@ -11,6 +11,7 @@ name what is wrong — and so `kind: figure` can be refused by name until figure
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import ClassVar, TypeGuard
 
@@ -20,11 +21,39 @@ from code_schema.records import Entry, Field
 from code_schema.yaml_lines import Lines
 
 TRY_FIELD = "try"
-KINDS = ("choice", "number")
+KINDS = ("choice", "number", "sequence", "order")
 MAX_HINTS = 3
 OPTIONS = (2, 5)
+STEPS = (3, 8)
 
-_KEYS = ("id", "kind", "ask", "options", "answer", "unit", "tolerance", "hints", "rationale")
+_KEYS = (
+    "id",
+    "kind",
+    "ask",
+    "options",
+    "answer",
+    "unit",
+    "tolerance",
+    "accept",
+    "exact",
+    "steps",
+    "hints",
+    "rationale",
+)
+# Which fields answer each kind (M4.8c spec, M4Q.3); a field of another kind is refused.
+_FIELDS: dict[str, tuple[str, ...]] = {
+    "choice": ("options",),
+    "number": ("answer", "unit", "tolerance"),
+    "sequence": ("answer", "accept", "exact"),
+    "order": ("steps",),
+}
+# The refusals M3 already pinned, kept in their words; any other field of another kind is CS0337.
+_PINNED = {
+    ("choice", "answer"): "CS0308",
+    ("number", "options"): "CS0310",
+    ("choice", "unit"): "CS0313",
+    ("choice", "tolerance"): "CS0314",
+}
 _LATER_KINDS = {"figure": ("CS0306", "a figure question arrives with figures in M6")}
 
 _id = slug(noun="question id")
@@ -34,6 +63,8 @@ _hint = one_sentence(max_len=200)
 _option = one_line(max_len=120)
 _unit = one_line(max_len=20)
 _rationale = one_line(max_len=400)
+_step = one_line(max_len=120)
+_accepted = one_line(max_len=200)
 
 
 @dataclass(frozen=True)
@@ -43,6 +74,7 @@ class OptionRules:
     keys: tuple[str, ...]
     code: str
     noun: str
+    minimum: int = 2  # how few options a choice may offer
 
 
 TRY_OPTIONS = OptionRules(keys=("text", "right"), code="CS0324", noun="an option")
@@ -57,6 +89,8 @@ class Option:
     right: bool = False
     # An exam option's link to a misconception callout by title (spec M4E.1); never on a try.
     misconception: str = ""
+    # An exam option wrong on purpose, naming no misconception (M4.8c spec, M4Q.3).
+    plain: bool = False
 
 
 @dataclass(frozen=True)
@@ -77,8 +111,32 @@ class NumberAnswer:
     tolerance: float | int | None = None
 
 
+@dataclass(frozen=True)
+class SequenceAnswer:
+    """Answered by typing: case and spaces ignored unless `exact`; any accepted form is right."""
+
+    kind: ClassVar[str] = "sequence"
+    value: str
+    accept: tuple[str, ...] = ()
+    exact: bool = False
+
+
+@dataclass(frozen=True)
+class OrderAnswer:
+    """Answered by putting the steps in order; written in the right one (M4.8c spec, M4Q.3)."""
+
+    kind: ClassVar[str] = "order"
+    steps: tuple[str, ...]
+
+
 # How a question is answered, whichever pool it is in (spec M4E.2). A new kind joins here, once.
-Answer = ChoiceAnswer | NumberAnswer
+Answer = ChoiceAnswer | NumberAnswer | SequenceAnswer | OrderAnswer
+
+
+def _same(texts: Sequence[str]) -> bool:
+    """Whether two texts read the same, case and surrounding spaces aside."""
+    seen = [text.strip().casefold() for text in texts]
+    return len(set(seen)) < len(seen)
 
 
 @dataclass(frozen=True)
@@ -160,13 +218,22 @@ def _parse_options(
         ):
             sound = False
             continue
+        plain = item.get("plain", False)
+        if "plain" in rules.keys and not isinstance(plain, bool):
+            option.problem("CS0822", f"{shown(plain)} is not true or false", key="plain")
+            sound = False
+            continue
         sound = sound and option.sound
-        options.append(Option(text=str(text), right=right, misconception=str(misconception)))
+        options.append(
+            Option(
+                text=str(text), right=right, misconception=str(misconception), plain=plain is True
+            )
+        )
     if not sound:
         return (), False
 
     count = len(options)
-    if not OPTIONS[0] <= count <= OPTIONS[1]:
+    if not rules.minimum <= count <= OPTIONS[1]:
         word = "option" if count == 1 else "options"
         field.problem(
             "CS0327", f"the question {question} has {count} {word} (a choice offers 2 to 5)"
@@ -180,14 +247,23 @@ def _parse_options(
         word = "two" if right_count == 2 else str(right_count)
         field.problem("CS0329", f"the question {question} has {word} right options")
         return (), False
+    if _same([option.text for option in options]):
+        field.problem("CS0335", f"two options of {question} say the same thing")
+        return (), False
     return tuple(options), True
 
 
 def _gives_the_answer(hint: str, answer: Answer) -> bool:
-    if isinstance(answer, NumberAnswer):
-        return _states_the_number(hint, str(answer.value))
-    right = next((option.text for option in answer.options if option.right), "")
-    return right.casefold() in hint.casefold()
+    match answer:
+        case NumberAnswer(value=value):
+            return _states_the_number(hint, str(value))
+        case ChoiceAnswer(options=options):
+            right = next((option.text for option in options if option.right), "")
+            return right.casefold() in hint.casefold()
+        case SequenceAnswer(value=value):
+            return "".join(value.split()).casefold() in "".join(hint.split()).casefold()
+        case OrderAnswer():
+            return False
 
 
 def _refusals(field: Field) -> int:
@@ -198,7 +274,8 @@ def _refusals(field: Field) -> int:
 def read_answer(
     entry: Entry, name: str, kind: str, field: Field, *, rules: OptionRules = TRY_OPTIONS
 ) -> Answer | None:
-    """A question's answer: options for a choice; a value, unit and tolerance for a number.
+    """A question's answer: options for a choice; a value, unit and tolerance for a number; typed
+    text for a sequence; steps for an order (M4.8c spec, M4Q.3).
 
     Shared by every pool (spec M4E.2), so its rules and messages read the same wherever a question
     is asked. None when the answer itself is wrong, with the problems recorded on `entry`. An answer
@@ -209,63 +286,127 @@ def read_answer(
     before = _refusals(field)
     options: tuple[Option, ...] = ()
     value: float | int | None = None
+    typed: SequenceAnswer | None = None
+    steps: tuple[str, ...] = ()
+    answering = {key for fields in _FIELDS.values() for key in fields}
+    for key in [str(key) for key in written if key in answering]:
+        if key not in _FIELDS[kind]:
+            entry.problem(_PINNED.get((kind, key), "CS0337"), _foreign(kind, name, key), key=key)
     if kind == "choice":
-        if "answer" in written:
-            entry.problem(
-                "CS0308",
-                f"the choice question {name} has an answer — a choice is answered by its options",
-                key="answer",
-            )
         if entry.require("options", "CS0309", f"the choice question {name} has no options"):
             options, ok = _parse_options(
                 written["options"], question=name, field=field, rules=rules
             )
             entry.sound = entry.sound and ok
-    else:
-        if "options" in written:
-            entry.problem(
-                "CS0310",
-                f"the number question {name} has options "
-                "— a number question is answered with a value",
-                key="options",
-            )
+    elif kind == "number":
         if entry.require("answer", "CS0311", f"the number question {name} has no answer"):
             if _is_number(given := written["answer"]):
                 value = given
             else:
                 entry.problem("CS0312", f"the answer of {name} is not a number", key="answer")
-
-    unit = written.get("unit", "")
-    if "unit" in written:
-        if kind != "number":
-            entry.problem("CS0313", f"the choice question {name} has a unit", key="unit")
-        else:
+        if "unit" in written:
             entry.check("unit", _unit, prefix=f"the unit of {name} ")
-    tolerance = written.get("tolerance")
-    if "tolerance" in written:
-        if kind != "number":
-            entry.problem("CS0314", f"the choice question {name} has a tolerance", key="tolerance")
-        elif not _is_number(tolerance) or float(str(tolerance)) < 0:
+        tolerance = written.get("tolerance")
+        if "tolerance" in written and (not _is_number(tolerance) or float(str(tolerance)) < 0):
             entry.problem(
-                "CS0315",
-                f"the tolerance of {name} is not a number of 0 or more",
-                key="tolerance",
+                "CS0315", f"the tolerance of {name} is not a number of 0 or more", key="tolerance"
             )
+    elif kind == "sequence":
+        typed = _read_sequence(entry, name)
+    else:
+        steps = _read_steps(entry, name)
 
     if _refusals(field) > before:
         return None
-    if kind == "choice":
-        return ChoiceAnswer(options=options)
-    # A sound number question has a value: CS0311 and CS0312 refuse the rest.
-    assert value is not None
-    return NumberAnswer(
-        value=value,
-        unit=str(unit),
-        tolerance=tolerance if _is_number(tolerance) else None,
+    match kind:
+        case "choice":
+            return ChoiceAnswer(options=options)
+        case "number":
+            assert value is not None  # CS0311 and CS0312 refuse the rest
+            tolerance = written.get("tolerance")
+            return NumberAnswer(
+                value=value,
+                unit=str(written.get("unit", "")),
+                tolerance=tolerance if _is_number(tolerance) else None,
+            )
+        case "sequence":
+            assert typed is not None  # CS0330–CS0332 refuse the rest
+            return typed
+    return OrderAnswer(steps=steps)
+
+
+_SAYS = {
+    "choice": "picking one of its options",
+    "number": "a value, with its unit and tolerance",
+    "sequence": "typed text, with what else it accepts",
+    "order": "its steps in order",
+}
+
+
+def _foreign(kind: str, name: str, key: str) -> str:
+    """M3's sentences for the pinned cases, one sentence for the rest."""
+    pinned = {
+        ("choice", "answer"): f"the choice question {name} has an answer "
+        "— a choice is answered by its options",
+        ("number", "options"): f"the number question {name} has options "
+        "— a number question is answered with a value",
+        ("choice", "unit"): f"the choice question {name} has a unit",
+        ("choice", "tolerance"): f"the choice question {name} has a tolerance",
+    }
+    return pinned.get(
+        (kind, key), f"the {kind} question {name} has `{key}` — it is answered by {_SAYS[kind]}"
     )
 
 
-def read_head(entry: Entry) -> tuple[str, str] | None:
+def _read_sequence(entry: Entry, name: str) -> SequenceAnswer | None:
+    """A typed answer, the other forms it accepts, and whether it is matched exactly."""
+    written = entry.mapping
+    given = written.get("answer")
+    if not isinstance(given, str) or not given.strip():
+        entry.problem("CS0330", f"the sequence question {name} has no answer", key="answer")
+        return None
+    entry.check("answer", _accepted, prefix=f"the answer of {name} ")
+    accept = written.get("accept", [])
+    if not isinstance(accept, list) or any(
+        not isinstance(form, str) or not form.strip() for form in accept
+    ):
+        entry.problem(
+            "CS0331", f"the accepted answers of {name} must be a list of text", key="accept"
+        )
+        return None
+    exact = written.get("exact", False)
+    if not isinstance(exact, bool):
+        entry.problem("CS0332", f"{shown(exact)} is not true or false", key="exact")
+        return None
+    return SequenceAnswer(value=given, accept=tuple(accept), exact=exact)
+
+
+def _read_steps(entry: Entry, name: str) -> tuple[str, ...]:
+    """An order's steps, as written: in the right order."""
+    steps = entry.mapping.get("steps")
+    if not isinstance(steps, list) or any(not isinstance(step, str) for step in steps):
+        entry.problem(
+            "CS0333", f"the order question {name} has no steps, one line each", key="steps"
+        )
+        return ()
+    if not STEPS[0] <= len(steps) <= STEPS[1]:
+        entry.problem(
+            "CS0334",
+            f"the order question {name} has {len(steps)} steps (an order has 3 to 8)",
+            key="steps",
+        )
+        return ()
+    for step in steps:
+        if (wrong := _step(step)) is not None:
+            entry.problem(wrong.code, f"a step of {name} {wrong.message}", key="steps")
+            return ()
+    if _same(steps):
+        entry.problem("CS0336", f"two steps of {name} say the same thing", key="steps")
+        return ()
+    return tuple(steps)
+
+
+def read_head(entry: Entry, *, ask: bool = True) -> tuple[str, str] | None:
     """A question's id and kind, its ask checked; None when it cannot be named or checked further.
 
     Shared by every pool (spec M4E.3).
@@ -275,14 +416,14 @@ def read_head(entry: Entry) -> tuple[str, str] | None:
         return None
     name = str(written["id"])
     kind = written.get("kind")
-    if not entry.require("kind", "CS0305", f"the question {name} has no kind (choice, number)"):
+    if not entry.require("kind", "CS0305", f"the question {name} has no kind ({', '.join(KINDS)})"):
         return None
     if isinstance(kind, str) and kind in _LATER_KINDS:
         entry.problem(*_LATER_KINDS[kind], key="kind")
         return None
     if not entry.check("kind", _kind):
         return None
-    if entry.require("ask", "CS0307", f"the question {name} has no ask"):
+    if ask and entry.require("ask", "CS0307", f"the question {name} has no ask"):
         entry.check("ask", _ask, prefix=f"the question asked by {name} ")
     return name, str(kind)
 

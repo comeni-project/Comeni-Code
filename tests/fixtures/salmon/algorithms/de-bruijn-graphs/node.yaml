@@ -53,3 +53,22 @@ try:
       - A unitig is a stretch with no branch in it.
       - The two transcripts part company at the letter after the shared path.
     rationale: Both transcripts share ACGT → CGTT → GTTG, which merges to ACGTTG; after it one goes to TTGCA and the other to TTGAA.
+  - id: spell-the-path
+    kind: sequence
+    ask: What sequence does the path ACGT → CGTT → GTTG spell?
+    answer: ACGTTG
+    hints:
+      - Start with the first 4-mer whole.
+      - Each edge after it adds the last letter of the next 4-mer.
+    rationale: ACGT, then T from CGTT, then G from GTTG, spells ACGTTG.
+  - id: assembly-order
+    kind: order
+    ask: Put the steps of de Bruijn assembly in order.
+    steps:
+      - Cut the reads into k-mers
+      - Build the graph from the k-mers
+      - Simplify tips and bubbles
+      - Walk the paths into contigs
+    hints:
+      - The graph is built from something smaller than a read.
+    rationale: The graph needs the k-mers, cleaning needs the graph, and contigs are walked last.

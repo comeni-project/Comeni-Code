@@ -1,18 +1,19 @@
 """A node's exam pool, in exam.yaml beside node.yaml (spec M4E.1, M4E.3; tutor spec T7.1).
 
 An exam question is asked in a self-test, never in the prose: it has no hints, may carry its own
-level, and a wrong option may name the misconception it targets. How it is answered, and the rules
-for that, are the try question's (`code_schema.questions`), so a rule reads the same in both pools.
-The pool's own rules are here.
+level, and a wrong option names the misconception it targets or says it is plain. It has a title,
+a free-text claim and a stem of the page's blocks (M4.8c spec, M4Q.2). How it is answered, and the
+rules for that, are the try question's (`code_schema.questions`), so a rule reads the same in both
+pools. The pool's own rules are here.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
-from code_schema.blocks import Callout
-from code_schema.fields import one_of, shown
+from code_schema.blocks import Block, Callout, Try, parse_blocks
+from code_schema.fields import one_line, one_of, shown
 from code_schema.levels import Level
 from code_schema.problems import Problem
 from code_schema.questions import (
@@ -35,11 +36,30 @@ EXAM_FIELD = "exam"
 MAX_EXAM = 40
 MIN_EXAM = 4  # fewer is left out of self-tests (T7.1): a warning, CS0813
 
-_KEYS = ("id", "kind", "ask", "level", "options", "answer", "unit", "tolerance", "rationale")
-_OPTIONS = OptionRules(
-    keys=("text", "right", "misconception"), code="CS0808", noun="an exam option"
+_KEYS = (
+    "id",
+    "title",
+    "claim",
+    "kind",
+    "level",
+    "stem",
+    "options",
+    "answer",
+    "unit",
+    "tolerance",
+    "accept",
+    "exact",
+    "steps",
+    "rationale",
 )
+# CS0327 keeps its words for 2 to 5; CS0818 asks an exam's choice for three.
+_OPTIONS = OptionRules(
+    keys=("text", "right", "misconception", "plain"), code="CS0808", noun="an exam option"
+)
+EXAM_OPTIONS = 3
 _level = one_of(tuple(Level), noun="level")
+_title = one_line(max_len=120)
+_claim = one_line(max_len=200)
 
 
 @dataclass(frozen=True)
@@ -47,7 +67,9 @@ class ExamQuestion:
     """A question asked in a self-test (T7.1). `level` is None when it is the node's own."""
 
     id: str
-    ask: str
+    title: str
+    claim: str
+    stem: str  # MyST, read by the body's block reader
     answer: Answer
     level: Level | None
     rationale: str
@@ -55,6 +77,49 @@ class ExamQuestion:
     @property
     def kind(self) -> str:
         return self.answer.kind
+
+    @property
+    def blocks(self) -> tuple[Block, ...]:
+        """The stem read as blocks; `parse_exam` refuses a stem with any problem."""
+        return parse_blocks(self.stem, file=EXAM_FILE)[0]
+
+
+def _read_stem(entry: Entry, name: str, *, file: str) -> str | None:
+    """The stem, its block problems at their lines in exam.yaml (Review Focus 1).
+
+    A literal stem (`stem: |`) starts on the line after its key; a one-line stem on the key's own.
+    """
+    stem = entry.mapping.get("stem")
+    if not isinstance(stem, str) or not stem.strip():
+        entry.problem("CS0816", f"the exam question {name} has no stem", key="stem")
+        return None
+    key = entry.at("stem") or entry.line or 1
+    at = key if "\n" in stem.rstrip("\n") or stem.endswith("\n") else key - 1
+    # YAML writes such a line only as an escaped string, never as `stem: |` (#264).
+    for number, line in enumerate(stem.split("\n"), start=1):
+        if "\t" in line or line != line.rstrip(" "):
+            entry.problem(
+                "CS0823",
+                f"a line of {name}'s stem ends in spaces or holds a tab",
+                line=number + at,
+            )
+            return None
+    blocks, starts, problems = parse_blocks(stem, file=file)
+    for problem in problems:
+        entry.field.problems.append(replace(problem, line=(problem.line or 1) + at))
+    if problems:
+        entry.sound = False
+        return None
+    for block, start in zip(blocks, starts, strict=True):
+        if isinstance(block, Try | Callout):
+            said = "a try question" if isinstance(block, Try) else "a callout"
+            entry.problem(
+                "CS0817",
+                f"the stem of {name} holds {said} — a stem holds text and sequences",
+                line=start + at,
+            )
+            return None
+    return stem
 
 
 def parse_exam(
@@ -116,7 +181,7 @@ def parse_exam(
             "CS0806",
             lambda key: f"unknown key `{key}` in an exam question ({', '.join(_KEYS)})",
         )
-        if (head := read_head(entry)) is None:
+        if (head := read_head(entry, ask=False)) is None:
             continue
         name, kind = head
         if "hints" in written:
@@ -125,31 +190,18 @@ def parse_exam(
                 f"the exam question {name} has hints — a self-test gives none",
                 key="hints",
             )
+        if entry.require("title", "CS0815", f"the exam question {name} has no title"):
+            entry.check("title", _title, prefix=f"the title of {name} ")
+        if "claim" in written:
+            entry.check("claim", _claim, prefix=f"the claim of {name} ")
+        stem = _read_stem(entry, name, file=file)
         if entry.check("level", _level, prefix=f"the level of {name} ") and node is not None:
             _level_distance(entry, name, written.get("level"), node.level)
         answer = read_answer(entry, name, kind, field, rules=_OPTIONS)
         rationale = read_rationale(entry, name)
 
         if isinstance(answer, ChoiceAnswer):
-            written_options = written["options"]
-            assert isinstance(written_options, list)  # a sound choice wrote a list of mappings
-            for item, option in zip(written_options, answer.options, strict=True):
-                if not option.misconception:
-                    continue
-                line = lines.of(item, "misconception")
-                if option.right:
-                    entry.problem(
-                        "CS0810",
-                        f"the right option of {name} names a misconception "
-                        "— only a wrong option can",
-                        line=line,
-                    )
-                elif misconceptions is not None and option.misconception not in misconceptions:
-                    entry.problem(
-                        "CS0809",
-                        f"`{option.misconception}` names no misconception callout in body.md",
-                        line=line,
-                    )
+            _check_options(entry, name, answer, written, misconceptions)
         if try_ids is not None and name in try_ids:
             entry.problem(
                 "CS0811",
@@ -160,11 +212,13 @@ def parse_exam(
 
         if not entry.sound:
             continue
-        assert answer is not None  # a sound entry has a sound answer
+        assert answer is not None and stem is not None  # a sound entry has both
         level = written.get("level")
         question = ExamQuestion(
             id=name,
-            ask=str(written["ask"]),
+            title=str(written["title"]),
+            claim=str(written.get("claim", "")),
+            stem=stem,
             answer=answer,
             level=None if level is None else Level(str(level)),
             rationale=rationale,
@@ -179,6 +233,60 @@ def parse_exam(
             f"— the node is left out of self-tests until it has {MIN_EXAM}",
         )
     return tuple(questions), problems
+
+
+def _check_options(
+    entry: Entry,
+    name: str,
+    answer: ChoiceAnswer,
+    written: dict[object, object],
+    misconceptions: set[str] | None,
+) -> None:
+    """An exam's choice: three options at least, and each wrong one names a misconception or says
+    it is plain on purpose (M4Q.3); a forgotten one is a warning, a contradiction a refusal."""
+    lines = entry.field.lines
+    if len(answer.options) < EXAM_OPTIONS:
+        entry.problem(
+            "CS0818",
+            f"the exam question {name} has {len(answer.options)} options "
+            f"(an exam's choice offers {EXAM_OPTIONS} to 5)",
+            key="options",
+        )
+    written_options = written["options"]
+    assert isinstance(written_options, list)  # a sound choice wrote a list of mappings
+    for item, option in zip(written_options, answer.options, strict=True):
+        if option.plain and option.misconception:
+            entry.problem(
+                "CS0819",
+                f"an option of {name} names a misconception and says plain — one or the other",
+                line=lines.of(item, "plain"),
+            )
+        elif option.plain and option.right:
+            entry.problem(
+                "CS0820", f"the right option of {name} says plain", line=lines.of(item, "plain")
+            )
+        elif option.misconception and option.right:
+            entry.problem(
+                "CS0810",
+                f"the right option of {name} names a misconception — only a wrong option can",
+                line=lines.of(item, "misconception"),
+            )
+        elif (
+            option.misconception
+            and misconceptions is not None
+            and option.misconception not in misconceptions
+        ):
+            entry.problem(
+                "CS0809",
+                f"`{option.misconception}` names no misconception callout in body.md",
+                line=lines.of(item, "misconception"),
+            )
+        elif not option.right and not option.plain and not option.misconception:
+            entry.flag(
+                "CS0821",
+                f"`{option.text}` in {name} names no misconception "
+                "— name one, or write plain: true",
+            )
 
 
 def _level_distance(entry: Entry, name: str, written: object, home: Level) -> None:

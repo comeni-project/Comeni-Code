@@ -22,7 +22,7 @@ from code_schema import (
     parse_node_files,
     read_content,
 )
-from code_schema.blocks import Callout, Text, Try
+from code_schema.blocks import Callout, SequenceBlock, Text, Try
 from code_schema.edits import (
     EditError,
     add_exam_question,
@@ -52,7 +52,9 @@ QUESTION = TryQuestion(
 )
 EXAM = ExamQuestion(
     id="tpm-share",
-    ask="If one transcript holds half the molecules in a sample, what is its TPM?",
+    title="If one transcript holds half the molecules in a sample, what is its TPM?",
+    claim="",
+    stem="If one transcript holds half the molecules in a sample, what is its TPM?\n",
     answer=NumberAnswer(value=500000),
     level=None,
     rationale="TPM is a share of a million, so half the molecules is 500,000.",
@@ -113,11 +115,14 @@ def test_a_callout_is_inserted_between_blocks() -> None:
 
 
 def test_a_try_block_carries_its_question_in() -> None:
-    edited = reread(insert_block(DBG, 2, Try(question="edge-count"), question=QUESTION))
+    # Block 3 is kmers-per-read since the fixture's sequence block (M4.8c).
+    edited = reread(insert_block(DBG, 4, Try(question="edge-count"), question=QUESTION))
     assert [question.id for question in edited.questions] == [
         "kmers-per-read",
         "edge-count",
         "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
     ]
 
 
@@ -134,14 +139,18 @@ def test_a_question_id_already_asked_is_an_edit_error() -> None:
 
 
 def test_deleting_a_try_block_deletes_its_question() -> None:
-    edited = reread(delete_block(DBG, 1))
-    assert [question.id for question in edited.questions] == ["shared-unitig"]
+    edited = reread(delete_block(DBG, 3))
+    assert [question.id for question in edited.questions] == [
+        "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
+    ]
     assert Try(question="kmers-per-read") not in edited.blocks
 
 
 def test_texts_brought_together_merge() -> None:
     # Deleting the try between two texts leaves one text block, as the body reads back.
-    edited = reread(delete_block(DBG, 1))
+    edited = reread(delete_block(DBG, 3))
     assert not any(
         isinstance(a, Text) and isinstance(b, Text)
         for a, b in zip(edited.blocks, edited.blocks[1:], strict=False)
@@ -165,15 +174,17 @@ def test_texts_already_apart_gain_no_second_blank_line() -> None:
 
 def test_a_try_question_is_updated_through_its_block() -> None:
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(DBG, 1, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(DBG, 3, Try(question="kmers-per-read"), question=changed))
     assert edited.questions[0].ask == "How many 4-mers does a 10-base read contain?"
 
 
 def test_a_block_moves() -> None:
-    edited = reread(move_block(DBG, 1, 3))
+    edited = reread(move_block(DBG, 3, 5))
     assert [block for block in edited.blocks if isinstance(block, Try)] == [
         Try(question="shared-unitig"),
         Try(question="kmers-per-read"),
+        Try(question="spell-the-path"),
+        Try(question="assembly-order"),
     ]
 
 
@@ -188,7 +199,13 @@ def test_the_exam_pool_is_edited_a_question_at_a_time() -> None:
     assert [question.id for question in added.exam][-1] == "tpm-share"
     choice = replace(
         EXAM,
-        answer=ChoiceAnswer(options=(Option(text="500,000", right=True), Option(text="0.5"))),
+        answer=ChoiceAnswer(
+            options=(
+                Option(text="500,000", right=True),
+                Option(text="0.5", plain=True),
+                Option(text="50", plain=True),
+            )
+        ),
     )
     updated = reread(update_exam_question(added, "tpm-share", choice))
     assert updated.exam[-1].answer == choice.answer
@@ -218,7 +235,7 @@ def _swapped() -> Node:
 def test_updating_a_try_block_finds_its_question_by_id() -> None:
     node = reread(_swapped())
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(node, 1, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(node, 3, Try(question="kmers-per-read"), question=changed))
     by_id = {question.id: question for question in edited.questions}
     assert by_id["kmers-per-read"].ask == changed.ask
     assert by_id["shared-unitig"] == DBG.questions[1]
@@ -260,3 +277,8 @@ def test_blocks_that_would_read_back_otherwise_are_refused(block: Callout) -> No
 
     with pytest.raises(Unfaithful):
         insert_block(DBG, 2, block)
+
+
+def test_a_sequence_block_is_inserted() -> None:
+    edited = reread(insert_block(DBG, 1, SequenceBlock(letters="ACGTTGCA\n")))
+    assert SequenceBlock(letters="ACGTTGCA\n") in edited.blocks

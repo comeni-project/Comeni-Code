@@ -27,11 +27,14 @@ export function newQuestion(nodeId: string, questions: readonly { id: string }[]
 export function questionIn(out: StudioQuestionOut): TryQuestionIn {
   return {
     id: out.id,
-    kind: out.kind === "number" ? "number" : "choice",
+    kind: out.kind as TryQuestionIn["kind"],
     ask: out.ask,
     answer: out.answer,
     unit: out.unit,
     tolerance: out.tolerance,
+    accept: out.accept,
+    exact: out.exact,
+    steps: out.steps,
     hints: out.hints,
     rationale: out.rationale,
     options:

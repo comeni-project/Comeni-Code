@@ -4,8 +4,16 @@
 // so the board's "Answered · back in review in 3 days" waits for learner records (T7).
 import { useId, useState } from "react";
 import type { QuestionOut } from "../api/schema";
+import { type Given, isRight, pairsInOrder } from "./grading";
+import { OrderAnswer, shuffled } from "./OrderAnswer";
+import { SequenceAnswer } from "./SequenceAnswer";
 
-const KINDS: Record<string, string> = { number: "a count", choice: "a choice" };
+const KINDS: Record<string, string> = {
+  number: "a count",
+  choice: "a choice",
+  sequence: "a typed answer",
+  order: "an order",
+};
 
 const Chevron = ({ up = false }: { up?: boolean }) => (
   <svg
@@ -26,26 +34,22 @@ function answerOf(question: QuestionOut): string {
   if (question.kind === "choice") {
     return question.options?.find((option) => option.right)?.text ?? "";
   }
+  if (question.kind === "sequence") return String(question.answer ?? "");
+  if (question.kind === "order") return (question.steps ?? []).join(" → ");
   return [question.answer, question.unit].filter((part) => part !== null).join(" ");
-}
-
-function isRight(question: QuestionOut, given: string): boolean {
-  if (question.kind === "choice") {
-    return question.options?.some((option) => option.right && option.text === given) ?? false;
-  }
-  const value = Number(given.replace(",", "."));
-  if (given.trim() === "" || Number.isNaN(value) || question.answer === null) return false;
-  return Math.abs(value - question.answer) <= (question.tolerance ?? 0) + 1e-9;
 }
 
 export function TryQuestion({
   question,
   number,
   big = false,
+  shuffle = shuffled,
 }: {
   question: QuestionOut;
   number: number;
   big?: boolean;
+  /** How an order's steps are dealt: shuffled, and fixed in tests. */
+  shuffle?: (steps: string[]) => string[];
 }) {
   // First steps asks one question at a time, in the open (T10.2): there is nothing to unfold.
   const [open, setOpen] = useState(big);
@@ -56,11 +60,13 @@ export function TryQuestion({
   const [shown, setShown] = useState(false);
   const [hints, setHints] = useState(0);
   const field = useId();
+  const [orderSteps] = useState(() => shuffle(question.steps ?? []));
+  const [lastOrder, setLastOrder] = useState<string[] | null>(null);
 
   const answer = answerOf(question);
   const done = right || shown || wrong >= TRIES;
 
-  function check(value: string) {
+  function check(value: Given) {
     if (right) return;
     if (isRight(question, value)) setRight(true);
     else setWrong(wrong + 1);
@@ -183,6 +189,17 @@ export function TryQuestion({
             );
           })}
         </div>
+      ) : question.kind === "sequence" ? (
+        <SequenceAnswer disabled={right} onCheck={check} />
+      ) : question.kind === "order" ? (
+        <OrderAnswer
+          steps={orderSteps}
+          disabled={right}
+          onCheck={(order) => {
+            setLastOrder(order);
+            check(order);
+          }}
+        />
       ) : (
         <form
           className="flex flex-wrap items-center gap-2.5"
@@ -217,7 +234,11 @@ export function TryQuestion({
 
       {wrong > 0 && !right ? (
         <p className="text-[13.5px] text-open">
-          <b className="font-semibold">Not quite.</b>
+          <b className="font-semibold">
+            {question.kind === "order" && lastOrder !== null
+              ? `${pairsInOrder(question, lastOrder).join(" of ")} pairs in order.`
+              : "Not quite."}
+          </b>
           {done ? "" : " Try again, or take a hint."}
         </p>
       ) : null}

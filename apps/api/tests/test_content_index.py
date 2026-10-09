@@ -28,6 +28,8 @@ from code_schema import (
     ChoiceAnswer,
     Level,
     NumberAnswer,
+    OrderAnswer,
+    SequenceAnswer,
     block_json,
     read_content,
     read_node,
@@ -252,7 +254,12 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     assert resources[0].part == ""
     assert resources[0].video == ""  # Khan Academy is linked, never embedded (issue 76)
     questions = list(node.questions.order_by("position"))
-    assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
+    assert [question.question_id for question in questions] == [
+        "kmers-per-read",
+        "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
+    ]
     assert questions[0].kind == "number"
     assert number_from(questions[0].answer) == 5  # stored as text (#173)
     assert questions[0].options == []
@@ -280,7 +287,7 @@ def test_a_second_rebuild_replaces_them() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
     assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
-    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 2
+    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 4
 
 
 def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
@@ -319,8 +326,21 @@ def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:
 def test_a_rebuild_stores_each_nodes_blocks() -> None:
     rebuild_index(FIXTURES)
     stored = Node.objects.get(id="de-bruijn-graphs").blocks
-    assert [block["kind"] for block in stored] == ["text", "try", "text", "try", "text"]
-    assert stored[1] == {"kind": "try", "question": "kmers-per-read"}
+    assert [block["kind"] for block in stored] == [
+        "text",
+        "sequence",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+    ]
+    assert stored[1] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
+    assert stored[3] == {"kind": "try", "question": "kmers-per-read"}
     callout = Node.objects.get(id="tpm").blocks[1]
     assert (callout["kind"], callout["callout"]) == ("callout", "misconception")
 
@@ -333,18 +353,25 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
     parsed = read_content(FIXTURES).nodes["tpm"].exam
     rows = list(ExamQuestion.objects.filter(node_id="tpm").order_by("position"))
     assert [row.question_id for row in rows] == [question.id for question in parsed]
-    assert [row.position for row in rows] == [0, 1, 2, 3]
+    assert [row.position for row in rows] == list(range(6))
     for row, question in zip(rows, parsed, strict=True):
-        assert (row.kind, row.ask, row.rationale) == (
+        assert (row.kind, row.title, row.claim, row.rationale) == (
             question.kind,
-            question.ask,
+            question.title,
+            question.claim,
             question.rationale,
         )
+        assert row.stem == [block_json(block) for block in question.blocks]
         assert row.level == (question.level.value if question.level else None)
         match question.answer:
             case ChoiceAnswer(options=options):
                 assert row.options == [
-                    {"text": o.text, "right": o.right, "misconception": o.misconception}
+                    {
+                        "text": o.text,
+                        "right": o.right,
+                        "misconception": o.misconception,
+                        "plain": o.plain,
+                    }
                     for o in options
                 ]
                 assert row.answer is None
@@ -355,12 +382,16 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
                     tolerance,
                 )
                 assert row.options == []
+            case SequenceAnswer(value=value, accept=accept, exact=exact):
+                assert (row.answer, row.accept, row.exact) == (value, list(accept), exact)
+            case OrderAnswer(steps=steps):
+                assert (row.steps, row.answer) == (list(steps), None)
 
 
 def test_only_tpm_has_a_pool_and_a_rebuild_replaces_it() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
-    assert ExamQuestion.objects.count() == 4
+    assert ExamQuestion.objects.count() == 6
     assert set(ExamQuestion.objects.values_list("node_id", flat=True)) == {"tpm"}
 
 
@@ -369,7 +400,7 @@ def test_a_refused_build_leaves_the_exam_pool_standing(tmp_path: Path) -> None:
     root = copy_of_fixtures(tmp_path)
     (root / "providers.yaml").unlink()
     assert rebuild_index(root).outcome == IndexBuild.Outcome.REFUSED
-    assert ExamQuestion.objects.filter(node_id="tpm").count() == 4
+    assert ExamQuestion.objects.filter(node_id="tpm").count() == 6
 
 
 def test_the_digest_covers_exam_yaml(tmp_path: Path) -> None:
