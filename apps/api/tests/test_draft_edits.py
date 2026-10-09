@@ -147,18 +147,26 @@ def test_a_try_block_comes_with_its_question_and_goes_with_it(client: Client) ->
         f"/api/studio/drafts/{draft}/blocks",
         {
             "revision": 1,
-            "at": 2,
+            "at": 4,  # after kmers-per-read, block 3 since the fixture's sequence block (M4.8c)
             "block": {"kind": "try", "question": "edge-count"},
             "question": TRY_QUESTION,
         },
     )
     assert inserted.status_code == 200, inserted.content
     ids = [question["id"] for question in inserted.json()["draft"]["node"]["questions"]]
-    assert ids == ["kmers-per-read", "edge-count", "shared-unitig"]
-    deleted = call(client, "delete", f"/api/studio/drafts/{draft}/blocks/2?revision=2")
+    assert ids == [
+        "kmers-per-read",
+        "edge-count",
+        "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
+    ]
+    deleted = call(client, "delete", f"/api/studio/drafts/{draft}/blocks/4?revision=2")
     assert [q["id"] for q in deleted.json()["draft"]["node"]["questions"]] == [
         "kmers-per-read",
         "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
     ]
 
 

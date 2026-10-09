@@ -25,13 +25,14 @@ from code_api.content.schemas import (
     ResultOut,
     RouteOut,
     SearchOut,
+    SequenceBlockOut,
     SideCardOut,
     SpanOut,
     StopOut,
     TextBlockOut,
     TryBlockOut,
 )
-from code_schema import Callout, Level, Text, Try, block_from_json
+from code_schema import Callout, Level, SequenceBlock, Text, Try, block_from_json
 from code_weaver.find import Target, find
 from code_weaver.graph import Graph, Need, Topic
 from code_weaver.weave import weave
@@ -77,7 +78,9 @@ def _resource(resource: Resource) -> ResourceOut:
     )
 
 
-def _block(stored: dict[str, Any]) -> TextBlockOut | TryBlockOut | CalloutBlockOut:
+def _block(
+    stored: dict[str, Any],
+) -> TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut:
     match block_from_json(stored):
         case Text(markdown=markdown):
             return TextBlockOut(kind="text", markdown=markdown)
@@ -85,19 +88,30 @@ def _block(stored: dict[str, Any]) -> TextBlockOut | TryBlockOut | CalloutBlockO
             return CalloutBlockOut(kind="callout", callout=kind, title=title, markdown=markdown)
         case Try(question=question):
             return TryBlockOut(kind="try", question=question)
+        case SequenceBlock(letters=letters):
+            return SequenceBlockOut(kind="sequence", letters=letters)
 
 
 def _question(question: Question) -> QuestionOut:
-    """A number has no options and a choice no answer, so the page knows which it is reading."""
-    choice = question.kind == "choice"
+    """Each kind sends only its own answer, so the page knows which it is reading (M4Q.5)."""
+    kind = question.kind
     return QuestionOut(
         id=question.question_id,
-        kind=question.kind,
+        kind=kind,
         ask=question.ask,
-        options=[OptionOut(**option) for option in question.options] if choice else None,
-        answer=None if choice else number_from(question.answer),
+        options=[OptionOut(**option) for option in question.options] if kind == "choice" else None,
+        answer=(
+            question.answer
+            if kind == "sequence"
+            else number_from(question.answer)
+            if kind == "number"
+            else None
+        ),
         unit=question.unit or None,
         tolerance=number_from(question.tolerance),
+        accept=list(question.accept),
+        exact=question.exact,
+        steps=list(question.steps) if kind == "order" else None,
         hints=list(question.hints),
         rationale=question.rationale,
     )

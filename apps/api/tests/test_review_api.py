@@ -17,7 +17,19 @@ pytestmark = pytest.mark.django_db
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
 Ready = Callable[[User], Draft]
-TPM_KEYS = {"tpm-sums-to": 1000000, "tpm-or-count": 0, "twice-as-long": 0, "tpm-of-a": 750000}
+TPM_KEYS: dict[str, object] = {
+    "tpm-sums-to": 1000000,
+    "tpm-or-count": 0,
+    "twice-as-long": 0,
+    "tpm-of-a": 750000,
+    "tpm-steps": [
+        "Count the reads on each transcript",
+        "Divide each count by the transcript's effective length",
+        "Add up the rates across the sample",
+        "Scale each rate so the rates add up to a million",
+    ],
+    "tpm-unit-name": "Transcripts per million",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -72,12 +84,14 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         "pool": "exam",
         "kind": "choice",
         "ask": "What does a transcript's TPM tell you?",
+        "stem": [{"kind": "text", "markdown": "What does a transcript's TPM tell you?\n"}],
         "options": [
             "Its share of the transcript molecules in the sample",
             "How many reads mapped to it",
             "How long the transcript is",
         ],
         "unit": "",
+        "steps": None,
         "given": None,
         "right": None,
         "right_option": None,
@@ -106,7 +120,7 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         ("approved", "grace@example.org", 2),
     ]
     assert (events[-1]["answered"], events[-1]["wrong"], events[-1]["self_approved"]) == (
-        4,
+        6,
         0,
         False,
     )

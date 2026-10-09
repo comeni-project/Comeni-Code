@@ -198,6 +198,7 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
                 },
@@ -212,6 +213,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/CalloutBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/SequenceBlockOut"
                 }
               ]
             },
@@ -1291,6 +1295,7 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
                 },
@@ -1305,6 +1310,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/CalloutBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/SequenceBlockOut"
                 }
               ]
             },
@@ -1567,12 +1575,22 @@
         "type": "object"
       },
       "QuestionOut": {
-        "description": "A try question, its answer included: it is formative, and the page checks it (M3P1.4).\n\nExam questions (T7.1) are scored, and their answers never leave the server.",
+        "description": "A try question, its answer included: it is formative, and the page checks it (M3P1.4).\n\n`options` for a choice; `answer`, a number with its unit and tolerance or a sequence's text\nwith what else it accepts; `steps` for an order, in the right order — the page shuffles them\n(M4.8c spec, M4Q.5). Exam questions (T7.1) are scored, and their answers never leave the\nserver.",
         "properties": {
+          "accept": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accept",
+            "type": "array"
+          },
           "answer": {
             "anyOf": [
               {
                 "type": "number"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1583,6 +1601,10 @@
           "ask": {
             "title": "Ask",
             "type": "string"
+          },
+          "exact": {
+            "title": "Exact",
+            "type": "boolean"
           },
           "hints": {
             "items": {
@@ -1617,6 +1639,20 @@
             "title": "Rationale",
             "type": "string"
           },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
           "tolerance": {
             "anyOf": [
               {
@@ -1648,6 +1684,9 @@
           "answer",
           "unit",
           "tolerance",
+          "accept",
+          "exact",
+          "steps",
           "hints",
           "rationale"
         ],
@@ -1922,17 +1961,6 @@
             "type": "string"
           },
           "given": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
             "title": "Given"
           },
           "id": {
@@ -1998,6 +2026,49 @@
             ],
             "title": "Right Option"
           },
+          "stem": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "callout": "#/components/schemas/CalloutBlockOut",
+                  "sequence": "#/components/schemas/SequenceBlockOut",
+                  "text": "#/components/schemas/TextBlockOut",
+                  "try": "#/components/schemas/TryBlockOut"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/TryBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/CalloutBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/SequenceBlockOut"
+                }
+              ]
+            },
+            "title": "Stem",
+            "type": "array"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
           "tolerance": {
             "anyOf": [
               {
@@ -2025,6 +2096,9 @@
                 "type": "integer"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
             ],
@@ -2036,8 +2110,10 @@
           "pool",
           "kind",
           "ask",
+          "stem",
           "options",
           "unit",
+          "steps",
           "given",
           "right",
           "right_option",
@@ -2208,6 +2284,26 @@
         "title": "SendBackIn",
         "type": "object"
       },
+      "SequenceBlockOut": {
+        "description": "DNA, RNA or protein letters, drawn in groups of ten (M4.8c spec, M4Q.2).",
+        "properties": {
+          "kind": {
+            "const": "sequence",
+            "title": "Kind",
+            "type": "string"
+          },
+          "letters": {
+            "title": "Letters",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "letters"
+        ],
+        "title": "SequenceBlockOut",
+        "type": "object"
+      },
       "SideCardOut": {
         "description": "A neighbour on the node page, with its time: the L5 side column's *level · N min*.",
         "properties": {
@@ -2307,7 +2403,15 @@
         "type": "object"
       },
       "StudioExamQuestionOut": {
+        "description": "An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the\nfile holds, and whether the live index holds it unchanged.",
         "properties": {
+          "accept": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accept",
+            "type": "array"
+          },
           "answer": {
             "anyOf": [
               {
@@ -2317,14 +2421,21 @@
                 "type": "integer"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
             ],
             "title": "Answer"
           },
-          "ask": {
-            "title": "Ask",
+          "claim": {
+            "title": "Claim",
             "type": "string"
+          },
+          "exact": {
+            "title": "Exact",
+            "type": "boolean"
           },
           "id": {
             "title": "Id",
@@ -2363,6 +2474,65 @@
             "title": "Rationale",
             "type": "string"
           },
+          "state": {
+            "enum": [
+              "approved",
+              "draft"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "stem": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "callout": "#/components/schemas/CalloutBlockOut",
+                  "sequence": "#/components/schemas/SequenceBlockOut",
+                  "text": "#/components/schemas/TextBlockOut",
+                  "try": "#/components/schemas/TryBlockOut"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TextBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/TryBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/CalloutBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/SequenceBlockOut"
+                }
+              ]
+            },
+            "title": "Stem",
+            "type": "array"
+          },
+          "stem_text": {
+            "title": "Stem Text",
+            "type": "string"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
           "tolerance": {
             "anyOf": [
               {
@@ -2385,12 +2555,19 @@
         "required": [
           "id",
           "kind",
-          "ask",
+          "title",
+          "claim",
+          "stem",
+          "stem_text",
+          "state",
           "level",
           "options",
           "answer",
           "unit",
           "tolerance",
+          "accept",
+          "exact",
+          "steps",
           "rationale"
         ],
         "title": "StudioExamQuestionOut",
@@ -2401,6 +2578,10 @@
           "misconception": {
             "title": "Misconception",
             "type": "string"
+          },
+          "plain": {
+            "title": "Plain",
+            "type": "boolean"
           },
           "right": {
             "title": "Right",
@@ -2414,14 +2595,22 @@
         "required": [
           "text",
           "right",
-          "misconception"
+          "misconception",
+          "plain"
         ],
         "title": "StudioOptionOut",
         "type": "object"
       },
       "StudioQuestionOut": {
-        "description": "A try question; `options` for a choice, `answer` (with unit and tolerance) for a number.",
+        "description": "A try question; `options` for a choice, `answer` with unit and tolerance for a number, or\nas text with `accept` and `exact` for a sequence; `steps` for an order (M4Q.5).",
         "properties": {
+          "accept": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Accept",
+            "type": "array"
+          },
           "answer": {
             "anyOf": [
               {
@@ -2429,6 +2618,9 @@
               },
               {
                 "type": "integer"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -2439,6 +2631,10 @@
           "ask": {
             "title": "Ask",
             "type": "string"
+          },
+          "exact": {
+            "title": "Exact",
+            "type": "boolean"
           },
           "hints": {
             "items": {
@@ -2473,6 +2669,20 @@
             "title": "Rationale",
             "type": "string"
           },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
           "tolerance": {
             "anyOf": [
               {
@@ -2500,6 +2710,9 @@
           "answer",
           "unit",
           "tolerance",
+          "accept",
+          "exact",
+          "steps",
           "hints",
           "rationale"
         ],

@@ -57,16 +57,22 @@ class OptionOut(Schema):
 class QuestionOut(Schema):
     """A try question, its answer included: it is formative, and the page checks it (M3P1.4).
 
-    Exam questions (T7.1) are scored, and their answers never leave the server.
+    `options` for a choice; `answer`, a number with its unit and tolerance or a sequence's text
+    with what else it accepts; `steps` for an order, in the right order — the page shuffles them
+    (M4.8c spec, M4Q.5). Exam questions (T7.1) are scored, and their answers never leave the
+    server.
     """
 
     id: str
     kind: str
     ask: str
     options: list[OptionOut] | None
-    answer: float | None
+    answer: float | str | None
     unit: str | None
     tolerance: float | None
+    accept: list[str]
+    exact: bool
+    steps: list[str] | None
     hints: list[str]
     rationale: str
 
@@ -90,7 +96,16 @@ class CalloutBlockOut(Schema):
     markdown: str
 
 
-BlockOut = Annotated[TextBlockOut | TryBlockOut | CalloutBlockOut, Field(discriminator="kind")]
+class SequenceBlockOut(Schema):
+    """DNA, RNA or protein letters, drawn in groups of ten (M4.8c spec, M4Q.2)."""
+
+    kind: Literal["sequence"]
+    letters: str
+
+
+BlockOut = Annotated[
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut, Field(discriminator="kind")
+]
 
 
 class NodeOut(Schema):

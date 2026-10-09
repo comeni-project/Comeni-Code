@@ -3,6 +3,7 @@
 The save is driven through `studio.drafts` with the pure edits; the edit routes are M4.4.5's.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -12,10 +13,11 @@ from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.index import rebuild_index
 from code_api.content.models import IndexBuild
+from code_api.content.snapshot import node_from_index
 from code_api.studio import drafts
 from code_api.studio.models import Draft, Revision
 from code_schema import read_content
-from code_schema.edits import set_fields
+from code_schema.edits import set_fields, update_exam_question
 
 pytestmark = pytest.mark.django_db
 
@@ -63,6 +65,8 @@ def test_a_draft_reads_as_the_node(client: Client) -> None:
         "tpm-or-count",
         "twice-as-long",
         "tpm-of-a",
+        "tpm-steps",
+        "tpm-unit-name",
     ]
     assert body["contributors"] == [
         {
@@ -203,7 +207,11 @@ def test_a_save_with_only_a_warning_is_stored_with_it() -> None:
     result = drafts.save(
         draft,
         based_on=1,
-        edit=lambda n: delete_exam_question(n, "tpm-of-a"),
+        # Six questions since M4.8c: three go, so the pool warns under four (CS0813).
+        edit=lambda n: delete_exam_question(
+            delete_exam_question(delete_exam_question(n, "tpm-of-a"), "tpm-steps"),
+            "tpm-unit-name",
+        ),
         by=ada,
         change="dropped a question",
     )
@@ -334,3 +342,49 @@ def test_an_existing_node_that_will_not_open_says_so(client: Client) -> None:
     )
     assert (response.status_code, response.json()["code"]) == (422, "CA0208")
     assert "rebuild" in response.json()["detail"]
+
+
+# M4.8c: a draft's exam questions, with their stem as blocks and a state (spec M4Q.5).
+
+
+def opened(client: Client, node_id: str = "tpm") -> Draft:
+    answer = client.post(
+        "/api/studio/drafts", {"node_id": node_id}, content_type="application/json"
+    )
+    assert answer.status_code == 201, answer.content
+    return Draft.objects.get(public_id=answer.json()["public_id"])
+
+
+def test_a_draft_says_which_exam_questions_are_approved(client: Client) -> None:
+    """Identical to the live question is approved; changed or new is a draft (M4Q.5)."""
+    author = signed_in(client)
+    draft = opened(client)
+    live = node_from_index("tpm")
+    assert live is not None
+    changed = replace(live.exam[0], title="TPM adds up to what?")
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda node: update_exam_question(node, changed.id, changed),
+        by=author,
+        change="test",
+    )
+    exam = client.get(f"/api/studio/drafts/{draft.public_id}").json()["node"]["exam"]
+    states = {question["id"]: question["state"] for question in exam}
+    assert states.pop(changed.id) == "draft"
+    assert set(states.values()) == {"approved"}
+
+
+def test_an_exam_question_sends_its_stem_as_blocks(client: Client) -> None:
+    signed_in(client)
+    draft = opened(client)
+    exam = client.get(f"/api/studio/drafts/{draft.public_id}").json()["node"]["exam"]
+    order = next(question for question in exam if question["kind"] == "order")
+    assert order["title"] == "Put TPM's steps in order"
+    assert order["stem"] == [{"kind": "text", "markdown": order["stem_text"]}]
+    assert order["steps"][0] == "Count the reads on each transcript"
+    sequence = next(question for question in exam if question["kind"] == "sequence")
+    assert (sequence["answer"], sequence["accept"]) == (
+        "transcripts per million",
+        ["transcripts per million mapped"],
+    )

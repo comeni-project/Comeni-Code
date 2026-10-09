@@ -17,6 +17,7 @@ from code_api.accounts.api import MemberOut
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
+from code_api.content.snapshot import node_from_index
 from code_api.studio import drafts, landing, review
 from code_api.studio.log import history
 from code_api.studio.models import LIVE_STATES, Draft
@@ -108,10 +109,13 @@ def summary_out(draft: Draft) -> DraftSummaryOut:
 
 
 def draft_out(draft: Draft) -> DraftOut:
+    """The draft, each exam question compared with the live index's (M4Q.5)."""
     node, problems = drafts.node_of(draft)
+    live = node_from_index(draft.node_id)
+    pool = {} if live is None else {question.id: question for question in live.exam}
     return DraftOut(
         **summary_out(draft).dict(),
-        node=None if node is None else node_out(node),
+        node=None if node is None else node_out(node, pool),
         problems=[ProblemOut.of(problem) for problem in problems],
     )
 

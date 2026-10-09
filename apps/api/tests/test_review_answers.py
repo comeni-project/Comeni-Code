@@ -33,6 +33,8 @@ def test_a_review_lists_every_question_with_nothing_answered(
         ("tpm-or-count", "exam", None, None),
         ("twice-as-long", "exam", None, None),
         ("tpm-of-a", "exam", None, None),
+        ("tpm-steps", "exam", None, None),
+        ("tpm-unit-name", "exam", None, None),
     ]
 
 

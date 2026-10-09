@@ -16,7 +16,19 @@ pytestmark = pytest.mark.django_db
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
 Ready = Callable[[User], Draft]
-TPM_KEYS = {"tpm-sums-to": 1000000, "tpm-or-count": 0, "twice-as-long": 0, "tpm-of-a": 750000}
+TPM_KEYS: dict[str, object] = {
+    "tpm-sums-to": 1000000,
+    "tpm-or-count": 0,
+    "twice-as-long": 0,
+    "tpm-of-a": 750000,
+    "tpm-steps": [
+        "Count the reads on each transcript",
+        "Divide each count by the transcript's effective length",
+        "Add up the rates across the sample",
+        "Scale each rate so the rates add up to a million",
+    ],
+    "tpm-unit-name": "Transcripts per million",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +38,10 @@ def _indexed() -> None:
 
 def answered_all(draft: Draft, by: User, wrong: str | None = None) -> None:
     for question_id, key in TPM_KEYS.items():
-        given = (key + 1 if key else 1) if question_id == wrong else key
+        given: object = key
+        if question_id == wrong:
+            assert isinstance(key, int)  # the tests make a number or a choice wrong
+            given = key + 1 if key else 1
         review.answer(draft, question_id, given, by=by)
 
 
@@ -42,7 +57,7 @@ def test_a_reviewer_who_answered_everything_approves(ada: User, grace: User, rea
         2,
         False,
     )
-    assert (event.answered, event.wrong) == (4, 1)
+    assert (event.answered, event.wrong) == (6, 1)
     assert event.review is not None and event.review.reviewer == grace
 
 
@@ -75,7 +90,13 @@ def test_approval_waits_for_every_answer(ada: User, grace: User, ready: Ready) -
     review.answer(draft, "tpm-or-count", 0, by=grace)
     with pytest.raises(review.Unanswered) as missing:
         review.approve(draft, revision=2, reason="", by=grace)
-    assert missing.value.ids == ["tpm-sums-to", "twice-as-long", "tpm-of-a"]
+    assert missing.value.ids == [
+        "tpm-sums-to",
+        "twice-as-long",
+        "tpm-of-a",
+        "tpm-steps",
+        "tpm-unit-name",
+    ]
 
 
 def test_answers_to_an_earlier_submission_do_not_count(

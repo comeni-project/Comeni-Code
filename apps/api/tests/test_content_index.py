@@ -254,7 +254,12 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
     assert resources[0].part == ""
     assert resources[0].video == ""  # Khan Academy is linked, never embedded (issue 76)
     questions = list(node.questions.order_by("position"))
-    assert [question.question_id for question in questions] == ["kmers-per-read", "shared-unitig"]
+    assert [question.question_id for question in questions] == [
+        "kmers-per-read",
+        "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
+    ]
     assert questions[0].kind == "number"
     assert number_from(questions[0].answer) == 5  # stored as text (#173)
     assert questions[0].options == []
@@ -282,7 +287,7 @@ def test_a_second_rebuild_replaces_them() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
     assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
-    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 2
+    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 4
 
 
 def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
@@ -321,8 +326,21 @@ def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:
 def test_a_rebuild_stores_each_nodes_blocks() -> None:
     rebuild_index(FIXTURES)
     stored = Node.objects.get(id="de-bruijn-graphs").blocks
-    assert [block["kind"] for block in stored] == ["text", "try", "text", "try", "text"]
-    assert stored[1] == {"kind": "try", "question": "kmers-per-read"}
+    assert [block["kind"] for block in stored] == [
+        "text",
+        "sequence",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+        "try",
+        "text",
+    ]
+    assert stored[1] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
+    assert stored[3] == {"kind": "try", "question": "kmers-per-read"}
     callout = Node.objects.get(id="tpm").blocks[1]
     assert (callout["kind"], callout["callout"]) == ("callout", "misconception")
 

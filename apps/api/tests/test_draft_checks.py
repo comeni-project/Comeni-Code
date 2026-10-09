@@ -110,7 +110,9 @@ def test_the_checklist_wants_four_exam_questions(client: Client) -> None:
         f"/api/studio/drafts/{draft}/resources",
         {"revision": 1, "resources": [RESOURCE]},
     )
-    call(client, "delete", f"/api/studio/drafts/{draft}/exam/tpm-of-a?revision=2")
+    # TPM's pool holds six since M4.8c: three go, leaving three.
+    for revision, question in enumerate(("tpm-of-a", "tpm-steps", "tpm-unit-name"), start=2):
+        call(client, "delete", f"/api/studio/drafts/{draft}/exam/{question}?revision={revision}")
     three = call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()
     assert three["passed"] is False
     (failed,) = [item for item in three["items"] if not item["passed"]]
@@ -119,7 +121,7 @@ def test_the_checklist_wants_four_exam_questions(client: Client) -> None:
         client,
         "post",
         f"/api/studio/drafts/{draft}/exam",
-        {"revision": 3, "question": exam_question(1)},
+        {"revision": 5, "question": exam_question(1)},
     )
     assert added.status_code == 200, added.content
     four = call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()
