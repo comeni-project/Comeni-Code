@@ -61,7 +61,8 @@ def exam_question(n: int) -> dict[str, Any]:
     return {
         "id": f"rate-{n}",
         "kind": "number",
-        "ask": f"At {n * 10} reads per kilobase, how many reads does a 2 kb transcript collect?",
+        "title": f"Reads at {n * 10} per kilobase",
+        "stem": f"At {n * 10} reads per kilobase, how many reads does a 2 kb transcript collect?\n",
         "answer": n * 20,
         "unit": "",
         "tolerance": None,

@@ -46,7 +46,10 @@ from code_schema import (
     Link,
     NumberAnswer,
     Option,
+    OrderAnswer,
     Resource,
+    SequenceAnswer,
+    SequenceBlock,
     Text,
     Try,
     TryQuestion,
@@ -295,17 +298,22 @@ class OptionIn(Schema):
     text: str
     right: bool = False
     misconception: str = ""
+    plain: bool = False
 
 
 class AnswerIn(Schema):
-    """A question's answer, flat as the files write it: `options` for a choice; `answer`, `unit`
-    and `tolerance` for a number."""
+    """A question's answer, flat as the files write it (M4Q.3): `options` for a choice; `answer`,
+    `unit` and `tolerance` for a number; `answer` as text, `accept` and `exact` for a sequence;
+    `steps` for an order."""
 
-    kind: Literal["choice", "number"]
+    kind: Literal["choice", "number", "sequence", "order"]
     options: list[OptionIn] | None = None
-    answer: float | int | None = None
+    answer: float | int | str | None = None
     unit: str = ""
     tolerance: float | int | None = None
+    accept: list[str] = []
+    exact: bool = False
+    steps: list[str] | None = None
 
 
 class TryQuestionIn(AnswerIn):
@@ -317,7 +325,9 @@ class TryQuestionIn(AnswerIn):
 
 class ExamQuestionIn(AnswerIn):
     id: str
-    ask: str
+    title: str
+    claim: str = ""
+    stem: str  # MyST, as exam.yaml holds it
     level: Level | None = None
     rationale: str
 
@@ -326,8 +336,9 @@ class BlockIn(Schema):
     """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
     (callout, title, markdown)."""
 
-    kind: Literal["text", "try", "callout"]
+    kind: Literal["text", "try", "callout", "sequence"]
     markdown: str = ""
+    letters: str = ""
     question: str = ""
     callout: str = ""
     title: str = ""
@@ -388,16 +399,23 @@ class ExamIn(Schema):
 
 
 def _answer(given: AnswerIn) -> Answer:
-    """As written: a choice's options, else a number. Built inside the edit, so a missing answer
-    is an EditError; other malformed answers are left for the parse to refuse in its own words."""
-    if given.kind == "choice":
-        return ChoiceAnswer(
-            options=tuple(
-                Option(text=o.text, right=o.right, misconception=o.misconception)
-                for o in given.options or []
+    """As written. Built inside the edit, so a missing answer is an EditError; other malformed
+    answers — an order's count, repeated texts — are left for the parse to refuse in its words."""
+    match given.kind:
+        case "choice":
+            return ChoiceAnswer(
+                options=tuple(
+                    Option(text=o.text, right=o.right, misconception=o.misconception, plain=o.plain)
+                    for o in given.options or []
+                )
             )
-        )
-    if given.answer is None:
+        case "sequence":
+            if not isinstance(given.answer, str):
+                raise EditError("a sequence question needs its answer as text")
+            return SequenceAnswer(value=given.answer, accept=tuple(given.accept), exact=given.exact)
+        case "order":
+            return OrderAnswer(steps=tuple(given.steps or ()))
+    if given.answer is None or isinstance(given.answer, str):
         raise EditError("a number question needs its answer")
     return NumberAnswer(value=given.answer, unit=given.unit, tolerance=given.tolerance)
 
@@ -417,7 +435,9 @@ def _try_question(given: TryQuestionIn | None) -> TryQuestion | None:
 def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
     return ExamQuestion(
         id=given.id,
-        ask=given.ask,
+        title=given.title,
+        claim=given.claim,
+        stem=given.stem,
         answer=_answer(given),
         level=given.level,
         rationale=given.rationale,
@@ -430,6 +450,8 @@ def _block(given: BlockIn) -> Block:
             return Try(question=given.question)
         case "callout":
             return Callout(kind=given.callout, title=given.title, markdown=given.markdown)  # type: ignore[arg-type]
+        case "sequence":
+            return SequenceBlock(letters=given.letters)
     return Text(markdown=given.markdown)
 
 

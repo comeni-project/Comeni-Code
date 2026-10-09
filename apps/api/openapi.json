@@ -31,9 +31,15 @@
             "enum": [
               "text",
               "try",
-              "callout"
+              "callout",
+              "sequence"
             ],
             "title": "Kind",
+            "type": "string"
+          },
+          "letters": {
+            "default": "",
+            "title": "Letters",
             "type": "string"
           },
           "markdown": {
@@ -560,6 +566,14 @@
       },
       "ExamQuestionIn": {
         "properties": {
+          "accept": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Accept",
+            "type": "array"
+          },
           "answer": {
             "anyOf": [
               {
@@ -569,14 +583,23 @@
                 "type": "integer"
               },
               {
+                "type": "string"
+              },
+              {
                 "type": "null"
               }
             ],
             "title": "Answer"
           },
-          "ask": {
-            "title": "Ask",
+          "claim": {
+            "default": "",
+            "title": "Claim",
             "type": "string"
+          },
+          "exact": {
+            "default": false,
+            "title": "Exact",
+            "type": "boolean"
           },
           "id": {
             "title": "Id",
@@ -585,7 +608,9 @@
           "kind": {
             "enum": [
               "choice",
-              "number"
+              "number",
+              "sequence",
+              "order"
             ],
             "title": "Kind",
             "type": "string"
@@ -618,6 +643,28 @@
             "title": "Rationale",
             "type": "string"
           },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
           "tolerance": {
             "anyOf": [
               {
@@ -641,7 +688,8 @@
         "required": [
           "kind",
           "id",
-          "ask",
+          "title",
+          "stem",
           "rationale"
         ],
         "title": "ExamQuestionIn",
@@ -1438,6 +1486,11 @@
             "default": "",
             "title": "Misconception",
             "type": "string"
+          },
+          "plain": {
+            "default": false,
+            "title": "Plain",
+            "type": "boolean"
           },
           "right": {
             "default": false,
@@ -2860,6 +2913,14 @@
       },
       "TryQuestionIn": {
         "properties": {
+          "accept": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Accept",
+            "type": "array"
+          },
           "answer": {
             "anyOf": [
               {
@@ -2867,6 +2928,9 @@
               },
               {
                 "type": "integer"
+              },
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -2877,6 +2941,11 @@
           "ask": {
             "title": "Ask",
             "type": "string"
+          },
+          "exact": {
+            "default": false,
+            "title": "Exact",
+            "type": "boolean"
           },
           "hints": {
             "items": {
@@ -2892,7 +2961,9 @@
           "kind": {
             "enum": [
               "choice",
-              "number"
+              "number",
+              "sequence",
+              "order"
             ],
             "title": "Kind",
             "type": "string"
@@ -2914,6 +2985,20 @@
           "rationale": {
             "title": "Rationale",
             "type": "string"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
           },
           "tolerance": {
             "anyOf": [

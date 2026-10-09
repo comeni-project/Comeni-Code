@@ -33,7 +33,8 @@ TRY_QUESTION = {
 EXAM_QUESTION = {
     "id": "tpm-share",
     "kind": "number",
-    "ask": "If one transcript holds half the molecules in a sample, what is its TPM?",
+    "title": "Half the molecules",
+    "stem": "If one transcript holds half the molecules in a sample, what is its TPM?\n",
     "answer": 500000,
     "unit": "",
     "tolerance": None,
@@ -242,11 +243,12 @@ def test_the_exam_pool_is_built_a_question_at_a_time(client: Client) -> None:
         {"revision": 2, "question": changed},
     )
     assert updated.json()["draft"]["node"]["exam"][-1]["tolerance"] == 1
-    for revision, question_id in enumerate(["tpm-share", "tpm-of-a", "twice-as-long"], start=3):
+    gone = ["tpm-share", "tpm-of-a", "twice-as-long", "tpm-steps", "tpm-unit-name"]
+    for revision, question_id in enumerate(gone, start=3):
         response = call(
             client, "delete", f"/api/studio/drafts/{draft}/exam/{question_id}?revision={revision}"
         )
-    # Two questions left: saved, with CS0813's warning.
+    # Two of TPM's six left (M4.8c): saved, with CS0813's warning.
     assert response.status_code == 200
     assert [warning["code"] for warning in response.json()["warnings"]] == ["CS0813"]
 
@@ -351,3 +353,74 @@ def test_an_edit_needs_the_csrf_token(client: Client) -> None:
     )
     assert response.status_code == 403
     assert len(revisions(draft)) == 1
+
+
+# M4.8c: the new shapes through every edit (spec M4Q.5).
+
+ORDER = {
+    "id": "assembly-steps",
+    "title": "Put the assembly steps in order",
+    "kind": "order",
+    "stem": "Put the steps of de Bruijn assembly in order.\n\n:::{sequence}\nACGTTG\n:::\n",
+    "steps": [
+        "Cut reads into k-mers",
+        "Build the graph",
+        "Simplify tips and bubbles",
+        "Walk paths",
+    ],
+    "rationale": "Each step needs the one before.",
+}
+SEQUENCE = {
+    "id": "spell-a-path",
+    "title": "Spell the path",
+    "claim": "reads a sequence off the graph",
+    "kind": "sequence",
+    "stem": "Spell the sequence along ACG → CGT → GTT.\n",
+    "answer": "ACGTT",
+    "accept": [],
+    "rationale": "Each edge adds the last letter of its k-mer.",
+}
+
+
+@pytest.mark.parametrize("question", [ORDER, SEQUENCE], ids=["order", "sequence"])
+def test_an_exam_question_of_a_new_kind_is_saved(client: Client, question: dict[str, Any]) -> None:
+    draft = opened(client, "tpm")
+    saved = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert saved.status_code == 200, saved.content
+    sent = next(q for q in saved.json()["draft"]["node"]["exam"] if q["id"] == question["id"])
+    assert (sent["state"], sent["stem_text"], sent["kind"]) == (
+        "draft",
+        question["stem"],
+        question["kind"],
+    )
+
+
+def test_an_exam_choice_of_two_options_is_refused_in_its_words(client: Client) -> None:
+    draft = opened(client, "tpm")
+    two = {
+        "id": "two-only",
+        "title": "Two only",
+        "kind": "choice",
+        "stem": "Pick one.\n",
+        "options": [{"text": "A", "right": True}, {"text": "B", "plain": True}],
+        "rationale": "A.",
+    }
+    refused = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": two}
+    )
+    assert refused.status_code == 422
+    assert [problem["code"] for problem in refused.json()["problems"]] == ["CS0818"]
+
+
+def test_a_sequence_block_is_inserted_through_the_api(client: Client) -> None:
+    draft = opened(client, "de-bruijn-graphs")
+    saved = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 1, "at": 2, "block": {"kind": "sequence", "letters": "ACGT\n"}},
+    )
+    assert saved.status_code == 200, saved.content
+    assert {"kind": "sequence", "letters": "ACGT\n"} in saved.json()["draft"]["node"]["blocks"]
