@@ -1,5 +1,5 @@
 // One draft for the workbench's tests (M4.8b): open, revision 3, one text block.
-import type { DraftNodeOut, DraftOut } from "../../api/schema";
+import type { DraftNodeOut, DraftOut, StudioExamQuestionOut } from "../../api/schema";
 
 export const NODE: DraftNodeOut = {
   title: "k-mers",
@@ -28,3 +28,23 @@ export const DRAFT: DraftOut = {
   node: NODE,
   problems: [],
 };
+
+/** An exam question as the API sends a draft's (M4Q.5), in either state. */
+export const examQuestion = (id: string, state: "approved" | "draft"): StudioExamQuestionOut => ({
+  id,
+  kind: "number",
+  title: `Question ${id}`,
+  claim: "",
+  stem: [{ kind: "text", markdown: `What is ${id}?\n` }],
+  stem_text: `What is ${id}?\n`,
+  state,
+  level: null,
+  options: null,
+  answer: 1,
+  unit: "",
+  tolerance: null,
+  accept: [],
+  exact: false,
+  steps: null,
+  rationale: "Because.",
+});

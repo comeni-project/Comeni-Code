@@ -2,8 +2,13 @@
 import type { DraftNodeOut } from "../../api/schema";
 import type { Block } from "../../node/body";
 
-/** What a block is called in lists: a text's first words, a callout's title, a try's ask. */
+/** What a block is called in lists: a text's first words, a callout's title, a try's ask, a
+ * sequence's first ten letters. */
 export function firstWords(block: Block, node: DraftNodeOut): string {
+  if (block.kind === "sequence") {
+    const letters = block.letters.replace(/\s+/g, "");
+    return letters.length > 10 ? `${letters.slice(0, 10)}…` : letters || "(empty)";
+  }
   const words =
     block.kind === "text"
       ? block.markdown

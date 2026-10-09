@@ -161,6 +161,22 @@ describe("ContentTab", () => {
     expect(writes(fake)).toHaveLength(0);
   });
 
+  it("edits a sequence block's letters and saves them on leaving", async () => {
+    const fake = bench(
+      {
+        "PUT /api/studio/drafts/d-1/blocks/0": saved(4, [{ kind: "sequence", letters: "ACGTA\n" }]),
+      },
+      [{ kind: "sequence", letters: "ACGT\n" }],
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 1" }));
+    const letters = screen.getByLabelText("Letters");
+    await userEvent.clear(letters);
+    await userEvent.type(letters, "ACGTA");
+    await userEvent.click(screen.getByRole("heading", { level: 1 }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    expect(sent(fake).block).toEqual({ kind: "sequence", letters: "ACGTA\n" });
+  });
+
   it("keeps the text and offers Reload when someone else saved first", async () => {
     bench({
       "PUT /api/studio/drafts/d-1/blocks/0": {

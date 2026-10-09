@@ -35,7 +35,7 @@ describe("WorkbenchPage", () => {
   it("keeps the tab in the address", async () => {
     bench(DRAFT, "/studio/drafts/d-1?tab=exam");
     expect(await screen.findByText(/The exam pool's builder is not built yet/)).toBeInTheDocument();
-    expect(screen.getByText("0 of 4")).toBeInTheDocument();
+    expect(screen.getByText("0 of 4 · 0 approved")).toBeInTheDocument();
   });
 
   it("reads as submitted, offers Withdraw to a contributor, and no editor", async () => {
