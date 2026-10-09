@@ -1,7 +1,8 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { QuestionOut } from "../api/schema";
 import { Body } from "./Body";
+import type { Block } from "./body";
 
 describe("Body", () => {
   it("draws nothing for a text block that is only blank lines", () => {
@@ -28,6 +29,9 @@ describe("Body", () => {
       answer: 2,
       unit: null,
       tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
       hints: ["Count them."],
       rationale: "There are two.",
     };
@@ -45,5 +49,19 @@ describe("Body", () => {
     );
     expect(said.mock.calls.flat().join(" ")).not.toMatch(/same key/);
     said.mockRestore();
+  });
+
+  it("draws a sequence in groups of ten, and nothing for a block it does not know", () => {
+    render(
+      <Body
+        blocks={[
+          { kind: "sequence", letters: "ACGTTGCAGGTTAC\n" },
+          { kind: "figure", component: "x" } as unknown as Block,
+        ]}
+        questions={[]}
+      />,
+    );
+    expect(screen.getByText("ACGTTGCAGG TTAC")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });

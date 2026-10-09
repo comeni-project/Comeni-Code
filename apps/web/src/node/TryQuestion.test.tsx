@@ -12,6 +12,9 @@ const COUNT: QuestionOut = {
   answer: 5,
   unit: null,
   tolerance: null,
+  accept: [],
+  exact: false,
+  steps: null,
   hints: [
     "Slide a window of width k along the sequence and count the places where it still fits.",
     "The first row above lists them for transcript A.",
@@ -31,6 +34,9 @@ const CHOICE: QuestionOut = {
   answer: null,
   unit: null,
   tolerance: null,
+  accept: [],
+  exact: false,
+  steps: null,
   hints: ["A unitig is a stretch with no branch in it."],
   rationale: "Both transcripts share ACGT → CGTT → GTTG, which merges to ACGTTG.",
 };
@@ -110,5 +116,70 @@ describe("a try question", () => {
     await userEvent.click(screen.getByRole("button", { name: "Show the answer" }));
     expect(screen.getByText("The answer is ACGTTG.")).toBeInTheDocument();
     expect(screen.getByText(CHOICE.rationale)).toBeInTheDocument();
+  });
+});
+
+const SPELL: QuestionOut = {
+  id: "spell-the-path",
+  kind: "sequence",
+  ask: "What sequence does the path spell?",
+  options: null,
+  answer: "ACGTTGA",
+  unit: null,
+  tolerance: null,
+  accept: [],
+  exact: false,
+  steps: null,
+  hints: [],
+  rationale: "Each edge adds one letter.",
+};
+
+const STEPS: QuestionOut = {
+  id: "assembly-order",
+  kind: "order",
+  ask: "Put the steps in order.",
+  options: null,
+  answer: null,
+  unit: null,
+  tolerance: null,
+  accept: [],
+  exact: false,
+  steps: ["A", "B", "C", "D"],
+  hints: [],
+  rationale: "Each needs the one before.",
+};
+
+describe("a sequence or an order try (M4Q.6)", () => {
+  it("checks a typed sequence", async () => {
+    await opened(SPELL);
+    await userEvent.type(screen.getByLabelText("Your answer"), "acg ttga");
+    await userEvent.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByText(/Right — ACGTTGA/)).toBeInTheDocument();
+  });
+
+  it("puts the steps in order with Move up, and checks them", async () => {
+    render(<TryQuestion question={STEPS} number={1} shuffle={(s) => [...s].reverse()} />);
+    await userEvent.click(screen.getByRole("button", { name: /Try it/ }));
+    const items = () => screen.getAllByRole("listitem").map((li) => li.textContent ?? "");
+    for (const [at, step] of ["A", "B", "C", "D"].entries()) {
+      while (items().findIndex((text) => text.startsWith(step)) > at) {
+        await userEvent.click(screen.getByRole("button", { name: `Move ${step} up` }));
+      }
+    }
+    await userEvent.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByText(/Right — A → B → C → D/)).toBeInTheDocument();
+  });
+
+  it("says how many pairs were in order when an order is not right", async () => {
+    render(
+      <TryQuestion
+        question={{ ...STEPS, steps: ["A", "B", "C"] }}
+        number={1}
+        shuffle={(s) => [...s].reverse()}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Try it/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByText("0 of 3 pairs in order.")).toBeInTheDocument();
   });
 });

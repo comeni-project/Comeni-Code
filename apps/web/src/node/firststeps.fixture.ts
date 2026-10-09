@@ -107,6 +107,9 @@ export const DNA: NodeOut = {
       answer: null,
       unit: null,
       tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
       hints: ["Each base has exactly one partner, and the first paragraph names both pairs."],
       rationale:
         "The strands pair A with T and C with G, so either strand says what the other must be.",

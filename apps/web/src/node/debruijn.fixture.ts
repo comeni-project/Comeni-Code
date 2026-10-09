@@ -119,6 +119,9 @@ export const DE_BRUIJN: NodeOut = {
       answer: 5.0,
       unit: null,
       tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
       hints: [
         "Slide a window of width k along the sequence and count the places where it still fits.",
         "The first row above lists them for transcript A.",
@@ -146,6 +149,9 @@ export const DE_BRUIJN: NodeOut = {
       answer: null,
       unit: null,
       tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
       hints: [
         "A unitig is a stretch with no branch in it.",
         "The two transcripts part company at the letter after the shared path.",
