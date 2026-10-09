@@ -631,7 +631,7 @@ def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | S
     draft = find(public_id)
     if draft is None or draft.state not in LIVE_STATES:
         return Status(404, Message(detail="No live draft has this id.", code="CA0201"))
-    items = drafts.checklist(draft)
+    items, problems = drafts.checks(draft)
     return Status(
         200,
         ChecklistOut(
@@ -639,6 +639,7 @@ def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | S
             items=[
                 ItemOut(rule=item.rule, passed=item.passed, detail=item.detail) for item in items
             ],
+            problems=[ProblemOut.of(problem) for problem in problems],
         ),
     )
 

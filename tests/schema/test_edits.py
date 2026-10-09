@@ -148,6 +148,21 @@ def test_texts_brought_together_merge() -> None:
     )
 
 
+def test_texts_brought_together_keep_a_paragraph_break() -> None:
+    # #258: a text typed in the workbench ends its line but leaves no blank one; merged with the
+    # text after it, the two stay paragraphs, never one run-on paragraph.
+    typed = update_block(DBG, 0, Text(markdown="First paragraph.\n"))
+    edited = reread(insert_block(typed, 1, Text(markdown="Second paragraph.\n")))
+    assert edited.blocks[0] == Text(markdown="First paragraph.\n\nSecond paragraph.\n")
+
+
+def test_texts_already_apart_gain_no_second_blank_line() -> None:
+    edited = reread(insert_block(DBG, 1, Text(markdown="A new paragraph.\n")))
+    first = DBG.blocks[0]
+    assert isinstance(first, Text)
+    assert edited.blocks[0] == Text(markdown=f"{first.markdown}A new paragraph.\n")
+
+
 def test_a_try_question_is_updated_through_its_block() -> None:
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
     edited = reread(update_block(DBG, 1, Try(question="kmers-per-read"), question=changed))

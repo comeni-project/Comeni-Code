@@ -10,7 +10,10 @@ import { StudioShell } from "./StudioShell";
 
 vi.mock("../layout/leave", () => ({ leave: vi.fn() }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 const studio = (path: string) =>
   renderAt(
@@ -50,17 +53,10 @@ describe("StudioShell", () => {
     expect(screen.getByRole("link", { name: "Team" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("opens the first page a member can open", async () => {
-    answering({ "GET /api/me": signedInAs("operator") });
-    studio("/studio");
-    expect(await screen.findByText("Team page")).toBeInTheDocument();
-  });
-
-  it("says when there is nothing for a role yet", async () => {
+  it("opens Drafts for an author", async () => {
     answering({ "GET /api/me": signedInAs("author") });
     studio("/studio");
-    expect(await screen.findByText("Nothing in Studio for your role yet.")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Team" })).toBeNull();
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio/drafts");
   });
 
   it("shows the API's sentence when it cannot say who you are", async () => {
@@ -98,6 +94,8 @@ describe("StudioShell", () => {
     });
     studio("/studio/team");
     expect(await screen.findByText("Team page")).toBeInTheDocument();
+    const later = Date.now() + 61_000; // past the 60s the app keeps an answer fresh
+    vi.spyOn(Date, "now").mockReturnValue(later);
     act(() => {
       focusManager.setFocused(false);
       focusManager.setFocused(true);

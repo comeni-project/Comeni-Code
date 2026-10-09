@@ -4,13 +4,20 @@
 // entry: Start's goals salmon and kallisto are not the Route page's goal salmon with kallisto known
 // (#137). The same question from two pages is one entry, on purpose: Start's preview is the route
 // with nothing known, which the Route page reuses.
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
 import { fetchProviders } from "./auth";
+import { getJson } from "./client";
+import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
 import { fetchHealth } from "./health";
 import { fetchNode } from "./nodes";
 import { fetchRoute } from "./routes";
+import type { DraftOut, IndexOut } from "./schema";
 import { fetchSearch } from "./search";
+
+// A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
+// The app and the tests share this.
+export const QUERIES = { staleTime: 60_000 };
 
 export const queryKeys = {
   health: ["health"] as const,
@@ -23,6 +30,10 @@ export const queryKeys = {
   invite: (token: string) => ["invite", token] as const,
   teamMembers: ["team", "members"] as const,
   teamInvites: ["team", "invites"] as const,
+  drafts: (state: DraftState) => ["drafts", state] as const,
+  draft: (id: string) => ["draft", id] as const,
+  draftChecks: (id: string) => ["draft", id, "checks"] as const,
+  studioIndex: ["studio-index"] as const,
 };
 
 export const useNode = (id: string) =>
@@ -102,4 +113,45 @@ export function useAuthChange() {
 export function useTeamChange() {
   const client = useQueryClient();
   return () => client.invalidateQueries({ queryKey: ["team"] });
+}
+
+export const useDrafts = (state: DraftState, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.drafts(state),
+    queryFn: ({ signal }) => fetchDrafts(state, signal),
+    enabled,
+    retry: false,
+  });
+
+export const useDraft = (id: string) =>
+  useQuery({
+    queryKey: queryKeys.draft(id),
+    queryFn: ({ signal }) => fetchDraft(id, signal),
+    retry: false,
+  });
+
+/** Checks, asked only while something shows them (M4K.4). */
+export const useDraftChecks = (id: string, enabled: boolean) =>
+  useQuery({
+    queryKey: queryKeys.draftChecks(id),
+    queryFn: ({ signal }) => fetchChecks(id, signal),
+    enabled,
+    retry: false,
+  });
+
+/** The regions, once: they change only with a content change. */
+export const useRegions = () =>
+  useQuery({
+    queryKey: queryKeys.studioIndex,
+    queryFn: ({ signal }) => getJson<IndexOut>("/api/studio/index", signal),
+    select: (index) => index.regions,
+    staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
+
+/** A draft made, or moved to another state: its answer in place, and the Drafts lists asked again
+ * when next shown (#255). */
+export function draftMoved(client: QueryClient, draft: DraftOut) {
+  client.setQueryData(queryKeys.draft(draft.public_id), draft);
+  return client.invalidateQueries({ queryKey: ["drafts"] });
 }

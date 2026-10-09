@@ -162,6 +162,7 @@
         "type": "object"
       },
       "ChecklistOut": {
+        "description": "The checklist, and the problems behind it, so Checks is one request (M4K.6).",
         "properties": {
           "items": {
             "items": {
@@ -173,6 +174,14 @@
           "passed": {
             "title": "Passed",
             "type": "boolean"
+          },
+          "problems": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ProblemOut"
+            },
+            "title": "Problems",
+            "type": "array"
           }
         },
         "required": [
@@ -816,6 +825,13 @@
               }
             ],
             "title": "Main Head"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/RegionChoiceOut"
+            },
+            "title": "Regions",
+            "type": "array"
           }
         },
         "required": [
@@ -823,7 +839,8 @@
           "latest",
           "main_head",
           "checked_at",
-          "behind"
+          "behind",
+          "regions"
         ],
         "title": "IndexOut",
         "type": "object"
@@ -1670,6 +1687,24 @@
           "problems"
         ],
         "title": "RefusedOut",
+        "type": "object"
+      },
+      "RegionChoiceOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RegionChoiceOut",
         "type": "object"
       },
       "RegionOut": {

@@ -224,3 +224,14 @@ def test_a_discarded_draft_is_not_checked(client: Client) -> None:
     for check in ("verify", "checklist"):
         response = call(client, "get", f"/api/studio/drafts/{draft}/{check}")
         assert (response.status_code, response.json()["code"]) == (404, "CA0201")
+
+
+def test_the_checklist_carries_verifys_problems(client: Client) -> None:
+    # One request for the workbench's Checks (M4K.6): the items and the problems behind them.
+    draft = opened(client, {"node_id": "tpm"})
+    links = [{"node": "no-such-node", "reason": "A reason for the test."}]
+    call(client, "put", f"/api/studio/drafts/{draft}/links/needs", {"revision": 1, "links": links})
+    body = call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()
+    verified = call(client, "get", f"/api/studio/drafts/{draft}/verify").json()
+    assert body["problems"] == verified["problems"]
+    assert any("no-such-node" in problem["text"] for problem in body["problems"])

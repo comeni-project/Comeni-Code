@@ -68,14 +68,23 @@ def set_resources(node: Node, resources: Sequence[Resource]) -> Node:
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:
-    """Adjacent text blocks joined: the body reads them back as one, so they are stored as one."""
+    """Adjacent text blocks joined: the body reads them back as one, so they are stored as one,
+    with a blank line between them so the two stay paragraphs (#258)."""
     out: list[Block] = []
     for block in blocks:
-        if out and isinstance(block, Text) and isinstance(out[-1], Text):
-            out[-1] = Text(markdown=out[-1].markdown + block.markdown)
+        last = out[-1] if out else None
+        if isinstance(block, Text) and isinstance(last, Text):
+            out[-1] = Text(markdown=last.markdown + _gap(last.markdown) + block.markdown)
         else:
             out.append(block)
     return out
+
+
+def _gap(markdown: str) -> str:
+    """What a text needs after it for a paragraph to follow: a blank line, in its line endings."""
+    if markdown.endswith(("\n\n", "\r\n\r\n")):
+        return ""
+    return "\r\n" if markdown.endswith("\r\n") else "\n"
 
 
 def _check_position(node: Node, at: int, *, inserting: bool = False) -> None:

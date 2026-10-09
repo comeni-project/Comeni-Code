@@ -54,11 +54,20 @@ describe("getJson", () => {
     await expect(getJson("/api/search?q=a")).rejects.toThrow("the response wasn't JSON");
   });
 
+  it("keeps an error's body", async () => {
+    answers({ detail: "Refused.", code: "CA0208", problems: [] }, 422);
+    await expect(getJson("/api/x")).rejects.toMatchObject({
+      status: 422,
+      body: { detail: "Refused.", code: "CA0208", problems: [] },
+    });
+  });
+
   it("keeps the status on the error", async () => {
     answers({ detail: "A search needs a word." }, 422);
-    await expect(getJson("/api/search?q=")).rejects.toMatchObject(
-      new ApiUnreachable("A search needs a word.", 422),
-    );
+    await expect(getJson("/api/search?q=")).rejects.toMatchObject({
+      reason: "A search needs a word.",
+      status: 422,
+    });
   });
 });
 
@@ -137,9 +146,10 @@ describe("sendJson", () => {
   it("carries the API's sentence out of a refusal", async () => {
     vi.stubGlobal("document", { cookie: "" });
     answers({ detail: "Studio needs an active operator.", code: "CA0108" }, 409);
-    await expect(sendJson("PATCH", "/api/team/members/x", {})).rejects.toMatchObject(
-      new ApiUnreachable("Studio needs an active operator.", 409),
-    );
+    await expect(sendJson("PATCH", "/api/team/members/x", {})).rejects.toMatchObject({
+      reason: "Studio needs an active operator.",
+      status: 409,
+    });
   });
 
   it("returns an accepted status's body", async () => {

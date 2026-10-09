@@ -5,6 +5,7 @@ import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { vi } from "vitest";
+import { QUERIES } from "./api/queries";
 import type { MeOut } from "./api/schema";
 
 export interface Answer {
@@ -24,6 +25,21 @@ export function answering(answers: Record<string, Answer | ((init?: RequestInit)
   return fake;
 }
 
+/** Holds the first request to `key` until the returned function answers it: for what happens
+ * while a save is still in flight. */
+export function holding(fake: ReturnType<typeof answering>, key: string) {
+  const answer = Promise.withResolvers<Response>();
+  const through = fake.getMockImplementation();
+  let held = false;
+  fake.mockImplementation((url, init) => {
+    if (held || `${init?.method ?? "GET"} ${url}` !== key) return through?.(url, init) as never;
+    held = true;
+    return answer.promise;
+  });
+  return ({ status = 200, body = {} }: Answer) =>
+    answer.resolve(new Response(JSON.stringify(body), { status }));
+}
+
 export function Where() {
   const { pathname, search } = useLocation();
   return <span data-testid="where">{`${pathname}${search}`}</span>;
@@ -32,7 +48,7 @@ export function Where() {
 export const renderAt = (path: string, routes: ReactNode) =>
   render(
     <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      client={new QueryClient({ defaultOptions: { queries: { ...QUERIES, retry: false } } })}
     >
       <MemoryRouter initialEntries={[path]}>
         <Routes>

@@ -1,5 +1,5 @@
 // Studio's pages, as data (M4S.4): the rail draws the ones a role can open, and the shell's gate
-// checks the same entry, so a page is added here and nowhere else. M4.8b adds the drafts.
+// checks the same entry, so a page is added here and nowhere else.
 import { canActAs, type Role } from "../api/accounts";
 
 export interface StudioPage {
@@ -13,6 +13,13 @@ export interface StudioPage {
 }
 
 export const STUDIO_PAGES: readonly StudioPage[] = [
+  {
+    path: "/studio/drafts",
+    label: "Drafts",
+    icon: "M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3",
+    minRole: "author",
+    place: "top",
+  },
   {
     path: "/studio/team",
     label: "Team",

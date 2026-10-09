@@ -141,3 +141,43 @@ author submits; the draft then reads as submitted, and Withdraw reopens it.
 
 The exam pool's builder (M4.8c); review and land screens (M4.9); scores and AI (M5); the blocks M6
 brings; per-block problem dots; History; presence.
+
+## Notes from the build
+
+Built on `feat/m4-8b-workbench` (sub-issues #238–#247 of #221), inline from the plan; each
+deviation is a ruling, listed here with what it costs if wrong.
+
+- **Layout.** The side panel is 520px from `xl` up (the S3 board's width) and stacks below it
+  under that; the plan's 480px at `lg` did not fit beside the rail. The add points show their
+  chips always, dimmed until hover or focus, so a keyboard reaches them.
+- **Edits.** One hook, `useLeaveEdit`, holds a typed value until its save lands, for every
+  Settings field and link list; a save that lands clears only what it sent (#255). Removing a row
+  or an option first moves focus to the list's add button, or leaving never saved. Hints are kept
+  raw while typing and their empty lines dropped when sent. Text and callout markdown is sent with
+  its last line ended, as code-schema keeps every block (#256).
+- **Saves in flight (#255).** A click that moves the workbench — opening a block, adding, moving,
+  deleting, dragging, another tab, a resource's Edit or Remove — waits for the draft's saves in
+  flight (`useAfterSaves`); if one was refused it does nothing and the refused editor stays open
+  with its text, otherwise it acts on the blocks where they now are (`follow`). Disabling the
+  controls instead would eat the very click whose blur started the save. A press inside an editor
+  that takes no focus (its padding, Safari's buttons) does not count as leaving it. Every editor,
+  and a save in flight, makes the browser ask before the page goes.
+- **Requests.** Opening a draft is one GET and each save one write, with no refetch (walked).
+  Reload asks for the draft alone, never hidden Checks. The Drafts lists are asked again, when next
+  shown, after a draft is made or changes state. The tests' query client shares the app's 60s
+  `staleTime`, so a test sees what the app sees.
+- **Questions.** A try option has no misconception (#257): code-schema keeps one only on an exam
+  option (M4E.1), as the QuestionBuilder board draws it; the plan had put the field on try options.
+- **Resources.** Provider and licence are text fields, not the board's selects: no endpoint sends
+  `providers.yaml` to the web, and Verify refuses an unknown one in its own words. A closed card is
+  named *Kind · provider*; `ResourceIn` has no title.
+- **Checks.** Problems are listed in the API's order (ProblemOut has no *refusing* flag). The
+  Checks tab carries no count, since Checks are not asked while hidden. *Related*'s four is said
+  under its list and enforced by Verify.
+- **Against the boards** (walked at 1440, light and dark): the same structure and tokens. Small
+  differences: the Drafts form's Minutes is narrow and its finder has no magnifier; each link
+  list's hint sits under its heading; the preview has no frame header; at 1440 *+ Resource* wraps
+  under its note.
+- **Adjacent texts (#258, decided by the operator, option 1).** code-schema joins text blocks
+  that end up side by side with a blank line, so they stay paragraphs; *+ text* beside a text
+  block opens that block (the one above first) instead of adding a block the body would merge.

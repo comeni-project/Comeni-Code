@@ -4,16 +4,21 @@
 // so an error carries that sentence out to the page rather than a second vocabulary of ours.
 // `health.ts` keeps its own fetch: 503 is an answer there, which is true nowhere else.
 
-/** No usable answer from the API; `reason` is a sentence a page can print. */
+/**
+ * No usable answer from the API; `reason` is a sentence a page can print, and `body` the error's
+ * JSON when there was one (a refused save's problems, M4K.3).
+ */
 export class ApiUnreachable extends Error {
   readonly reason: string;
   readonly status: number | undefined;
+  readonly body: unknown;
 
-  constructor(reason: string, status?: number) {
+  constructor(reason: string, status?: number, body?: unknown) {
     super(reason);
     this.name = "ApiUnreachable";
     this.reason = reason;
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -60,7 +65,7 @@ async function readAnswer<T>(response: Response, accept: readonly number[]): Pro
     );
   }
   if (!usable) {
-    throw new ApiUnreachable(detailOf(body) ?? `HTTP ${response.status}`, response.status);
+    throw new ApiUnreachable(detailOf(body) ?? `HTTP ${response.status}`, response.status, body);
   }
   return body as T;
 }

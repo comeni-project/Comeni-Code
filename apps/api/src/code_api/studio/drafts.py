@@ -304,14 +304,14 @@ class Item:
 MIN_EXAM = 4  # M4's bar (architecture spec R4): an exam pool of at least four questions
 
 
-def checklist(draft: Draft) -> list[Item]:
-    """M4's bar before submitting (M4W.5): it verifies clean, a level, a resource, four exam
-    questions. Submitting is M4.5's, and requires every item."""
+def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
+    """M4's bar before submitting (M4W.5) and the problems behind it, from one check (M4K.6): it
+    verifies clean, a level, a resource, four exam questions."""
     node, problems = _checked(draft)
     errors = [problem for problem in problems if problem.refuses]
     resources = 0 if node is None else len(node.resources)
     exam = 0 if node is None else len(node.exam)
-    return [
+    items = [
         Item(
             "verifies clean",
             not errors,
@@ -321,3 +321,9 @@ def checklist(draft: Draft) -> list[Item]:
         Item("a resource", resources >= 1, f"{resources} resource(s)"),
         Item("four exam questions", exam >= MIN_EXAM, f"{exam} of {MIN_EXAM}"),
     ]
+    return items, problems
+
+
+def checklist(draft: Draft) -> list[Item]:
+    """The checklist alone, as submitting and approving read it (M4.5)."""
+    return checks(draft)[0]
