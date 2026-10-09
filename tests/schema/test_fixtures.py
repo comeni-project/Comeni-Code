@@ -170,7 +170,12 @@ def test_another_node_has_a_linked_resource_alone(content: Content) -> None:
 
 def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> None:
     node = content.nodes["de-bruijn-graphs"]
-    assert [question.kind for question in node.questions] == ["number", "choice"]
+    assert [question.kind for question in node.questions] == [
+        "number",
+        "choice",
+        "sequence",
+        "order",
+    ]
     assert all(question.hints and question.rationale for question in node.questions)
     number = node.questions[0]
     assert number.answer == NumberAnswer(value=5)

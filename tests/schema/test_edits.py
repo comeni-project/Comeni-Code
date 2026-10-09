@@ -115,11 +115,14 @@ def test_a_callout_is_inserted_between_blocks() -> None:
 
 
 def test_a_try_block_carries_its_question_in() -> None:
-    edited = reread(insert_block(DBG, 2, Try(question="edge-count"), question=QUESTION))
+    # Block 3 is kmers-per-read since the fixture's sequence block (M4.8c).
+    edited = reread(insert_block(DBG, 4, Try(question="edge-count"), question=QUESTION))
     assert [question.id for question in edited.questions] == [
         "kmers-per-read",
         "edge-count",
         "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
     ]
 
 
@@ -136,14 +139,18 @@ def test_a_question_id_already_asked_is_an_edit_error() -> None:
 
 
 def test_deleting_a_try_block_deletes_its_question() -> None:
-    edited = reread(delete_block(DBG, 1))
-    assert [question.id for question in edited.questions] == ["shared-unitig"]
+    edited = reread(delete_block(DBG, 3))
+    assert [question.id for question in edited.questions] == [
+        "shared-unitig",
+        "spell-the-path",
+        "assembly-order",
+    ]
     assert Try(question="kmers-per-read") not in edited.blocks
 
 
 def test_texts_brought_together_merge() -> None:
     # Deleting the try between two texts leaves one text block, as the body reads back.
-    edited = reread(delete_block(DBG, 1))
+    edited = reread(delete_block(DBG, 3))
     assert not any(
         isinstance(a, Text) and isinstance(b, Text)
         for a, b in zip(edited.blocks, edited.blocks[1:], strict=False)
@@ -167,15 +174,17 @@ def test_texts_already_apart_gain_no_second_blank_line() -> None:
 
 def test_a_try_question_is_updated_through_its_block() -> None:
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(DBG, 1, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(DBG, 3, Try(question="kmers-per-read"), question=changed))
     assert edited.questions[0].ask == "How many 4-mers does a 10-base read contain?"
 
 
 def test_a_block_moves() -> None:
-    edited = reread(move_block(DBG, 1, 3))
+    edited = reread(move_block(DBG, 3, 5))
     assert [block for block in edited.blocks if isinstance(block, Try)] == [
         Try(question="shared-unitig"),
         Try(question="kmers-per-read"),
+        Try(question="spell-the-path"),
+        Try(question="assembly-order"),
     ]
 
 
@@ -226,7 +235,7 @@ def _swapped() -> Node:
 def test_updating_a_try_block_finds_its_question_by_id() -> None:
     node = reread(_swapped())
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(node, 1, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(node, 3, Try(question="kmers-per-read"), question=changed))
     by_id = {question.id: question for question in edited.questions}
     assert by_id["kmers-per-read"].ask == changed.ask
     assert by_id["shared-unitig"] == DBG.questions[1]
