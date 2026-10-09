@@ -1,34 +1,66 @@
 exam:
   - id: tpm-sums-to
+    title: What do TPM values add up to?
+    claim: knows TPM is a share of a million
     kind: number
-    ask: Across all transcripts in one sample, what do the TPM values add up to?
+    stem: |
+      Across all transcripts in one sample, what do the TPM values add up to?
     answer: 1000000
     rationale: TPM is each transcript's share of the sample, scaled so the shares add up to a million.
   - id: tpm-or-count
+    title: What does a transcript's TPM tell you?
     kind: choice
-    ask: What does a transcript's TPM tell you?
     level: foundations
+    stem: |
+      What does a transcript's TPM tell you?
     options:
       - text: Its share of the transcript molecules in the sample
         right: true
       - text: How many reads mapped to it
         misconception: TPM is not a count of reads
       - text: How long the transcript is
+        plain: true
     rationale: TPM divides each transcript's reads by its effective length, then scales, so it is a share of molecules.
   - id: twice-as-long
+    title: Equal reads, twice the length
+    claim: corrects counts for length before comparing
     kind: choice
-    ask: Transcripts A and B have the same number of reads, and B is twice as long. Which has the higher TPM?
+    stem: |
+      Transcripts A and B have the same number of reads, and B is twice as long. Which has the higher TPM?
     options:
       - text: A
         right: true
       - text: B
+        plain: true
       - text: Neither; equal reads give equal TPM
         misconception: TPM is not a count of reads
     rationale: Dividing by length first gives A twice B's rate, so A has twice B's TPM.
   - id: tpm-of-a
+    title: Work out A's TPM
     kind: number
-    ask: A is 1,000 bases long with 300 reads; B is 3,000 bases long with 300 reads; they are the only transcripts. What is A's TPM?
+    stem: |
+      A is 1,000 bases long with 300 reads; B is 3,000 bases long with 300 reads; they are the only transcripts. What is A's TPM?
     answer: 750000
     unit: TPM
     tolerance: 1
     rationale: Their rates are 0.3 and 0.1 reads per base, so A holds three quarters of the molecules, 750,000 of a million.
+  - id: tpm-steps
+    title: Put TPM's steps in order
+    kind: order
+    stem: |
+      Put the steps that turn read counts into TPM in order.
+    steps:
+      - Count the reads on each transcript
+      - Divide each count by the transcript's effective length
+      - Add up the rates across the sample
+      - Scale each rate so the rates add up to a million
+    rationale: Length comes first, then the total, then the scaling to a million.
+  - id: tpm-unit-name
+    title: What does TPM stand for?
+    kind: sequence
+    stem: |
+      Write out what the letters TPM stand for.
+    answer: transcripts per million
+    accept:
+      - transcripts per million mapped
+    rationale: TPM counts transcripts in every million, after correcting for length.

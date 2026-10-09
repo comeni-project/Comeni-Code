@@ -43,6 +43,15 @@ class _IndentedDumper(yaml.SafeDumper):
         return super().increase_indent(flow, False)
 
 
+def _literal(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
+    """A stem's lines as a literal block (`stem: |`, M4Q.2); a one-line string stays plain."""
+    style = "|" if "\n" in value else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
+
+
+_IndentedDumper.add_representer(str, _literal)
+
+
 def _resource(resource: Resource) -> dict[str, object]:
     """The spec's field order (M3P1.2, M3P5.3); video and part only when the author wrote them."""
     written: dict[str, object] = {"kind": resource.kind, "provider": resource.provider}
@@ -102,10 +111,14 @@ def _question(question: TryQuestion) -> dict[str, object]:
 
 
 def _exam_question(question: ExamQuestion) -> dict[str, object]:
-    """M4E.1's order: a level only when the question sets its own."""
-    written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
+    """M4Q.2's order: a claim and a level only when the question sets its own."""
+    written: dict[str, object] = {"id": question.id, "title": question.title}
+    if question.claim:
+        written["claim"] = question.claim
+    written["kind"] = question.kind
     if question.level is not None:
         written["level"] = question.level.value
+    written["stem"] = question.stem
     written |= _answer(question.answer)
     written["rationale"] = question.rationale
     return written

@@ -52,7 +52,9 @@ QUESTION = TryQuestion(
 )
 EXAM = ExamQuestion(
     id="tpm-share",
-    ask="If one transcript holds half the molecules in a sample, what is its TPM?",
+    title="If one transcript holds half the molecules in a sample, what is its TPM?",
+    claim="",
+    stem="If one transcript holds half the molecules in a sample, what is its TPM?\n",
     answer=NumberAnswer(value=500000),
     level=None,
     rationale="TPM is a share of a million, so half the molecules is 500,000.",
@@ -188,7 +190,13 @@ def test_the_exam_pool_is_edited_a_question_at_a_time() -> None:
     assert [question.id for question in added.exam][-1] == "tpm-share"
     choice = replace(
         EXAM,
-        answer=ChoiceAnswer(options=(Option(text="500,000", right=True), Option(text="0.5"))),
+        answer=ChoiceAnswer(
+            options=(
+                Option(text="500,000", right=True),
+                Option(text="0.5", plain=True),
+                Option(text="50", plain=True),
+            )
+        ),
     )
     updated = reread(update_exam_question(added, "tpm-share", choice))
     assert updated.exam[-1].answer == choice.answer

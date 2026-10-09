@@ -451,7 +451,7 @@ def test_parse_node_files_reads_a_node_as_its_folder_does() -> None:
     )
     assert problems == []
     assert node == content.nodes["tpm"]
-    assert len(node.exam) == 4
+    assert len(node.exam) == 6  # TPM's pool holds every kind since M4.8c
 
 
 def test_parse_node_files_names_each_file_in_its_problems() -> None:

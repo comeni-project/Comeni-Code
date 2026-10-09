@@ -192,11 +192,12 @@ def test_the_tpm_node_carries_a_misconception(content: Content) -> None:
     assert kinds == ["misconception"]
 
 
-def test_the_tpm_node_carries_an_exam_pool_of_four(content: Content) -> None:
-    # M4.2 (spec M4E.8): choice and number, one misconception, one question at its own level.
+def test_the_tpm_node_carries_an_exam_pool_of_every_kind(content: Content) -> None:
+    # M4.2 (spec M4E.8), grown in M4.8c (M4Q.7): every answer kind, one misconception, one
+    # question at its own level.
     exam = content.nodes["tpm"].exam
-    assert len(exam) == 4
-    assert {question.kind for question in exam} == {"choice", "number"}
+    assert len(exam) == 6
+    assert {question.kind for question in exam} == {"choice", "number", "sequence", "order"}
     assert [question.level for question in exam if question.level] == [Level.FOUNDATIONS]
     named = [
         option.misconception

@@ -71,7 +71,8 @@ def exam_question(question_id: str) -> str:
     return (
         f"  - id: {question_id}\n"
         "    kind: number\n"
-        "    ask: How many reads does a 2 kb transcript at 10 reads per kb collect?\n"
+        "    title: How many reads does a 2 kb transcript at 10 reads per kb collect?\n"
+        "    stem: How many reads does a 2 kb transcript at 10 reads per kb collect?\n"
         "    answer: 20\n"
         "    rationale: Reads scale with length at a fixed rate.\n"
     )

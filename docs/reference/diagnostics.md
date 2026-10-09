@@ -1148,6 +1148,62 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A node holds exam questions at or near its own level, and review flags one two or more levels away (tutor spec T10.1). A warning: review decides.
 
+#### CS0815 — an exam question has no title
+
+*Refuses.*
+
+**Fix.** Give the question a one-line title, as Studio's list and a learner's results name it.
+
+**Why.** A stem may be long and hold blocks; the title names the question in one line (M4.8c spec, M4Q.2).
+
+#### CS0816 — an exam question has no stem
+
+*Refuses.*
+
+**Fix.** Write what the learner reads under `stem: |`.
+
+**Why.** The stem is the question as asked, built from the page's blocks (M4Q.2).
+
+#### CS0817 — a stem holds a try or a callout
+
+*Refuses.*
+
+**Fix.** Keep text and sequences in a stem; a misconception belongs in the body, named by an option.
+
+**Why.** A test asks one question at a time and gives no notes; callouts and try questions are the page's (M4Q.2).
+
+#### CS0818 — an exam choice offers fewer than 3 options
+
+*Refuses.*
+
+**Fix.** Add a wrong option that someone who misunderstands would pick.
+
+**Why.** With two options a learner who knows nothing scores half (M4Q.3).
+
+#### CS0819 — an option names a misconception and says plain
+
+*Refuses.*
+
+**Fix.** Keep the misconception, or say plain: true, not both.
+
+**Why.** `plain` says a wrong option names no misconception on purpose (M4Q.3).
+
+#### CS0820 — the right option says plain
+
+*Refuses.*
+
+**Fix.** Remove plain: true from the right option.
+
+**Why.** `plain` marks a wrong option; the right one is simply right (M4Q.3).
+
+#### CS0821 — a wrong option names no misconception and is not plain
+
+*Warns; never blocks.*
+
+**Fix.** Name the misconception callout this answer reflects, or write plain: true.
+
+**Why.** Every distractor names a misconception or is marked plain (tutor spec T7.1), so a forgotten one shows while a deliberate one is quiet. A warning: review decides (M4Q.3).
+
 #### CS0822 — an option's plain is not true or false
 
 *Refuses.*
