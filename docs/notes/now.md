@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-09** (M4.8b closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-09** (M4.8c closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
@@ -14,9 +14,9 @@ line is in [the archive](journal/archive/).
 - **M4.1–M4.7 are done** (#119–#125): the block document (#139); exam pools (#151); accounts and
   roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218).
   (2026-09-29 to 2026-10-06)
-- **M4.8 (#126) is three slices**, each with its own spec, plan and pull request: M4.8a sign-in and
-  the team (#220, done in #236), M4.8b the workbench (#221, done in #259), **M4.8c the exam pool
-  (#222) is next**, against the QuestionBuilder board. (2026-10-07, 2026-10-09)
+- **M4.8 (#126) is four slices**, each its own spec, plan and pull request: M4.8a (#236), M4.8b
+  the workbench (#259), M4.8c exam questions as the board draws them (#266), **M4.8d the exam
+  pool's builder (#263) is next**. (2026-10-07, 2026-10-09)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -54,9 +54,9 @@ line is in [the archive](journal/archive/).
   a blank line so they stay paragraphs (#258). A try option has no `misconception` (#257). (10-09)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
-- **A question composes an answer** (`ChoiceAnswer | NumberAnswer`) in a `TryQuestion` (hints) or
-  an `ExamQuestion` (no hints, a `misconception` per wrong option); one reader serves both, and
-  `code_schema.grading.is_right` grades by the web's rule, a choice by index. (2026-09-20 to 10-06)
+- **A question composes an answer** (choice, number, sequence, order; order scored by pairs in
+  order, M4Q.3) in a `TryQuestion` (ask, hints) or an `ExamQuestion` (title, claim, a stem of
+  blocks; wrong options name a misconception or are `plain`; three options). (2026-09-20 to 10-09)
 - **An exam pool** (`code_schema.exam`, CS08xx): at most 40, ids apart from try questions; under 4
   is a *warning* (left out of self-tests). **Exam answers are not a secret in v1** (M4E.6). (10-05)
 - **Warnings never refuse** (M4E.4): `Content.errors` is what `validate` (exit 1), the weaver and
@@ -193,7 +193,7 @@ line is in [the archive](journal/archive/).
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203, #204, #216, #217, #234, #235 (M4.8a's account menu and smaller ones) and #260 (M4.8b's);
+  #203, #204, #216, #217, #234, #235 (M4.8a's account menu and smaller ones) #260 (M4.8b's), #265 (M4.8c's);
   large floats given as answers read back from jsonb as integers
   (#188). (2026-10-06)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
@@ -223,7 +223,8 @@ line is in [the archive](journal/archive/).
   are kept: retarget a stacked pull request first. (2026-09-29, 2026-10-05)
 - **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
   ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
-- **Migration 0007 needs `rebuild_index` after it** (providers' licences, numbers). (2026-10-05)
+- **Migrations 0007 and 0009 need `rebuild_index` after them** (licences, numbers; exam titles and
+  stems). (2026-10-05, 10-09)
 - **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**,
   so a later text replacement can miss: assert each test setup step. (2026-10-05)
 - **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
