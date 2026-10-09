@@ -180,3 +180,36 @@ many pairs were in order. Nothing else on the learner side changes.
 a sequence-answer question and an order question; Verify and the checklist pass; the draft shows
 each question's approved or draft state; `code-schema validate` passes the fixtures; on the Node
 page a learner answers a sequence try and an order try.
+
+## Notes from the build
+
+Built on `feat/m4-8c-exam-questions` from the plan, inline; each deviation is a ruling, with what it
+costs if wrong.
+
+- **Answers.** One reader serves both pools with a table of which fields answer each kind; M3's
+  pinned refusals (CS0308, CS0310, CS0313, CS0314) keep their words and any other field of another
+  kind is CS0337. Order pairs are counted without `itertools`, which code-schema's purity allowlist
+  does not hold. An order is given as the step texts in the learner's order, never as indexes.
+- **Stems.** A stem's block problems are reported at their lines in `exam.yaml`, counted from the
+  key's own line for a one-line stem and from the next for a literal one. A stem line that ends in
+  spaces or holds a tab is refused (CS0823, #264): YAML cannot write it as `stem: |`, so it would
+  land rewritten as an escaped string.
+- **Codes.** CS0416–CS0418 sit in the CS04xx band, whose concern is `body`. Every new code is
+  named by a test and in `docs/reference/diagnostics.md`.
+- **Fixtures.** TPM's pool holds six questions of every kind; the de Bruijn node gains a sequence
+  block and a sequence and an order try, so the learner's page meets each. Tests pinning their old
+  counts and positions follow them; the rules under test are unchanged.
+- **The workbench.** A try's own kind is kept (`questionIn` had folded every kind but number into
+  choice); a sequence or order try shows a note and no editor until M4.8d. A sequence block is
+  edited as *Letters*.
+- **Review.** An order's steps show sorted by their text, and once answered the written order
+  (`right_steps`, #264). A sequence's key shows once answered, as a number's does.
+- **The learner's order control** keeps focus on the moved step, even at an end, and a status line
+  says where it stands (#264).
+- **Walked** in headless Chrome against `runserver` and the production build: a stem with a
+  sequence block, a sequence and an order question added through the API; the untouched questions
+  *approved*, the new ones *draft*; Verify clean; the checklist passes once TPM has a resource
+  (its fixture has none); both new tries answered on the de Bruijn page.
+- **Deferred** (#265): stem styles other than `|` report a line off; `accept` skips the length
+  check; the web lowercases where Python casefolds; the try note's wording; a test for a changed
+  id; `rebuild_index` after migration 0009.

@@ -94,7 +94,7 @@
   - `OptionRules(keys, code, noun, minimum: int = 2)`; `TRY_OPTIONS.minimum == 2`
   - `grading.score(answer: Answer, given: object) -> float`; `grading.is_right(answer, given) -> bool`
 
-- [ ] **Step 1: Write the failing tests** — `tests/schema/test_answers.py`:
+- [x] **Step 1: Write the failing tests** — `tests/schema/test_answers.py`:
 
 ```python
 """The answer kinds both pools share (M4.8c spec, M4Q.3): sequence and order, distinct options."""
@@ -284,12 +284,12 @@ def test_another_kind_lists_the_four() -> None:
     assert codes(problems) == ["CS0012"]
 ```
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `uv run pytest tests/schema/test_answers.py tests/schema/test_grading.py tests/schema/test_questions.py -q`
 Expected: FAIL — `ImportError: cannot import name 'OrderAnswer'`.
 
-- [ ] **Step 3: Implement the answers** in `questions.py`:
+- [x] **Step 3: Implement the answers** in `questions.py`:
 
 ```python
 KINDS = ("choice", "number", "sequence", "order")
@@ -543,7 +543,7 @@ def _gives_the_answer(hint: str, answer: Answer) -> bool:
             return False
 ```
 
-- [ ] **Step 4: Implement the score** in `grading.py` (the module docstring adds: *a sequence by its forms; an order by the share of pairs in order (M4Q.3)*):
+- [x] **Step 4: Implement the score** in `grading.py` (the module docstring adds: *a sequence by its forms; an order by the share of pairs in order (M4Q.3)*):
 
 ```python
 from itertools import combinations
@@ -592,7 +592,7 @@ def is_right(answer: Answer, given: object) -> bool:
     return score(answer, given) == 1.0
 ```
 
-- [ ] **Step 5: Write the new answers** in `writer.py`:
+- [x] **Step 5: Write the new answers** in `writer.py`:
 
 ```python
 def _option(option: Option) -> dict[str, object]:
@@ -631,7 +631,7 @@ def _answer(answer: Answer) -> dict[str, object]:
 
 Export `SequenceAnswer`, `OrderAnswer` (and `score` from `grading`) in `__init__.py`'s imports and `__all__`; `tests/schema/test_public_api.py` lists the public names — add them there too.
 
-- [ ] **Step 6: Declare the codes** in `diagnostics.yml` (after CS0329; CS0305's `says` becomes `a question names no kind (choice, number, sequence, order)`):
+- [x] **Step 6: Declare the codes** in `diagnostics.yml` (after CS0329; CS0305's `says` becomes `a question names no kind (choice, number, sequence, order)`):
 
 ```yaml
   CS0330:
@@ -736,12 +736,12 @@ and in the exam band, after CS0814:
 
 CS0822's own test is in Task 3, where exam options read `plain`.
 
-- [ ] **Step 7: Run the tests and the schema suite**
+- [x] **Step 7: Run the tests and the schema suite**
 
 Run: `uv run pytest tests/schema -q`
 Expected: PASS. The ownership guard may name CS0822 as untested until Task 3; if `tests/repo` is run now it fails only on that — Task 3 adds its test.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/code-schema tests/schema
@@ -759,7 +759,7 @@ git commit -m "feat(schema): sequence and order answers, plain options, a score 
 **Interfaces:**
 - Produces: `SequenceBlock(letters: str)`; `Block = Text | Try | Callout | SequenceBlock`; `block_json(SequenceBlock)` → `{"kind": "sequence", "letters": …}`; `block_from_json` reads it back.
 
-- [ ] **Step 1: Write the failing tests** in `tests/schema/test_blocks.py`:
+- [x] **Step 1: Write the failing tests** in `tests/schema/test_blocks.py`:
 
 ```python
 from code_schema.blocks import (
@@ -804,12 +804,12 @@ def test_a_sequence_block_is_inserted() -> None:
     assert SequenceBlock(letters="ACGTTGCA\n") in edited.blocks
 ```
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `uv run pytest tests/schema/test_blocks.py tests/schema/test_edits.py -q`
 Expected: FAIL — `ImportError: cannot import name 'SequenceBlock'`.
 
-- [ ] **Step 3: Implement** in `blocks.py` (module docstring adds `:::{sequence}` then letters then `:::`):
+- [x] **Step 3: Implement** in `blocks.py` (module docstring adds `:::{sequence}` then letters then `:::`):
 
 ```python
 _LETTERS = re.compile(r"^[A-Za-z\s]*$")
@@ -868,7 +868,7 @@ In `parse_blocks`, before the `if name in CALLOUTS:` branch:
 
 In `edits.py`, `_check_lines` reads `block_text(block)` instead of `block.markdown` (still skipping `Try`). Export `SequenceBlock` from `__init__.py` and add it to `test_public_api.py`.
 
-- [ ] **Step 4: Declare CS0416–CS0418** in `diagnostics.yml` after CS0415, `concern: blocks`:
+- [x] **Step 4: Declare CS0416–CS0418** in `diagnostics.yml` after CS0415, `concern: blocks`:
 
 ```yaml
   CS0416:
@@ -903,12 +903,12 @@ In `edits.py`, `_check_lines` reads `block_text(block)` instead of `block.markdo
       A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 ```
 
-- [ ] **Step 5: Run the schema suite**
+- [x] **Step 5: Run the schema suite**
 
 Run: `uv run pytest tests/schema -q`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/code-schema tests/schema
@@ -928,7 +928,7 @@ git commit -m "feat(schema): the sequence block — M4.8c.2"
 - Consumes: Task 1's `read_head(entry, ask=False)`, `OptionRules(minimum=…)`, `Option.plain`; Task 2's `SequenceBlock`.
 - Produces: `ExamQuestion(id: str, title: str, claim: str, stem: str, answer: Answer, level: Level | None, rationale: str)` with `.kind` and `.blocks -> tuple[Block, ...]`.
 
-- [ ] **Step 1: Rewrite the test pool's shape.** In `tests/schema/test_exam.py`, every exam question written as
+- [x] **Step 1: Rewrite the test pool's shape.** In `tests/schema/test_exam.py`, every exam question written as
 
 ```
   - id: X
@@ -1064,12 +1064,12 @@ def test_an_exam_stem_is_written_as_a_literal_block() -> None:
 
 (Use the names `test_writer.py` already has for the fixture root and regions.)
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `uv run pytest tests/schema -q`
 Expected: FAIL — exam questions with `title`/`stem` refused as unknown keys (CS0806), and `ExamQuestion` has no `title`.
 
-- [ ] **Step 3: Implement** in `exam.py`:
+- [x] **Step 3: Implement** in `exam.py`:
 
 ```python
 _KEYS = (
@@ -1234,7 +1234,7 @@ def _exam_question(question: ExamQuestion) -> dict[str, object]:
     return written
 ```
 
-- [ ] **Step 4: Rewrite the fixture pool** `tests/fixtures/salmon/transcriptomics/tpm/exam.yaml` in the new shape: each question's `ask` becomes its `title` and a one-paragraph `stem: |`; *How long the transcript is* gains `plain: true`; add two questions at the end:
+- [x] **Step 4: Rewrite the fixture pool** `tests/fixtures/salmon/transcriptomics/tpm/exam.yaml` in the new shape: each question's `ask` becomes its `title` and a one-paragraph `stem: |`; *How long the transcript is* gains `plain: true`; add two questions at the end:
 
 ```yaml
   - id: tpm-steps
@@ -1261,7 +1261,7 @@ def _exam_question(question: ExamQuestion) -> dict[str, object]:
 
 Then write the file back through the writer so it is canonical: `uv run python -c "from pathlib import Path; from code_schema.node import read_node; from code_schema.writer import write_exam_yaml; ..."` — read the node with the fixtures' regions and providers as `test_writer.py` does, and write `write_exam_yaml(node)` over the file. Check `git diff` reads as intended.
 
-- [ ] **Step 5: Declare CS0815–CS0821** in `diagnostics.yml` after CS0814 (`concern: exam`; CS0821 `refuses: false`):
+- [x] **Step 5: Declare CS0815–CS0821** in `diagnostics.yml` after CS0814 (`concern: exam`; CS0821 `refuses: false`):
 
 ```yaml
   CS0815:
@@ -1338,14 +1338,14 @@ Then write the file back through the writer so it is canonical: `uv run python -
       one shows while a deliberate one is quiet. A warning: review decides (M4Q.3).
 ```
 
-- [ ] **Step 6: Regenerate the reference and run everything Python**
+- [x] **Step 6: Regenerate the reference and run everything Python**
 
 Run: `uv run code-schema diagnostics --write docs/reference/diagnostics.md && uv run code-schema validate tests/fixtures/salmon; echo rc=$?`
 Expected: `rc=0` (warnings allowed; no errors).
 Run: `uv run pytest tests -q`
 Expected: PASS, including `tests/repo` (every new code named by a test).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/code-schema tests docs/reference/diagnostics.md
@@ -1366,7 +1366,7 @@ git commit -m "feat(schema): an exam question with a title, a claim and a block 
 - Consumes: Tasks 1–3's `SequenceAnswer`, `OrderAnswer`, `Option.plain`, `ExamQuestion(title, claim, stem)`, `SequenceBlock`, `block_json`.
 - Produces: `node_from_index(node_id)` returns a node whose files write back byte for byte, new kinds and stems included.
 
-- [ ] **Step 1: Write the failing test** in `test_content_index.py`:
+- [x] **Step 1: Write the failing test** in `test_content_index.py`:
 
 ```python
 @pytest.mark.django_db
@@ -1381,12 +1381,12 @@ def test_every_kind_round_trips_through_the_index(built_index: object) -> None:
 
 (Use the fixture that builds the index from `tests/fixtures/salmon` which this file's other tests use; its name is in `apps/api/tests/conftest.py`.)
 
-- [ ] **Step 2: Run it to see it fail**
+- [x] **Step 2: Run it to see it fail**
 
 Run: `uv run pytest apps/api/tests/test_content_index.py -q -k round_trips`
 Expected: FAIL — `ExamQuestion() got unexpected keyword arguments: 'title'` while building rows.
 
-- [ ] **Step 3: Implement.** In `models.py`, `Question` gains
+- [x] **Step 3: Implement.** In `models.py`, `Question` gains
 
 ```text
     accept = models.JSONField(default=list)  # a sequence's other right forms (M4Q.3)
@@ -1447,12 +1447,12 @@ def _answer(row: models.Question | models.ExamQuestion) -> Answer:
 
 and the exam rows are read back with `title=question.title`, `claim=question.claim`, `stem=write_blocks([block_from_json(b) for b in question.stem])`.
 
-- [ ] **Step 4: Run the API suite with CI's environment**
+- [x] **Step 4: Run the API suite with CI's environment**
 
 Run: `uv run python apps/api/manage.py makemigrations --check --dry-run && uv run pytest apps/api -q`
 Expected: PASS. A test that counted TPM's pool (four questions) now counts six — update its number and say why in the test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api
@@ -1473,7 +1473,7 @@ git commit -m "feat(api): the index holds titles, stems and the new answer kinds
 - Consumes: Task 4's index, `node_from_index`.
 - Produces (JSON): `SequenceBlockOut {kind: "sequence", letters}`; `QuestionOut.answer: float | str | None`, `.accept: list[str]`, `.exact: bool`, `.steps: list[str] | None`; `StudioOptionOut.plain: bool`; `StudioQuestionOut` and `StudioExamQuestionOut` with `answer: float | int | str | None`, `accept`, `exact`, `steps`; `StudioExamQuestionOut.title`, `.claim`, `.stem: list[BlockOut]`, `.stem_text: str`, `.state: "approved" | "draft"`; `node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None)`; `ReviewQuestionOut.ask` is an exam question's title, `.stem: list[BlockOut]`, `.steps: list[str] | None` (sorted, so the right order is not shown), `.given: Any`, `.value: float | int | str | None`.
 
-- [ ] **Step 1: Write the failing tests.** In `test_drafts.py`:
+- [x] **Step 1: Write the failing tests.** In `test_drafts.py`:
 
 ```python
 @pytest.mark.django_db
@@ -1525,12 +1525,12 @@ def test_a_node_sends_a_sequence_block_and_the_new_try_kinds(
 
 In `test_review_api.py`, where a reviewer's questions are listed, assert an exam question's `ask` is its title and its `stem` is a list of blocks.
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `uv run pytest apps/api/tests/test_drafts.py apps/api/tests/test_review_api.py -q`
 Expected: FAIL — `KeyError: 'state'`.
 
-- [ ] **Step 3: Implement.** In `content/schemas.py`:
+- [x] **Step 3: Implement.** In `content/schemas.py`:
 
 ```python
 class SequenceBlockOut(Schema):
@@ -1691,13 +1691,13 @@ def draft_out(draft: Draft) -> DraftOut:
 
 (Import `node_from_index` from `code_api.content.snapshot`.)
 
-- [ ] **Step 4: Run the API suite and regenerate the schema**
+- [x] **Step 4: Run the API suite and regenerate the schema**
 
 Run: `uv run pytest apps/api -q`
 Expected: PASS.
 Run: `uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api tests/fixtures
@@ -1716,7 +1716,7 @@ git commit -m "feat(api): stems as blocks, the new kinds, and a question's state
 - Consumes: Task 5's outputs; code-schema's edits.
 - Produces (JSON in): `OptionIn.plain: bool = False`; `AnswerIn.kind: Literal["choice", "number", "sequence", "order"]`, `answer: float | int | str | None`, `accept: list[str] = []`, `exact: bool = False`, `steps: list[str] | None = None`; `ExamQuestionIn.title: str`, `claim: str = ""`, `stem: str` (no `ask`); `BlockIn.kind` gains `"sequence"` with `letters: str = ""`.
 
-- [ ] **Step 1: Write the failing tests** in `test_draft_edits.py`:
+- [x] **Step 1: Write the failing tests** in `test_draft_edits.py`:
 
 ```python
 ORDER = {
@@ -1798,12 +1798,12 @@ def test_a_sequence_block_is_inserted_through_the_api(client: Client, author: Us
 
 (Use the revision this file's helpers say a fresh draft has, and its own helper names.)
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `uv run pytest apps/api/tests/test_draft_edits.py -q`
 Expected: FAIL — 422 from the schema (`kind` not one of `choice`, `number`).
 
-- [ ] **Step 3: Implement** in `studio/api.py`:
+- [x] **Step 3: Implement** in `studio/api.py`:
 
 ```python
 class OptionIn(Schema):
@@ -1872,13 +1872,13 @@ def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
 
 (An order's step count and duplicates are refused by the parse in its own words, CS0334 and CS0336, so `_answer` builds whatever it is given.)
 
-- [ ] **Step 4: Run the API suite, regenerate the schema**
+- [x] **Step 4: Run the API suite, regenerate the schema**
 
 Run: `uv run pytest apps/api -q`
 Expected: PASS.
 Run: `uv run python apps/api/manage.py export_openapi_schema --api code_api.api.api --sorted --indent 2 --output apps/api/openapi.json`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/api
@@ -1900,12 +1900,12 @@ git commit -m "feat(api): the exam and block edits take the new shapes — M4.8c
 - Consumes: Task 5's `QuestionOut` and `SequenceBlockOut`.
 - Produces: `score(question: QuestionOut, given: string | string[]): number` and `isRight(question, given): boolean` in `node/grading.ts`; `<SequenceAnswer onCheck={(text) => …} disabled />`; `<OrderAnswer steps={…} onCheck={(order) => …} disabled />`; `<SequenceBlock letters="…" />`.
 
-- [ ] **Step 1: Regenerate the types**
+- [x] **Step 1: Regenerate the types**
 
 Run: `podman run --rm --userns=keep-id -v "$PWD":/w:Z -w /w/apps/web node:24-alpine npm run api-types`
 Expected: `src/api/schema.ts` gains `SequenceBlockOut`, `QuestionOut.accept`, `.exact`, `.steps`.
 
-- [ ] **Step 2: Write the failing tests.** `node/grading.test.ts`:
+- [x] **Step 2: Write the failing tests.** `node/grading.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1994,12 +1994,12 @@ it("draws a sequence in groups of ten, and nothing for a block it does not know"
 });
 ```
 
-- [ ] **Step 3: Run them to see them fail**
+- [x] **Step 3: Run them to see them fail**
 
 Run: `podman run --rm --userns=keep-id -v "$PWD":/w:Z -w /w/apps/web node:24-alpine npx vitest run src/node`
 Expected: FAIL — `Cannot find module './grading'`.
 
-- [ ] **Step 4: Implement.** `node/grading.ts`:
+- [x] **Step 4: Implement.** `node/grading.ts`:
 
 ```ts
 // How right an answer is, by the rule code-schema's grading uses (M4.5 spec, M4.8c spec M4Q.3):
@@ -2212,12 +2212,12 @@ export function SequenceBlock({ letters }: { letters: string }) {
 
 with `const [orderSteps] = useState(() => shuffle(question.steps ?? []));` and `const [lastOrder, setLastOrder] = useState<string[] | null>(null);`; the *Not quite.* line, for an order, reads `` `${n} of ${pairs} pairs in order.` `` from `pairsInOrder(question, lastOrder)`.
 
-- [ ] **Step 5: Run the web checks**
+- [x] **Step 5: Run the web checks**
 
 Run (each separately, reading each exit code): `npx biome check --write src/node`, `npm run lint`, `npm run typecheck`, `npx vitest run` — all through the podman prefix.
 Expected: PASS. Typecheck errors elsewhere from the regenerated types (`answer: number | string | null`, the exam's `ask` gone) are fixed in Task 8; if they block this task's typecheck, do Task 8's Step 3 first and note it.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add apps/web
@@ -2236,7 +2236,7 @@ git commit -m "feat(web): the learner answers sequence and order tries; the sequ
 - Consumes: Task 5's `SequenceBlockOut`, `StudioExamQuestionOut.state`, the widened `answer`.
 - Produces: a sequence block editable as **Letters** in the Content tab; a try of kind sequence or order shown with *Edited in the exam pool's builder (M4.8d)* and no editor; the Exam pool line `{n} of 4 · {m} approved`.
 
-- [ ] **Step 1: Write the failing tests.** In `ContentTab.test.tsx`:
+- [x] **Step 1: Write the failing tests.** In `ContentTab.test.tsx`:
 
 ```tsx
 it("edits a sequence block's letters and saves them on leaving", async () => {
@@ -2279,12 +2279,12 @@ it("shows a sequence or order try without an editor until the builder arrives", 
 
 (Build the order try as `WITH_TRY` is built in that file, with `kind: "order"`, `options: null`, `answer: null`, `accept: []`, `exact: false`, `steps: [...]`.)
 
-- [ ] **Step 2: Run them to see them fail**
+- [x] **Step 2: Run them to see them fail**
 
 Run: `npx vitest run src/studio/workbench` (podman prefix)
 Expected: FAIL — no `Letters` field; `3 of 4` without the approved count.
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
   - `BlockEditor.tsx`: `{block.kind === "sequence" && (<label className={LABEL}>Letters<textarea value={block.letters} rows={3} spellCheck={false} onChange={(e) => setBlock({ ...block, letters: e.target.value })} className={`${BOX} font-mono`} /></label>)}` (use the classes `MarkdownField` uses for its label and box); `ended()` also ends a sequence's letters with a newline; `empty()` treats a sequence with no letters as empty; the caption reads `sequence · block N`.
   - `Outline.tsx` `firstWords`: a sequence block reads as its first ten letters followed by `…` when longer.
   - `TryEditor.tsx` / `BlockEditor.tsx`: a try whose question kind is `sequence` or `order` shows, in place of `TryEditor`, `<p className={NOTE}>A {kind} question. Edited in the exam pool's builder (M4.8d).</p>`, and `commit()` sends nothing for it (it is never `changed`).
@@ -2292,12 +2292,12 @@ Expected: FAIL — no `Letters` field; `3 of 4` without the approved count.
   - `ExamPoolTab.tsx`: ``{node.exam.length} of 4 · {node.exam.filter((q) => q.state === "approved").length} approved``.
   - `fixtures.ts`: `NODE.exam` stays `[]`; add the three exam fixtures.
 
-- [ ] **Step 4: Run every web check** (each separately, reading each exit code, podman prefix)
+- [x] **Step 4: Run every web check** (each separately, reading each exit code, podman prefix)
 
 Run: `npx biome check --write src`, `npm run lint`, `npm run typecheck`, `npx vitest run`, `npm run build`
 Expected: all PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add apps/web
@@ -2313,16 +2313,16 @@ git commit -m "feat(web): the workbench edits sequence blocks and counts approve
 - Modify: the spec (*Notes from the build*); this plan (ticks)
 - Create: a journal entry in `docs/notes/journal/` for the build
 
-- [ ] **Step 1: The whole suite with CI's environment**: `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, Django's `check`, `makemigrations --check --dry-run`, `uv run pytest`, `uv run code-schema validate tests/fixtures/salmon`; the web's lint, typecheck, tests and build. Expected: all green, each read by its exit code.
+- [x] **Step 1: The whole suite with CI's environment**: `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy`, Django's `check`, `makemigrations --check --dry-run`, `uv run pytest`, `uv run code-schema validate tests/fixtures/salmon`; the web's lint, typecheck, tests and build. Expected: all green, each read by its exit code.
 
-- [ ] **Step 2: Walk *done when*** against `runserver` (after `migrate` and `rebuild_index --root tests/fixtures/salmon`) and the production build in a browser, signed in as an invited author:
+- [x] **Step 2: Walk *done when*** against `runserver` (after `migrate` and `rebuild_index --root tests/fixtures/salmon`) and the production build in a browser, signed in as an invited author:
   1. Open a draft of `tpm` from Drafts. Through the API from the signed-in page (`fetch` with the CSRF token), add an exam question whose stem holds a `sequence` block, then a sequence-answer question and an order question (the payloads of Task 6's tests).
   2. `GET` the draft: the new questions read `draft`, the untouched ones `approved`; Verify is clean of errors; the checklist passes.
   3. Open `/node/de-bruijn-graphs` (its fixture gained a sequence block and two tries in Task 5): the sequence is drawn in groups of ten; answer *spell-the-path* by typing and *assembly-order* with Move up and Move down.
   4. The workbench's Exam pool tab reads `n of 4 · m approved`.
 
-- [ ] **Step 3: Final review** — a fresh reviewer (opus) over `git diff main...HEAD` with the spec, this plan and the ledger; findings filed as one issue; Critical and Important fixed test-first; minors to the deferred issue.
+- [x] **Step 3: Final review** — a fresh reviewer (opus) over `git diff main...HEAD` with the spec, this plan and the ledger; findings filed as one issue; Critical and Important fixed test-first; minors to the deferred issue.
 
-- [ ] **Step 4: Docs.** CLAUDE.md's layout line for `packages/code-schema/` adds *answers of four kinds (choice, number, sequence, order) and their score; the sequence block; exam questions with a title, a claim and a block stem*. The spec's *Notes from the build* lists each ruling. The journal entry, then `uv run pytest tests/repo -q`.
+- [x] **Step 4: Docs.** CLAUDE.md's layout line for `packages/code-schema/` adds *answers of four kinds (choice, number, sequence, order) and their score; the sequence block; exam questions with a title, a claim and a block stem*. The spec's *Notes from the build* lists each ruling. The journal entry, then `uv run pytest tests/repo -q`.
 
 - [ ] **Step 5: Commit, push, open the pull request** (`Closes #222` on its own line), on the operator's word; merge only on their yes.
