@@ -1,6 +1,6 @@
-// A try block's question (M4K.3): the ask, a choice's options (one right, a misconception for a
-// wrong one) or a number's answer, unit and tolerance, the hints and the rationale. It edits the
-// question BlockEditor holds, which sends it with the block.
+// A try block's question (M4K.3): the ask, a choice's options (one right; a misconception belongs
+// to an exam option, never a try, #257) or a number's answer, unit and tolerance, the hints and
+// the rationale. It edits the question BlockEditor holds, which sends it with the block.
 import { useId, useRef, useState } from "react";
 import { Field } from "../../account/Field";
 import type { OptionIn, TryQuestionIn } from "../../api/schema";
@@ -157,15 +157,6 @@ function Options({
                 Remove
               </button>
             </div>
-            {option.right !== true && (
-              <input
-                aria-label={`Option ${n} misconception`}
-                placeholder="The misconception this answer shows"
-                value={option.misconception ?? ""}
-                onChange={(e) => set(at, { ...option, misconception: e.target.value })}
-                className={`${BOX} h-9 text-[13px]`}
-              />
-            )}
           </div>
         );
       })}

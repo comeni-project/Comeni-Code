@@ -19,7 +19,7 @@ const WITH_TRY: DraftNodeOut = {
       ask: "How many 5-mers does a 100-base read contain?",
       options: [
         { text: "96", right: true, misconception: "" },
-        { text: "100", right: false, misconception: "Counts bases, not windows." },
+        { text: "100", right: false, misconception: "" },
       ],
       answer: null,
       unit: "",
@@ -55,7 +55,14 @@ describe("TryEditor", () => {
     const body = await sent(fake);
     expect(body.block).toEqual({ kind: "try", question: "k-mers-q1" });
     expect(body.question.ask).toBe("How many 5-mers does a 100-base read contain? Count them.");
-    expect(body.question.options[1].misconception).toBe("Counts bases, not windows.");
+    expect(body.question.options[1]).toEqual({ text: "100", right: false, misconception: "" });
+  });
+
+  it("offers no misconception on a try option: those belong to the exam pool (#257)", async () => {
+    bench();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    expect(screen.getByLabelText("Option 2")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/misconception/i)).toBeNull();
   });
 
   it("adds a try block with a new choice question", async () => {
