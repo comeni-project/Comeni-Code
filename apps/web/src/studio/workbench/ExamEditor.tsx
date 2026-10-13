@@ -2,7 +2,7 @@
 // answer and the rationale, held here and saved when you leave the editor — POST when new, PUT
 // otherwise, nothing when unchanged. Refused, it stays with what you typed and why.
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import type { BlockIn, ExamQuestionIn, Level } from "../../api/schema";
 import { LEVELS } from "../drafts/NewNodeForm";
 import { AnswerEditor, type AnswerFields, KindSwitch } from "./AnswerEditor";
@@ -32,6 +32,7 @@ export function ExamEditor({
   onSaved,
   onDeleted,
   onChange,
+  flush,
 }: {
   draftId: string;
   initial: ExamQuestionIn;
@@ -41,6 +42,9 @@ export function ExamEditor({
   onSaved: (id: string) => void;
   onDeleted: () => void;
   onChange?: (question: ExamQuestionIn, changed: boolean) => void;
+  /** Set to this editor's save, so choosing another question saves this one first, blur or not
+   * (Safari focuses no button; Firefox blurs nothing that is removed) (#268). */
+  flush?: RefObject<(() => void) | null>;
 }) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
@@ -48,6 +52,16 @@ export function ExamEditor({
   // What the draft holds of this question; null until a new one is first saved.
   const [base, setBase] = useState<ExamQuestionIn | null>(fresh ? null : initial);
   const [confirming, setConfirming] = useState(false);
+  // Asking and cancelling each replace the pressed button: focus goes to the one drawn instead,
+  // so it stays in the editor and leaving afterwards still saves (#268).
+  const cancel = useRef<HTMLButtonElement>(null);
+  const ask = useRef<HTMLButtonElement>(null);
+  const asked = useRef(false);
+  useEffect(() => {
+    if (confirming) cancel.current?.focus();
+    else if (asked.current) ask.current?.focus();
+    asked.current = confirming;
+  }, [confirming]);
   // Focus stays in the editor when a stem block goes, so leaving afterwards still saves it.
   const addStem = useRef<HTMLButtonElement>(null);
   const changed =
@@ -65,16 +79,24 @@ export function ExamEditor({
     setKeys(nextKeys);
     set({ stem });
   };
+  // A save in flight, known at once: a blur and a choice can both ask in one tick, before
+  // `isPending` is drawn (#268).
+  const sending = useRef(false);
   const commit = () => {
-    if (!editable || edit.isPending || !changed) return;
+    if (!editable || sending.current || !changed) return;
     const out = sent(question);
+    sending.current = true;
     edit.mutate(base === null ? addExam(out) : updateExam(base.id, out), {
       onSuccess: () => {
         setBase(question);
         onSaved(question.id);
       },
+      onSettled: () => {
+        sending.current = false;
+      },
     });
   };
+  if (flush) flush.current = commit;
   const remove = () => {
     setConfirming(false);
     if (base === null) return onDeleted();
@@ -287,12 +309,18 @@ export function ExamEditor({
               <button type="button" className="font-semibold text-open" onClick={remove}>
                 Delete
               </button>
-              <button type="button" className="text-ink-2" onClick={() => setConfirming(false)}>
+              <button
+                ref={cancel}
+                type="button"
+                className="text-ink-2"
+                onClick={() => setConfirming(false)}
+              >
                 Cancel
               </button>
             </span>
           ) : (
             <button
+              ref={ask}
               type="button"
               className="text-ink-2 hover:text-open"
               onClick={() => setConfirming(true)}

@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StudioExamQuestionOut } from "../../api/schema";
@@ -39,6 +39,20 @@ describe("ExamEditor", () => {
       title: "Count the edges",
       stem: [{ kind: "text", markdown: "What is a?\n" }],
     });
+  });
+
+  it("choosing another question saves this one even with no blur, as Safari gives none (#268)", async () => {
+    const a = examQuestion("a", "draft");
+    const fake = renderPool([a, examQuestion("b", "draft")], {
+      "PUT /api/studio/drafts/d-1/exam/a": savedWith([
+        { ...a, title: "Kept" },
+        examQuestion("b", "draft"),
+      ]),
+    });
+    fireEvent.change(await screen.findByLabelText("Title"), { target: { value: "Kept" } });
+    fireEvent.click(row("Question b"));
+    expect((await bodyOf(fake, "PUT")).question.title).toBe("Kept");
+    await vi.waitFor(() => expect(row("Question b")).toHaveAttribute("aria-current", "true"));
   });
 
   it("leaving an unchanged question sends nothing", async () => {
@@ -156,6 +170,14 @@ describe("ExamEditor", () => {
     await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     await vi.waitFor(() => expect(row("Question b")).toHaveAttribute("aria-current", "true"));
+  });
+
+  it("asking to delete keeps focus in the editor, so leaving afterwards still saves (#268)", async () => {
+    renderPool([examQuestion("a", "draft")]);
+    await userEvent.click(await screen.findByRole("button", { name: "Delete question" }));
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("button", { name: "Delete question" })).toHaveFocus();
   });
 
   it("a draft not open shows the question and edits nothing", async () => {

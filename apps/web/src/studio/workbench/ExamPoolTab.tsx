@@ -1,6 +1,6 @@
 // S3 · Exam pool (M4.8d spec, M4P.5): the board's three columns — the questions, one question's
 // editor, and its preview and checks. The tab brings its own side panel.
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { DraftNodeOut, ExamQuestionIn } from "../../api/schema";
 import { ExamEditor } from "./ExamEditor";
 import { ExamSidePanel } from "./ExamSidePanel";
@@ -35,8 +35,12 @@ export function ExamPoolTab({
   );
   // A choice waits for the editor's save to land, and stays put if it is refused (#255).
   // A new question is named from the draft as saved, so it follows one whose save was in flight.
-  const choose = (next: (saved: DraftNodeOut) => Selected) =>
+  // The open question is saved first, so the choice waits for it even when no blur came.
+  const flush = useRef<(() => void) | null>(null);
+  const choose = (next: (saved: DraftNodeOut) => Selected) => {
+    flush.current?.();
     after((draft) => setSelected(next(draft.node ?? node)));
+  };
   const approved = node.exam.filter((q) => q.state === "approved").length;
   const fresh = selected !== null && "fresh" in selected ? selected.fresh : null;
   const chosen = selected !== null && "id" in selected ? selected.id : null;
@@ -104,6 +108,7 @@ export function ExamPoolTab({
             onSaved={(id) => setSelected({ id })}
             onDeleted={() => setSelected(null)}
             onChange={report}
+            flush={flush}
           />
         ) : (
           <p className="text-[13.5px] text-ink-2">
