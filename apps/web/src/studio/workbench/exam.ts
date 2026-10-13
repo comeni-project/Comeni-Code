@@ -6,6 +6,8 @@ import type {
   ExamQuestionIn,
   StudioExamQuestionOut,
 } from "../../api/schema";
+import type { Block } from "../../node/body";
+import type { TestAsk } from "../../node/TestQuestion";
 import { blankExamOptions } from "./AnswerEditor";
 import { newQuestion } from "./question";
 
@@ -81,5 +83,21 @@ export function sent(question: ExamQuestionIn): ExamQuestionIn {
     ...question,
     stem: stemIn(question.stem),
     accept: (question.accept ?? []).filter((answer) => answer.trim() !== ""),
+  };
+}
+
+/** The question as a test asks it (M4P.7), drawn from what the editor holds: the stem as sent. */
+export function testAskOf(question: ExamQuestionIn): TestAsk {
+  return {
+    kind: question.kind,
+    stem: stemIn(question.stem).map(
+      (block): Block =>
+        block.kind === "sequence"
+          ? { kind: "sequence", letters: block.letters ?? "" }
+          : { kind: "text", markdown: block.markdown ?? "" },
+    ),
+    options: (question.options ?? []).map((option) => option.text),
+    unit: question.unit ?? "",
+    steps: (question.steps ?? []).filter((step) => step.trim() !== ""),
   };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DraftNodeOut, ExamQuestionIn } from "../../api/schema";
-import { examIn, newExamQuestion, sent, stemIn } from "./exam";
+import { examIn, newExamQuestion, sent, stemIn, testAskOf } from "./exam";
 import { examQuestion, NODE } from "./fixtures";
 
 describe("exam questions as the editor holds them", () => {
@@ -56,5 +56,21 @@ describe("exam questions as the editor holds them", () => {
       ],
     };
     expect(sent(q)).toMatchObject({ accept: ["x"], stem: [{ kind: "text", markdown: "Hi\n" }] });
+  });
+});
+
+describe("a question as a test asks it", () => {
+  it("is drawn from what the editor holds, stem as sent", () => {
+    const q: ExamQuestionIn = {
+      ...examIn(examQuestion("a", "draft", "choice")),
+      stem: [{ kind: "text", markdown: "Hi  " }],
+    };
+    expect(testAskOf(q)).toEqual({
+      kind: "choice",
+      stem: [{ kind: "text", markdown: "Hi\n" }],
+      options: ["A bubble", "A tip", "A clean path"],
+      unit: "",
+      steps: [],
+    });
   });
 });

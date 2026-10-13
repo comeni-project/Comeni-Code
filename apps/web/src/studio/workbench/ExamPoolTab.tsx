@@ -1,8 +1,9 @@
 // S3 · Exam pool (M4.8d spec, M4P.5): the board's three columns — the questions, one question's
 // editor, and its preview and checks. The tab brings its own side panel.
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { DraftNodeOut, ExamQuestionIn } from "../../api/schema";
 import { ExamEditor } from "./ExamEditor";
+import { ExamSidePanel } from "./ExamSidePanel";
 import { examIn, newExamQuestion } from "./exam";
 import { useAfterSaves } from "./useDraftEdit";
 
@@ -26,6 +27,12 @@ export function ExamPoolTab({
 }) {
   const after = useAfterSaves(draftId);
   const [selected, setSelected] = useState<Selected>(null);
+  // What the editor holds now, for the preview: unsaved changes included (M4P.7).
+  const [shown, setShown] = useState<{ question: ExamQuestionIn; changed: boolean } | null>(null);
+  const report = useCallback(
+    (question: ExamQuestionIn, changed: boolean) => setShown({ question, changed }),
+    [],
+  );
   // A choice waits for the editor's save to land, and stays put if it is refused (#255).
   const choose = (next: Selected) => after(() => setSelected(next));
   const approved = node.exam.filter((q) => q.state === "approved").length;
@@ -34,6 +41,9 @@ export function ExamPoolTab({
   const open =
     fresh === null ? (node.exam.find((q) => q.id === chosen) ?? node.exam[0] ?? null) : null;
   const openId = open?.id ?? null;
+  const editing = fresh ?? (open === null ? null : examIn(open));
+  const live =
+    shown !== null && editing !== null && shown.question.id === editing.id ? shown : null;
   const number =
     fresh !== null ? node.exam.length + 1 : node.exam.indexOf(open as NonNullable<typeof open>) + 1;
   return (
@@ -85,12 +95,13 @@ export function ExamPoolTab({
           <ExamEditor
             key={fresh !== null ? `fresh:${fresh.id}` : open?.id}
             draftId={draftId}
-            initial={fresh ?? examIn(open as NonNullable<typeof open>)}
+            initial={editing as ExamQuestionIn}
             fresh={fresh !== null}
             number={number}
             editable={editable}
             onSaved={(id) => setSelected({ id })}
             onDeleted={() => setSelected(null)}
+            onChange={report}
           />
         ) : (
           <p className="text-[13.5px] text-ink-2">
@@ -98,6 +109,16 @@ export function ExamPoolTab({
           </p>
         )}
       </div>
+      {editing !== null && (
+        <ExamSidePanel
+          draftId={draftId}
+          question={live?.question ?? editing}
+          changed={live?.changed ?? false}
+          saved={fresh === null}
+          number={number}
+          of={node.exam.length + (fresh === null ? 0 : 1)}
+        />
+      )}
     </div>
   );
 }
