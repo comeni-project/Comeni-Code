@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { StudioExamQuestionOut } from "../../api/schema";
-import type { Answer, answering } from "../../test-kit";
+import { type Answer, type answering, holding } from "../../test-kit";
 import { renderPool } from "./examKit";
 import { DRAFT, examQuestion, NODE } from "./fixtures";
 
@@ -74,6 +74,23 @@ describe("ExamEditor", () => {
     expect(body.question.options[2]).toMatchObject({ text: "A clean path", plain: true });
     await vi.waitFor(() => expect(row("Which mark\\?")).toHaveAttribute("aria-current", "true"));
     expect(screen.getByText("Q1 · choice")).toBeInTheDocument();
+  });
+
+  it("+ New while the last new question is saving names the next one after it (#268)", async () => {
+    const made = { ...examQuestion("k-mers-q1", "draft", "choice"), title: "First" };
+    const fake = renderPool([]);
+    const release = holding(fake, "POST /api/studio/drafts/d-1/exam");
+    await userEvent.click(await screen.findByRole("button", { name: "+ New" }));
+    await userEvent.type(screen.getByLabelText("Title"), "First");
+    await userEvent.click(screen.getByRole("button", { name: "+ New" }));
+    release(savedWith([made]));
+    expect(await screen.findByRole("button", { name: /^First,/ })).toHaveAttribute(
+      "aria-current",
+      "false",
+    );
+    expect(row("New question")).toHaveAttribute("aria-current", "true");
+    expect(screen.getByLabelText("Title")).toHaveValue("");
+    expect(screen.getByText("Q2 · choice")).toBeInTheDocument();
   });
 
   it("an untouched new question is dropped (Review Focus 3)", async () => {

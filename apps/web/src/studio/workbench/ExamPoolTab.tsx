@@ -34,7 +34,9 @@ export function ExamPoolTab({
     [],
   );
   // A choice waits for the editor's save to land, and stays put if it is refused (#255).
-  const choose = (next: Selected) => after(() => setSelected(next));
+  // A new question is named from the draft as saved, so it follows one whose save was in flight.
+  const choose = (next: (saved: DraftNodeOut) => Selected) =>
+    after((draft) => setSelected(next(draft.node ?? node)));
   const approved = node.exam.filter((q) => q.state === "approved").length;
   const fresh = selected !== null && "fresh" in selected ? selected.fresh : null;
   const chosen = selected !== null && "id" in selected ? selected.id : null;
@@ -54,7 +56,7 @@ export function ExamPoolTab({
           {editable && (
             <button
               type="button"
-              onClick={() => choose({ fresh: newExamQuestion(nodeId, node) })}
+              onClick={() => choose((saved) => ({ fresh: newExamQuestion(nodeId, saved) }))}
               className="text-[12px] text-sel"
             >
               + New
@@ -75,7 +77,7 @@ export function ExamPoolTab({
             kind={q.kind}
             state={q.state}
             on={openId === q.id}
-            onClick={() => choose({ id: q.id })}
+            onClick={() => choose(() => ({ id: q.id }))}
           />
         ))}
         {fresh !== null && (
