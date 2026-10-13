@@ -31,7 +31,6 @@ const KINDS: readonly [AnswerKind, string][] = [
 const LETTERS = "ABCDE";
 const MIN_STEPS = 3;
 const MAX_STEPS = 8;
-const OPTION = "flex flex-col gap-1.5 rounded-control border border-border p-2.5";
 const SMALL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40";
 
 /** An exam's choice starts with three options, the first right (CS0818). */
@@ -65,34 +64,17 @@ export function AnswerEditor<T extends AnswerFields>({
   value,
   onChange,
   exam = false,
+  kinds = true,
 }: {
   value: T;
   onChange: (value: T) => void;
   exam?: boolean;
+  /** false: the kind switch is drawn elsewhere, as the exam pool's Answer header does. */
+  kinds?: boolean;
 }) {
-  const kindName = useId();
   return (
     <>
-      <fieldset className="flex w-fit rounded-control border border-border bg-bg p-[3px]">
-        <legend className="sr-only">Answer kind</legend>
-        {KINDS.map(([kind, label]) => (
-          <label
-            key={kind}
-            className={`cursor-pointer rounded-[7px] px-3 py-1 text-[12.5px] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sel ${
-              value.kind === kind ? "bg-surface font-semibold text-ink shadow-sm" : "text-ink-2"
-            }`}
-          >
-            <input
-              type="radio"
-              name={kindName}
-              className="sr-only"
-              checked={value.kind === kind}
-              onChange={() => onChange(switchedKind(value, kind, exam))}
-            />
-            {label}
-          </label>
-        ))}
-      </fieldset>
+      {kinds && <KindSwitch value={value} onChange={onChange} exam={exam} />}
       {value.kind === "choice" && (
         <Options
           options={value.options ?? []}
@@ -127,6 +109,41 @@ export function AnswerEditor<T extends AnswerFields>({
   );
 }
 
+/** Choice, Number, Sequence or Order; changing it clears the other kinds' fields (CS0337). */
+export function KindSwitch<T extends AnswerFields>({
+  value,
+  onChange,
+  exam = false,
+}: {
+  value: T;
+  onChange: (value: T) => void;
+  exam?: boolean;
+}) {
+  const kindName = useId();
+  return (
+    <fieldset className="m-0 flex w-fit rounded-control border border-border bg-bg p-[3px]">
+      <legend className="sr-only">Answer kind</legend>
+      {KINDS.map(([kind, label]) => (
+        <label
+          key={kind}
+          className={`cursor-pointer rounded-[7px] px-3 py-1 text-[12.5px] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sel ${
+            value.kind === kind ? "bg-surface font-semibold text-ink shadow-sm" : "text-ink-2"
+          }`}
+        >
+          <input
+            type="radio"
+            name={kindName}
+            className="sr-only"
+            checked={value.kind === kind}
+            onChange={() => onChange(switchedKind(value, kind, exam))}
+          />
+          {label}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
 function Options({
   options,
   exam,
@@ -146,31 +163,41 @@ function Options({
     <div className="flex flex-col gap-2">
       {options.map((option, at) => {
         const letter = LETTERS[at] ?? String(at + 1);
+        const row = `flex flex-col gap-1.5 rounded-[10px] p-2.5 ${
+          option.right ? "border-2 border-btn bg-line-soft" : "border border-border bg-surface"
+        }`;
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: an option has no identity beyond its place
-          <div key={at} className={OPTION}>
-            <div className="flex items-center gap-2">
-              <span className="w-4 font-mono text-[12px] text-ink-3">{letter}</span>
-              <input
-                type="radio"
-                name={group}
-                aria-label={`Option ${letter} is the right answer`}
-                checked={option.right === true}
-                onChange={() =>
-                  onChange(
-                    options.map((o, i) =>
-                      i === at
-                        ? {
-                            ...o,
-                            right: true,
-                            misconception: "",
-                            ...(exam ? { plain: false } : {}),
-                          }
-                        : { ...o, right: false },
-                    ),
-                  )
-                }
-              />
+          <div key={at} className={row}>
+            <div className="flex items-center gap-2.5">
+              <label
+                className={`flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-[7px] font-mono text-[12px] font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-sel ${
+                  option.right ? "bg-btn text-btn-ink" : "border-[1.5px] border-border-2 text-ink-2"
+                }`}
+              >
+                {letter}
+                <input
+                  type="radio"
+                  className="sr-only"
+                  name={group}
+                  aria-label={`Option ${letter} is the right answer`}
+                  checked={option.right === true}
+                  onChange={() =>
+                    onChange(
+                      options.map((o, i) =>
+                        i === at
+                          ? {
+                              ...o,
+                              right: true,
+                              misconception: "",
+                              ...(exam ? { plain: false } : {}),
+                            }
+                          : { ...o, right: false },
+                      ),
+                    )
+                  }
+                />
+              </label>
               <input
                 aria-label={`Option ${letter}`}
                 value={option.text}
@@ -190,8 +217,10 @@ function Options({
                 Remove
               </button>
             </div>
+            {option.right && <span className="pl-[34px] text-[12px] text-btn">Correct answer</span>}
             {exam && !option.right && (
-              <div className="flex flex-wrap items-center gap-2 pl-6">
+              <div className="flex flex-wrap items-center gap-2 pl-[34px]">
+                <span className="text-[12px] text-ink-2">Misconception:</span>
                 <input
                   aria-label={`Misconception of option ${letter}`}
                   placeholder="the misconception this answer reveals"

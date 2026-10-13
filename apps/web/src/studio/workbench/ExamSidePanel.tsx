@@ -35,6 +35,20 @@ export function ExamSidePanel({
     ? (asked.data?.questions?.find((q) => q.id === question.id)?.items ?? [])
     : [];
   const failed = items.filter((item) => !item.passed).length;
+  const list = !saved ? (
+    <p className="text-[13px] text-ink-2">Checked once saved.</p>
+  ) : (
+    <>
+      {changed && (
+        <p className="text-[12.5px] text-ink-3">
+          As last saved; leave the question to check again.
+        </p>
+      )}
+      {asked.isPending && <p className="text-[13px] text-ink-2">Checking…</p>}
+      {asked.isError && <ErrorNotice error={asked.error} />}
+      <CheckItems items={items} />
+    </>
+  );
   const tab = (on: boolean) =>
     `${TAB} ${on ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--ink)]" : "text-ink-2"}`;
   return (
@@ -64,22 +78,7 @@ export function ExamSidePanel({
         </button>
       </div>
       {checks ? (
-        <div className="flex flex-col gap-3 p-3.5">
-          {!saved ? (
-            <p className="text-[13px] text-ink-2">Checked once saved.</p>
-          ) : (
-            <>
-              {changed && (
-                <p className="text-[12.5px] text-ink-3">
-                  As last saved; leave the question to check again.
-                </p>
-              )}
-              {asked.isPending && <p className="text-[13px] text-ink-2">Checking…</p>}
-              {asked.isError && <ErrorNotice error={asked.error} />}
-              <CheckItems items={items} />
-            </>
-          )}
-        </div>
+        <div className="flex flex-col gap-3 p-3.5">{list}</div>
       ) : (
         <section aria-label="Preview as in a test" className="flex flex-col gap-3 p-3.5">
           <div className="flex self-start rounded-control border border-border bg-bg p-[3px]">
@@ -112,6 +111,12 @@ export function ExamSidePanel({
             />
           </div>
         </section>
+      )}
+      {!checks && (
+        <div className="flex flex-col gap-2 px-3.5 pb-3.5">
+          <h3 className="text-[13px] font-semibold">Checks</h3>
+          {list}
+        </div>
       )}
     </aside>
   );

@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import type { BlockIn, ExamQuestionIn, Level } from "../../api/schema";
 import { LEVELS } from "../drafts/NewNodeForm";
-import { AnswerEditor, type AnswerFields } from "./AnswerEditor";
+import { AnswerEditor, type AnswerFields, KindSwitch } from "./AnswerEditor";
 import { LettersField } from "./BlockEditor";
 import { BOX, LABEL } from "./bench";
 import { addExam, deleteExam, updateExam } from "./edits";
@@ -86,24 +86,24 @@ export function ExamEditor({
     <LeaveToSave onLeave={commit} className="flex flex-col gap-2.5 border-0 p-0">
       <fieldset disabled={!editable} className="m-0 flex min-w-0 flex-col gap-2.5 border-0 p-0">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5 text-[15px] font-semibold">
+          <div className="flex min-w-0 max-w-full items-center gap-1.5 text-[15px] font-semibold">
             <span className="shrink-0">Q{number} ·</span>
             <input
               aria-label="Title"
               placeholder="A title, in a few words"
               value={question.title}
               onChange={(e) => set({ title: e.target.value })}
-              className="min-w-0 flex-1 rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 outline-none hover:border-border focus:border-sel"
+              className="min-w-[12ch] max-w-full rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 outline-none [field-sizing:content] hover:border-border focus:border-sel"
             />
           </div>
-          <div className="flex items-center gap-2 text-[12px] text-ink-3">
+          <div className="ml-auto flex min-w-0 items-center gap-2 text-[12px] text-ink-3">
             <span>tests the claim:</span>
             <input
               aria-label="Claim"
               placeholder="what a right answer shows"
               value={question.claim ?? ""}
               onChange={(e) => set({ claim: e.target.value })}
-              className="w-56 rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 text-ink-2 outline-none hover:border-border focus:border-sel"
+              className="min-w-[22ch] max-w-[48ch] rounded-[6px] border border-transparent bg-transparent px-1 py-0.5 text-ink-2 outline-none [field-sizing:content] hover:border-border focus:border-sel"
             />
             <select
               aria-label="Level"
@@ -235,13 +235,19 @@ export function ExamEditor({
         </section>
 
         <section className={PANEL}>
-          <div className={HEAD}>
+          <div className={`${HEAD} justify-between py-1.5`}>
             <h3 className="text-[12.5px] font-semibold">Answer</h3>
+            <KindSwitch
+              value={question as ExamQuestionIn & AnswerFields}
+              exam
+              onChange={(next) => setQuestion(next)}
+            />
           </div>
           <div className="flex flex-col gap-2.5 p-3">
             <AnswerEditor
               value={question as ExamQuestionIn & AnswerFields}
               exam
+              kinds={false}
               onChange={(next) => setQuestion(next)}
             />
           </div>

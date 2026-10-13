@@ -133,6 +133,12 @@ describe("AnswerEditor", () => {
     });
   });
 
+  it("marks the right option and names each wrong one's misconception, as the board does", () => {
+    render(<Harness start={CHOICE} exam seen={[]} />);
+    expect(screen.getByText("Correct answer")).toBeInTheDocument();
+    expect(screen.getByText("Misconception:")).toBeInTheDocument();
+  });
+
   it("a try question's options have no misconception (#257)", () => {
     render(<Harness start={CHOICE} seen={[]} />);
     expect(screen.queryByLabelText(/Misconception of option/)).toBeNull();

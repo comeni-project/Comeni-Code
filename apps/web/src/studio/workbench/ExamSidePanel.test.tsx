@@ -49,6 +49,13 @@ describe("ExamSidePanel", () => {
     expect(document.documentElement).not.toHaveAttribute("data-theme", "dark");
   });
 
+  it("lists the question's checks under the preview, as the board does", async () => {
+    renderPool([examQuestion("a", "draft")], checked);
+    const preview = await screen.findByRole("region", { name: "Preview as in a test" });
+    expect(await screen.findByText("Level within one step of the node's")).toBeInTheDocument();
+    expect(preview).not.toContainElement(screen.getByText("No hints"));
+  });
+
   it("Checks lists the question's items, with the failed count on its tab", async () => {
     renderPool([examQuestion("a", "draft")], checked);
     const tab = await screen.findByRole("tab", { name: "Checks 1" });
