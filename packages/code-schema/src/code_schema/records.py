@@ -6,12 +6,14 @@ the line it is about. That is here once. What differs — which key ends an entr
 which key — stays in each parser, in order, as code.
 
 Every problem found in an entry makes it unsound: an entry with a problem is never kept. A
-warning (`Entry.flag`, spec M4E.4) is reported the same way and leaves the entry sound.
+warning (`Entry.flag`, spec M4E.4) is reported the same way and leaves the entry sound. A
+question entry's problems carry its id once `read_head` reads it (M4.8d spec, M4P.2).
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Sequence
+from dataclasses import replace
 
 from code_schema.fields import Check
 from code_schema.problems import Problem
@@ -59,7 +61,13 @@ class Field:
         code, says = not_a_mapping
         for item in value:
             if isinstance(item, dict):
-                yield Entry(item, self)
+                start = len(self.problems)
+                entry = Entry(item, self)
+                yield entry
+                if entry.name is not None:
+                    self.problems[start:] = [
+                        replace(problem, question=entry.name) for problem in self.problems[start:]
+                    ]
             else:
                 self.problem(code, says(item))
 
@@ -71,6 +79,7 @@ class Entry:
         self.mapping = mapping
         self.field = field
         self.sound = True
+        self.name: str | None = None  # the id `read_head` read; the entry's problems carry it
         self.line = next((self.at(str(key)) for key in mapping), field.line)
 
     def at(self, key: str) -> int | None:

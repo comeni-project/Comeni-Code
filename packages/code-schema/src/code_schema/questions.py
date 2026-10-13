@@ -415,6 +415,7 @@ def read_head(entry: Entry, *, ask: bool = True) -> tuple[str, str] | None:
     if not entry.require("id", "CS0304", "a question has no id") or not entry.check("id", _id):
         return None
     name = str(written["id"])
+    entry.name = name
     kind = written.get("kind")
     if not entry.require("kind", "CS0305", f"the question {name} has no kind ({', '.join(KINDS)})"):
         return None

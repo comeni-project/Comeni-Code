@@ -314,3 +314,8 @@ def test_a_number_answer_must_be_finite(value: str) -> None:
     assert codes(problems) == ["CS0312"]
     _, problems = parse(NUMBER + f"    tolerance: {value}\n")
     assert codes(problems) == ["CS0315"]
+
+
+def test_a_try_question_problem_names_it() -> None:
+    _, problems = parse(CHOICE + "    answer: 2\n")
+    assert [(p.code, p.question) for p in problems] == [("CS0308", "node-or-edge")]
