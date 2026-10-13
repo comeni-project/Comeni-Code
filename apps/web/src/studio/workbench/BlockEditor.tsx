@@ -86,16 +86,10 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
       )}
       {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
       {block.kind === "sequence" && (
-        <label className={LABEL}>
-          Letters
-          <textarea
-            value={block.letters}
-            rows={3}
-            spellCheck={false}
-            onChange={(e) => setBlock({ ...block, letters: e.target.value })}
-            className={`${BOX} font-mono`}
-          />
-        </label>
+        <LettersField
+          value={block.letters}
+          onChange={(letters) => setBlock({ ...block, letters })}
+        />
       )}
       {block.kind === "try" && asked !== undefined && (
         <TryEditor question={asked} onChange={setAsked} />
@@ -115,5 +109,29 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         </button>
       </div>
     </LeaveToSave>
+  );
+}
+
+/** A sequence block's letters (M4Q.2), on a page or in a stem. */
+export function LettersField({
+  value,
+  onChange,
+  label = "Letters",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+}) {
+  return (
+    <label className={LABEL}>
+      {label}
+      <textarea
+        value={value}
+        rows={3}
+        spellCheck={false}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${BOX} font-mono`}
+      />
+    </label>
   );
 }

@@ -2,10 +2,12 @@
 // editor, and its preview and checks. The tab brings its own side panel.
 import { useState } from "react";
 import type { DraftNodeOut, ExamQuestionIn } from "../../api/schema";
-import { newExamQuestion } from "./exam";
+import { ExamEditor } from "./ExamEditor";
+import { examIn, newExamQuestion } from "./exam";
 import { useAfterSaves } from "./useDraftEdit";
 
-/** The question open in the editor: one the draft holds, or a new one not saved yet. */
+/** The question open in the editor: one the draft holds, or a new one not saved yet; null (or an
+ * id the pool no longer holds) opens the first. */
 export type Selected = { id: string } | { fresh: ExamQuestionIn } | null;
 
 const NOTE =
@@ -23,14 +25,17 @@ export function ExamPoolTab({
   editable: boolean;
 }) {
   const after = useAfterSaves(draftId);
-  const [selected, setSelected] = useState<Selected>(() =>
-    node.exam[0] ? { id: node.exam[0].id } : null,
-  );
+  const [selected, setSelected] = useState<Selected>(null);
   // A choice waits for the editor's save to land, and stays put if it is refused (#255).
   const choose = (next: Selected) => after(() => setSelected(next));
   const approved = node.exam.filter((q) => q.state === "approved").length;
   const fresh = selected !== null && "fresh" in selected ? selected.fresh : null;
-  const openId = selected !== null && "id" in selected ? selected.id : null;
+  const chosen = selected !== null && "id" in selected ? selected.id : null;
+  const open =
+    fresh === null ? (node.exam.find((q) => q.id === chosen) ?? node.exam[0] ?? null) : null;
+  const openId = open?.id ?? null;
+  const number =
+    fresh !== null ? node.exam.length + 1 : node.exam.indexOf(open as NonNullable<typeof open>) + 1;
   return (
     <div className="grid gap-[18px] xl:grid-cols-[230px_minmax(0,1fr)_460px]">
       <aside className="flex min-w-0 flex-col gap-2">
@@ -75,6 +80,24 @@ export function ExamPoolTab({
         )}
         <p className="pt-1 text-[11.5px] leading-[1.45] text-ink-3">{NOTE}</p>
       </aside>
+      <div className="min-w-0">
+        {fresh !== null || open !== null ? (
+          <ExamEditor
+            key={fresh !== null ? `fresh:${fresh.id}` : open?.id}
+            draftId={draftId}
+            initial={fresh ?? examIn(open as NonNullable<typeof open>)}
+            fresh={fresh !== null}
+            number={number}
+            editable={editable}
+            onSaved={(id) => setSelected({ id })}
+            onDeleted={() => setSelected(null)}
+          />
+        ) : (
+          <p className="text-[13.5px] text-ink-2">
+            {editable ? "Add the first question with + New." : "This pool has no questions."}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

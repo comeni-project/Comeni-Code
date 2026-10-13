@@ -12,9 +12,11 @@ const MARKS = [
 export function MarkdownField({
   value,
   onChange,
+  label = "Markdown",
 }: {
   value: string;
   onChange: (value: string) => void;
+  label?: string;
 }) {
   const id = useId();
   const box = useRef<HTMLTextAreaElement>(null);
@@ -32,7 +34,7 @@ export function MarkdownField({
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
         <label htmlFor={id} className="text-[13px] font-medium">
-          Markdown
+          {label}
         </label>
         <div className="flex gap-0.5">
           {MARKS.map((m) => (
