@@ -187,3 +187,26 @@ once saved*.
    `QuestionBuilder` in a browser at 1680 px, in light and in dark: layout, columns, the list's
    rows, the stem and answer panels, the option rows, the side panel's tabs and checks. Each
    difference is fixed, or named in the journal as one of M4P.1's later parts.
+
+## Notes from the build
+
+Built on `feat/m4-8d-exam-pool-builder` from the plan, inline; each deviation is a ruling, with what
+it costs if wrong, in the journal.
+
+- **M4P.2.** A question entry's problems are stamped with its id once read, nested options and
+  stem blocks included. CS0806 (an unknown key, read before the id) is stamped too: it is about the
+  question.
+- **M4P.3.** A stem is written as a body is: adjacent text blocks joined as paragraphs (#258), and
+  refused when it would read back as something else (`write_faithfully`, #268).
+- **M4P.4.** The rules table is code-schema's (`question_rules.py`), not `drafts.py`'s: each package
+  writes only its own diagnostic codes (M4D.6). The API turns its results into the checklist's
+  items. The route is `…/checklist`.
+- **M4P.5.** The stem uses the page editor's fields (`MarkdownField`, `LettersField`), not
+  `BlockEditor`, which saves itself. Choosing another question saves the open one first, blur or
+  not (#268). A new question is named from the draft as saved, so it follows one still saving.
+- **M4P.6.** Options are lettered, as the board letters them; the letter tile is the right-answer
+  control. The kind switch sits in the exam's Answer header.
+- **M4P.7.** The checks list under the preview as well as on their tab, as the board draws them. An
+  order's steps are dealt by place, so the preview follows edits (#268).
+- **Against the board**, at 1680 in light and dark: the header's *Exam pool · n of m approved* tag
+  stays a count atop the list (the header is every tab's), and the level is a select, not a tag.
