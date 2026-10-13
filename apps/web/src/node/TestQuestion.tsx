@@ -1,7 +1,7 @@
 // A question as a self-test asks it (M4.8d spec, M4P.7): its place, the stem as the page draws
 // blocks, and the kind's control — no hints, no feedback, no rationale. The builder previews it;
 // the self-test (M8) asks it.
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Body } from "./Body";
 import type { Block } from "./body";
 import { OrderAnswer, shuffled } from "./OrderAnswer";
@@ -35,7 +35,12 @@ export function TestQuestion({
   const field = useId();
   const [picked, setPicked] = useState<number | null>(null);
   const [given, setGiven] = useState("");
-  const [steps] = useState(() => shuffle(ask.steps));
+  // The steps are dealt by place, so an edited step keeps its place and shows its new words;
+  // they are dealt again only when a step is added or removed (#268).
+  const count = ask.steps.length;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dealt again only when the count changes
+  const places = useMemo(() => shuffle([...Array(count).keys()].map(String)).map(Number), [count]);
+  const steps = places.map((at) => ask.steps[at] ?? "");
   return (
     <section className="flex flex-col gap-2.5 text-ink">
       <span className="text-[11px] text-ink-3">
@@ -62,7 +67,7 @@ export function TestQuestion({
           ))}
         </div>
       ) : ask.kind === "order" ? (
-        <OrderAnswer steps={steps} disabled={false} />
+        <OrderAnswer key={steps.join("\u0000")} steps={steps} disabled={false} />
       ) : (
         <div className="flex flex-wrap items-center gap-2.5">
           <label htmlFor={field} className="sr-only">

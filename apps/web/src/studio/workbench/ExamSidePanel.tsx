@@ -103,7 +103,7 @@ export function ExamSidePanel({
             }`}
           >
             <TestQuestion
-              key={look}
+              key={`${question.id}:${look}`}
               ask={testAskOf(question)}
               number={number}
               of={of}

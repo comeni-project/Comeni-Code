@@ -39,6 +39,20 @@ describe("ExamSidePanel", () => {
     expect(preview).not.toHaveTextContent(/hint\b(?! in a test)/i);
   });
 
+  it("an order's preview follows its steps as they are edited (#268)", async () => {
+    const order = {
+      ...examQuestion("a", "draft"),
+      kind: "order",
+      answer: null,
+      steps: ["Cut", "Build", "Walk"],
+    };
+    renderPool([order], checked);
+    const preview = await screen.findByRole("region", { name: "Preview as in a test" });
+    expect(preview).toHaveTextContent("Build");
+    await userEvent.type(screen.getByLabelText("Step 2"), " the graph");
+    expect(preview).toHaveTextContent("Build the graph");
+  });
+
   it("Phone narrows the preview and Dark marks its box dark", async () => {
     renderPool([examQuestion("a", "draft")], checked);
     const preview = await screen.findByRole("region", { name: "Preview as in a test" });
