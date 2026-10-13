@@ -46,6 +46,12 @@ describe("exam questions as the editor holds them", () => {
     ]);
   });
 
+  it("strips spaces at line ends in a sequence block too, as pasted letters bring them (#268)", () => {
+    expect(stemIn([{ kind: "sequence", letters: "ACGT \nTTGA  " }])).toEqual([
+      { kind: "sequence", letters: "ACGT\nTTGA\n" },
+    ]);
+  });
+
   it("drops empty lines from accepted answers and empty blocks from the stem", () => {
     const q: ExamQuestionIn = {
       ...examIn(examQuestion("a", "draft")),

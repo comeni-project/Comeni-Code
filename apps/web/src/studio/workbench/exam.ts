@@ -69,7 +69,7 @@ const ended = (text: string) => (text.endsWith("\n") ? text : `${text}\n`);
 export function stemIn(stem: BlockIn[]): BlockIn[] {
   return stem.flatMap((block): BlockIn[] => {
     if (block.kind === "sequence") {
-      const letters = block.letters ?? "";
+      const letters = trimmed(block.letters ?? "");
       return letters.trim() === "" ? [] : [{ ...block, letters: ended(letters) }];
     }
     const markdown = trimmed(block.markdown ?? "");
