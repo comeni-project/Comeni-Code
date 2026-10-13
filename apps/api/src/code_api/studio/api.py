@@ -55,7 +55,6 @@ from code_schema import (
     Try,
     TryQuestion,
 )
-from code_schema.blocks import write_blocks
 from code_schema.edits import (
     EditError,
     Unfaithful,
@@ -69,6 +68,7 @@ from code_schema.edits import (
     set_resources,
     update_block,
     update_exam_question,
+    write_faithfully,
 )
 from code_schema.grading import NotAnAnswer
 
@@ -439,7 +439,7 @@ def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
         id=given.id,
         title=given.title,
         claim=given.claim,
-        stem=write_blocks([_block(block) for block in given.stem]),
+        stem=write_faithfully([_block(block) for block in given.stem], file="exam.yaml"),
         answer=_answer(given),
         level=given.level,
         rationale=given.rationale,

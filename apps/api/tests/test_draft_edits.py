@@ -465,3 +465,31 @@ def test_a_try_in_a_stem_is_refused_by_its_code(client: Client) -> None:
     assert refused.status_code == 422
     problems = refused.json()["problems"]
     assert {(p["code"], p["question"]) for p in problems} >= {("CS0817", "tpm-share")}
+
+
+def test_two_text_blocks_in_a_stem_stay_two_paragraphs(client: Client) -> None:
+    # #268: joined with a blank line, as the body joins them (#258).
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {
+        "stem": [
+            {"kind": "text", "markdown": "One paragraph.\n"},
+            {"kind": "text", "markdown": "Another.\n"},
+        ]
+    }
+    saved = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert saved.status_code == 200, saved.content
+    assert saved.json()["draft"]["node"]["exam"][-1]["stem_text"] == "One paragraph.\n\nAnother.\n"
+
+
+def test_a_stem_that_would_not_read_back_is_refused(client: Client) -> None:
+    # #268: a ::: line inside a text block would become a sequence block (M4P.3, #174).
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {
+        "stem": [{"kind": "text", "markdown": "Look:\n:::{sequence}\nACGT\n:::\n"}]
+    }
+    refused = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert (refused.status_code, refused.json()["code"]) == (422, "CA0210")

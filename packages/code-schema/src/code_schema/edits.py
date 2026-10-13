@@ -112,17 +112,23 @@ def _asked_before(blocks: Sequence[Block], at: int) -> int:
     return sum(isinstance(block, Try) for block in blocks[:at])
 
 
-def _with_blocks(node: Node, blocks: Sequence[Block], questions: Sequence[TryQuestion]) -> Node:
-    """The node with these blocks as its body, only if the body reads back as exactly them."""
+def write_faithfully(blocks: Sequence[Block], *, file: str = "body.md") -> str:
+    """The blocks as MyST, adjacent texts joined as paragraphs, only if it reads back as exactly
+    them: a body, or an exam question's stem (M4.8d spec, M4P.3; #268)."""
     intended = _merged(blocks)
-    body = write_blocks(intended)
-    read, _, problems = parse_blocks(body, file="body.md")
+    text = write_blocks(intended)
+    read, _, problems = parse_blocks(text, file=file)
     if problems or list(read) != intended:
         raise Unfaithful(
             "the blocks would read back as something else: keep a title on one line, and ::: "
             "lines out of a block's text"
         )
-    return replace(node, body=body, questions=tuple(questions))
+    return text
+
+
+def _with_blocks(node: Node, blocks: Sequence[Block], questions: Sequence[TryQuestion]) -> Node:
+    """The node with these blocks as its body, only if the body reads back as exactly them."""
+    return replace(node, body=write_faithfully(blocks), questions=tuple(questions))
 
 
 def _question_for(
