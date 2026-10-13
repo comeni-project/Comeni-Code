@@ -25,6 +25,8 @@ interface Tab {
   key: string;
   label: string;
   body: (draft: DraftOut, node: DraftNodeOut) => ReactNode;
+  /** false: the tab brings its own side panel, so the page's is not drawn (M4P.5). */
+  aside?: false;
 }
 
 // In the board's order.
@@ -48,7 +50,19 @@ const TABS: readonly Tab[] = [
       <ResourcesTab draftId={draft.public_id} node={node} editable={editable(draft)} />
     ),
   },
-  { key: "exam", label: "Exam pool", body: (_, node) => <ExamPoolTab node={node} /> },
+  {
+    key: "exam",
+    label: "Exam pool",
+    aside: false,
+    body: (draft, node) => (
+      <ExamPoolTab
+        draftId={draft.public_id}
+        nodeId={draft.node_id}
+        node={node}
+        editable={editable(draft)}
+      />
+    ),
+  },
   {
     key: "links",
     label: "Links",
@@ -101,12 +115,18 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
           </button>
         ))}
       </div>
-      <div className="grid gap-[18px] xl:grid-cols-[minmax(0,1fr)_520px]">
+      {tab.aside === false ? (
         <section role="tabpanel" aria-label={tab.label} className="flex min-w-0 flex-col gap-3">
           {tab.body(draft, node)}
         </section>
-        <SidePanel draftId={draft.public_id} node={node} />
-      </div>
+      ) : (
+        <div className="grid gap-[18px] xl:grid-cols-[minmax(0,1fr)_520px]">
+          <section role="tabpanel" aria-label={tab.label} className="flex min-w-0 flex-col gap-3">
+            {tab.body(draft, node)}
+          </section>
+          <SidePanel draftId={draft.public_id} node={node} />
+        </div>
+      )}
     </>
   );
 }
