@@ -3,6 +3,7 @@
 import { sendJson } from "../../api/client";
 import type {
   BlockIn,
+  ExamQuestionIn,
   FieldsIn,
   LinkIn,
   ResourceIn,
@@ -54,6 +55,23 @@ export const resources = (list: ResourceIn[]): Edit => ({
   method: "PUT",
   path: "resources",
   body: { resources: list },
+});
+
+export const addExam = (question: ExamQuestionIn): Edit => ({
+  method: "POST",
+  path: "exam",
+  body: { question },
+});
+
+export const updateExam = (id: string, question: ExamQuestionIn): Edit => ({
+  method: "PUT",
+  path: `exam/${encodeURIComponent(id)}`,
+  body: { question },
+});
+
+export const deleteExam = (id: string): Edit => ({
+  method: "DELETE",
+  path: `exam/${encodeURIComponent(id)}`,
 });
 
 export function sendEdit(id: string, revision: number, edit: Edit): Promise<SavedOut> {

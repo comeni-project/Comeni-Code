@@ -3,9 +3,18 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { queryKeys } from "../../api/queries";
-import type { DraftOut } from "../../api/schema";
+import type { DraftOut, ExamQuestionIn } from "../../api/schema";
 import { answering } from "../../test-kit";
-import { deleteBlock, fields, insertBlock, moveBlock, sendEdit } from "./edits";
+import {
+  addExam,
+  deleteBlock,
+  deleteExam,
+  fields,
+  insertBlock,
+  moveBlock,
+  sendEdit,
+  updateExam,
+} from "./edits";
 import { refusalOf } from "./refusal";
 import { follow, useDraftEdit } from "./useDraftEdit";
 
@@ -28,6 +37,17 @@ describe("edit commands", () => {
     });
     await sendEdit("d-1", 5, deleteBlock(2));
     expect(fake).toHaveBeenCalledOnce();
+  });
+
+  it("names an exam question in the path", () => {
+    const q = { id: "k-mers-q1" } as ExamQuestionIn;
+    expect(addExam(q)).toEqual({ method: "POST", path: "exam", body: { question: q } });
+    expect(updateExam("k-mers-q1", q)).toEqual({
+      method: "PUT",
+      path: "exam/k-mers-q1",
+      body: { question: q },
+    });
+    expect(deleteExam("k-mers-q1")).toEqual({ method: "DELETE", path: "exam/k-mers-q1" });
   });
 
   it("names a block's place in the path", () => {
