@@ -5,14 +5,14 @@ import { useState } from "react";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
-import { NOTE } from "./bench";
+import { BOX, LABEL } from "./bench";
 import { CalloutFields } from "./CalloutFields";
 import { insertBlock, updateBlock } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
-import { BOX, LABEL, TryEditor } from "./TryEditor";
+import { TryEditor } from "./TryEditor";
 import { reloadDraft, useDraftEdit } from "./useDraftEdit";
 import { useLeaveWarning } from "./useLeaveWarning";
 
@@ -42,12 +42,13 @@ function ended(block: Block): Block {
   return block.markdown.endsWith("\n") ? block : { ...block, markdown: `${block.markdown}\n` };
 }
 
-/** A try the workbench cannot edit yet: sequence and order arrive with the builder (M4.8d). */
-const LATER = new Set(["sequence", "order"]);
-
-/** What is sent: hints without the empty lines a half-typed list has. */
+/** What is sent: hints and accepted answers without the empty lines a half-typed list has. */
 const cleaned = (question: TryQuestionIn | undefined) =>
-  question && { ...question, hints: question.hints.filter((hint) => hint.trim() !== "") };
+  question && {
+    ...question,
+    hints: question.hints.filter((hint) => hint.trim() !== ""),
+    ...(question.accept ? { accept: question.accept.filter((a) => a.trim() !== "") } : {}),
+  };
 
 export function BlockEditor({ draftId, at, insert, initial, question, onClose }: BlockEditorProps) {
   const client = useQueryClient();
@@ -96,10 +97,7 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
           />
         </label>
       )}
-      {block.kind === "try" && asked !== undefined && LATER.has(asked.kind) && (
-        <p className={NOTE}>A {asked.kind} question. Edited in the exam pool's builder (M4.8d).</p>
-      )}
-      {block.kind === "try" && asked !== undefined && !LATER.has(asked.kind) && (
+      {block.kind === "try" && asked !== undefined && (
         <TryEditor question={asked} onChange={setAsked} />
       )}
       {refusal !== null && (
