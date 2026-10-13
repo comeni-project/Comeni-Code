@@ -644,8 +644,11 @@
             "type": "string"
           },
           "stem": {
+            "items": {
+              "$ref": "#/components/schemas/BlockIn"
+            },
             "title": "Stem",
-            "type": "string"
+            "type": "array"
           },
           "steps": {
             "anyOf": [
@@ -1592,6 +1595,17 @@
           "message": {
             "title": "Message",
             "type": "string"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
           },
           "text": {
             "title": "Text",

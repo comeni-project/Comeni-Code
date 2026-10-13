@@ -160,6 +160,7 @@ class ProblemOut(Schema):
     code: str
     message: str
     text: str
+    question: str | None = None  # the question it was found in (M4P.2)
 
     @staticmethod
     def of(problem: Problem) -> ProblemOut:
@@ -170,6 +171,7 @@ class ProblemOut(Schema):
             code=problem.code,
             message=problem.message,
             text=str(problem),
+            question=problem.question,
         )
 
 

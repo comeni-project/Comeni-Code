@@ -54,6 +54,7 @@ from code_schema import (
     Try,
     TryQuestion,
 )
+from code_schema.blocks import write_blocks
 from code_schema.edits import (
     EditError,
     Unfaithful,
@@ -301,6 +302,18 @@ class OptionIn(Schema):
     plain: bool = False
 
 
+class BlockIn(Schema):
+    """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
+    (callout, title, markdown)."""
+
+    kind: Literal["text", "try", "callout", "sequence"]
+    markdown: str = ""
+    letters: str = ""
+    question: str = ""
+    callout: str = ""
+    title: str = ""
+
+
 class AnswerIn(Schema):
     """A question's answer, flat as the files write it (M4Q.3): `options` for a choice; `answer`,
     `unit` and `tolerance` for a number; `answer` as text, `accept` and `exact` for a sequence;
@@ -327,21 +340,9 @@ class ExamQuestionIn(AnswerIn):
     id: str
     title: str
     claim: str = ""
-    stem: str  # MyST, as exam.yaml holds it
+    stem: list[BlockIn]  # blocks, as on a page; code-schema writes the MyST (M4P.3)
     level: Level | None = None
     rationale: str
-
-
-class BlockIn(Schema):
-    """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
-    (callout, title, markdown)."""
-
-    kind: Literal["text", "try", "callout", "sequence"]
-    markdown: str = ""
-    letters: str = ""
-    question: str = ""
-    callout: str = ""
-    title: str = ""
 
 
 class ResourceIn(Schema):
@@ -437,7 +438,7 @@ def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
         id=given.id,
         title=given.title,
         claim=given.claim,
-        stem=given.stem,
+        stem=write_blocks([_block(block) for block in given.stem]),
         answer=_answer(given),
         level=given.level,
         rationale=given.rationale,

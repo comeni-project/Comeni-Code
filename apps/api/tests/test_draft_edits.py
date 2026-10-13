@@ -34,7 +34,13 @@ EXAM_QUESTION = {
     "id": "tpm-share",
     "kind": "number",
     "title": "Half the molecules",
-    "stem": "If one transcript holds half the molecules in a sample, what is its TPM?\n",
+    "stem": [
+        {
+            "kind": "text",
+            "markdown": "If one transcript holds half the molecules in a sample, "
+            "what is its TPM?\n",
+        }
+    ],
     "answer": 500000,
     "unit": "",
     "tolerance": None,
@@ -361,7 +367,10 @@ ORDER = {
     "id": "assembly-steps",
     "title": "Put the assembly steps in order",
     "kind": "order",
-    "stem": "Put the steps of de Bruijn assembly in order.\n\n:::{sequence}\nACGTTG\n:::\n",
+    "stem": [
+        {"kind": "text", "markdown": "Put the steps of de Bruijn assembly in order.\n\n"},
+        {"kind": "sequence", "letters": "ACGTTG\n"},
+    ],
     "steps": [
         "Cut reads into k-mers",
         "Build the graph",
@@ -375,7 +384,7 @@ SEQUENCE = {
     "title": "Spell the path",
     "claim": "reads a sequence off the graph",
     "kind": "sequence",
-    "stem": "Spell the sequence along ACG → CGT → GTT.\n",
+    "stem": [{"kind": "text", "markdown": "Spell the sequence along ACG → CGT → GTT.\n"}],
     "answer": "ACGTT",
     "accept": [],
     "rationale": "Each edge adds the last letter of its k-mer.",
@@ -390,9 +399,13 @@ def test_an_exam_question_of_a_new_kind_is_saved(client: Client, question: dict[
     )
     assert saved.status_code == 200, saved.content
     sent = next(q for q in saved.json()["draft"]["node"]["exam"] if q["id"] == question["id"])
+    written = {
+        "order": "Put the steps of de Bruijn assembly in order.\n\n:::{sequence}\nACGTTG\n:::\n",
+        "sequence": "Spell the sequence along ACG → CGT → GTT.\n",
+    }
     assert (sent["state"], sent["stem_text"], sent["kind"]) == (
         "draft",
-        question["stem"],
+        written[question["kind"]],
         question["kind"],
     )
 
@@ -403,7 +416,7 @@ def test_an_exam_choice_of_two_options_is_refused_in_its_words(client: Client) -
         "id": "two-only",
         "title": "Two only",
         "kind": "choice",
-        "stem": "Pick one.\n",
+        "stem": [{"kind": "text", "markdown": "Pick one.\n"}],
         "options": [{"text": "A", "right": True}, {"text": "B", "plain": True}],
         "rationale": "A.",
     }
@@ -424,3 +437,31 @@ def test_a_sequence_block_is_inserted_through_the_api(client: Client) -> None:
     )
     assert saved.status_code == 200, saved.content
     assert {"kind": "sequence", "letters": "ACGT\n"} in saved.json()["draft"]["node"]["blocks"]
+
+
+def test_a_stem_of_blocks_is_written_as_myst(client: Client) -> None:
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {
+        "stem": [
+            {"kind": "text", "markdown": "Spell this path:\n"},
+            {"kind": "sequence", "letters": "ACGTT\n"},
+        ]
+    }
+    saved = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert saved.status_code == 200, saved.content
+    sent = saved.json()["draft"]["node"]["exam"][-1]
+    assert sent["stem_text"] == "Spell this path:\n:::{sequence}\nACGTT\n:::\n"
+    assert [block["kind"] for block in sent["stem"]] == ["text", "sequence"]
+
+
+def test_a_try_in_a_stem_is_refused_by_its_code(client: Client) -> None:
+    draft = opened(client, "tpm")
+    question = EXAM_QUESTION | {"stem": [{"kind": "try", "question": "tpm-units"}]}
+    refused = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
+    )
+    assert refused.status_code == 422
+    problems = refused.json()["problems"]
+    assert {(p["code"], p["question"]) for p in problems} >= {("CS0817", "tpm-share")}

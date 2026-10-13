@@ -140,6 +140,7 @@ export interface ProblemOut {
   file: string;
   line: number | null;
   message: string;
+  question?: string | null;
   text: string;
 }
 export interface DraftNodeOut {
@@ -299,7 +300,7 @@ export interface ExamQuestionIn {
   level?: Level | null;
   options?: OptionIn[] | null;
   rationale: string;
-  stem: string;
+  stem: BlockIn[];
   steps?: string[] | null;
   title: string;
   tolerance?: number | null;

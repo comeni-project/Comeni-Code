@@ -174,18 +174,17 @@ Expected: FAIL — `AttributeError: 'Problem' object has no attribute 'question'
 `read_head` read; the entry's problems carry it, M4P.2"), and `Field.entries` stamps:
 
 ```python
-        for item in value:
-            if isinstance(item, dict):
-                start = len(self.problems)
-                entry = Entry(item, self)
-                yield entry
-                if entry.name is not None:
-                    self.problems[start:] = [
-                        replace(problem, question=entry.name)
-                        for problem in self.problems[start:]
-                    ]
-            else:
-                self.problem(code, says(item))
+for item in value:
+    if isinstance(item, dict):
+        start = len(self.problems)
+        entry = Entry(item, self)
+        yield entry
+        if entry.name is not None:
+            self.problems[start:] = [
+                replace(problem, question=entry.name) for problem in self.problems[start:]
+            ]
+    else:
+        self.problem(code, says(item))
 ```
 
 with `from dataclasses import replace` at the top. Update the module docstring's last paragraph:
@@ -450,10 +449,12 @@ def question_checks(question: ExamQuestion, problems: Sequence[Problem]) -> list
 and `checks` returns a third value:
 
 ```python
-    by_question = {} if node is None else {
-        question.id: question_checks(question, problems) for question in node.exam
-    }
-    return items, problems, by_question
+by_question = (
+    {}
+    if node is None
+    else {question.id: question_checks(question, problems) for question in node.exam}
+)
+return items, problems, by_question
 ```
 
 Its docstring adds "and each exam question's own (M4P.4)". `checklist(draft)` becomes
