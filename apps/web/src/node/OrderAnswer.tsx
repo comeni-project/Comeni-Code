@@ -24,7 +24,8 @@ export function OrderAnswer({
 }: {
   steps: string[];
   disabled: boolean;
-  onCheck: (order: string[]) => void;
+  /** Without it there is no Check: a test checks nothing until the end (M4P.7). */
+  onCheck?: (order: string[]) => void;
 }) {
   const [order, setOrder] = useState(steps);
   const [moved, setMoved] = useState<{ step: string; by: number } | null>(null);
@@ -84,14 +85,16 @@ export function OrderAnswer({
           ? ""
           : `${moved.step}, step ${order.indexOf(moved.step) + 1} of ${order.length}`}
       </p>
-      <button
-        type="button"
-        disabled={disabled}
-        className={`${CHECK} self-start`}
-        onClick={() => onCheck(order)}
-      >
-        Check
-      </button>
+      {onCheck !== undefined && (
+        <button
+          type="button"
+          disabled={disabled}
+          className={`${CHECK} self-start`}
+          onClick={() => onCheck(order)}
+        >
+          Check
+        </button>
+      )}
     </div>
   );
 }
