@@ -168,7 +168,7 @@
         "type": "object"
       },
       "ChecklistOut": {
-        "description": "The checklist, and the problems behind it, so Checks is one request (M4K.6).",
+        "description": "The checklist, the problems behind it and each exam question's checks, so Checks is one\nrequest (M4K.6, M4P.4).",
         "properties": {
           "items": {
             "items": {
@@ -187,6 +187,14 @@
               "$ref": "#/components/schemas/ProblemOut"
             },
             "title": "Problems",
+            "type": "array"
+          },
+          "questions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/QuestionChecksOut"
+            },
+            "title": "Questions",
             "type": "array"
           }
         },
@@ -1639,6 +1647,28 @@
           "name"
         ],
         "title": "ProviderOut",
+        "type": "object"
+      },
+      "QuestionChecksOut": {
+        "description": "One exam question's checks (M4P.4).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "items"
+        ],
+        "title": "QuestionChecksOut",
         "type": "object"
       },
       "QuestionOut": {

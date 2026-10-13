@@ -29,6 +29,7 @@ from code_api.studio.schemas import (
     FilesOut,
     ItemOut,
     ProblemOut,
+    QuestionChecksOut,
     RefusedOut,
     ReviewQuestionOut,
     RevisionOut,
@@ -658,17 +659,23 @@ def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | S
     draft = find(public_id)
     if draft is None or draft.state not in LIVE_STATES:
         return Status(404, Message(detail="No live draft has this id.", code="CA0201"))
-    items, problems = drafts.checks(draft)
+    items, problems, by_question = drafts.checks(draft)
     return Status(
         200,
         ChecklistOut(
             passed=all(item.passed for item in items),
-            items=[
-                ItemOut(rule=item.rule, passed=item.passed, detail=item.detail) for item in items
-            ],
+            items=[_item_out(item) for item in items],
             problems=[ProblemOut.of(problem) for problem in problems],
+            questions=[
+                QuestionChecksOut(id=question, items=[_item_out(item) for item in got])
+                for question, got in by_question.items()
+            ],
         ),
     )
+
+
+def _item_out(item: drafts.Item) -> ItemOut:
+    return ItemOut(rule=item.rule, passed=item.passed, detail=item.detail)
 
 
 # ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────
@@ -720,7 +727,7 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
                     detail="The checklist does not pass.",
                     code="CA0212",
                     problems=[],
-                    items=[ItemOut(rule=i.rule, passed=i.passed, detail=i.detail) for i in items],
+                    items=[_item_out(i) for i in items],
                 ),
             )
         case review.Contributor():

@@ -7,7 +7,7 @@ nothing; a warning is stored with it. Each save names the revision it was based 
 a stale one is refused (optimistic concurrency, M4W.0).
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 
 from django.db import IntegrityError, connection, transaction
@@ -21,6 +21,7 @@ from code_api.content.snapshot import node_from_index, providers_from_index, reg
 from code_api.studio.log import record
 from code_api.studio.models import LIVE_STATES, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
+from code_schema.exam import ExamQuestion
 from code_schema.graph import graph_problems
 from code_schema.links import locate_links
 from code_schema.node import NODE_FILE
@@ -301,12 +302,74 @@ class Item:
     detail: str
 
 
+@dataclass(frozen=True)
+class Rule:
+    """One of the format's rules a question is checked by (M4P.4): broken by any of `codes`."""
+
+    says: str
+    kinds: frozenset[str]  # empty: every kind
+    codes: frozenset[str]
+
+
+_EVERY: frozenset[str] = frozenset()
+
+QUESTION_RULES = (
+    Rule("A title and a stem", _EVERY, frozenset({"CS0815", "CS0816", "CS0823"})),
+    Rule(
+        "The stem holds only text and sequences",
+        _EVERY,
+        frozenset({"CS0817", "CS0416", "CS0417", "CS0418"}),
+    ),
+    Rule("Level within one step of the node's", _EVERY, frozenset({"CS0814"})),
+    Rule("No hints", _EVERY, frozenset({"CS0807"})),
+    Rule("A rationale", _EVERY, frozenset({"CS0320"})),
+    Rule(
+        "One right option of three to five",
+        frozenset({"choice"}),
+        frozenset({"CS0309", "CS0327", "CS0328", "CS0329", "CS0335", "CS0818"}),
+    ),
+    Rule(
+        "Each wrong option names a misconception or is plain",
+        frozenset({"choice"}),
+        frozenset({"CS0809", "CS0810", "CS0819", "CS0820", "CS0821"}),
+    ),
+    Rule(
+        "A number, with a sound tolerance",
+        frozenset({"number"}),
+        frozenset({"CS0311", "CS0312", "CS0315"}),
+    ),
+    Rule(
+        "An answer, and accepted answers as text",
+        frozenset({"sequence"}),
+        frozenset({"CS0330", "CS0331", "CS0332"}),
+    ),
+    Rule(
+        "Three to eight different steps",
+        frozenset({"order"}),
+        frozenset({"CS0333", "CS0334", "CS0336"}),
+    ),
+)
+
+
+def question_checks(question: ExamQuestion, problems: Sequence[Problem]) -> list[Item]:
+    """The rules for the question's kind, each failed by a problem found in it (M4P.4)."""
+    own = [problem for problem in problems if problem.question == question.id]
+    items = []
+    for rule in QUESTION_RULES:
+        if rule.kinds and question.kind not in rule.kinds:
+            continue
+        broken = [problem for problem in own if problem.code in rule.codes]
+        items.append(Item(rule.says, not broken, "; ".join(p.message for p in broken)))
+    return items
+
+
 MIN_EXAM = 4  # M4's bar (architecture spec R4): an exam pool of at least four questions
 
 
-def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
+def checks(draft: Draft) -> tuple[list[Item], list[Problem], dict[str, list[Item]]]:
     """M4's bar before submitting (M4W.5) and the problems behind it, from one check (M4K.6): it
-    verifies clean, a level, a resource, four exam questions."""
+    verifies clean, a level, a resource, four exam questions; and each exam question's own checks,
+    by its id in pool order (M4P.4)."""
     node, problems = _checked(draft)
     errors = [problem for problem in problems if problem.refuses]
     resources = 0 if node is None else len(node.resources)
@@ -321,7 +384,12 @@ def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
         Item("a resource", resources >= 1, f"{resources} resource(s)"),
         Item("four exam questions", exam >= MIN_EXAM, f"{exam} of {MIN_EXAM}"),
     ]
-    return items, problems
+    by_question = (
+        {}
+        if node is None
+        else {question.id: question_checks(question, problems) for question in node.exam}
+    )
+    return items, problems, by_question
 
 
 def checklist(draft: Draft) -> list[Item]:
