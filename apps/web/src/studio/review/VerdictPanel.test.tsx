@@ -130,6 +130,17 @@ describe("ReviewPage — verdicts", () => {
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ revision: 2, reason: "One thing." });
   });
 
+  it("starts each block afresh: no note or answer carries over (#296)", async () => {
+    renderReview();
+    await open(/^TPM is not a count of reads/);
+    await userEvent.click(await screen.findByRole("button", { name: "Request changes…" }));
+    await userEvent.type(screen.getByLabelText("What to change"), "Half a thought");
+    await userEvent.type(screen.getByLabelText("A note for the author"), "For this draft");
+    await open(/^Title, claim, level, links/);
+    expect(screen.queryByLabelText("What to change")).toBeNull();
+    expect(screen.getByLabelText("A note for the author")).toHaveValue("");
+  });
+
   it("asks nothing again after a decision (#294)", async () => {
     const fake = renderReview({
       "GET /api/studio/drafts/d-1/review": withVerdict("block/1", "changes", "Shorter."),

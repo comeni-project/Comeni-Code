@@ -141,8 +141,9 @@ function OpenedBlock({ queue, open }: { queue: QueuedDraftOut[]; open: Opened | 
   if (item === undefined) return <p className="text-[14px] text-ink-2">Loading the draft…</p>;
   return (
     <>
-      <BlockPanel draft={draft} item={item} />
-      <VerdictPanel draft={draft} item={item} />
+      {/* Keyed by block, so nothing typed or picked for one carries to the next (#296). */}
+      <BlockPanel key={`${open.draft}:${open.key}`} draft={draft} item={item} />
+      <VerdictPanel key={`${open.draft}:${open.key}`} draft={draft} item={item} />
     </>
   );
 }
