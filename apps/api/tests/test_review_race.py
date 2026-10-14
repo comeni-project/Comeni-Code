@@ -11,6 +11,7 @@ from django.db import connection
 from code_api.accounts.models import User
 from code_api.content.index import rebuild_index
 from code_api.studio import review
+from code_api.studio.keys import Key
 from code_api.studio.models import Draft, DraftEvent
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "salmon"
@@ -69,14 +70,14 @@ def test_a_review_holds_the_draft_while_it_reads(
     rebuild_index(FIXTURES)
     draft = review.submit(ready(ada), revision=2, by=ada)
     reading, order = threading.Event(), []
-    real_asked = review.asked
+    real_keys = review.keys_of
 
-    def slow_asked(d: Draft) -> list[review.Asked]:
+    def slow_keys(d: Draft) -> list[Key]:
         reading.set()
         time.sleep(0.5)
-        return real_asked(d)
+        return real_keys(d)
 
-    monkeypatch.setattr(review, "asked", slow_asked)
+    monkeypatch.setattr(review, "keys_of", slow_keys)
 
     def read() -> None:
         try:

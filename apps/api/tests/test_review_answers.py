@@ -23,11 +23,16 @@ def _indexed() -> None:
     rebuild_index(FIXTURES)
 
 
+def answers(draft: Draft, by: User) -> list[review.Answered]:
+    """The questions of `by`'s review, in reading order."""
+    return [i.answered for i in review.review_of(draft, by=by).items if i.answered is not None]
+
+
 def test_a_review_lists_every_question_with_nothing_answered(
     ada: User, grace: User, ready: Ready
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered = review.review_of(draft, by=grace)
+    answered = answers(draft, grace)
     assert [(a.asked.id, a.asked.pool, a.given, a.right) for a in answered] == [
         ("tpm-sums-to", "exam", None, None),
         ("tpm-or-count", "exam", None, None),
@@ -43,7 +48,7 @@ def test_an_answer_is_stored_graded_and_may_change(ada: User, grace: User, ready
     assert review.answer(draft, "tpm-or-count", 1, by=grace).right is False
     assert review.answer(draft, "tpm-or-count", 0, by=grace).right is True
     assert review.answer(draft, "tpm-of-a", 750000.5, by=grace).right is True
-    stored = {a.asked.id: (a.given, a.right) for a in review.review_of(draft, by=grace)}
+    stored = {a.asked.id: (a.given, a.right) for a in answers(draft, grace)}
     assert stored["tpm-or-count"] == (0, True)
     assert stored["tpm-of-a"] == (750000.5, True)
     assert stored["tpm-sums-to"] == (None, None)
@@ -54,7 +59,7 @@ def test_each_reviewer_has_their_own_review(
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
     review.answer(draft, "tpm-or-count", 0, by=grace)
-    assert all(a.given is None for a in review.review_of(draft, by=otto))
+    assert all(a.given is None for a in answers(draft, otto))
 
 
 def test_an_answer_that_cannot_answer_is_refused_and_not_stored(
@@ -65,7 +70,7 @@ def test_an_answer_that_cannot_answer_is_refused_and_not_stored(
         review.answer(draft, "tpm-or-count", True, by=grace)
     with pytest.raises(NotAnAnswer):
         review.answer(draft, "tpm-or-count", 7, by=grace)
-    assert all(a.given is None for a in review.review_of(draft, by=grace))
+    assert all(a.given is None for a in answers(draft, grace))
 
 
 def test_a_question_the_revision_lacks_is_refused(ada: User, grace: User, ready: Ready) -> None:
@@ -93,7 +98,7 @@ def test_a_resubmission_starts_a_fresh_review(ada: User, grace: User, ready: Rea
     review.withdraw(draft, by=ada)
     drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
     review.submit(draft, revision=3, by=ada)
-    assert all(a.given is None for a in review.review_of(draft, by=grace))
+    assert all(a.given is None for a in answers(draft, grace))
 
 
 def test_a_node_that_no_longer_reads_is_refused_not_a_500(
@@ -115,7 +120,7 @@ def test_submitting_the_same_revision_again_starts_a_fresh_review(
     review.answer(draft, "tpm-or-count", 0, by=grace)
     review.reject(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
     review.submit(draft, revision=2, by=ada)
-    assert all(a.given is None for a in review.review_of(draft, by=grace))
+    assert all(a.given is None for a in answers(draft, grace))
 
 
 def test_the_review_reads_the_drafts_state_now(ada: User, grace: User, ready: Ready) -> None:

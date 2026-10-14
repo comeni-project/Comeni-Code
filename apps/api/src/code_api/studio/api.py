@@ -854,7 +854,8 @@ def your_review(request: HttpRequest, public_id: UUID) -> ReviewAnswer:
         answered = review.review_of(draft, by=_member(request))
     except _REFUSALS as error:
         return _refusal(error)
-    return Status(200, [review_question_out(each) for each in answered])
+    questions = [each.answered for each in answered.items if each.answered is not None]
+    return Status(200, [review_question_out(each) for each in questions])
 
 
 @router.put(
