@@ -1,6 +1,9 @@
 # M4.5 — Review
 
-**Status: agreed 2026-10-06.** The fifth part of M4 (#74), issue
+**Status: agreed 2026-10-06; partly superseded by M4.9a**
+(`docs/superpowers/specs/2026-10-14-m4-verdicts-per-block-design.md`): approval now needs a verdict
+on every block, not only every question answered (M4R.1), and reject is folded into one send back
+(M4R.3, M4R.6's `/reject`). The fifth part of M4 (#74), issue
 #123. Designed with the operator in conversation on 2026-10-06, section by section. It builds on
 M4.4's drafts (archived spec `2026-10-05-m4-drafts-design.md`): a draft, its revisions, its
 contributors and its checklist.

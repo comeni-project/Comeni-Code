@@ -1,6 +1,6 @@
 # M4.9a — Verdicts per block
 
-**Status: written 2026-10-14, for the operator's review.** The first slice of M4.9 (#127), the
+**Status: agreed 2026-10-14; built.** The first slice of M4.9 (#127), the
 last part of M4 (#74). Designed with the operator in conversation on 2026-10-14, section by
 section, after the M4.9 boards were approved on the canvas: *S6 · Review — as M4.9 builds it* and
 *S10 · Land* (`.design/build_pages.mjs`, `reviewM4()` and `land()`). It changes M4.5's review
@@ -171,6 +171,17 @@ draft, one at a time and as a list, and approves it; approving a question before
 code; another draft is sent back with two requests and its author reads them on `DraftOut`; a
 resubmission starts an empty review; an operator's own draft is approved only with a reason. The
 full checks pass with CI's environment.
+
+## Notes from the build
+
+- **A send back's requests come in reading order**, placed by the keys of the revision that was
+  sent back, not by when their rows were written (the final review; the author may have edited
+  since).
+- **`ReviewQuestionOut` carries `hints`** (a try question's; an exam question has none), for the
+  board's *Hints the learner sees*. A learner sees them before answering too, so they hide nothing.
+- **A list is validated entry by entry, then applied in order**: the same key twice keeps the last,
+  and clearing a verdict never given does nothing.
+- Deferred to the end of the MVP's first loop: the final review's minors (#279).
 
 ## Not in this part
 
