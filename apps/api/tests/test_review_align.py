@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from code_api.studio.keys import align, label, review_keys, same
+from code_api.studio.keys import Key, align, label, review_keys, same
 from code_schema import (
     Callout,
     ExamQuestion,
@@ -124,3 +124,32 @@ def test_labels() -> None:
     assert isinstance(exam, ExamQuestion)
     assert label(keys["exam/tpm-or-count"]) == exam.title
     assert isinstance(keys["block/1"].content, Callout)
+
+
+def body(*texts: str) -> list[Key]:
+    return [Key(f"block/{at}", "text", Text(markdown=f"{t}\n")) for at, t in enumerate(texts)]
+
+
+def test_a_move_beside_an_edit_keeps_both_right() -> None:
+    # #295: the positional pass of a replace region paired the new block with the moved one.
+    assert align(body("A", "B", "C"), body("Z", "B", "C", "A")) == {
+        "block/0": None,
+        "block/1": "block/1",
+        "block/2": "block/2",
+        "block/3": "block/0",
+    }
+    # X went from the start and Y came at the end: no edit pairs them.
+    assert align(body("X", "B", "C", "A"), body("A", "B", "C", "Y")) == {
+        "block/0": "block/3",
+        "block/1": "block/1",
+        "block/2": "block/2",
+        "block/3": None,
+    }
+
+
+def test_two_identical_blocks_both_keep_a_match() -> None:
+    assert align(body("A", "A", "B"), body("B", "A", "A")) == {
+        "block/0": "block/2",
+        "block/1": "block/0",
+        "block/2": "block/1",
+    }

@@ -4,6 +4,7 @@ Pure: a node in, its keys out. M5's scores attach to the same keys. A position c
 block, try blocks included; it is stable because a submitted draft is frozen (M4R.3).
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
@@ -105,19 +106,33 @@ def align(before: list[Key], after: list[Key]) -> dict[str, str | None]:
     matcher = SequenceMatcher(
         a=[_signature(k) for k in old], b=[_signature(k) for k in new], autojunk=False
     )
-    taken: set[str] = set()
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        for offset, j in enumerate(range(j1, j2)):
-            i = i1 + offset
-            pair = old[i].key if tag in ("equal", "replace") and i < i2 else None
-            found[new[j].key] = pair
-            if pair is not None:
-                taken.add(pair)
-    # A block moved unchanged comes out as a delete and an insert: pair it by its text.
-    loose = {_signature(k): k.key for k in old if k.key not in taken}
-    for key in new:
-        if found[key.key] is None and (match := loose.pop(_signature(key), None)) is not None:
-            found[key.key] = match
+    opcodes = matcher.get_opcodes()
+    paired: dict[int, int] = {}  # new index → old index
+    for tag, i1, _, j1, j2 in opcodes:
+        if tag == "equal":
+            paired.update({j: i1 + (j - j1) for j in range(j1, j2)})
+    # Then the same text anywhere: a block moved unchanged keeps its match, before any guess by
+    # position can take it (#295); identical blocks pair in order.
+    loose: dict[str, list[int]] = defaultdict(list)
+    for at, key in enumerate(old):
+        if at not in paired.values():
+            loose[_signature(key)].append(at)
+    for at, key in enumerate(new):
+        if at not in paired and loose[_signature(key)]:
+            paired[at] = loose[_signature(key)].pop(0)
+    # Last, an edited block: by position, among what is still unmatched in its replace span.
+    taken = set(paired.values())
+    for tag, i1, i2, j1, j2 in opcodes:
+        if tag != "replace":
+            continue
+        olds = [at for at in range(i1, i2) if at not in taken]
+        for at in (at for at in range(j1, j2) if at not in paired):
+            if not olds:
+                break
+            paired[at] = olds.pop(0)
+            taken.add(paired[at])
+    for at, key in enumerate(new):
+        found[key.key] = old[paired[at]].key if at in paired else None
     urls = {k.content.url: k.key for k in before if isinstance(k.content, Resource)}
     named = {k.key for k in before if k.kind not in BODY and k.kind != "resource"}
     for key in after:
