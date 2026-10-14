@@ -1,7 +1,7 @@
 // A question in review (M4R.4, M4.9b spec M4RS.4): asked as a test asks it, the key and rationale
 // shown only once answered — and whether you were right, which counts but never blocks.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { answeredInto } from "../../api/queries";
+import { answeredInto, queryKeys } from "../../api/queries";
 import { putAnswer } from "../../api/review";
 import type { ReviewQuestionOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
@@ -9,14 +9,14 @@ import { type TestAsk, TestQuestion } from "../../node/TestQuestion";
 
 const LETTERS = "ABCDE";
 
-const shownGiven = (q: ReviewQuestionOut) =>
+export const shownGiven = (q: ReviewQuestionOut) =>
   q.kind === "choice" && typeof q.given === "number"
     ? (LETTERS[q.given] ?? String(q.given))
     : Array.isArray(q.given)
       ? q.given.join(" → ")
       : String(q.given);
 
-const theKey = (q: ReviewQuestionOut) =>
+export const theKey = (q: ReviewQuestionOut) =>
   q.kind === "choice" && q.right_option !== null
     ? `${LETTERS[q.right_option]} · ${q.options?.[q.right_option] ?? ""}`
     : q.kind === "order"
@@ -26,14 +26,20 @@ const theKey = (q: ReviewQuestionOut) =>
 export function ReviewQuestion({
   draftId,
   question,
+  changed = false,
 }: {
   draftId: string;
   question: ReviewQuestionOut;
+  /** A changed question's earlier key shows once answered, and only the server has it (#297). */
+  changed?: boolean;
 }) {
   const client = useQueryClient();
   const answer = useMutation({
     mutationFn: (given: unknown) => putAnswer(draftId, question.id, given),
-    onSuccess: (graded) => answeredInto(client, draftId, graded),
+    onSuccess: (graded) => {
+      answeredInto(client, draftId, graded);
+      if (changed) void client.invalidateQueries({ queryKey: queryKeys.review(draftId) });
+    },
   });
   const ask: TestAsk = {
     stem:

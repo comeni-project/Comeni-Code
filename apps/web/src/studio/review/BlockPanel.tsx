@@ -1,10 +1,15 @@
 // The open block (M4.9b spec, M4RS.4): as a learner reads it, or what changed since it landed
 // (M4RS.2); a question asked before its key shows; the judge's place, empty until M5.
 import { useState } from "react";
-import type { QueuedDraftOut, ReviewContentOut, ReviewItemOut } from "../../api/schema";
+import type {
+  QueuedDraftOut,
+  ReviewContentOut,
+  ReviewItemOut,
+  ReviewQuestionOut,
+} from "../../api/schema";
 import { Body } from "../../node/Body";
 import { wordDiff } from "./diff";
-import { ReviewQuestion } from "./ReviewQuestion";
+import { ReviewQuestion, shownGiven, theKey } from "./ReviewQuestion";
 
 function Links({ name, list }: { name: string; list: { node: string; reason: string }[] }) {
   if (list.length === 0) return null;
@@ -50,8 +55,35 @@ function Content({ content }: { content: ReviewContentOut }) {
       </div>
     );
   }
-  if (content.question !== null) return <p className="text-[14px]">{content.question.ask}</p>;
+  if (content.question !== null) return <Asked question={content.question} />;
   return null;
+}
+
+/** A question as it reads, for Changes: its stem, options or steps; its key once answered. */
+function Asked({ question }: { question: ReviewQuestionOut }) {
+  const stem =
+    question.pool === "exam" ? question.stem : [{ kind: "text" as const, markdown: question.ask }];
+  return (
+    <div className="flex flex-col gap-1.5 text-[14px]">
+      <div className="font-semibold">
+        <Body blocks={stem} questions={[]} />
+      </div>
+      {(question.options ?? []).map((option, at) => (
+        <span key={option}>{`${"ABCDE"[at] ?? at + 1} · ${option}`}</span>
+      ))}
+      {(question.steps ?? []).map((step) => (
+        <span key={step}>{`· ${step}`}</span>
+      ))}
+      {question.kind === "number" && question.unit && (
+        <span className="text-ink-2">{`in ${question.unit}`}</span>
+      )}
+      {question.given !== null && (
+        <span className="text-[13px] text-ink-2">
+          {`Right answer · ${theKey(question)} · yours ${shownGiven(question)}`}
+        </span>
+      )}
+    </div>
+  );
 }
 
 function Changes({ item }: { item: ReviewItemOut }) {
@@ -135,7 +167,11 @@ export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: Revie
       {changes ? (
         <Changes item={item} />
       ) : item.question !== null ? (
-        <ReviewQuestion draftId={draft.public_id} question={item.question} />
+        <ReviewQuestion
+          draftId={draft.public_id}
+          question={item.question}
+          changed={item.change === "changed"}
+        />
       ) : (
         <Content content={item} />
       )}
