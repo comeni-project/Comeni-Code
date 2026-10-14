@@ -24,6 +24,15 @@ describe("ReviewPage — the open block", () => {
     expect(screen.getByText("fragments.", { selector: "ins", exact: false })).toBeInTheDocument();
   });
 
+  it("marks gone and new words without spending a colour (#298, invariant 11)", async () => {
+    renderReview();
+    await openBlock(/^A long transcript gives more fragments/);
+    await userEvent.click(await screen.findByRole("tab", { name: "Changes" }));
+    const gone = screen.getByText("reads.", { selector: "del", exact: false });
+    const added = screen.getByText("fragments.", { selector: "ins", exact: false });
+    for (const mark of [gone, added]) expect(mark.className).not.toMatch(/open|btn|line-soft/);
+  });
+
   it("says a block is unchanged since it landed", async () => {
     renderReview();
     await openBlock(/^TPM is not a count of reads/);

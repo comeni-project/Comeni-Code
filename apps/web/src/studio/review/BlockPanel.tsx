@@ -99,13 +99,16 @@ function Changes({ item }: { item: ReviewItemOut }) {
           const key = `${at}:${piece.kind}`;
           if (piece.kind === "gone")
             return (
-              <del key={key} className="bg-open-soft text-open">
+              <del key={key} className="text-ink-3">
                 {piece.text}
               </del>
             );
           if (piece.kind === "new")
             return (
-              <ins key={key} className="bg-line-soft text-btn no-underline">
+              <ins
+                key={key}
+                className="font-semibold text-ink underline decoration-ink-3 underline-offset-2"
+              >
                 {piece.text}
               </ins>
             );
