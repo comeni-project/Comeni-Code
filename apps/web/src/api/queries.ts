@@ -13,7 +13,7 @@ import { fetchHealth } from "./health";
 import { fetchNode } from "./nodes";
 import { fetchQueue, fetchReview } from "./review";
 import { fetchRoute } from "./routes";
-import type { DraftOut, IndexOut, QueuedDraftOut, ReviewOut } from "./schema";
+import type { DraftOut, IndexOut, QueuedDraftOut, ReviewOut, ReviewQuestionOut } from "./schema";
 import { fetchSearch } from "./search";
 
 // A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
@@ -204,4 +204,21 @@ export function decided(client: QueryClient, draft: DraftOut) {
   );
   client.removeQueries({ queryKey: queryKeys.review(draft.public_id) });
   return draftMoved(client, draft);
+}
+
+/** One answered question, into the cached review and the queue (M4RS.4): nothing is asked again. */
+export function answeredInto(client: QueryClient, draftId: string, question: ReviewQuestionOut) {
+  const key = `${question.pool}/${question.id}`;
+  client.setQueryData<ReviewOut>(queryKeys.review(draftId), (review) =>
+    review === undefined
+      ? review
+      : { ...review, items: review.items.map((i) => (i.key === key ? { ...i, question } : i)) },
+  );
+  client.setQueryData<QueuedDraftOut[]>(queryKeys.reviewQueue, (queue) =>
+    queue?.map((d) =>
+      d.public_id !== draftId
+        ? d
+        : { ...d, keys: d.keys.map((k) => (k.key === key ? { ...k, answered: true } : k)) },
+    ),
+  );
 }

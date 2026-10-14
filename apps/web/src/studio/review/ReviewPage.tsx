@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useReview, useReviewQueue } from "../../api/queries";
 import type { QueuedDraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { BlockPanel } from "./BlockPanel";
 import { type Opened, QueueList, VIEWS, type View } from "./QueueList";
 
 const KINDS = ["node", "text", "callout", "sequence", "try", "resource", "exam"];
@@ -102,7 +103,7 @@ export function ReviewPage() {
   );
 }
 
-/** The open block's draft review, asked once per draft (M4RS.4); Task 9 draws the block. */
+/** The open block, from its draft's review, asked once per draft (M4RS.4). */
 function OpenedBlock({ queue, open }: { queue: QueuedDraftOut[]; open: Opened | null }) {
   const review = useReview(open?.draft ?? null);
   const draft = queue.find((d) => d.public_id === open?.draft);
@@ -111,5 +112,5 @@ function OpenedBlock({ queue, open }: { queue: QueuedDraftOut[]; open: Opened | 
   if (review.isError) return <ErrorNotice error={review.error} />;
   const item = review.data?.items.find((i) => i.key === open.key);
   if (item === undefined) return <p className="text-[14px] text-ink-2">Loading the draft…</p>;
-  return <p className="text-[14px]">{item.key}</p>;
+  return <BlockPanel draft={draft} item={item} />;
 }
