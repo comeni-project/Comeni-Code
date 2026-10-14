@@ -190,8 +190,8 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **For M4.9**: the operator registers the app; **TPM, from the fixtures, lands first**, after
-  `providers.yaml` lands in `comeni-code-content`, or following `main` is refused. (10-06, 10-14)
+- **For M4.9**: the operator registers the app; **TPM (fixtures) lands first**, after
+  `providers.yaml` lands in `comeni-code-content` (or following `main` is refused). Webhooks later.
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
