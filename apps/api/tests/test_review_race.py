@@ -39,6 +39,15 @@ def test_two_approvals_racing_leave_one(
     for judge in (grace, otto):
         for question_id, key in TPM_KEYS.items():
             review.answer(draft, question_id, key, by=judge)
+        review.set_verdicts(
+            draft,
+            revision=2,
+            verdicts=[
+                review.Given(item.key.key, "approved")
+                for item in review.review_of(draft, by=judge).items
+            ],
+            by=judge,
+        )
     barrier = threading.Barrier(2)
     outcomes: dict[str, str] = {}
 

@@ -118,7 +118,7 @@ def test_submitting_the_same_revision_again_starts_a_fresh_review(
     # #188: a review belongs to a submission, not to a revision number.
     draft = review.submit(ready(ada), revision=2, by=ada)
     review.answer(draft, "tpm-or-count", 0, by=grace)
-    review.reject(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
+    review.send_back(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
     review.submit(draft, revision=2, by=ada)
     assert all(a.given is None for a in answers(draft, grace))
 

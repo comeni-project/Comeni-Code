@@ -685,18 +685,14 @@ class SubmitIn(Schema):
     revision: int
 
 
-class RejectIn(Schema):
-    revision: int
-    reason: str
-
-
 class ApproveIn(Schema):
     revision: int
     reason: str = ""  # required only when an operator approves their own draft
 
 
 class SendBackIn(Schema):
-    reason: str
+    revision: int | None = None  # names the submitted revision when sending back from review
+    reason: str = ""
 
 
 class GivenIn(Schema):
@@ -738,9 +734,6 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
         case review.NeedsReason():
             detail = "Say why, in a sentence."
             return Status(422, RefusedOut(detail=detail, code="CA0214", problems=[]))
-        case review.Unanswered(ids=ids):
-            detail = f"Answer every question first; unanswered: {', '.join(ids)}."
-            return Status(422, RefusedOut(detail=detail, code="CA0215", problems=[]))
         case review.NotSubmittedRevision(submitted=submitted):
             detail = f"Revision {submitted} is the one submitted; reload the draft and review it."
             return Status(409, Message(detail=detail, code="CA0216"))
@@ -770,7 +763,6 @@ _REFUSALS = (
     review.Contributor,
     review.RoleTooLow,
     review.NeedsReason,
-    review.Unanswered,
     review.NotSubmittedRevision,
     review.NoSuchQuestion,
     NotAnAnswer,
@@ -805,15 +797,6 @@ def withdraw(request: HttpRequest, public_id: UUID) -> Acted:
     return _act(request, public_id, lambda draft, by: review.withdraw(draft, by=by))
 
 
-@router.post("/{public_id}/reject", response=_ACT_RESPONSES, summary="Reject, saying why")
-def reject(request: HttpRequest, public_id: UUID, body: RejectIn) -> Acted:
-    return _act(
-        request,
-        public_id,
-        lambda draft, by: review.reject(draft, revision=body.revision, reason=body.reason, by=by),
-    )
-
-
 @router.post("/{public_id}/approve", response=_ACT_RESPONSES, summary="Approve")
 def approve(request: HttpRequest, public_id: UUID, body: ApproveIn) -> Acted:
     return _act(
@@ -828,7 +811,9 @@ def send_back(request: HttpRequest, public_id: UUID, body: SendBackIn) -> Acted:
     return _act(
         request,
         public_id,
-        lambda draft, by: review.send_back(draft, reason=body.reason, by=by),
+        lambda draft, by: review.send_back(
+            draft, reason=body.reason, by=by, revision=body.revision
+        ),
     )
 
 

@@ -1,5 +1,5 @@
-"""Review (M4.5 spec, M4R.3–M4R.4): submit, withdraw, reject, approve and send back, and the
-reviewer's answers to the node's questions.
+"""Review (M4.5 spec, M4R.3–M4R.4; M4.9a spec, M4V.2): submit, withdraw, approve and send back,
+the reviewer's answers to the node's questions and their verdicts per key.
 
 Every transition locks the draft row, checks the state it needs, changes it and writes its event
 in one transaction (M4R.5), so two people acting at once run one after the other and the second
@@ -127,32 +127,54 @@ def withdraw(draft: Draft, *, by: User) -> Draft:
     return locked
 
 
-def reject(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
+class NothingToSendBack(Exception):
+    """A send back from review with no `changes` verdict and no note (CA0223)."""
+
+
+def send_back(draft: Draft, *, reason: str, by: User, revision: int | None = None) -> Draft:
+    """Back to its author (M4.9a spec, M4V.2): from review, by whoever may approve, with this
+    reviewer's requests or a note; from approved, by an operator, with a reason (M4R.3)."""
     with transaction.atomic():
         locked = _locked(draft)
-        _need(locked, State.SUBMITTED)
+        _need(locked, State.SUBMITTED, State.APPROVED)
+        if locked.state == State.APPROVED:
+            if not by.can_act_as(Role.OPERATOR):
+                raise RoleTooLow()
+            entry = LandingDraft.objects.filter(draft=locked, live=True).select_related("landing")
+            held = entry.first()
+            if held is not None:
+                raise AlreadyLanding(locked, held.landing)
+            why = _reason(reason)
+            _move(locked, State.OPEN)
+            record(locked, Kind.SENT_BACK, by=by, revision=drafts.latest(locked).number, reason=why)
+            return locked
         _judge(locked, by)
-        current = _submitted(locked, revision)
-        why = _reason(reason)
+        current = _submitted(locked, -1 if revision is None else revision)
+        found = _review(locked, by)
+        asks = [v for v in _verdicts(found).values() if v.verdict == Verdict.Given.CHANGES]
+        why = reason.strip()
+        if not asks and not why:
+            raise NothingToSendBack()
         _move(locked, State.OPEN)
-        record(locked, Kind.REJECTED, by=by, revision=current.number, reason=why)
+        record(locked, Kind.SENT_BACK, by=by, revision=current.number, reason=why, review=found)
     return locked
 
 
-def send_back(draft: Draft, *, reason: str, by: User) -> Draft:
-    if not by.can_act_as(Role.OPERATOR):
-        raise RoleTooLow()
-    with transaction.atomic():
-        locked = _locked(draft)
-        _need(locked, State.APPROVED)
-        held = LandingDraft.objects.filter(draft=locked, live=True).select_related("landing")
-        entry = held.first()
-        if entry is not None:
-            raise AlreadyLanding(locked, entry.landing)
-        why = _reason(reason)
-        _move(locked, State.OPEN)
-        record(locked, Kind.SENT_BACK, by=by, revision=drafts.latest(locked).number, reason=why)
-    return locked
+@dataclass(frozen=True)
+class SentBack:
+    event: DraftEvent
+    requests: list[Verdict]  # the `changes` verdicts, in the order given
+
+
+def sent_back(draft: Draft) -> SentBack | None:
+    """The last send back, while the draft has not been submitted again since (M4V.4)."""
+    last = draft.events.filter(kind__in=[Kind.SUBMITTED, Kind.SENT_BACK]).order_by("-id").first()
+    if last is None or last.kind != Kind.SENT_BACK:
+        return None
+    if last.review is None:
+        return SentBack(last, [])
+    asks = last.review.verdicts.filter(verdict=Verdict.Given.CHANGES).order_by("id")
+    return SentBack(last, list(asks))
 
 
 # ── The review: the reviewer's answers to the submitted revision's questions (M4R.4) ───────────
@@ -381,15 +403,14 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
 # ── Approve (M4R.2, M4R.3) ──────────────────────────────────────────────────────────────────────
 
 
-class Unanswered(Exception):
-    def __init__(self, ids: list[str]) -> None:
-        super().__init__(", ".join(ids))
-        self.ids = ids
+class NotApproved(Keyed):
+    """Keys this reviewer has not approved, at approval (CA0222)."""
 
 
 def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
-    """Approve the submitted revision: a judge who answered all its questions, the checklist
-    still passing; an operator's own draft only with a reason, marked self-approved."""
+    """Approve the submitted revision: a judge who approved every key (a question only once
+    answered), the checklist still passing; an operator's own draft only with a reason, marked
+    self-approved."""
     with transaction.atomic():
         locked = _locked(draft)
         _need(locked, State.SUBMITTED)
@@ -397,13 +418,21 @@ def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
         current = _submitted(locked, revision)
         why = _reason(reason) if own else reason.strip()
         _passes(locked)
-        questions = asked(locked)
-        given = _given(locked, by)
-        missing = [question.id for question in questions if question.id not in given]
-        if missing:
-            raise Unanswered(missing)
-        wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
+        keys = keys_of(locked)
         found = _review(locked, by)
+        verdicts = _verdicts(found)
+        _refuse(
+            NotApproved,
+            [
+                key.key
+                for key in keys
+                if (verdict := verdicts.get(key.key)) is None
+                or verdict.verdict != Verdict.Given.APPROVED
+            ],
+        )
+        questions = [question for key in keys if (question := _question(key)) is not None]
+        given = _given(locked, by)
+        wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
         _move(locked, State.APPROVED)
         record(
             locked,
@@ -415,5 +444,6 @@ def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
             review=found,
             answered=len(questions),
             wrong=wrong,
+            blocks=len(keys),
         )
     return locked

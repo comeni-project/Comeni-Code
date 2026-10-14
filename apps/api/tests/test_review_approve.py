@@ -45,9 +45,30 @@ def answered_all(draft: Draft, by: User, wrong: str | None = None) -> None:
         review.answer(draft, question_id, given, by=by)
 
 
+TPM_REVIEW_KEYS = [
+    "node",
+    "block/0",
+    "block/1",
+    "block/2",
+    "resource/0",
+    *(f"exam/{question_id}" for question_id in TPM_KEYS),
+]
+
+
+def approved_all(draft: Draft, by: User, wrong: str | None = None) -> None:
+    """Every question answered, then every key approved, as the review screen would."""
+    answered_all(draft, by, wrong)
+    review.set_verdicts(
+        draft,
+        revision=drafts.latest(draft).number,
+        verdicts=[review.Given(key, "approved") for key in TPM_REVIEW_KEYS],
+        by=by,
+    )
+
+
 def test_a_reviewer_who_answered_everything_approves(ada: User, grace: User, ready: Ready) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered_all(draft, grace, wrong="twice-as-long")
+    approved_all(draft, grace, wrong="twice-as-long")
     approved = review.approve(draft, revision=2, reason="", by=grace)
     assert approved.state == "approved"
     event = history(draft)[-1]
@@ -57,7 +78,7 @@ def test_a_reviewer_who_answered_everything_approves(ada: User, grace: User, rea
         2,
         False,
     )
-    assert (event.answered, event.wrong) == (6, 1)
+    assert (event.answered, event.wrong, event.blocks) == (6, 1, 11)
     assert event.review is not None and event.review.reviewer == grace
 
 
@@ -77,7 +98,7 @@ def test_a_reviewer_who_contributed_may_not_approve(ada: User, grace: User, read
 
 def test_an_operator_self_approves_only_with_a_reason(otto: User, ready: Ready) -> None:
     draft = review.submit(ready(otto), revision=2, by=otto)
-    answered_all(draft, otto)
+    approved_all(draft, otto)
     with pytest.raises(review.NeedsReason):
         review.approve(draft, revision=2, reason=" ", by=otto)
     review.approve(draft, revision=2, reason="A team of one; reread the next morning.", by=otto)
@@ -85,31 +106,32 @@ def test_an_operator_self_approves_only_with_a_reason(otto: User, ready: Ready) 
     assert (event.self_approved, event.reason) == (True, "A team of one; reread the next morning.")
 
 
-def test_approval_waits_for_every_answer(ada: User, grace: User, ready: Ready) -> None:
+def test_approval_waits_for_every_key(ada: User, grace: User, ready: Ready) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    review.answer(draft, "tpm-or-count", 0, by=grace)
-    with pytest.raises(review.Unanswered) as missing:
+    answered_all(draft, grace)
+    review.set_verdicts(
+        draft,
+        revision=2,
+        verdicts=[review.Given(key, "approved") for key in TPM_REVIEW_KEYS[:-2]]
+        + [review.Given("exam/tpm-steps", "changes", "Steps 2 and 3 overlap.")],
+        by=grace,
+    )
+    with pytest.raises(review.NotApproved) as left:
         review.approve(draft, revision=2, reason="", by=grace)
-    assert missing.value.ids == [
-        "tpm-sums-to",
-        "twice-as-long",
-        "tpm-of-a",
-        "tpm-steps",
-        "tpm-unit-name",
-    ]
+    assert left.value.keys == ["exam/tpm-steps", "exam/tpm-unit-name"]
 
 
 def test_answers_to_an_earlier_submission_do_not_count(
     ada: User, grace: User, ready: Ready
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered_all(draft, grace)
+    approved_all(draft, grace)
     review.withdraw(draft, by=ada)
     drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
     review.submit(draft, revision=3, by=ada)
     with pytest.raises(review.NotSubmittedRevision):
         review.approve(draft, revision=2, reason="", by=grace)
-    with pytest.raises(review.Unanswered):
+    with pytest.raises(review.NotApproved):
         review.approve(draft, revision=3, reason="", by=grace)
 
 
@@ -125,7 +147,7 @@ def test_approval_rechecks_the_checklist(ada: User, grace: User, ready: Ready) -
 
 def test_an_approved_draft_cannot_be_edited_in_place(ada: User, grace: User, ready: Ready) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered_all(draft, grace)
+    approved_all(draft, grace)
     review.approve(draft, revision=2, reason="", by=grace)
     with pytest.raises(drafts.NotOpen):
         drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
@@ -135,8 +157,8 @@ def test_a_second_approval_finds_it_approved(
     ada: User, grace: User, otto: User, ready: Ready
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered_all(draft, grace)
-    answered_all(draft, otto)
+    approved_all(draft, grace)
+    approved_all(draft, otto)
     review.approve(draft, revision=2, reason="", by=grace)
     with pytest.raises(review.WrongState):
         review.approve(draft, revision=2, reason="", by=otto)
@@ -147,14 +169,14 @@ def test_a_send_back_and_the_same_revision_resubmitted_needs_fresh_answers(
 ) -> None:
     # #188: answers given before a send back do not approve the next submission.
     draft = review.submit(ready(ada), revision=2, by=ada)
-    answered_all(draft, grace)
+    approved_all(draft, grace)
     review.approve(draft, revision=2, reason="", by=grace)
     review.send_back(draft, reason="Check the claim again.", by=otto)
     review.submit(draft, revision=2, by=ada)
-    with pytest.raises(review.Unanswered):
+    with pytest.raises(review.NotApproved):
         review.approve(draft, revision=2, reason="", by=grace)
 
 
-def test_an_operator_who_contributed_may_reject(otto: User, ready: Ready) -> None:
+def test_an_operator_who_contributed_may_send_it_back(otto: User, ready: Ready) -> None:
     draft = review.submit(ready(otto), revision=2, by=otto)
-    assert review.reject(draft, revision=2, reason="Not ready.", by=otto).state == "open"
+    assert review.send_back(draft, revision=2, reason="Not ready.", by=otto).state == "open"
