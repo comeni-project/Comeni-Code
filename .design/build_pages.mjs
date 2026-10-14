@@ -1931,7 +1931,7 @@ function reviewM4() {
       <div style="display:flex;align-items:baseline;gap:14px">${h1('Review', 26)}<span style="font-size:13px;color:${c.ink2}">Every block of a submitted draft gets your verdict; then you approve the draft.</span></div>
       ${qSearch('Search blocks, nodes')}
     </div>
-    ${qViews([['To review', 9, 1], ['Changes requested', 2], ['Approved this week', 4]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
+    ${qViews([['To review', 9, 1], ['Changes requested', 2], ['Approved', 3]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12.5px;color:${c.ink3}">Filter</span><span style="font-size:12.5px;color:${c.sel}">+ Node</span><span style="font-size:12.5px;color:${c.sel}">+ Block type</span><span style="margin-left:auto">${qSort('the draft’s order')}</span></div>
     <div style="flex:1;display:grid;grid-template-columns:400px minmax(0, 1fr) 290px;gap:16px;min-height:0">
       <section style="position:relative;${panel(c)};overflow:hidden;display:flex;flex-direction:column;min-height:0">
