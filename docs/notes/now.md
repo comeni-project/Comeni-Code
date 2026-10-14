@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-09** (M4.8c closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-14** (M4.8 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
@@ -14,9 +14,9 @@ line is in [the archive](journal/archive/).
 - **M4.1–M4.7 are done** (#119–#125): the block document (#139); exam pools (#151); accounts and
   roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218).
   (2026-09-29 to 2026-10-06)
-- **M4.8 (#126) is four slices**, each its own spec, plan and pull request: M4.8a (#236), M4.8b
-  the workbench (#259), M4.8c exam questions as the board draws them (#266), **M4.8d the exam
-  pool's builder (#263) is next**. (2026-10-07, 2026-10-09)
+- **M4.8 (#126) is done**, four slices: sign-in and Team (#236), the workbench (#259), exam
+  questions as the board draws them (#266), the exam pool's builder (#263). Its check walked end
+  to end: an invited author, all on screen, submits. **M4.9 (#127) is next.** (10-07 to 10-14)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -29,7 +29,7 @@ line is in [the archive](journal/archive/).
 - **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
   built without stopping, still issues and tests first, a fresh reviewer at the end. (2026-10-05)
 - **New screens are drawn as boards** with `.design/build_pages.mjs`'s own helpers, regenerated
-  (Node 24 under podman) and shown on a Design canvas for approval before any spec. (2026-10-07)
+  (Node 24) and shown on a Design canvas for approval before any spec. (2026-10-07)
 - **The app before the pages**: content and finishing polish wait for the end of the MVP; screens
   still match the original boards as closely as possible. (2026-09-29)
 
@@ -57,6 +57,8 @@ line is in [the archive](journal/archive/).
 - **A question composes an answer** (choice, number, sequence, order; order scored by pairs in
   order, M4Q.3) in a `TryQuestion` (ask, hints) or an `ExamQuestion` (title, claim, a stem of
   blocks; wrong options name a misconception or are `plain`; three options). (2026-09-20 to 10-09)
+- **An exam stem arrives as blocks**; code-schema writes its MyST or refuses (`write_faithfully`);
+  `question_rules.py` holds each kind's checks; `Problem.question` names one. (2026-10-13)
 - **An exam pool** (`code_schema.exam`, CS08xx): at most 40, ids apart from try questions; under 4
   is a *warning* (left out of self-tests). **Exam answers are not a secret in v1** (M4E.6). (10-05)
 - **Warnings never refuse** (M4E.4): `Content.errors` is what `validate` (exit 1), the weaver and
@@ -85,8 +87,7 @@ line is in [the archive](journal/archive/).
 - **django-allauth, headless**, all under `/_allauth/` (Vite and nginx both forward it). Sign-in
   providers are a table, `apps/api/src/code_api/config/providers.py`, read by the settings and
   `Env`'s pair check; GitHub is off until its client is set; no OAuth app exists. (10-05, 10-07)
-- **`/api/me` hands out the CSRF cookie**: every page asks it first, so a fresh browser's first
-  write has a token (#234). (2026-10-07)
+- **`/api/me` hands out the CSRF cookie**, asked first, so a first write has a token (#234). (10-07)
 - **A user is keyed by email and a `public_id` UUID** (#101's key; the integer key never leaves
   the database), with one role, author < reviewer < operator, checked by `can_act_as`. (2026-10-05)
 - **Sign-up only through an invite** (hashed token, single-use, seven days), by password or
@@ -101,7 +102,7 @@ line is in [the archive](journal/archive/).
 - **A save is one edit, one `Revision`** of the three files, or none: it names its base revision
   (stale: 409 `CA0203`); the files must re-read as exactly the edit (CA0208, CA0210). (2026-10-05)
 - **Verify** runs the graph rules with the draft in place; **the checklist** wants it clean, a
-  level, a resource and four exam questions. (2026-10-05)
+  level, a resource and four exam questions, and carries each question's checks. (10-05, 10-13)
 - **Review** (`code_api/studio/review.py`): submitting needs the checklist and the latest revision
   and freezes the draft (an edit: 409 CA0211); reject and send back need a reason. Each transition
   takes the row lock; `DraftEvent`, the append-only log, replays to `Draft.state`. (2026-10-06)
@@ -131,8 +132,7 @@ line is in [the archive](journal/archive/).
   `main`'s own last good build, never a folder build, never a commit refused since; the command
   exits 2 (CA0007) when its source cannot be read. (2026-10-06)
 - **`GET /api/studio/index`** (any member): the live build, the latest attempt and its problems,
-  `main`'s last-seen head (a cache entry the follower writes), `behind`. Health stays up/down.
-  (2026-10-06)
+  `main`'s last-seen head (the follower caches it), `behind`. Health stays up/down. (2026-10-06)
 
 ## The weaver and search (`code-weaver`, pure)
 
@@ -153,6 +153,8 @@ line is in [the archive](journal/archive/).
 - **The workbench (S3)**: each edit is an `edits.ts` command sent by `useDraftEdit` (scoped per
   draft, its answer cached; one GET to open, one write per save); editors save when left; a click
   during a save waits for it (`useAfterSaves`, #255); Checks asked only while shown. (2026-10-09)
+- **The exam pool's builder**: the list, `ExamEditor`, `ExamSidePanel` (as `TestQuestion` asks it,
+  and its checks); `AnswerEditor` serves both pools; `data-theme="dark"` boxes go dark. (10-13)
 - **`sendJson` is the one write** (CSRF header; only a write's 204 is empty); `auth.ts` wraps
   allauth, `accounts.ts` the accounts API and `canActAs`; `useMe` is the one *who am I*;
   `test-kit.tsx` answers fetch by method and path in tests. (2026-10-07)
@@ -193,9 +195,8 @@ line is in [the archive](journal/archive/).
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203, #204, #216, #217, #234, #235 (M4.8a's account menu and smaller ones) #260 (M4.8b's), #265 (M4.8c's);
-  large floats given as answers read back from jsonb as integers
-  (#188). (2026-10-06)
+  #203, #204, #216, #217, #234, #235; #188 (large float answers read back as integers); **#260,
+  #265, #269 (M4.8b–d's minors) at the end of the MVP's first loop**, as asked. (10-06, 10-13)
 - **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
   *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
 - Whether `IndexBuild` rows need pruning (a folder source adds one every round);
@@ -215,12 +216,10 @@ line is in [the archive](journal/archive/).
 - **Stop a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17)
 - **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at M4.2's
   merge, `38d09dc`, and the pin moves only by a pull request there. (2026-09-18, 2026-10-05)
-- **Podman, not Docker, on this machine**: `podman start code-dev-postgres code-dev-redis` after a
-  reboot, or when tests cannot connect (:5433, :6380); Compose is not set up. (2026-10-05, 10-06)
-- **This machine's Node is 22**: web checks run in `node:24-alpine` under podman, with
-  `--userns=keep-id` and `:Z` on the volume, one `npm` command per run (`npm ci` first). Two pytest
-  runs on one Postgres break each other. The canvas is the Design artifact named in CLAUDE.md; republish it from the generator. Merged branches
-  are kept: retarget a stacked pull request first. (2026-09-29, 2026-10-05)
+- **After a reboot**, or when tests cannot connect (:5433, :6380): `docker compose up -d --wait
+  postgres redis`. **Node 24 is native now.** Two pytest runs on one Postgres break each other.
+  The canvas is the Design artifact named in CLAUDE.md; republish it from the generator. Merged
+  branches are kept: retarget a stacked pull request first. (2026-09-29 to 10-14)
 - **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
   ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
 - **Migrations 0007 and 0009 need `rebuild_index` after them** (licences, numbers; exam titles and
@@ -238,7 +237,8 @@ line is in [the archive](journal/archive/).
   `google-chrome-stable --user-data-dir=<scratch>` (the default profile is held by the open
   browser). **`vite preview` serves 404 after a rebuild**: restart it. (2026-10-07)
 - **Stubbed web tests never meet code-schema's rules**: walk against the API (#256, #257), with
-  `puppeteer-core` over headless Chrome's debugging port if Claude in Chrome is away. (10-09)
+  `puppeteer-core` over headless Chrome's debugging port if Claude in Chrome is away; a fresh
+  browser context per user; click an `sr-only` radio by its label. (10-09, 10-14)
 - **React Router moves inside a transition**: a query refreshed right after `navigate` can re-render
   the old page first (Studio's gate redirected a sign-out). (2026-10-07)
 - **tarfile's `data` filter strips a leading `/` instead of refusing it**: check member names
