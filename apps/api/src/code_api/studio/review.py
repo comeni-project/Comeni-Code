@@ -16,7 +16,8 @@ from django.utils import timezone
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.studio import drafts
-from code_api.studio.keys import Key, review_keys
+from code_api.content.snapshot import node_from_index
+from code_api.studio.keys import Key, align, review_keys, same
 from code_api.studio.landing import AlreadyLanding
 from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent, LandingDraft, Review, Revision, Verdict
@@ -213,7 +214,7 @@ def keys_of(draft: Draft) -> list[Key]:
     return review_keys(node)
 
 
-def _question(key: Key) -> Asked | None:
+def question_of(key: Key) -> Asked | None:
     if isinstance(key.content, TryQuestion):
         return Asked(key.content.id, "try", key.content)
     if isinstance(key.content, ExamQuestion):
@@ -223,7 +224,7 @@ def _question(key: Key) -> Asked | None:
 
 def asked(draft: Draft) -> list[Asked]:
     """Every question the latest revision asks, in reading order: its try blocks, then its pool."""
-    return [question for key in keys_of(draft) if (question := _question(key)) is not None]
+    return [question for key in keys_of(draft) if (question := question_of(key)) is not None]
 
 
 def _reviewer(by: User) -> None:
@@ -276,6 +277,8 @@ class Reviewed:
     verdict: str | None
     note: str
     answered: Answered | None  # None unless the key is a question
+    change: str  # new, changed or same, against the live index (M4.9b spec, M4RS.2)
+    before: Key | None = None  # what it was, when changed
 
 
 @dataclass(frozen=True)
@@ -289,16 +292,26 @@ def _sheet(draft: Draft, by: User) -> Sheet:
     found = _review(draft, by)
     given = {} if found is None else dict(found.answers)
     verdicts = _verdicts(found)
+    keys = keys_of(draft)
+    live = node_from_index(draft.node_id)
+    earlier = [] if live is None else review_keys(live)
+    by_key = {key.key: key for key in earlier}
+    matched = align(earlier, keys)
     items = []
-    for key in keys_of(draft):
-        question = _question(key)
+    for key in keys:
+        question = question_of(key)
         verdict = verdicts.get(key.key)
+        pair = matched[key.key]
+        old = None if pair is None else by_key[pair]
+        change = "new" if old is None else "same" if same(old, key) else "changed"
         items.append(
             Reviewed(
                 key=key,
                 verdict=None if verdict is None else verdict.verdict,
                 note="" if verdict is None else verdict.note,
                 answered=None if question is None else _graded(question, given.get(question.id)),
+                change=change,
+                before=old if change == "changed" else None,
             )
         )
     return Sheet(drafts.latest(draft).number, items)
@@ -381,7 +394,7 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
                 g.key
                 for g in verdicts
                 if g.verdict == "approved"
-                and (question := _question(keys[g.key])) is not None
+                and (question := question_of(keys[g.key])) is not None
                 and question.id not in given
             ],
         )
@@ -437,7 +450,7 @@ def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
                 or verdict.verdict != Verdict.Given.APPROVED
             ],
         )
-        questions = [question for key in keys if (question := _question(key)) is not None]
+        questions = [question for key in keys if (question := question_of(key)) is not None]
         given = _given(locked, by)
         wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
         _move(locked, State.APPROVED)
