@@ -99,6 +99,30 @@ class Review(models.Model):
         return f"review of {self.draft.node_id} r{self.number}"
 
 
+class Verdict(models.Model):
+    """One reviewer's verdict on one key of one submission (M4.9a spec, M4V.3): approved, or
+    changes with a note. Cleared by deleting the row."""
+
+    class Given(models.TextChoices):
+        APPROVED = "approved"
+        CHANGES = "changes"
+
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="verdicts")
+    key = models.CharField(max_length=200)
+    kind = models.CharField(max_length=16)  # the key's kind (M4V.1), kept for M5's analysis
+    verdict = models.CharField(max_length=16, choices=Given.choices)
+    note = models.TextField(blank=True)
+    at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints: ClassVar = [
+            models.UniqueConstraint(fields=["review", "key"], name="studio_one_verdict_per_key")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.verdict} {self.key}"
+
+
 class DraftEvent(models.Model):
     """One transition, append-only, written with the state it made (M4.5 spec, M4R.5)."""
 
@@ -126,6 +150,7 @@ class DraftEvent(models.Model):
     review = models.ForeignKey(Review, null=True, on_delete=models.SET_NULL, related_name="+")
     answered = models.PositiveIntegerField(null=True)
     wrong = models.PositiveIntegerField(null=True)
+    blocks = models.PositiveIntegerField(null=True)  # an approval's keys, all approved (M4V.2)
     # The batch the draft went out in, on a `landing` event (M4.6 spec, M4L.3).
     landing = models.ForeignKey(
         "Landing", null=True, blank=True, on_delete=models.PROTECT, related_name="events"
