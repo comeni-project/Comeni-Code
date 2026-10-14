@@ -295,6 +295,7 @@ export interface RequestOut {
   key: string;
   kind: string;
   note: string;
+  now: string | null;
 }
 export interface DraftSummaryOut {
   base_digest: string;

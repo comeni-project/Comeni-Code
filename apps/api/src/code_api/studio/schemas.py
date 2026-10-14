@@ -133,6 +133,7 @@ class RequestOut(Schema):
     key: str
     kind: str
     note: str
+    now: str | None  # its key in the latest revision; null when the author deleted that block
 
 
 class RequestsOut(Schema):
@@ -151,7 +152,10 @@ def requests_out(back: SentBack | None) -> RequestsOut | None:
         by=None if back.event.by is None else MemberOut.of(back.event.by),
         at=back.event.at,
         reason=back.event.reason,
-        items=[RequestOut(key=v.key, kind=v.kind, note=v.note) for v in back.requests],
+        items=[
+            RequestOut(key=v.key, kind=v.kind, note=v.note, now=back.now.get(v.key))
+            for v in back.requests
+        ],
     )
 
 

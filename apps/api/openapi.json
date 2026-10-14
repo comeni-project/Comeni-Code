@@ -2000,12 +2000,24 @@
           "note": {
             "title": "Note",
             "type": "string"
+          },
+          "now": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Now"
           }
         },
         "required": [
           "key",
           "kind",
-          "note"
+          "note",
+          "now"
         ],
         "title": "RequestOut",
         "type": "object"

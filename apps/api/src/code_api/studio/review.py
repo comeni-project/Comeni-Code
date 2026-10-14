@@ -166,6 +166,9 @@ def send_back(draft: Draft, *, reason: str, by: User, revision: int | None = Non
 class SentBack:
     event: DraftEvent
     requests: list[Verdict]  # the `changes` verdicts, in the reading order of what was sent back
+    # Each request's key in the draft's latest revision, or None when the author deleted its block
+    # (M4.9b spec, M4RS.3).
+    now: dict[str, str | None]
 
 
 def sent_back(draft: Draft) -> SentBack | None:
@@ -174,7 +177,7 @@ def sent_back(draft: Draft) -> SentBack | None:
     if last is None or last.kind != Kind.SENT_BACK:
         return None
     if last.review is None:
-        return SentBack(last, [])
+        return SentBack(last, [], {})
     asks = list(last.review.verdicts.filter(verdict=Verdict.Given.CHANGES).order_by("id"))
     # Placed by the revision that was sent back, not the draft's latest, which the author may
     # have edited since; a revision that no longer reads keeps the order the requests were made.
@@ -183,7 +186,13 @@ def sent_back(draft: Draft) -> SentBack | None:
     if node is not None:
         place = {key.key: at for at, key in enumerate(review_keys(node))}
         asks.sort(key=lambda verdict: place.get(verdict.key, len(place)))
-    return SentBack(last, asks)
+    latest, _ = drafts.node_of(draft)
+    if node is None or latest is None:
+        now: dict[str, str | None] = {verdict.key: None for verdict in asks}
+    else:
+        onward = {b: a for a, b in align(review_keys(node), review_keys(latest)).items() if b}
+        now = {verdict.key: onward.get(verdict.key) for verdict in asks}
+    return SentBack(last, asks, now)
 
 
 # ── The review: the reviewer's answers to the submitted revision's questions (M4R.4) ───────────

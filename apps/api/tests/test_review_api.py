@@ -310,9 +310,9 @@ def test_the_author_reads_the_requests_on_the_draft(ada: User, grace: User, read
         "grace@example.org",
         "Two small things.",
     )
-    assert [(r["key"], r["kind"], r["note"]) for r in requests["items"]] == [
-        ("block/1", "callout", "Say what TPM is not."),
-        ("exam/tpm-of-a", "exam", "The key is off by one."),
+    assert [(r["key"], r["kind"], r["note"], r["now"]) for r in requests["items"]] == [
+        ("block/1", "callout", "Say what TPM is not.", "block/1"),
+        ("exam/tpm-of-a", "exam", "The key is off by one.", "exam/tpm-of-a"),
     ]
     call(ada, "post", at(draft, "/submit"), {"revision": 2})
     assert call(ada, "get", at(draft)).json()["requests"] is None
