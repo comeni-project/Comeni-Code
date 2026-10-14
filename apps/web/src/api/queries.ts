@@ -197,12 +197,17 @@ export function reviewed(client: QueryClient, draftId: string, review: ReviewOut
   );
 }
 
-/** A draft approved or sent back leaves the queue (M4RS.4). */
+/** A draft approved or sent back leaves the queue (M4RS.4). Its review is marked stale, not
+ * removed: removing it while the open block still watches it would ask for it again, and a draft
+ * no longer submitted has none (#294). It is asked afresh when next opened. */
 export function decided(client: QueryClient, draft: DraftOut) {
   client.setQueryData<QueuedDraftOut[]>(queryKeys.reviewQueue, (queue) =>
     queue?.filter((queued) => queued.public_id !== draft.public_id),
   );
-  client.removeQueries({ queryKey: queryKeys.review(draft.public_id) });
+  void client.invalidateQueries({
+    queryKey: queryKeys.review(draft.public_id),
+    refetchType: "none",
+  });
   return draftMoved(client, draft);
 }
 

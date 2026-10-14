@@ -129,4 +129,16 @@ describe("ReviewPage — verdicts", () => {
     const sent = fake.mock.calls.find(([url]) => String(url).endsWith("/send-back"));
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ revision: 2, reason: "One thing." });
   });
+
+  it("asks nothing again after a decision (#294)", async () => {
+    const fake = renderReview({
+      "GET /api/studio/drafts/d-1/review": withVerdict("block/1", "changes", "Shorter."),
+      "POST /api/studio/drafts/d-1/send-back": { body: { public_id: "d-1", state: "open" } },
+    });
+    await open(/^Title, claim, level, links/);
+    await userEvent.click(await screen.findByRole("button", { name: "Send back · 1 request" }));
+    expect(await screen.findByText("Nothing is waiting for review.")).toBeInTheDocument();
+    const reviews = fake.mock.calls.filter(([url]) => url === "/api/studio/drafts/d-1/review");
+    expect(reviews).toHaveLength(1);
+  });
 });
