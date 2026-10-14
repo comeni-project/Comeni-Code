@@ -16,7 +16,7 @@ from code_api.content.schemas import (
     TextBlockOut,
     TryBlockOut,
 )
-from code_api.studio.review import Answered
+from code_api.studio.review import Answered, Reviewed, SentBack, Sheet
 from code_schema import (
     Answer,
     Callout,
@@ -26,6 +26,7 @@ from code_schema import (
     NumberAnswer,
     OrderAnswer,
     Problem,
+    Resource,
     SequenceAnswer,
     SequenceBlock,
     Text,
@@ -127,12 +128,39 @@ class DraftSummaryOut(Schema):
     landing: UUID | None = None
 
 
+class RequestOut(Schema):
+    key: str
+    kind: str
+    note: str
+
+
+class RequestsOut(Schema):
+    """The last send back, while the draft has not been submitted again (M4.9a spec, M4V.4)."""
+
+    by: MemberOut | None
+    at: datetime
+    reason: str
+    items: list[RequestOut]
+
+
+def requests_out(back: SentBack | None) -> RequestsOut | None:
+    if back is None:
+        return None
+    return RequestsOut(
+        by=None if back.event.by is None else MemberOut.of(back.event.by),
+        at=back.event.at,
+        reason=back.event.reason,
+        items=[RequestOut(key=v.key, kind=v.kind, note=v.note) for v in back.requests],
+    )
+
+
 class DraftOut(DraftSummaryOut):
     """The node, or null with `problems` when its latest revision no longer reads against the
     index's registries (#173)."""
 
     node: DraftNodeOut | None
     problems: list[ProblemOut]
+    requests: RequestsOut | None = None
 
 
 class RevisionOut(Schema):
@@ -261,6 +289,20 @@ def _exam_out(question: ExamQuestion, live: Mapping[str, ExamQuestion]) -> Studi
     )
 
 
+def _resource_out(r: Resource) -> StudioResourceOut:
+    return StudioResourceOut(
+        kind=r.kind,
+        provider=r.provider,
+        url=r.url,
+        video=r.video,
+        part=r.part,
+        covers=r.covers,
+        licence=r.licence,
+        display=r.display,
+        level=r.level.value,
+    )
+
+
 def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> DraftNodeOut:
     return DraftNodeOut(
         title=node.title,
@@ -272,20 +314,7 @@ def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> Draf
         goes_deeper=[LinkOut(node=link.node, reason=link.reason) for link in node.goes_deeper],
         related=[LinkOut(node=link.node, reason=link.reason) for link in node.related],
         blocks=[_block_out(block) for block in node.blocks],
-        resources=[
-            StudioResourceOut(
-                kind=r.kind,
-                provider=r.provider,
-                url=r.url,
-                video=r.video,
-                part=r.part,
-                covers=r.covers,
-                licence=r.licence,
-                display=r.display,
-                level=r.level.value,
-            )
-            for r in node.resources
-        ],
+        resources=[_resource_out(r) for r in node.resources],
         questions=[_question_out(question) for question in node.questions],
         exam=[_exam_out(question, live or {}) for question in node.exam],
     )
@@ -331,6 +360,7 @@ class ReviewQuestionOut(Schema):
     unit: str
     # An order's steps by their text, not as written; once answered, `right_steps` (#264).
     steps: list[str] | None
+    hints: list[str]  # a try question's; an exam question has none
     given: Any
     right: bool | None
     right_option: int | None
@@ -374,6 +404,7 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
         options=texts,
         unit=unit,
         steps=steps,
+        hints=[] if exam else list(question.hints),  # type: ignore[union-attr]
         given=answered.given,
         right=answered.right,
         right_option=right_option,
@@ -382,6 +413,68 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
         tolerance=tolerance,
         rationale=question.rationale if shown else None,
     )
+
+
+class ReviewFieldsOut(Schema):
+    """The `node` key's content: the node's own fields and its links (M4V.1)."""
+
+    title: str
+    claim: str
+    region: str
+    level: str
+    minutes: int
+    needs: list[LinkOut]
+    goes_deeper: list[LinkOut]
+    related: list[LinkOut]
+
+
+class ReviewItemOut(Schema):
+    """One key of your review (M4V.4): its content by kind, and your verdict and note."""
+
+    key: str
+    kind: str
+    verdict: str | None
+    note: str
+    fields: ReviewFieldsOut | None
+    block: BlockOut | None
+    resource: StudioResourceOut | None
+    question: ReviewQuestionOut | None  # its key and rationale only once answered
+
+
+class ReviewOut(Schema):
+    revision: int
+    items: list[ReviewItemOut]
+
+
+def _fields_out(node: Node) -> ReviewFieldsOut:
+    return ReviewFieldsOut(
+        title=node.title,
+        claim=node.claim,
+        region=node.region,
+        level=node.level.value,
+        minutes=node.minutes,
+        needs=[LinkOut(node=link.node, reason=link.reason) for link in node.needs],
+        goes_deeper=[LinkOut(node=link.node, reason=link.reason) for link in node.goes_deeper],
+        related=[LinkOut(node=link.node, reason=link.reason) for link in node.related],
+    )
+
+
+def _review_item_out(item: Reviewed) -> ReviewItemOut:
+    content = item.key.content
+    return ReviewItemOut(
+        key=item.key.key,
+        kind=item.key.kind,
+        verdict=item.verdict,
+        note=item.note,
+        fields=_fields_out(content) if isinstance(content, Node) else None,
+        block=_block_out(content) if isinstance(content, Text | Callout | SequenceBlock) else None,
+        resource=_resource_out(content) if isinstance(content, Resource) else None,
+        question=None if item.answered is None else review_question_out(item.answered),
+    )
+
+
+def review_out(sheet: Sheet) -> ReviewOut:
+    return ReviewOut(revision=sheet.revision, items=[_review_item_out(i) for i in sheet.items])
 
 
 class EventOut(Schema):
@@ -395,6 +488,7 @@ class EventOut(Schema):
     self_approved: bool
     answered: int | None
     wrong: int | None
+    blocks: int | None
 
 
 # ── Landing (M4.6 spec, M4L.5) ──────────────────────────────────────────────────────────────────

@@ -1526,7 +1526,7 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
-**Fix.** Read the draft's state: submit an open draft, approve or reject a submitted one, send back an approved one. An edit or a discard needs the draft open: withdraw it first.
+**Fix.** Read the draft's state: submit an open draft, approve or send back a submitted one, send back an approved one. An edit or a discard needs the draft open: withdraw it first.
 
 **Why.** A submitted draft is frozen, so what is reviewed is exactly one revision, and an approved one is what lands (M4.5 spec, M4R.3).
 
@@ -1538,7 +1538,7 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** M4's bar — it verifies clean, a level, a resource, four exam questions — is checked at submit and again at approve, since a rebuild between the two can change it (M4R.3).
 
-#### CA0213 — a contributor approves or rejects their own draft
+#### CA0213 — a contributor decides their own draft
 
 *Refuses.*
 
@@ -1552,11 +1552,13 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Fix.** Say why in a sentence.
 
-**Why.** A rejection, a send back and a self-approval are read later, by the author and in the landing pull request, so each carries its reason (M4R.3).
+**Why.** A send back from approval and a self-approval are read later, by the author and in the landing pull request, so each carries its reason (M4R.3).
 
 #### CA0215 — questions are unanswered at approval
 
 *Refuses.*
+
+**Retired** 2026-10-14 — approving needs every key approved, and a question is approved only once answered; CA0222 says it (M4.9a spec, M4V.2)
 
 **Fix.** Answer each question the message names, then approve.
 
@@ -1585,6 +1587,46 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Give an option's index for a choice, a finite number for a number question.
 
 **Why.** Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else (M4R.4).
+
+#### CA0219 — a review key the submitted revision does not have
+
+*Refuses.*
+
+**Fix.** Reload the review and use the keys it lists.
+
+**Why.** A verdict is on one key of the submitted revision — node, block/<n>, try/<id>, resource/<n>, exam/<id> — and a list is all or nothing (M4.9a spec, M4V.1–M4V.2).
+
+#### CA0220 — a question is approved before it is answered
+
+*Refuses.*
+
+**Fix.** Answer the question the message names, then approve it.
+
+**Why.** The reviewer answers the node's own questions before approving them, S6's defence against rubber-stamping (M4R.1, M4V.2). A wrong answer counts, never blocks.
+
+#### CA0221 — a changes verdict has no note
+
+*Refuses.*
+
+**Fix.** Say what to change; the author reads it beside the block.
+
+**Why.** A request is only useful if it says what to change (M4.9a spec, M4V.2).
+
+#### CA0222 — approving the draft with keys not approved
+
+*Refuses.*
+
+**Fix.** Approve each key the message names, or send the draft back with your requests.
+
+**Why.** The draft is approved once every block, resource and question is, by the same reviewer (M4.9a spec, M4V.2).
+
+#### CA0223 — a send back from review with nothing to say
+
+*Refuses.*
+
+**Fix.** Request a change on a block, or say why in a sentence.
+
+**Why.** The author reads why their draft came back: the reviewer's requests, a note, or both (M4.9a spec, M4V.2).
 
 ### CA0300–CA0399 · landing
 

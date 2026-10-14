@@ -2009,8 +2009,8 @@ codes:
     says: the draft is not in the state this step needs
     refuses: true
     fix: |
-      Read the draft's state: submit an open draft, approve or reject a submitted one, send back an
-      approved one. An edit or a discard needs the draft open: withdraw it first.
+      Read the draft's state: submit an open draft, approve or send back a submitted one, send back
+      an approved one. An edit or a discard needs the draft open: withdraw it first.
     explanation: |
       A submitted draft is frozen, so what is reviewed is exactly one revision, and an approved one
       is what lands (M4.5 spec, M4R.3).
@@ -2029,7 +2029,7 @@ codes:
   CA0213:
     emitted_by: api
     concern: drafts
-    says: a contributor approves or rejects their own draft
+    says: a contributor decides their own draft
     refuses: true
     fix: |
       Ask a reviewer who did not save the draft, or an operator, to decide it.
@@ -2045,7 +2045,7 @@ codes:
     fix: |
       Say why in a sentence.
     explanation: |
-      A rejection, a send back and a self-approval are read later, by the author and in the
+      A send back from approval and a self-approval are read later, by the author and in the
       landing pull request, so each carries its reason (M4R.3).
 
   CA0215:
@@ -2053,6 +2053,7 @@ codes:
     concern: drafts
     says: questions are unanswered at approval
     refuses: true
+    retired: "2026-10-14 — approving needs every key approved, and a question is approved only once answered; CA0222 says it (M4.9a spec, M4V.2)"
     fix: |
       Answer each question the message names, then approve.
     explanation: |
@@ -2090,6 +2091,60 @@ codes:
     explanation: |
       Answers are graded by the web app's rule, in code_schema.grading, which takes nothing else
       (M4R.4).
+
+  CA0219:
+    emitted_by: api
+    concern: drafts
+    says: a review key the submitted revision does not have
+    refuses: true
+    fix: |
+      Reload the review and use the keys it lists.
+    explanation: |
+      A verdict is on one key of the submitted revision — node, block/<n>, try/<id>,
+      resource/<n>, exam/<id> — and a list is all or nothing (M4.9a spec, M4V.1–M4V.2).
+
+  CA0220:
+    emitted_by: api
+    concern: drafts
+    says: a question is approved before it is answered
+    refuses: true
+    fix: |
+      Answer the question the message names, then approve it.
+    explanation: |
+      The reviewer answers the node's own questions before approving them, S6's defence against
+      rubber-stamping (M4R.1, M4V.2). A wrong answer counts, never blocks.
+
+  CA0221:
+    emitted_by: api
+    concern: drafts
+    says: a changes verdict has no note
+    refuses: true
+    fix: |
+      Say what to change; the author reads it beside the block.
+    explanation: |
+      A request is only useful if it says what to change (M4.9a spec, M4V.2).
+
+  CA0222:
+    emitted_by: api
+    concern: drafts
+    says: approving the draft with keys not approved
+    refuses: true
+    fix: |
+      Approve each key the message names, or send the draft back with your requests.
+    explanation: |
+      The draft is approved once every block, resource and question is, by the same reviewer
+      (M4.9a spec, M4V.2).
+
+  CA0223:
+    emitted_by: api
+    concern: drafts
+    says: a send back from review with nothing to say
+    refuses: true
+    fix: |
+      Request a change on a block, or say why in a sentence.
+    explanation: |
+      The author reads why their draft came back: the reviewer's requests, a note, or both
+      (M4.9a spec, M4V.2).
 
   # ── CA0300–CA0399 · landing ─────────────────────────────────────────────────────────────────
 

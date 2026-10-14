@@ -372,6 +372,16 @@
             "title": "Public Id",
             "type": "string"
           },
+          "requests": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
@@ -497,6 +507,17 @@
             "title": "At",
             "type": "string"
           },
+          "blocks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocks"
+          },
           "by": {
             "anyOf": [
               {
@@ -550,7 +571,8 @@
           "reason",
           "self_approved",
           "answered",
-          "wrong"
+          "wrong",
+          "blocks"
         ],
         "title": "EventOut",
         "type": "object"
@@ -1861,22 +1883,66 @@
         "title": "RegionOut",
         "type": "object"
       },
-      "RejectIn": {
+      "RequestOut": {
         "properties": {
-          "reason": {
-            "title": "Reason",
+          "key": {
+            "title": "Key",
             "type": "string"
           },
-          "revision": {
-            "title": "Revision",
-            "type": "integer"
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
           }
         },
         "required": [
-          "revision",
-          "reason"
+          "key",
+          "kind",
+          "note"
         ],
-        "title": "RejectIn",
+        "title": "RequestOut",
+        "type": "object"
+      },
+      "RequestsOut": {
+        "description": "The last send back, while the draft has not been submitted again (M4.9a spec, M4V.4).",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RequestOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "by",
+          "at",
+          "reason",
+          "items"
+        ],
+        "title": "RequestsOut",
         "type": "object"
       },
       "ResourceIn": {
@@ -2050,6 +2116,188 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "ReviewFieldsOut": {
+        "description": "The `node` key's content: the node's own fields and its links (M4V.1).",
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "goes_deeper": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Goes Deeper",
+            "type": "array"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          },
+          "minutes": {
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "related": {
+            "items": {
+              "$ref": "#/components/schemas/LinkOut"
+            },
+            "title": "Related",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "claim",
+          "region",
+          "level",
+          "minutes",
+          "needs",
+          "goes_deeper",
+          "related"
+        ],
+        "title": "ReviewFieldsOut",
+        "type": "object"
+      },
+      "ReviewItemOut": {
+        "description": "One key of your review (M4V.4): its content by kind, and your verdict and note.",
+        "properties": {
+          "block": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "callout": "#/components/schemas/CalloutBlockOut",
+                    "sequence": "#/components/schemas/SequenceBlockOut",
+                    "text": "#/components/schemas/TextBlockOut",
+                    "try": "#/components/schemas/TryBlockOut"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/TextBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TryBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CalloutBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SequenceBlockOut"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewFieldsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewQuestionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resource": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StudioResourceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "verdict",
+          "note",
+          "fields",
+          "block",
+          "resource",
+          "question"
+        ],
+        "title": "ReviewItemOut",
+        "type": "object"
+      },
+      "ReviewOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "items"
+        ],
+        "title": "ReviewOut",
+        "type": "object"
+      },
       "ReviewQuestionOut": {
         "description": "One question of the submitted revision, as its reviewer sees it: the key and rationale only\nonce they have answered it (M4R.4). A choice is answered by its option's index.",
         "properties": {
@@ -2059,6 +2307,13 @@
           },
           "given": {
             "title": "Given"
+          },
+          "hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hints",
+            "type": "array"
           },
           "id": {
             "title": "Id",
@@ -2225,6 +2480,7 @@
           "options",
           "unit",
           "steps",
+          "hints",
           "given",
           "right",
           "right_option",
@@ -2386,13 +2642,22 @@
       "SendBackIn": {
         "properties": {
           "reason": {
+            "default": "",
             "title": "Reason",
             "type": "string"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
           }
         },
-        "required": [
-          "reason"
-        ],
         "title": "SendBackIn",
         "type": "object"
       },
@@ -3114,6 +3379,61 @@
           "block"
         ],
         "title": "UpdateBlockIn",
+        "type": "object"
+      },
+      "VerdictIn": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "enum": [
+                  "approved",
+                  "changes"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "key",
+          "verdict"
+        ],
+        "title": "VerdictIn",
+        "type": "object"
+      },
+      "VerdictsIn": {
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "verdicts": {
+            "items": {
+              "$ref": "#/components/schemas/VerdictIn"
+            },
+            "title": "Verdicts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "revision",
+          "verdicts"
+        ],
+        "title": "VerdictsIn",
         "type": "object"
       },
       "VerifyOut": {
@@ -4682,94 +5002,6 @@
         ]
       }
     },
-    "/api/studio/drafts/{public_id}/reject": {
-      "post": {
-        "operationId": "code_api_studio_api_reject",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "public_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Public Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DraftOut"
-                }
-              }
-            },
-            "description": "OK"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefusedOut"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          }
-        },
-        "security": [
-          {
-            "Studio": []
-          }
-        ],
-        "summary": "Reject, saying why",
-        "tags": [
-          "studio"
-        ]
-      }
-    },
     "/api/studio/drafts/{public_id}/resources": {
       "put": {
         "operationId": "code_api_studio_api_edit_resources",
@@ -4868,11 +5100,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/ReviewQuestionOut"
-                  },
-                  "title": "Response",
-                  "type": "array"
+                  "$ref": "#/components/schemas/ReviewOut"
                 }
               }
             },
@@ -5022,6 +5250,94 @@
           }
         ],
         "summary": "Answer one question",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/review/verdicts": {
+      "put": {
+        "operationId": "code_api_studio_api_set_verdicts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerdictsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Set verdicts, all or nothing",
         "tags": [
           "studio"
         ]
@@ -5218,7 +5534,7 @@
             "Studio": []
           }
         ],
-        "summary": "Send an approval back",
+        "summary": "Send back to its author",
         "tags": [
           "studio"
         ]

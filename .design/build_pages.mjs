@@ -975,6 +975,7 @@ const NAV_ICON = {
   Requests: 'M4 14V2.5M4 3h8l-2 3 2 3H4',
   Implementing: 'M3 13l7-7M9 3l4 4-2 2-4-4zM2.5 13.5l1.5-1.5',
   Review: 'M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM5 8l2 2 4-4',
+  Land: 'M8 2v8M5 7l3 3 3-3M2.5 10.5v3h11v-3',
   Drafts: 'M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3',
   Graph: 'M4 4.5a1.5 1.5 0 1 0 0-.01M12 4.5a1.5 1.5 0 1 0 0-.01M8 12.5a1.5 1.5 0 1 0 0-.01M5.3 4h5.4M4.8 5.3l2.4 5.4M11.2 5.3l-2.4 5.4',
   Tracks: 'M2 8h12M4 8a1.8 1.8 0 1 0 0-.01M12 8a1.8 1.8 0 1 0 0-.01M8 8a1.8 1.8 0 1 0 0-.01',
@@ -988,7 +989,7 @@ const NAV_ICON = {
 };
 const navIcon = (n, col) => `<svg width="18" height="18" viewBox="0 0 16 16"><path d="${NAV_ICON[n]}" style="fill:none;stroke:${col};stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"></path></svg>`;
 function studio(active, inner, w = 1440, h = 900, { collapsed = false } = {}) {
-  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3]]], ['Content', [['Drafts', 3], ['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
+  const groups = [['Work', [['Inbox', 6], ['Assistant'], ['Requests', 4], ['Implementing', 5], ['Review', 3], ['Land', 3]]], ['Content', [['Drafts', 3], ['Graph'], ['Skeletons', 12], ['Tracks', 2], ['Weekly']]], ['Insight', [['Quality', 3]]]];
   const it = (n, count) => `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:14px;${n === active ? `background:${c.surface};border:1px solid ${c.border};font-weight:600` : `border:1px solid transparent;color:${c.ink2}`}">${navIcon(n, n === active ? c.ink : c.ink3)}<span style="flex:1">${n}</span>${count ? `<span style="font-size:11.5px;padding:0 7px;border-radius:999px;background:${n === active ? c.selSoft : c.bg};color:${n === active ? c.sel : c.ink3}">${count}</span>` : ''}</div>`;
   const icn = (n, count) => `<div title="${n}" style="position:relative;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;${n === active ? `background:${c.surface};border:1px solid ${c.border}` : 'border:1px solid transparent'}">${navIcon(n, n === active ? c.ink : c.ink3)}${count ? `<span style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:${c.sel};border:2px solid ${c.bg}"></span>` : ''}</div>`;
   const toggle = (dir) => `<span title="${dir === 'in' ? 'Collapse' : 'Expand'} the menu · [" style="width:28px;height:28px;border-radius:8px;border:1px solid ${c.border};background:${c.surface};display:flex;align-items:center;justify-content:center;color:${c.ink2}"><svg width="14" height="14" viewBox="0 0 16 16"><path d="${dir === 'in' ? 'M10 3.5L5.5 8 10 12.5' : 'M6 3.5L10.5 8 6 12.5'}" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></svg></span>`;
@@ -1911,6 +1912,137 @@ function reviewStudio() {
   return studio('Review', inner, 1680, 1000);
 }
 
+// ── S6 Review, as M4 builds it — a verdict per block, scores from M5 ──
+// The board above is the target. M4 has no judge (models arrive with the gateway in M5), so the
+// score column, the judge panel and "Was the score right?" are drawn as placeholders, never values.
+const scorePending = () => `<span title="Scores arrive with the judge in M5" style="font-family:${MONO};font-size:12.5px;color:${c.border2}">—</span>`;
+const placeholder = (title, why) => `<div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;border:1.5px dashed ${c.border2};font-size:12.5px;line-height:1.45;color:${c.ink3}"><span style="font-weight:600;color:${c.ink2}">${title}</span><span>${why}</span></div>`;
+function reviewM4() {
+  const cols = '18px minmax(0, 1.2fr) 74px 46px 96px';
+  const verdict = (v) => v === 'approved' ? greyTag(`${ic.check(c.ink2)}approved`) : v === 'changes' ? amberTag('changes') : '';
+  const group = (node, rev, who, done) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid ${c.border};background:${c.bg};font-size:12px"><span><b style="font-weight:600;color:${c.ink}">${node}</b> <span style="color:${c.ink3}">· rev ${rev} · ${who}</span></span><span style="color:${c.ink3};font-variant-numeric:tabular-nums">${done}</span></div>`;
+  const row = ([t, k, v, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:10px;padding:0 12px;height:44px;border-top:1px solid ${c.border};font-size:13px;${o.focus ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : o.sel ? `background:${c.bg}` : ''}">
+    ${v === 'approved' ? '<span></span>' : qBox(o.sel)}<span style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</span>
+    <span style="font-family:${MONO};font-size:11.5px;color:${c.ink2}">${k}</span>${scorePending()}<span style="display:flex;justify-content:flex-end">${verdict(v)}</span></div>`;
+  const cond = (ok, t) => `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><span style="color:${ok ? c.ink2 : c.ink};font-weight:${ok ? 400 : 600}">${t}</span></div>`;
+  const option = (letter, text, o = {}) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:14px;${o.right ? `border:2px solid ${c.btn};background:${c.lineSoft}` : o.mine ? `border:2px solid ${c.sel}` : `border:1px solid ${c.border}`}"><span style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11.5px;font-weight:600;${o.right ? `background:${c.btn};color:${c.btnInk}` : `border:1.5px solid ${c.border2};color:${c.ink2}`}">${letter}</span><span style="flex:1">${text}</span>${o.right ? `<span style="font-size:12px;color:${c.btn}">right answer · yours</span>` : ''}</div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('Review', 26)}<span style="font-size:13px;color:${c.ink2}">Every block of a submitted draft gets your verdict; then you approve the draft.</span></div>
+      ${qSearch('Search blocks, nodes')}
+    </div>
+    ${qViews([['To review', 9, 1], ['Changes requested', 2], ['Approved this week', 4]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12.5px;color:${c.ink3}">Filter</span><span style="font-size:12.5px;color:${c.sel}">+ Node</span><span style="font-size:12.5px;color:${c.sel}">+ Block type</span><span style="margin-left:auto">${qSort('the draft’s order')}</span></div>
+    <div style="flex:1;display:grid;grid-template-columns:400px minmax(0, 1fr) 290px;gap:16px;min-height:0">
+      <section style="position:relative;${panel(c)};overflow:hidden;display:flex;flex-direction:column;min-height:0">
+        <div style="display:grid;grid-template-columns:${cols};gap:10px;padding:9px 12px;font-size:11.5px;color:${c.ink3}">${qBox(false)}<span>Block</span><span>Type</span><span>Score</span><span style="text-align:right">Your verdict</span></div>
+        ${group('de Bruijn graphs', 14, '[Author A]', '3 of 8')}
+        ${[
+          ['Title, claim, level, links', 'node', 'approved'],
+          ['From reads to k-mers', 'text', 'approved'],
+          ['How many 5-mers…', 'try', '', { focus: 1, sel: 1 }],
+          ['An error sits at a read’s end', 'callout', '', { sel: 1 }],
+          ['Video · genome assembly', 'resource', 'approved'],
+          ['Q1 · Which mark does an error leave?', 'exam', 'changes'],
+          ['Q2 · Count the edges', 'exam', '', { sel: 1 }],
+          ['Q3 · Order the steps', 'exam', ''],
+        ].map(row).join('')}
+        ${group('k-mers', 6, '[Author B]', '0 of 3')}
+        ${[['Title, claim, level, links', 'node', ''], ['Sliding a window', 'text', '']].map(row).join('')}
+        <div style="margin-top:auto;padding:10px 12px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3}">11 blocks in 2 drafts · scores arrive with the judge in M5</div>
+        <div style="position:absolute;left:12px;right:12px;bottom:46px;display:flex;flex-direction:column;gap:4px;padding:10px 14px;border-radius:12px;background:${c.ink};color:${c.bg};box-shadow:${c.float}">
+          <div style="display:flex;align-items:center;gap:12px;font-size:13px"><span style="font-weight:600">3 selected</span><span style="margin-left:auto;padding:5px 11px;border-radius:8px;background:${c.surface};color:${c.ink};font-weight:600">Approve 2 blocks</span><span style="opacity:.75">Clear</span></div>
+          <span style="font-size:11.5px;opacity:.75">Q2 is skipped: answer it first.</span>
+        </div>
+      </section>
+      <section style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:${c.ink3}">de Bruijn graphs · try block · written by [Author A]</span><span style="font-size:19px;font-weight:600">How many 5-mers…</span></div>
+          ${seg(c, ['Standalone', 'Changes'], 0)}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:620px">
+          <span style="font-size:14.5px;line-height:1.6">A read is 12 bases long. How many 5-mers does it hold?</span>
+          ${option('A', '7')}${option('B', '8', { right: 1 })}${option('C', '12')}
+          <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:${c.bg};font-size:12.5px;line-height:1.5;color:${c.ink2}"><span style="font-weight:600;color:${c.ink}">Hints the learner sees</span><span>1 · Slide the window one base at a time.</span><span>2 · The last window starts at base 8.</span></div>
+          <span style="font-size:12px;color:${c.ink3}">You answered before the right answer was shown; a wrong answer counts, never blocks.</span>
+        </div>
+        ${placeholder('Judge’s score · arrives with M5', 'A model from another family scores each block against its rubric; its named parts, reasons and redraft history go here.')}
+      </section>
+      <aside style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:14px;font-weight:600">Your verdict</span>
+        <div style="display:flex;flex-direction:column;gap:7px">${cond(true, 'Read standalone')}${cond(true, 'Answered it yourself')}${cond(true, 'You didn’t write it')}</div>
+        ${wide(primary(c, 'Approve this block'))}
+        <div style="display:flex;flex-direction:column;gap:6px">${secondary(c, 'Request changes…')}<span style="font-size:12px;color:${c.ink3}">Say what to change; the author reads it beside the block.</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid ${c.border}">
+          <span style="font-size:13px;font-weight:600">This draft · 3 of 8 blocks approved</span>
+          <span style="display:flex;height:6px;border-radius:3px;background:${c.border};overflow:hidden"><span style="width:37.5%;background:${c.ink2}"></span><span style="width:12.5%;background:${c.meas}"></span></span>
+          <span style="display:block;padding:9px 12px;border-radius:9px;background:${c.border};color:${c.ink3};font-size:13px;font-weight:600;text-align:center">Approve the draft · 5 blocks left</span>
+          <span style="font-size:12px;color:${c.ink2};line-height:1.45">1 change requested: send it back to its author with the requests, or approve the draft once every block is approved.</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${secondary(c, 'Send back · 1 request')}</div>
+        </div>
+        ${placeholder('Was the score right? · M5', 'Your answer will measure the judge in Quality.')}
+        <div style="margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:${c.ink3}"><span>${kbd('A')} approve</span><span>${kbd('R')} request</span><span>${kbd('J')} ${kbd('K')} next / previous</span></div>
+      </aside>
+    </div>`;
+  return studio('Review', inner, 1680, 1000);
+}
+
+// ── S10 Land — approved drafts to git as one pull request (M4.9) ──
+function land() {
+  const cols = '26px minmax(0, 1fr) 120px 64px minmax(0, 1fr) 150px';
+  const row = ([on, id, region, rev, who, files, o = {}]) => `<div style="display:grid;grid-template-columns:${cols};align-items:center;gap:12px;padding:0 14px;height:52px;border-top:1px solid ${c.border};font-size:13.5px;${on ? `background:${c.bg}` : ''}">
+    ${qBox(on)}<span style="display:flex;align-items:center;gap:8px;min-width:0"><a style="font-family:${MONO};font-size:13px;font-weight:500;color:${c.sel};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${id}</a>${o.tag ?? ''}</span>
+    <span style="color:${c.ink2}">${region}</span><span style="color:${c.ink3};font-variant-numeric:tabular-nums">rev ${rev}</span>
+    <span style="color:${c.ink2};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${who}</span>
+    <span style="font-family:${MONO};font-size:12px;color:${c.ink2};text-align:right">${files}</span></div>`;
+  const step = (st, t, note = '') => `<div style="display:flex;gap:10px;align-items:flex-start;font-size:13px"><span style="width:20px;height:20px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;${st === 'done' ? `background:${c.bg};border:1px solid ${c.border2}` : st === 'on' ? `border:2px solid ${c.sel}` : `border:1.5px dashed ${c.border2}`}">${st === 'done' ? ic.check(c.ink2) : ''}</span><span style="display:flex;flex-direction:column;gap:1px"><span style="${st === 'on' ? 'font-weight:600' : st === 'done' ? `color:${c.ink2}` : `color:${c.ink3}`}">${t}</span>${note ? `<span style="font-size:12px;color:${c.ink3}">${note}</span>` : ''}</span></div>`;
+  const fact = (k, v) => `<div style="display:flex;justify-content:space-between;gap:10px;font-size:12.5px"><span style="color:${c.ink3}">${k}</span><span style="color:${c.ink2};text-align:right">${v}</span></div>`;
+  const landing = card(`
+    <div style="display:flex;justify-content:space-between;align-items:center">${blueTag('Landing')}<span style="font-size:12px;color:${c.ink3}">started 4 min ago by [Operator]</span></div>
+    <span style="font-size:16px;font-weight:600">2 nodes in one pull request</span>
+    <a style="font-family:${MONO};font-size:12.5px;color:${c.sel}">comeni-code-content#42 · studio/land-7f3a</a>
+    <div style="display:flex;flex-direction:column;gap:9px;padding-top:4px">
+      ${step('done', 'Checked in place against the index')}
+      ${step('done', 'One commit, opened as a pull request', 'by Comeni Code Studio, auto-merge on')}
+      ${step('on', 'Its checks are running', 'validate · review')}
+      ${step('', 'Merged into main')}
+      ${step('', 'The index follows main', 'then learners see it')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;padding-top:10px;border-top:1px solid ${c.border}">
+      <span style="font-size:12.5px;font-weight:600">In this landing</span>
+      <span style="font-family:${MONO};font-size:12.5px;color:${c.ink2}">tpm · rev 9 &nbsp; k-mers · rev 6</span>
+      <span style="font-size:12px;color:${c.open}"><b style="font-family:${MONO};font-weight:500">de-bruijn-graphs</b> dropped: its folder changed on main since the draft began (CA0306). It stays approved; open a new draft.</span>
+    </div>`, 'gap:12px');
+  const failed = card(`
+    <div style="display:flex;justify-content:space-between;align-items:center">${redTag('Failed')}<span style="font-size:12px;color:${c.ink3}">yesterday · #41</span></div>
+    <span style="font-size:13px;line-height:1.5;color:${c.ink2}">The pull request’s checks failed: <span style="font-family:${MONO}">validate</span> found CS0011 in <span style="font-family:${MONO}">expression-units/node.yaml</span>. Its drafts are held until you close it.</span>
+    <div style="display:flex;align-items:center;gap:10px">${secondary(c, 'Close the landing')}<span style="font-size:12px;color:${c.ink3}">closes #41; its drafts stay approved</span></div>`, 'gap:10px');
+  const index = card(`
+    <span style="font-size:14px;font-weight:600">Main and the index</span>
+    ${fact('main', `<span style="font-family:${MONO}">a1b2c3d</span> · 3 min ago`)}
+    ${fact('Live build', `<span style="font-family:${MONO}">a1b2c3d</span> · 26 nodes`)}
+    ${fact('Follows main', 'every 5 minutes, and on a merge')}
+    <span style="font-size:12px;color:${c.ink3}">Up to date.</span>`, 'gap:8px');
+  return studio('Land', `
+    ${titleRow('Land', 'Approved drafts go to comeni-code-content as one pull request; it merges when its checks pass.')}
+    ${qViews([['Ready to land', 3, 1], ['Landing', 1], ['Landed', 12], ['Failed', 1]]).replace(/<span style="display:flex;align-items:center;padding:9px 12px;font-size:13px;color:[^"]*">\+ Save view<\/span>/, '')}
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 400px;gap:20px;min-height:0">
+      <section style="position:relative;display:flex;flex-direction:column;gap:12px;min-width:0">
+        <div style="${panel(c)};overflow:hidden">
+          <div style="display:grid;grid-template-columns:${cols};gap:12px;padding:10px 14px;font-size:11.5px;color:${c.ink3}">${qBox(false)}<span>Node</span><span>Region</span><span>Revision</span><span>Approved by</span><span style="text-align:right">Files</span></div>
+          ${[
+            [true, 'expression-units', 'Expression', 4, '[Reviewer A]', '~node ~body'],
+            [true, 'selective-alignment', 'Algorithms', 11, '[Reviewer A]', '+node +body +exam'],
+            [false, 'transcriptome', 'Genomics', 3, '[Operator] · self-approved', '~exam'],
+          ].map(row).join('')}
+        </div>
+        <span style="font-size:12.5px;color:${c.ink3}">The batch is checked in place against the index before anything is sent; a draft whose folder changed on main is dropped, with the reason.</span>
+        ${bulkBar(2, [['Land 2 drafts as one pull request', 'L']])}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:16px;min-height:0">${landing}${failed}${index}</aside>
+    </div>`, 1680, 1060);
+}
+
 // ── S18 Skeletons — draft nodes from a public outline ──────────
 function skeletons() {
   const cols = '26px minmax(0, 1fr) minmax(0, 1.25fr) 128px 58px';
@@ -2301,6 +2433,8 @@ const STUDIO = [
   ['QuestionBuilder', 'S3 · Exam pool — a question built from blocks', questionBuilder(), 1680, 1380, 'Reached from: the Exam pool tab of a node’s workbench.\nTutor spec T7.1, authoring questions: a question is a small block document built with the same editor as a page. The stem holds text, figures (library components filled with data), images with licence, math, tables, code or sequences; the answer is choice (options that hold figures or images), number, sequence, figure interaction or order. Seeded variants are checked across 20 seeds; each distractor names a misconception; the rationale shows only in results; no hints. Preview shows it exactly as in a test.'],
   ['FigureComposer', 'S4 · Figure composer — choose · data · interaction · describe', composer(), 1680, 1060, 'Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.'],
   ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
+  ['ReviewM4', 'S6 · Review — as M4 builds it: a verdict per block', reviewM4(), 1680, 1000, 'M4.9b, built before the judge exists: every block of a submitted draft (its fields, text, try, callouts, resources, exam questions) gets a reviewer\'s verdict, one at a time or ticked and approved together (a question only once answered); Approve the draft opens once every block is approved. Questions are answered before the right answer shows; a wrong answer counts, never blocks. The score column, the judge\'s panel and “Was the score right?” are placeholders until M5 fills them; the S6 board beside it is the target.'],
+  ['Land', 'S10 · Land — approved drafts as one pull request', land(), 1680, 1060, 'M4.9c, operators only. Reached from: Land in the rail.\nPick approved drafts; they are checked in place and sent as one commit and pull request by the GitHub App, which merges itself when green. Each landing shows its steps, its pull request and any dropped draft with its reason; a failed one holds its drafts until closed. Main and the index show whether learners see it yet.'],
   ['Skeletons', 'S18 · Skeletons — nodes drafted from a public outline', skeletons(), 1680, 1060, 'Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.'],
   ['Quality', 'S11 · Quality — is the tutor teaching? is the judge right?', quality(), 1680, 880, 'Reached from: the rail (Insight).\nTutor spec T9 and T8.3: aggregates only. Right-on-next-try after a step back and after a hint; routes finished; resources marked unhelpful or broken. Judge–human agreement per block type against a 90% line — automatic deployment is locked for every type, and crossing the line only makes a type eligible for its own spec. Every “fix these” row opens the place to act.'],
   ['Graph', 'S2 · Graph — search, neighbourhood, impact', graph(), 1680, 1060, 'Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.'],

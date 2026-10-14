@@ -53,32 +53,98 @@ def test_withdrawing_reopens_it_for_a_contributor_or_an_operator(
     assert review.withdraw(draft, by=otto).state == "open"
 
 
-def test_a_rejection_needs_a_reason_and_a_reviewer_who_did_not_contribute(
+def test_a_send_back_from_review_needs_a_request_or_a_note(
     ada: User, grace: User, ready: Ready
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
     with pytest.raises(review.RoleTooLow):
-        review.reject(draft, revision=2, reason="No.", by=ada)
-    with pytest.raises(review.NeedsReason):
-        review.reject(draft, revision=2, reason="  ", by=grace)
-    rejected = review.reject(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
-    assert rejected.state == "open"
-    assert history(draft)[-1].reason == "The key of tpm-of-a is wrong."
+        review.send_back(draft, revision=2, reason="No.", by=ada)
+    with pytest.raises(review.NothingToSendBack):
+        review.send_back(draft, revision=2, reason="  ", by=grace)
+    back = review.send_back(draft, revision=2, reason="The key of tpm-of-a is wrong.", by=grace)
+    assert back.state == "open"
+    event = history(draft)[-1]
+    assert (event.kind, event.reason) == ("sent_back", "The key of tpm-of-a is wrong.")
 
 
-def test_a_reviewer_who_contributed_may_not_reject(ada: User, grace: User, ready: Ready) -> None:
+def test_a_reviewer_who_contributed_may_not_send_it_back(
+    ada: User, grace: User, ready: Ready
+) -> None:
     draft = ready(ada)
     drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=grace, change="m")
     review.submit(draft, revision=3, by=ada)
     with pytest.raises(review.Contributor):
-        review.reject(draft, revision=3, reason="Mine.", by=grace)
+        review.send_back(draft, revision=3, reason="Mine.", by=grace)
 
 
-def test_a_rejection_names_the_submitted_revision(ada: User, grace: User, ready: Ready) -> None:
+def test_a_send_back_from_review_names_the_submitted_revision(
+    ada: User, grace: User, ready: Ready
+) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
     with pytest.raises(review.NotSubmittedRevision) as wrong:
-        review.reject(draft, revision=1, reason="Old.", by=grace)
+        review.send_back(draft, revision=1, reason="Old.", by=grace)
     assert wrong.value.submitted == 2
+    with pytest.raises(review.NotSubmittedRevision):
+        review.send_back(draft, reason="No revision named.", by=grace)
+
+
+def test_a_send_back_carries_the_requests(ada: User, grace: User, ready: Ready) -> None:
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    review.set_verdicts(
+        draft,
+        revision=2,
+        verdicts=[
+            review.Given("block/1", "changes", "Say what TPM is not."),
+            review.Given("exam/tpm-of-a", "changes", "The key is off by one."),
+            review.Given("node", "approved"),
+        ],
+        by=grace,
+    )
+    review.send_back(draft, revision=2, reason="", by=grace)
+    back = review.sent_back(draft)
+    assert back is not None
+    assert (back.event.by, back.event.reason) == (grace, "")
+    assert [(v.key, v.kind, v.note) for v in back.requests] == [
+        ("block/1", "callout", "Say what TPM is not."),
+        ("exam/tpm-of-a", "exam", "The key is off by one."),
+    ]
+
+
+def test_requests_come_in_reading_order(ada: User, grace: User, ready: Ready) -> None:
+    # The final review: requests were in the order their rows were first written.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    for key in ("exam/tpm-of-a", "block/1"):
+        review.set_verdicts(
+            draft, revision=2, verdicts=[review.Given(key, "changes", f"Fix {key}.")], by=grace
+        )
+    review.send_back(draft, revision=2, reason="", by=grace)
+    drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
+    back = review.sent_back(draft)
+    assert back is not None
+    assert [v.key for v in back.requests] == ["block/1", "exam/tpm-of-a"]
+
+
+def test_requests_go_once_the_draft_is_submitted_again(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    # Review Focus 4.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    assert review.sent_back(draft) is None
+    review.send_back(draft, revision=2, reason="Shorter, please.", by=grace)
+    assert review.sent_back(draft) is not None
+    review.submit(draft, revision=2, by=ada)
+    assert review.sent_back(draft) is None
+
+
+def test_an_approved_draft_sent_back_has_a_reason_and_no_requests(
+    ada: User, otto: User, ready: Ready
+) -> None:
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    Draft.objects.filter(pk=draft.pk).update(state="approved")
+    review.send_back(draft, reason="A typo in the claim.", by=otto)
+    back = review.sent_back(draft)
+    assert back is not None
+    assert (back.event.reason, back.requests) == ("A typo in the claim.", [])
 
 
 def test_only_an_open_draft_is_submitted(ada: User, ready: Ready) -> None:
@@ -104,14 +170,14 @@ def test_the_log_reads_back_in_order_and_replays_to_the_state(
     ada: User, grace: User, ready: Ready
 ) -> None:
     draft = review.submit(ready(ada), revision=2, by=ada)
-    review.reject(draft, revision=2, reason="Too long.", by=grace)
+    review.send_back(draft, revision=2, reason="Too long.", by=grace)
     review.submit(draft, revision=2, by=ada)
     review.withdraw(draft, by=ada)
     events = history(draft)
     assert [(e.kind, e.by, e.revision) for e in events] == [
         ("opened", ada, 1),
         ("submitted", ada, 2),
-        ("rejected", grace, 2),
+        ("sent_back", grace, 2),
         ("submitted", ada, 2),
         ("withdrawn", ada, 2),
     ]

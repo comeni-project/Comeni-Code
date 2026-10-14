@@ -31,6 +31,7 @@ def record(
     review: Review | None = None,
     answered: int | None = None,
     wrong: int | None = None,
+    blocks: int | None = None,
     landing: Landing | None = None,
 ) -> DraftEvent:
     return DraftEvent.objects.create(
@@ -43,6 +44,7 @@ def record(
         review=review,
         answered=answered,
         wrong=wrong,
+        blocks=blocks,
         landing=landing,
     )
 

@@ -204,10 +204,28 @@
       "page": "studio"
     },
     {
-      "file": "Skeletons.dc.html",
-      "title": "S18 · Skeletons — nodes drafted from a public outline",
+      "file": "ReviewM4.dc.html",
+      "title": "S6 · Review — as M4 builds it: a verdict per block",
       "x": 1800,
       "y": 3140,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "Land.dc.html",
+      "title": "S10 · Land — approved drafts as one pull request",
+      "x": 3600,
+      "y": 3140,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "Skeletons.dc.html",
+      "title": "S18 · Skeletons — nodes drafted from a public outline",
+      "x": 0,
+      "y": 4560,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -215,8 +233,8 @@
     {
       "file": "Quality.dc.html",
       "title": "S11 · Quality — is the tutor teaching? is the judge right?",
-      "x": 3600,
-      "y": 3140,
+      "x": 1800,
+      "y": 4560,
       "w": 1680,
       "h": 880,
       "page": "studio"
@@ -224,7 +242,7 @@
     {
       "file": "Graph.dc.html",
       "title": "S2 · Graph — search, neighbourhood, impact",
-      "x": 0,
+      "x": 3600,
       "y": 4560,
       "w": 1680,
       "h": 1060,
@@ -234,8 +252,8 @@
     {
       "file": "Assistant.dc.html",
       "title": "S15 · Assistant — chat that acts through the content API",
-      "x": 1800,
-      "y": 4560,
+      "x": 0,
+      "y": 5980,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -243,8 +261,8 @@
     {
       "file": "AIUsage.dc.html",
       "title": "S16 · AI — usage",
-      "x": 3600,
-      "y": 4560,
+      "x": 1800,
+      "y": 5980,
       "w": 1680,
       "h": 1180,
       "page": "studio"
@@ -252,8 +270,8 @@
     {
       "file": "AIModels.dc.html",
       "title": "S17 · AI — models, budgets and scoring",
-      "x": 0,
-      "y": 6100,
+      "x": 3600,
+      "y": 5980,
       "w": 1440,
       "h": 1260,
       "page": "studio"
@@ -261,8 +279,8 @@
     {
       "file": "Drafts.dc.html",
       "title": "S19 · Drafts — your open drafts, and a new node",
-      "x": 1560,
-      "y": 6100,
+      "x": 0,
+      "y": 7600,
       "w": 1680,
       "h": 1000,
       "page": "studio"
@@ -270,8 +288,8 @@
     {
       "file": "WorkbenchSettings.dc.html",
       "title": "S3 · Workbench — Settings",
-      "x": 3360,
-      "y": 6100,
+      "x": 1800,
+      "y": 7600,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -279,8 +297,8 @@
     {
       "file": "WorkbenchLinks.dc.html",
       "title": "S3 · Workbench — Links",
-      "x": 0,
-      "y": 7720,
+      "x": 3600,
+      "y": 7600,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -288,8 +306,8 @@
     {
       "file": "WorkbenchResources.dc.html",
       "title": "S3 · Workbench — Resources",
-      "x": 1800,
-      "y": 7720,
+      "x": 0,
+      "y": 9020,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -297,8 +315,8 @@
     {
       "file": "Team.dc.html",
       "title": "S14 · Team — members, roles and invites",
-      "x": 3600,
-      "y": 7720,
+      "x": 1800,
+      "y": 9020,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -510,24 +528,40 @@
       "page": "studio"
     },
     {
-      "id": "note-skeletons",
+      "id": "note-reviewm4",
       "x": 1800,
       "y": 2890,
+      "w": 620,
+      "text": "M4.9b, built before the judge exists: every block of a submitted draft (its fields, text, try, callouts, resources, exam questions) gets a reviewer's verdict, one at a time or ticked and approved together (a question only once answered); Approve the draft opens once every block is approved. Questions are answered before the right answer shows; a wrong answer counts, never blocks. The score column, the judge's panel and “Was the score right?” are placeholders until M5 fills them; the S6 board beside it is the target.",
+      "page": "studio"
+    },
+    {
+      "id": "note-land",
+      "x": 3600,
+      "y": 2890,
+      "w": 620,
+      "text": "M4.9c, operators only. Reached from: Land in the rail.\nPick approved drafts; they are checked in place and sent as one commit and pull request by the GitHub App, which merges itself when green. Each landing shows its steps, its pull request and any dropped draft with its reason; a failed one holds its drafts until closed. Main and the index show whether learners see it yet.",
+      "page": "studio"
+    },
+    {
+      "id": "note-skeletons",
+      "x": 0,
+      "y": 4310,
       "w": 620,
       "text": "Reached from: the rail (Content).\nLeads to: Requests (accepted stubs), Graph.\nTutor spec T5: import an outline from an allowed source (College Board, OpenStax, Galaxy Training, the Carpentries); the model proposes node stubs and needs links with reasons, each scored; each is mapped to existing / new / merge; bulk-send to Requests, where only a person accepts. Coverage against reference courses — Khan Academy included — is checked by people.",
       "page": "studio"
     },
     {
       "id": "note-quality",
-      "x": 3600,
-      "y": 2890,
+      "x": 1800,
+      "y": 4310,
       "w": 620,
       "text": "Reached from: the rail (Insight).\nTutor spec T9 and T8.3: aggregates only. Right-on-next-try after a step back and after a hint; routes finished; resources marked unhelpful or broken. Judge–human agreement per block type against a 90% line — automatic deployment is locked for every type, and crossing the line only makes a type eligible for its own spec. Every “fix these” row opens the place to act.",
       "page": "studio"
     },
     {
       "id": "note-graph",
-      "x": 0,
+      "x": 3600,
       "y": 4310,
       "w": 620,
       "text": "Reached from: the rail.\nLeads to: a node’s workbench, split/merge, a weave preview for any goal.\nSearch-first with a region tree (Bloom, WebProtégé); a layered neighbourhood view for editing, with Table and Whole network as alternatives (node-link views stop being readable past ~20 nodes); the three link kinds drawn differently; the impact of a change shown before it is proposed; link history. Switch Editing view / Learner view (click it, or the “view” tweak): learners only ever see the metro style, and the learner view shows the change on their maps.",
@@ -535,64 +569,64 @@
     },
     {
       "id": "note-assistant",
-      "x": 1800,
-      "y": 4310,
+      "x": 0,
+      "y": 5730,
       "w": 620,
       "text": "Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.",
       "page": "studio"
     },
     {
       "id": "note-aiusage",
-      "x": 3600,
-      "y": 4310,
+      "x": 1800,
+      "y": 5730,
       "w": 620,
       "text": "Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.",
       "page": "studio"
     },
     {
       "id": "note-aimodels",
-      "x": 0,
-      "y": 5850,
+      "x": 3600,
+      "y": 5730,
       "w": 620,
       "text": "The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.",
       "page": "studio"
     },
     {
       "id": "note-drafts",
-      "x": 1560,
-      "y": 5850,
+      "x": 0,
+      "y": 7350,
       "w": 620,
       "text": "Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.",
       "page": "studio"
     },
     {
       "id": "note-workbenchsettings",
-      "x": 3360,
-      "y": 5850,
+      "x": 1800,
+      "y": 7350,
       "w": 620,
       "text": "M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.",
       "page": "studio"
     },
     {
       "id": "note-workbenchlinks",
-      "x": 0,
-      "y": 7470,
+      "x": 3600,
+      "y": 7350,
       "w": 620,
       "text": "M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.",
       "page": "studio"
     },
     {
       "id": "note-workbenchresources",
-      "x": 1800,
-      "y": 7470,
+      "x": 0,
+      "y": 8770,
       "w": 620,
       "text": "M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.",
       "page": "studio"
     },
     {
       "id": "note-team",
-      "x": 3600,
-      "y": 7470,
+      "x": 1800,
+      "y": 8770,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
       "page": "studio"
