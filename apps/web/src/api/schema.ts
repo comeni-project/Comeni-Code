@@ -50,6 +50,7 @@ export interface ApiSchemas {
   PendingInviteOut: PendingInviteOut;
   ProblemOut: ProblemOut;
   ProviderOut: ProviderOut;
+  QuestionChecksOut: QuestionChecksOut;
   QuestionOut: QuestionOut;
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
@@ -119,12 +120,14 @@ export interface CheckOut {
   status: "ok" | "down";
 }
 /**
- * The checklist, and the problems behind it, so Checks is one request (M4K.6).
+ * The checklist, the problems behind it and each exam question's checks, so Checks is one
+ * request (M4K.6, M4P.4).
  */
 export interface ChecklistOut {
   items: ItemOut[];
   passed: boolean;
   problems?: ProblemOut[];
+  questions?: QuestionChecksOut[];
 }
 export interface ItemOut {
   detail: string;
@@ -140,7 +143,15 @@ export interface ProblemOut {
   file: string;
   line: number | null;
   message: string;
+  question?: string | null;
   text: string;
+}
+/**
+ * One exam question's checks (M4P.4).
+ */
+export interface QuestionChecksOut {
+  id: string;
+  items: ItemOut[];
 }
 export interface DraftNodeOut {
   blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
@@ -299,7 +310,7 @@ export interface ExamQuestionIn {
   level?: Level | null;
   options?: OptionIn[] | null;
   rationale: string;
-  stem: string;
+  stem: BlockIn[];
   steps?: string[] | null;
   title: string;
   tolerance?: number | null;

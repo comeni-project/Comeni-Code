@@ -29,6 +29,7 @@ from code_api.studio.schemas import (
     FilesOut,
     ItemOut,
     ProblemOut,
+    QuestionChecksOut,
     RefusedOut,
     ReviewQuestionOut,
     RevisionOut,
@@ -67,6 +68,7 @@ from code_schema.edits import (
     set_resources,
     update_block,
     update_exam_question,
+    write_faithfully,
 )
 from code_schema.grading import NotAnAnswer
 
@@ -301,6 +303,18 @@ class OptionIn(Schema):
     plain: bool = False
 
 
+class BlockIn(Schema):
+    """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
+    (callout, title, markdown)."""
+
+    kind: Literal["text", "try", "callout", "sequence"]
+    markdown: str = ""
+    letters: str = ""
+    question: str = ""
+    callout: str = ""
+    title: str = ""
+
+
 class AnswerIn(Schema):
     """A question's answer, flat as the files write it (M4Q.3): `options` for a choice; `answer`,
     `unit` and `tolerance` for a number; `answer` as text, `accept` and `exact` for a sequence;
@@ -327,21 +341,9 @@ class ExamQuestionIn(AnswerIn):
     id: str
     title: str
     claim: str = ""
-    stem: str  # MyST, as exam.yaml holds it
+    stem: list[BlockIn]  # blocks, as on a page; code-schema writes the MyST (M4P.3)
     level: Level | None = None
     rationale: str
-
-
-class BlockIn(Schema):
-    """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
-    (callout, title, markdown)."""
-
-    kind: Literal["text", "try", "callout", "sequence"]
-    markdown: str = ""
-    letters: str = ""
-    question: str = ""
-    callout: str = ""
-    title: str = ""
 
 
 class ResourceIn(Schema):
@@ -437,7 +439,7 @@ def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
         id=given.id,
         title=given.title,
         claim=given.claim,
-        stem=given.stem,
+        stem=write_faithfully([_block(block) for block in given.stem], file="exam.yaml"),
         answer=_answer(given),
         level=given.level,
         rationale=given.rationale,
@@ -657,17 +659,23 @@ def checklist(request: HttpRequest, public_id: UUID) -> Status[ChecklistOut] | S
     draft = find(public_id)
     if draft is None or draft.state not in LIVE_STATES:
         return Status(404, Message(detail="No live draft has this id.", code="CA0201"))
-    items, problems = drafts.checks(draft)
+    items, problems, by_question = drafts.checks(draft)
     return Status(
         200,
         ChecklistOut(
             passed=all(item.passed for item in items),
-            items=[
-                ItemOut(rule=item.rule, passed=item.passed, detail=item.detail) for item in items
-            ],
+            items=[_item_out(item) for item in items],
             problems=[ProblemOut.of(problem) for problem in problems],
+            questions=[
+                QuestionChecksOut(id=question, items=[_item_out(item) for item in got])
+                for question, got in by_question.items()
+            ],
         ),
     )
+
+
+def _item_out(item: drafts.Item) -> ItemOut:
+    return ItemOut(rule=item.rule, passed=item.passed, detail=item.detail)
 
 
 # ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────
@@ -719,7 +727,7 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
                     detail="The checklist does not pass.",
                     code="CA0212",
                     problems=[],
-                    items=[ItemOut(rule=i.rule, passed=i.passed, detail=i.detail) for i in items],
+                    items=[_item_out(i) for i in items],
                 ),
             )
         case review.Contributor():

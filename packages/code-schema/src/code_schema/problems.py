@@ -19,6 +19,8 @@ class Problem:
     code: str  # declared in diagnostics.yml; required, so no problem goes unnamed (spec M4D.4)
     field: str | None = None
     line: int | None = None
+    # The question a problem was found in, once its id was read (M4.8d spec, M4P.2).
+    question: str | None = None
 
     def __post_init__(self) -> None:
         diagnostic(self.code)  # an undeclared code raises UnknownDiagnostic

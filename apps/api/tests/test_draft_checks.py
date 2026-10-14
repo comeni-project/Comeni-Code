@@ -62,7 +62,13 @@ def exam_question(n: int) -> dict[str, Any]:
         "id": f"rate-{n}",
         "kind": "number",
         "title": f"Reads at {n * 10} per kilobase",
-        "stem": f"At {n * 10} reads per kilobase, how many reads does a 2 kb transcript collect?\n",
+        "stem": [
+            {
+                "kind": "text",
+                "markdown": f"At {n * 10} reads per kilobase, "
+                "how many reads does a 2 kb transcript collect?\n",
+            }
+        ],
         "answer": n * 20,
         "unit": "",
         "tolerance": None,
@@ -238,3 +244,41 @@ def test_the_checklist_carries_verifys_problems(client: Client) -> None:
     verified = call(client, "get", f"/api/studio/drafts/{draft}/verify").json()
     assert body["problems"] == verified["problems"]
     assert any("no-such-node" in problem["text"] for problem in body["problems"])
+
+
+def _checks_of(body: dict[str, Any], question_id: str) -> list[dict[str, Any]]:
+    return next(q["items"] for q in body["questions"] if q["id"] == question_id)
+
+
+def test_each_exam_question_has_its_checks(client: Client) -> None:
+    draft = opened(client, {"node_id": "tpm"})
+    body = call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()
+    pool = call(client, "get", f"/api/studio/drafts/{draft}").json()["node"]["exam"]
+    assert [q["id"] for q in body["questions"]] == [q["id"] for q in pool]
+    choice = next(q for q in pool if q["kind"] == "choice")
+    assert "One right option of three to five" in [
+        item["rule"] for item in _checks_of(body, choice["id"])
+    ]
+    number = next(q for q in pool if q["kind"] == "number")
+    assert "One right option of three to five" not in [
+        item["rule"] for item in _checks_of(body, number["id"])
+    ]
+
+
+def test_a_warning_fails_one_item_of_one_question(client: Client) -> None:
+    draft = opened(client, {"node_id": "tpm"})
+    far = exam_question(1) | {"level": "advanced"}  # TPM is introductory: two steps (CS0814)
+    added = call(
+        client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": far}
+    )
+    assert added.status_code == 200, added.content
+    body = call(client, "get", f"/api/studio/drafts/{draft}/checklist").json()
+    failed = [
+        (question["id"], item["rule"])
+        for question in body["questions"]
+        for item in question["items"]
+        if not item["passed"]
+    ]
+    assert failed == [(far["id"], "Level within one step of the node's")]
+    (item,) = [i for i in _checks_of(body, far["id"]) if not i["passed"]]
+    assert "advanced" in item["detail"]

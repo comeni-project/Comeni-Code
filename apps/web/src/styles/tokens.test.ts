@@ -17,6 +17,12 @@ describe("tokens.css", () => {
     );
   });
 
+  it("gives a box marked dark the dark tokens, for the builder's preview (M4P.7)", () => {
+    expect(renderTokensCss(readTokens())).toContain(
+      ':root[data-theme="dark"],\n[data-theme="dark"] {',
+    );
+  });
+
   it("refuses a token missing from one theme", () => {
     const tokens = readTokens();
     const { exon: _dropped, ...dark } = tokens.dark;

@@ -29,18 +29,35 @@ export const DRAFT: DraftOut = {
   problems: [],
 };
 
-/** An exam question as the API sends a draft's (M4Q.5), in either state. */
-export const examQuestion = (id: string, state: "approved" | "draft"): StudioExamQuestionOut => ({
+/** An exam question as the API sends a draft's (M4Q.5), in either state: a number, or a choice
+ * of three — one right, one naming a misconception, one plain. */
+export const examQuestion = (
+  id: string,
+  state: "approved" | "draft",
+  kind: "number" | "choice" = "number",
+): StudioExamQuestionOut => ({
   id,
-  kind: "number",
+  kind,
   title: `Question ${id}`,
   claim: "",
   stem: [{ kind: "text", markdown: `What is ${id}?\n` }],
   stem_text: `What is ${id}?\n`,
   state,
   level: null,
-  options: null,
-  answer: 1,
+  options:
+    kind === "choice"
+      ? [
+          { text: "A bubble", right: true, misconception: "", plain: false },
+          {
+            text: "A tip",
+            right: false,
+            misconception: "confuses an end with a middle",
+            plain: false,
+          },
+          { text: "A clean path", right: false, misconception: "", plain: true },
+        ]
+      : null,
+  answer: kind === "number" ? 1 : null,
   unit: "",
   tolerance: null,
   accept: [],

@@ -11,6 +11,7 @@ from schema.content_helpers import SMALL_POOL, content_root, node_yaml
 from code_schema.blocks import SequenceBlock
 from code_schema.content import read_content
 from code_schema.node import Level, read_node
+from code_schema.problems import Problem
 from code_schema.questions import ChoiceAnswer, NumberAnswer, Option
 
 REGIONS = {"sequence-analysis"}
@@ -461,3 +462,36 @@ def test_every_stem_is_written_as_a_literal_block() -> None:
     node = read_content(Path(__file__).resolve().parents[1] / "fixtures" / "salmon").nodes["tpm"]
     written = write_exam_yaml(node)
     assert written.count("    stem: |\n") == len(node.exam)
+
+
+def problems_of(tmp_path: Path, exam: str | None, *, try_field: str = "") -> list[Problem]:
+    folder = make(tmp_path, exam, try_field=try_field)
+    _, problems = read_node(folder, regions=REGIONS, root=tmp_path)
+    return problems
+
+
+def test_a_problem_inside_an_exam_question_names_it(tmp_path: Path) -> None:
+    pool = POOL.replace("        plain: true\n", "")  # CS0821: a wrong option names nothing
+    (warning,) = problems_of(tmp_path, pool, try_field=TRY)
+    assert (warning.code, warning.question) == ("CS0821", "tpm-or-count")
+
+
+def test_a_stem_problem_names_its_question(tmp_path: Path) -> None:
+    stem = "    stem: What does a transcript's TPM tell you?\n"
+    pool = POOL.replace(stem, "    stem: |\n      :::{try} tpm-units\n      :::\n", 1)
+    found = {(p.code, p.question) for p in problems_of(tmp_path, pool, try_field=TRY)}
+    assert ("CS0817", "tpm-or-count") in found
+
+
+def test_pool_problems_name_no_question(tmp_path: Path) -> None:
+    small = "exam:\n" + number("only-one")
+    (few,) = problems_of(tmp_path, small, try_field=TRY)
+    assert (few.code, few.question) == ("CS0813", None)
+
+
+def test_a_problem_before_the_id_carries_no_question(tmp_path: Path) -> None:
+    pool = POOL.replace("  - id: reads-at-rate\n", "  - kind: number\n", 1).replace(
+        "    kind: number\n    title: How many reads", "    title: How many reads", 1
+    )
+    found = [p for p in problems_of(tmp_path, pool, try_field=TRY) if p.code == "CS0304"]
+    assert [p.question for p in found] == [None]

@@ -64,7 +64,7 @@ describe("TryEditor", () => {
   it("offers no misconception on a try option: those belong to the exam pool (#257)", async () => {
     bench();
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
-    expect(screen.getByLabelText("Option 2")).toBeInTheDocument();
+    expect(screen.getByLabelText("Option B")).toBeInTheDocument();
     expect(screen.queryByLabelText(/misconception/i)).toBeNull();
   });
 
@@ -75,9 +75,9 @@ describe("TryEditor", () => {
       screen.getAllByRole("button", { name: "Add a try block" })[0] as HTMLElement,
     );
     await userEvent.type(screen.getByLabelText("Question"), "Which is a 3-mer of ACGTA?");
-    await userEvent.type(screen.getByLabelText("Option 1"), "ACGT");
-    await userEvent.type(screen.getByLabelText("Option 2"), "CGT");
-    await userEvent.click(screen.getByLabelText("Option 2 is the right answer"));
+    await userEvent.type(screen.getByLabelText("Option A"), "ACGT");
+    await userEvent.type(screen.getByLabelText("Option B"), "CGT");
+    await userEvent.click(screen.getByLabelText("Option B is the right answer"));
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     const body = await sent(fake);
     expect(body.at).toBe(0);
@@ -90,23 +90,23 @@ describe("TryEditor", () => {
     bench();
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
     await userEvent.click(screen.getByRole("button", { name: "+ Option" }));
-    expect(screen.getByLabelText("Option 3")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Remove option 3" }));
-    expect(screen.queryByLabelText("Option 3")).toBeNull();
+    expect(screen.getByLabelText("Option C")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Remove option C" }));
+    expect(screen.queryByLabelText("Option C")).toBeNull();
   });
 
   it("saves a removed option when you then leave the block", async () => {
     const fake = bench();
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
     await userEvent.click(screen.getByRole("button", { name: "+ Option" }));
-    await userEvent.type(screen.getByLabelText("Option 3"), "95");
+    await userEvent.type(screen.getByLabelText("Option C"), "95");
     await userEvent.click(screen.getByRole("heading", { level: 1 }));
     await vi.waitFor(() =>
       expect(fake.mock.calls.filter(([, i]) => i?.method === "PUT")).toHaveLength(1),
     );
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
     await userEvent.click(screen.getByRole("button", { name: "+ Option" }));
-    await userEvent.click(screen.getByRole("button", { name: "Remove option 1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove option A" }));
     await userEvent.click(screen.getByRole("heading", { level: 1 }));
     await vi.waitFor(() =>
       expect(fake.mock.calls.filter(([, i]) => i?.method === "PUT")).toHaveLength(2),
@@ -117,7 +117,7 @@ describe("TryEditor", () => {
     const fake = bench();
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
     await userEvent.click(screen.getByLabelText("Number"));
-    expect(screen.queryByLabelText("Option 1")).toBeNull();
+    expect(screen.queryByLabelText("Option A")).toBeNull();
     await userEvent.type(screen.getByLabelText("Answer"), "96");
     await userEvent.type(screen.getByLabelText("Unit"), "k-mers");
     await userEvent.type(screen.getByLabelText("Tolerance"), "0");
@@ -143,7 +143,7 @@ describe("TryEditor", () => {
     ]);
   });
 
-  it("shows a sequence or order try without an editor until the builder arrives (M4.8d)", async () => {
+  it("edits an order try question in the workbench (M4P.6)", async () => {
     const order: DraftNodeOut = {
       ...WITH_TRY,
       questions: [
@@ -163,13 +163,17 @@ describe("TryEditor", () => {
         },
       ],
     };
-    answering({
+    const fake = answering({
       "GET /api/me": signedInAs("author"),
       "GET /api/studio/drafts/d-1": { body: { ...DRAFT, node: order } },
+      "PUT /api/studio/drafts/d-1/blocks/1": saved,
     });
     renderAt("/studio/drafts/d-1", <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />);
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
-    expect(screen.getByText(/Edited in the exam pool's builder \(M4\.8d\)/)).toBeInTheDocument();
-    expect(screen.queryByLabelText("Question")).toBeNull();
+    expect(screen.queryByText(/M4\.8d/)).toBeNull();
+    expect(screen.getByLabelText("Step 2")).toHaveValue("Build");
+    await userEvent.type(screen.getByLabelText("Step 3"), " the path");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect((await sent(fake)).question.steps).toEqual(["Cut", "Build", "Walk the path"]);
   });
 });

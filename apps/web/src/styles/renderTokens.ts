@@ -100,8 +100,9 @@ ${block(tokens.dark, "    ")}
   }
 }
 
-/* Dark when someone chose it, whatever the system says. */
-:root[data-theme="dark"] {
+/* Dark when someone chose it, whatever the system says: the page, or one box (M4P.7). */
+:root[data-theme="dark"],
+[data-theme="dark"] {
   color-scheme: dark;
 ${block(tokens.dark, "  ")}
 }

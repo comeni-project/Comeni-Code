@@ -160,6 +160,7 @@ class ProblemOut(Schema):
     code: str
     message: str
     text: str
+    question: str | None = None  # the question it was found in (M4P.2)
 
     @staticmethod
     def of(problem: Problem) -> ProblemOut:
@@ -170,6 +171,7 @@ class ProblemOut(Schema):
             code=problem.code,
             message=problem.message,
             text=str(problem),
+            question=problem.question,
         )
 
 
@@ -296,12 +298,21 @@ class VerifyOut(Schema):
     problems: list[ProblemOut]
 
 
+class QuestionChecksOut(Schema):
+    """One exam question's checks (M4P.4)."""
+
+    id: str
+    items: list[ItemOut]
+
+
 class ChecklistOut(Schema):
-    """The checklist, and the problems behind it, so Checks is one request (M4K.6)."""
+    """The checklist, the problems behind it and each exam question's checks, so Checks is one
+    request (M4K.6, M4P.4)."""
 
     passed: bool
     items: list[ItemOut]
     problems: list[ProblemOut] = []
+    questions: list[QuestionChecksOut] = []
 
 
 # ── Review (M4.5 spec, M4R.6) ────────────────────────────────────────────────────────────────────

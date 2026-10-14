@@ -24,6 +24,7 @@ from code_schema import Level, Node, Problem, parse_node_files
 from code_schema.graph import graph_problems
 from code_schema.links import locate_links
 from code_schema.node import NODE_FILE
+from code_schema.question_rules import question_checks
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
 Edit = Callable[[Node], Node]
@@ -304,9 +305,10 @@ class Item:
 MIN_EXAM = 4  # M4's bar (architecture spec R4): an exam pool of at least four questions
 
 
-def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
+def checks(draft: Draft) -> tuple[list[Item], list[Problem], dict[str, list[Item]]]:
     """M4's bar before submitting (M4W.5) and the problems behind it, from one check (M4K.6): it
-    verifies clean, a level, a resource, four exam questions."""
+    verifies clean, a level, a resource, four exam questions; and each exam question's own checks,
+    by its id in pool order (M4P.4)."""
     node, problems = _checked(draft)
     errors = [problem for problem in problems if problem.refuses]
     resources = 0 if node is None else len(node.resources)
@@ -321,7 +323,18 @@ def checks(draft: Draft) -> tuple[list[Item], list[Problem]]:
         Item("a resource", resources >= 1, f"{resources} resource(s)"),
         Item("four exam questions", exam >= MIN_EXAM, f"{exam} of {MIN_EXAM}"),
     ]
-    return items, problems
+    by_question = (
+        {}
+        if node is None
+        else {
+            question.id: [
+                Item(check.says, check.passed, check.detail)
+                for check in question_checks(question, problems)
+            ]
+            for question in node.exam
+        }
+    )
+    return items, problems, by_question
 
 
 def checklist(draft: Draft) -> list[Item]:
