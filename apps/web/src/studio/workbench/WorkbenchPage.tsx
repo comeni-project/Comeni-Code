@@ -1,5 +1,6 @@
 // S3 · Workbench (M4.8b spec, M4K.1): one draft, opened with one GET. The header, the draft's state,
 // the tabs (kept in the address as ?tab=) and the preview; each tab's editor is its own file.
+
 import { useIsMutating } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
@@ -12,6 +13,7 @@ import { ExamPoolTab } from "./ExamPoolTab";
 import { Header } from "./Header";
 import { LinksTab } from "./LinksTab";
 import { PreviewPanel } from "./PreviewPanel";
+import { RequestsBanner } from "./Requests";
 import { ResourcesTab } from "./ResourcesTab";
 import { SettingsTab } from "./SettingsTab";
 import { StateLine } from "./StateLine";
@@ -96,6 +98,7 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
     <>
       <Header draft={draft} node={node} />
       <StateLine draft={draft} />
+      <RequestsBanner draft={draft} />
       <div role="tablist" aria-label="Workbench" className="flex gap-0.5 border-b border-border">
         {TABS.map((t) => (
           <button

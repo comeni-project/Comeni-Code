@@ -1,6 +1,7 @@
 // The body's blocks (S3, M4K.3): a row per block with Edit, Move and Delete (confirmed in place)
 // and a drag handle; add points between rows. One editor is open at a time, and opening another
 // leaves the first, which saves it. A draft that is not open shows the rows alone.
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
@@ -10,6 +11,7 @@ import { deleteBlock, type Edit, moveBlock } from "./edits";
 import { firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
 import { RefusalNotice } from "./RefusalNotice";
+import { RequestNote } from "./Requests";
 import { refusalOf } from "./refusal";
 import { follow, reloadDraft, useAfterSaves, useDraftEdit } from "./useDraftEdit";
 
@@ -222,6 +224,10 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
             {adder(at)}
             {freshAt(at)}
             {row}
+            <RequestNote
+              draftId={draftId}
+              keyNow={block.kind === "try" ? `try/${block.question}` : `block/${at}`}
+            />
           </div>
         );
       })}

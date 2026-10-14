@@ -1,5 +1,6 @@
 // Settings (the WorkbenchSettings board, M4K.3): the node's fields, each saved when you leave it,
 // with Verify's problem about a field under it; Discard at the foot, confirmed in place.
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useId, useState } from "react";
 import { discardDraft } from "../../api/drafts";
@@ -12,6 +13,7 @@ import { LEVELS } from "../drafts/NewNodeForm";
 import { CARD, HINT, INPUT, NOTE } from "./bench";
 import { fields } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
+import { RequestNote } from "./Requests";
 import { refusalOf } from "./refusal";
 import { useLeaveEdit } from "./useLeaveEdit";
 import { mayTakeBack } from "./who";
@@ -49,6 +51,7 @@ export function SettingsTab({
   );
   return (
     <>
+      <RequestNote draftId={draft.public_id} keyNow="node" />
       <form className={CARD} onSubmit={(e) => e.preventDefault()}>
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-[14.5px] font-semibold">The node</h2>

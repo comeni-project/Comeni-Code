@@ -1,10 +1,12 @@
 // S3 · Exam pool (M4.8d spec, M4P.5): the board's three columns — the questions, one question's
 // editor, and its preview and checks. The tab brings its own side panel.
+
 import { useCallback, useRef, useState } from "react";
 import type { DraftNodeOut, ExamQuestionIn } from "../../api/schema";
 import { ExamEditor } from "./ExamEditor";
 import { ExamSidePanel } from "./ExamSidePanel";
 import { examIn, newExamQuestion } from "./exam";
+import { RequestNote } from "./Requests";
 import { useAfterSaves } from "./useDraftEdit";
 
 /** The question open in the editor: one the draft holds, or a new one not saved yet; null (or an
@@ -74,15 +76,17 @@ export function ExamPoolTab({
           <p className="text-[12.5px] text-ink-2">No exam questions yet.</p>
         )}
         {node.exam.map((q, at) => (
-          <Row
-            key={q.id}
-            n={at + 1}
-            title={q.title || q.id}
-            kind={q.kind}
-            state={q.state}
-            on={openId === q.id}
-            onClick={() => choose(() => ({ id: q.id }))}
-          />
+          <div key={q.id} className="flex flex-col gap-1">
+            <Row
+              n={at + 1}
+              title={q.title || q.id}
+              kind={q.kind}
+              state={q.state}
+              on={openId === q.id}
+              onClick={() => choose(() => ({ id: q.id }))}
+            />
+            <RequestNote draftId={draftId} keyNow={`exam/${q.id}`} />
+          </div>
         ))}
         {fresh !== null && (
           <Row
