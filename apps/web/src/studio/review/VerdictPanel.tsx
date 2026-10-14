@@ -7,6 +7,7 @@ import type { QueuedDraftOut, ReviewItemOut } from "../../api/schema";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 
+const KEY = "rounded-[5px] border border-border-2 bg-bg px-1.5 font-mono text-[11px] text-ink-2";
 const FIELD =
   "rounded-control border border-border-2 bg-surface px-2.5 py-2 text-[13px] font-normal";
 
@@ -142,7 +143,7 @@ export function VerdictPanel({ draft, item }: { draft: QueuedDraftOut; item: Rev
         </label>
         <button
           type="button"
-          className={PRIMARY}
+          className={`${PRIMARY} disabled:bg-border disabled:text-ink-3 disabled:opacity-100 disabled:shadow-none`}
           disabled={!all || (own && reason.trim() === "") || decide.isPending}
           onClick={() => decide.mutate("approve")}
         >
@@ -164,13 +165,13 @@ export function VerdictPanel({ draft, item }: { draft: QueuedDraftOut; item: Rev
       </div>
       <div className="flex flex-wrap gap-2.5 text-[11.5px] text-ink-3">
         <span>
-          <kbd>A</kbd> approve
+          <kbd className={KEY}>A</kbd> approve
         </span>
         <span>
-          <kbd>R</kbd> request
+          <kbd className={KEY}>R</kbd> request
         </span>
         <span>
-          <kbd>J</kbd> <kbd>K</kbd> next / previous
+          <kbd className={KEY}>J</kbd> <kbd className={KEY}>K</kbd> next / previous
         </span>
       </div>
     </aside>
