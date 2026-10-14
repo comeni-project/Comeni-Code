@@ -52,6 +52,8 @@ export interface ApiSchemas {
   ProviderOut: ProviderOut;
   QuestionChecksOut: QuestionChecksOut;
   QuestionOut: QuestionOut;
+  QueueKeyOut: QueueKeyOut;
+  QueuedDraftOut: QueuedDraftOut;
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
@@ -61,6 +63,7 @@ export interface ApiSchemas {
   ResourceOut: ResourceOut;
   ResourcesIn: ResourcesIn;
   ResultOut: ResultOut;
+  ReviewContentOut: ReviewContentOut;
   ReviewFieldsOut: ReviewFieldsOut;
   ReviewItemOut: ReviewItemOut;
   ReviewOut: ReviewOut;
@@ -563,6 +566,26 @@ export interface PendingInviteOut {
   public_id: string;
   role: string;
 }
+export interface QueueKeyOut {
+  answered: boolean | null;
+  key: string;
+  kind: string;
+  label: string;
+  verdict: string | null;
+}
+/**
+ * A draft in the review queue (M4.9b spec, M4RS.1): its keys and your verdicts, no content.
+ */
+export interface QueuedDraftOut {
+  contributors: MemberOut[];
+  keys: QueueKeyOut[];
+  node_id: string;
+  public_id: string;
+  reads: boolean;
+  revision: number;
+  submitted_at: string;
+  title: string;
+}
 /**
  * A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist
  * that fails, its items (M4.5 spec, M4R.6).
@@ -600,6 +623,15 @@ export interface ResultOut {
   title: string;
 }
 /**
+ * A key's content, by kind (M4V.4); a question's key only once answered.
+ */
+export interface ReviewContentOut {
+  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
+  fields: ReviewFieldsOut | null;
+  question: ReviewQuestionOut | null;
+  resource: StudioResourceOut | null;
+}
+/**
  * The `node` key's content: the node's own fields and its links (M4V.1).
  */
 export interface ReviewFieldsOut {
@@ -611,19 +643,6 @@ export interface ReviewFieldsOut {
   region: string;
   related: LinkOut[];
   title: string;
-}
-/**
- * One key of your review (M4V.4): its content by kind, and your verdict and note.
- */
-export interface ReviewItemOut {
-  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
-  fields: ReviewFieldsOut | null;
-  key: string;
-  kind: string;
-  note: string;
-  question: ReviewQuestionOut | null;
-  resource: StudioResourceOut | null;
-  verdict: string | null;
 }
 /**
  * One question of the submitted revision, as its reviewer sees it: the key and rationale only
@@ -646,6 +665,22 @@ export interface ReviewQuestionOut {
   tolerance: number | null;
   unit: string;
   value: number | string | null;
+}
+/**
+ * One key of your review (M4V.4): its content, your verdict and note, and what it was before
+ * this draft when it changed (M4.9b spec, M4RS.2).
+ */
+export interface ReviewItemOut {
+  before: ReviewContentOut | null;
+  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
+  change: string;
+  fields: ReviewFieldsOut | null;
+  key: string;
+  kind: string;
+  note: string;
+  question: ReviewQuestionOut | null;
+  resource: StudioResourceOut | null;
+  verdict: string | null;
 }
 export interface ReviewOut {
   items: ReviewItemOut[];

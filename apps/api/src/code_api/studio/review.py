@@ -8,6 +8,7 @@ finds the state moved.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
 
 from django.db import transaction
@@ -15,8 +16,8 @@ from django.utils import timezone
 
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
-from code_api.studio import drafts
 from code_api.content.snapshot import node_from_index
+from code_api.studio import drafts
 from code_api.studio.keys import Key, align, review_keys, same
 from code_api.studio.landing import AlreadyLanding
 from code_api.studio.log import record
@@ -341,6 +342,60 @@ def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answer
         review.answers = {**review.answers, question_id: given}
         review.save(update_fields=["answers"])
     return Answered(question, given, right)
+
+
+# ── The queue (M4.9b spec, M4RS.1) ────────────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class QueuedKey:
+    key: Key
+    verdict: str | None
+    answered: bool | None  # None unless the key is a question
+
+
+@dataclass(frozen=True)
+class Queued:
+    draft: Draft
+    title: str
+    revision: int
+    submitted_at: datetime
+    reads: bool
+    keys: list[QueuedKey]
+
+
+def queue(by: User) -> list[Queued]:
+    """Every submitted draft `by` may judge, oldest submission first, with its keys and `by`'s
+    verdicts (M4RS.1). No content: a draft's review is read when one of its blocks is opened."""
+    _reviewer(by)
+    found = []
+    for draft in Draft.objects.filter(state=State.SUBMITTED):
+        if by in drafts.contributors(draft) and not by.can_act_as(Role.OPERATOR):
+            continue
+        submission = _submission(draft)
+        mine = Review.objects.filter(submission=submission, reviewer=by).first()
+        verdicts = _verdicts(mine)
+        given = {} if mine is None else dict(mine.answers)
+        node, _ = drafts.node_of(draft)
+        keys = [] if node is None else review_keys(node)
+        found.append(
+            Queued(
+                draft=draft,
+                title=draft.node_id if node is None else node.title,
+                revision=drafts.latest(draft).number,
+                submitted_at=submission.at,
+                reads=node is not None,
+                keys=[
+                    QueuedKey(
+                        key=key,
+                        verdict=None if (v := verdicts.get(key.key)) is None else v.verdict,
+                        answered=None if (q := question_of(key)) is None else q.id in given,
+                    )
+                    for key in keys
+                ],
+            )
+        )
+    return sorted(found, key=lambda queued: queued.submitted_at)
 
 
 # ── Verdicts (M4.9a spec, M4V.2) ────────────────────────────────────────────────────────────────

@@ -450,6 +450,27 @@ class ReviewItemOut(ReviewContentOut):
     before: ReviewContentOut | None
 
 
+class QueueKeyOut(Schema):
+    key: str
+    kind: str
+    label: str
+    verdict: str | None
+    answered: bool | None  # a question's: whether you answered it; null for other keys
+
+
+class QueuedDraftOut(Schema):
+    """A draft in the review queue (M4.9b spec, M4RS.1): its keys and your verdicts, no content."""
+
+    public_id: UUID
+    node_id: str
+    title: str
+    revision: int
+    submitted_at: datetime
+    contributors: list[MemberOut]
+    reads: bool
+    keys: list[QueueKeyOut]
+
+
 class ReviewOut(Schema):
     revision: int
     items: list[ReviewItemOut]

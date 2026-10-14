@@ -15,6 +15,7 @@ from code_api.health.api import router as health_router
 from code_api.studio.api import router as studio_router
 from code_api.studio.index_api import router as index_router
 from code_api.studio.landing_api import router as landing_router
+from code_api.studio.review_api import router as review_router
 
 api = NinjaAPI(title="Comeni Code API", version="0.1.0")
 install_access_handlers(api)
@@ -26,3 +27,4 @@ api.add_router("/search", search_router)
 api.add_router("/studio/drafts", studio_router)
 api.add_router("/studio/landings", landing_router)
 api.add_router("/studio/index", index_router)
+api.add_router("/studio/review", review_router)
