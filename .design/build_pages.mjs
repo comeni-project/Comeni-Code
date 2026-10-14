@@ -1977,8 +1977,8 @@ function reviewM4() {
           <span style="font-size:13px;font-weight:600">This draft · 3 of 8 blocks approved</span>
           <span style="display:flex;height:6px;border-radius:3px;background:${c.border};overflow:hidden"><span style="width:37.5%;background:${c.ink2}"></span><span style="width:12.5%;background:${c.meas}"></span></span>
           <span style="display:block;padding:9px 12px;border-radius:9px;background:${c.border};color:${c.ink3};font-size:13px;font-weight:600;text-align:center">Approve the draft · 5 blocks left</span>
-          <span style="font-size:12px;color:${c.ink2};line-height:1.45">1 change requested: send it back with the requests, or approve the draft once every block is approved.</span>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">${secondary(c, 'Send back · 1 request')}${secondary(c, 'Reject the draft…', c.open)}</div>
+          <span style="font-size:12px;color:${c.ink2};line-height:1.45">1 change requested: send it back to its author with the requests, or approve the draft once every block is approved.</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">${secondary(c, 'Send back · 1 request')}</div>
         </div>
         ${placeholder('Was the score right? · M5', 'Your answer will measure the judge in Quality.')}
         <div style="margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:${c.ink3}"><span>${kbd('A')} approve</span><span>${kbd('R')} request</span><span>${kbd('J')} ${kbd('K')} next / previous</span></div>
