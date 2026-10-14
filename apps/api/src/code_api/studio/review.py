@@ -163,7 +163,7 @@ def send_back(draft: Draft, *, reason: str, by: User, revision: int | None = Non
 @dataclass(frozen=True)
 class SentBack:
     event: DraftEvent
-    requests: list[Verdict]  # the `changes` verdicts, in the order given
+    requests: list[Verdict]  # the `changes` verdicts, in the reading order of what was sent back
 
 
 def sent_back(draft: Draft) -> SentBack | None:
@@ -173,8 +173,15 @@ def sent_back(draft: Draft) -> SentBack | None:
         return None
     if last.review is None:
         return SentBack(last, [])
-    asks = last.review.verdicts.filter(verdict=Verdict.Given.CHANGES).order_by("id")
-    return SentBack(last, list(asks))
+    asks = list(last.review.verdicts.filter(verdict=Verdict.Given.CHANGES).order_by("id"))
+    # Placed by the revision that was sent back, not the draft's latest, which the author may
+    # have edited since; a revision that no longer reads keeps the order the requests were made.
+    sent = None if last.revision is None else draft.revisions.filter(number=last.revision).first()
+    node = None if sent is None else drafts.node_of(draft, sent)[0]
+    if node is not None:
+        place = {key.key: at for at, key in enumerate(review_keys(node))}
+        asks.sort(key=lambda verdict: place.get(verdict.key, len(place)))
+    return SentBack(last, asks)
 
 
 # ── The review: the reviewer's answers to the submitted revision's questions (M4R.4) ───────────

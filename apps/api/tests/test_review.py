@@ -110,6 +110,20 @@ def test_a_send_back_carries_the_requests(ada: User, grace: User, ready: Ready) 
     ]
 
 
+def test_requests_come_in_reading_order(ada: User, grace: User, ready: Ready) -> None:
+    # The final review: requests were in the order their rows were first written.
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    for key in ("exam/tpm-of-a", "block/1"):
+        review.set_verdicts(
+            draft, revision=2, verdicts=[review.Given(key, "changes", f"Fix {key}.")], by=grace
+        )
+    review.send_back(draft, revision=2, reason="", by=grace)
+    drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=ada, change="m")
+    back = review.sent_back(draft)
+    assert back is not None
+    assert [v.key for v in back.requests] == ["block/1", "exam/tpm-of-a"]
+
+
 def test_requests_go_once_the_draft_is_submitted_again(
     ada: User, grace: User, ready: Ready
 ) -> None:
