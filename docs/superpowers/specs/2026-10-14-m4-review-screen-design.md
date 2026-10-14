@@ -130,6 +130,10 @@ and approves the draft. Compared with the board at 1680 px, in light and in dark
   prop through every tab; an exam request sits under its row, not also above the editor.
 - **A decision marks the draft's review stale, not removed** (#294, found in the walk): removing it
   while the open block watched it fetched it again, and the API answered 409.
+- **After answering a changed question, its draft's review is asked once more** (#297): only the
+  server holds the earlier key, which then shows. The word diff spends no colour (#298).
+- **`align` pairs equal runs, then the same text anywhere, then by position** within what is left
+  of a replace span (#295).
 - **Left from the board**: the search box (search is not in this part); *+ Node* and *+ Block type*
   are selects, not links; the bulk bar sits under the list rather than over it.
 - The walk: the review page opens with one GET; each submission's review is asked once; each
