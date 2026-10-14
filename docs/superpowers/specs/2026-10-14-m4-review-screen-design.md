@@ -1,6 +1,6 @@
 # M4.9b — The review screen
 
-**Status: written 2026-10-14, for the operator's review.** The second slice of M4.9 (#127).
+**Status: agreed 2026-10-14; built.** The second slice of M4.9 (#127).
 Designed with the operator in conversation on 2026-10-14, section by section, from the board
 *S6 · Review — as M4.9 builds it* (`reviewM4()` in `.design/build_pages.mjs`, approved on the M4
 canvas, its last view renamed *Approved* in this brainstorm). It builds on M4.9a's verdicts per
@@ -121,6 +121,19 @@ workbench banner and notes. A fresh reviewer over the branch at the end.
 questions, requests a change on a block and sends the draft back; the author sees the banner and
 the note beside that block, edits and resubmits; the reviewer approves every block, some in bulk,
 and approves the draft. Compared with the board at 1680 px, in light and in dark.
+
+## Notes from the build
+
+- **Text blocks side by side are one block** (#258): `align`'s tests insert, delete and move a
+  callout, since text beside text is joined.
+- **Requests in the workbench read the draft already cached** (`useDraft`, the same key), not a
+  prop through every tab; an exam request sits under its row, not also above the editor.
+- **A decision marks the draft's review stale, not removed** (#294, found in the walk): removing it
+  while the open block watched it fetched it again, and the API answered 409.
+- **Left from the board**: the search box (search is not in this part); *+ Node* and *+ Block type*
+  are selects, not links; the bulk bar sits under the list rather than over it.
+- The walk: the review page opens with one GET; each submission's review is asked once; each
+  verdict and the bulk approval are one PUT each; nothing is asked after a write.
 
 ## Not in this part
 
