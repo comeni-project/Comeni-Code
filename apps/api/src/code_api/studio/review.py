@@ -8,6 +8,7 @@ finds the state moved.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
 
 from django.db import transaction
@@ -15,8 +16,9 @@ from django.utils import timezone
 
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
+from code_api.content.snapshot import node_from_index
 from code_api.studio import drafts
-from code_api.studio.keys import Key, review_keys
+from code_api.studio.keys import Key, align, review_keys, same
 from code_api.studio.landing import AlreadyLanding
 from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent, LandingDraft, Review, Revision, Verdict
@@ -164,6 +166,9 @@ def send_back(draft: Draft, *, reason: str, by: User, revision: int | None = Non
 class SentBack:
     event: DraftEvent
     requests: list[Verdict]  # the `changes` verdicts, in the reading order of what was sent back
+    # Each request's key in the draft's latest revision, or None when the author deleted its block
+    # (M4.9b spec, M4RS.3).
+    now: dict[str, str | None]
 
 
 def sent_back(draft: Draft) -> SentBack | None:
@@ -172,7 +177,7 @@ def sent_back(draft: Draft) -> SentBack | None:
     if last is None or last.kind != Kind.SENT_BACK:
         return None
     if last.review is None:
-        return SentBack(last, [])
+        return SentBack(last, [], {})
     asks = list(last.review.verdicts.filter(verdict=Verdict.Given.CHANGES).order_by("id"))
     # Placed by the revision that was sent back, not the draft's latest, which the author may
     # have edited since; a revision that no longer reads keeps the order the requests were made.
@@ -181,7 +186,13 @@ def sent_back(draft: Draft) -> SentBack | None:
     if node is not None:
         place = {key.key: at for at, key in enumerate(review_keys(node))}
         asks.sort(key=lambda verdict: place.get(verdict.key, len(place)))
-    return SentBack(last, asks)
+    latest, _ = drafts.node_of(draft)
+    if node is None or latest is None:
+        now: dict[str, str | None] = {verdict.key: None for verdict in asks}
+    else:
+        onward = {b: a for a, b in align(review_keys(node), review_keys(latest)).items() if b}
+        now = {verdict.key: onward.get(verdict.key) for verdict in asks}
+    return SentBack(last, asks, now)
 
 
 # ── The review: the reviewer's answers to the submitted revision's questions (M4R.4) ───────────
@@ -213,7 +224,7 @@ def keys_of(draft: Draft) -> list[Key]:
     return review_keys(node)
 
 
-def _question(key: Key) -> Asked | None:
+def question_of(key: Key) -> Asked | None:
     if isinstance(key.content, TryQuestion):
         return Asked(key.content.id, "try", key.content)
     if isinstance(key.content, ExamQuestion):
@@ -223,7 +234,7 @@ def _question(key: Key) -> Asked | None:
 
 def asked(draft: Draft) -> list[Asked]:
     """Every question the latest revision asks, in reading order: its try blocks, then its pool."""
-    return [question for key in keys_of(draft) if (question := _question(key)) is not None]
+    return [question for key in keys_of(draft) if (question := question_of(key)) is not None]
 
 
 def _reviewer(by: User) -> None:
@@ -276,6 +287,8 @@ class Reviewed:
     verdict: str | None
     note: str
     answered: Answered | None  # None unless the key is a question
+    change: str  # new, changed or same, against the live index (M4.9b spec, M4RS.2)
+    before: Key | None = None  # what it was, when changed
 
 
 @dataclass(frozen=True)
@@ -289,16 +302,26 @@ def _sheet(draft: Draft, by: User) -> Sheet:
     found = _review(draft, by)
     given = {} if found is None else dict(found.answers)
     verdicts = _verdicts(found)
+    keys = keys_of(draft)
+    live = node_from_index(draft.node_id)
+    earlier = [] if live is None else review_keys(live)
+    by_key = {key.key: key for key in earlier}
+    matched = align(earlier, keys)
     items = []
-    for key in keys_of(draft):
-        question = _question(key)
+    for key in keys:
+        question = question_of(key)
         verdict = verdicts.get(key.key)
+        pair = matched[key.key]
+        old = None if pair is None else by_key[pair]
+        change = "new" if old is None else "same" if same(old, key) else "changed"
         items.append(
             Reviewed(
                 key=key,
                 verdict=None if verdict is None else verdict.verdict,
                 note="" if verdict is None else verdict.note,
                 answered=None if question is None else _graded(question, given.get(question.id)),
+                change=change,
+                before=old if change == "changed" else None,
             )
         )
     return Sheet(drafts.latest(draft).number, items)
@@ -328,6 +351,60 @@ def answer(draft: Draft, question_id: str, given: object, *, by: User) -> Answer
         review.answers = {**review.answers, question_id: given}
         review.save(update_fields=["answers"])
     return Answered(question, given, right)
+
+
+# ── The queue (M4.9b spec, M4RS.1) ────────────────────────────────────────────────────────────────
+
+
+@dataclass(frozen=True)
+class QueuedKey:
+    key: Key
+    verdict: str | None
+    answered: bool | None  # None unless the key is a question
+
+
+@dataclass(frozen=True)
+class Queued:
+    draft: Draft
+    title: str
+    revision: int
+    submitted_at: datetime
+    reads: bool
+    keys: list[QueuedKey]
+
+
+def queue(by: User) -> list[Queued]:
+    """Every submitted draft `by` may judge, oldest submission first, with its keys and `by`'s
+    verdicts (M4RS.1). No content: a draft's review is read when one of its blocks is opened."""
+    _reviewer(by)
+    found = []
+    for draft in Draft.objects.filter(state=State.SUBMITTED):
+        if by in drafts.contributors(draft) and not by.can_act_as(Role.OPERATOR):
+            continue
+        submission = _submission(draft)
+        mine = Review.objects.filter(submission=submission, reviewer=by).first()
+        verdicts = _verdicts(mine)
+        given = {} if mine is None else dict(mine.answers)
+        node, _ = drafts.node_of(draft)
+        keys = [] if node is None else review_keys(node)
+        found.append(
+            Queued(
+                draft=draft,
+                title=draft.node_id if node is None else node.title,
+                revision=drafts.latest(draft).number,
+                submitted_at=submission.at,
+                reads=node is not None,
+                keys=[
+                    QueuedKey(
+                        key=key,
+                        verdict=None if (v := verdicts.get(key.key)) is None else v.verdict,
+                        answered=None if (q := question_of(key)) is None else q.id in given,
+                    )
+                    for key in keys
+                ],
+            )
+        )
+    return sorted(found, key=lambda queued: queued.submitted_at)
 
 
 # ── Verdicts (M4.9a spec, M4V.2) ────────────────────────────────────────────────────────────────
@@ -381,7 +458,7 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
                 g.key
                 for g in verdicts
                 if g.verdict == "approved"
-                and (question := _question(keys[g.key])) is not None
+                and (question := question_of(keys[g.key])) is not None
                 and question.id not in given
             ],
         )
@@ -437,7 +514,7 @@ def approve(draft: Draft, *, revision: int, reason: str, by: User) -> Draft:
                 or verdict.verdict != Verdict.Given.APPROVED
             ],
         )
-        questions = [question for key in keys if (question := _question(key)) is not None]
+        questions = [question for key in keys if (question := question_of(key)) is not None]
         given = _given(locked, by)
         wrong = sum(not is_right(q.question.answer, given[q.id]) for q in questions)
         _move(locked, State.APPROVED)

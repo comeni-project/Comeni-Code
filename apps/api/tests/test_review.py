@@ -182,3 +182,32 @@ def test_the_log_reads_back_in_order_and_replays_to_the_state(
         ("withdrawn", ada, 2),
     ]
     assert replay(events) == Draft.objects.get(pk=draft.pk).state == "open"
+
+
+def test_a_request_follows_its_block_through_the_authors_edits(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    from code_schema import Callout
+    from code_schema.edits import delete_block, insert_block
+
+    draft = review.submit(ready(ada), revision=2, by=ada)
+    review.set_verdicts(
+        draft,
+        revision=2,
+        verdicts=[
+            review.Given("block/1", "changes", "Say what TPM is not."),
+            review.Given("block/2", "changes", "Drop this."),
+        ],
+        by=grace,
+    )
+    review.send_back(draft, revision=2, reason="", by=grace)
+    caveat = Callout(kind="caveat", title="Mind the length", markdown="Short ones vary more.\n")
+    drafts.save(draft, based_on=2, edit=lambda n: insert_block(n, 1, caveat), by=ada, change="i")
+    back = review.sent_back(draft)
+    assert back is not None
+    assert back.now == {"block/1": "block/2", "block/2": "block/3"}
+    drafts.save(draft, based_on=3, edit=lambda n: delete_block(n, 3), by=ada, change="d")
+    back = review.sent_back(draft)
+    assert back is not None
+    # Review Focus 5: a deleted block's request stays, pointing nowhere.
+    assert back.now == {"block/1": "block/2", "block/2": None}

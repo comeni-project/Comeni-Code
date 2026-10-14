@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { type TestAsk, TestQuestion } from "./TestQuestion";
 
 const choice: TestAsk = {
@@ -49,5 +50,39 @@ describe("TestQuestion", () => {
     const stem = [...choice.stem, { kind: "sequence" as const, letters: "ACGT\n" }];
     render(<TestQuestion ask={{ ...choice, stem }} number={1} of={1} />);
     expect(screen.getByText(/ACGT/)).toBeInTheDocument();
+  });
+
+  it("gives a choice's index when answered (M4RS.4)", async () => {
+    const onAnswer = vi.fn();
+    render(<TestQuestion ask={choice} number={1} of={1} onAnswer={onAnswer} />);
+    const answer = screen.getByRole("button", { name: "Answer" });
+    expect(answer).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "B A tip" }));
+    await userEvent.click(answer);
+    expect(onAnswer).toHaveBeenCalledWith(1);
+  });
+
+  it("gives a number as a number, and keeps Answer off for what is not one", async () => {
+    const onAnswer = vi.fn();
+    render(
+      <TestQuestion
+        ask={{ stem: [], kind: "number", options: [], unit: "TPM", steps: [] }}
+        number={1}
+        of={1}
+        onAnswer={onAnswer}
+      />,
+    );
+    const field = screen.getByLabelText("Your answer");
+    await userEvent.type(field, "seven");
+    expect(screen.getByRole("button", { name: "Answer" })).toBeDisabled();
+    await userEvent.clear(field);
+    await userEvent.type(field, "7.5e5");
+    await userEvent.click(screen.getByRole("button", { name: "Answer" }));
+    expect(onAnswer).toHaveBeenCalledWith(750000);
+  });
+
+  it("draws no Answer without onAnswer", () => {
+    render(<TestQuestion ask={choice} number={1} of={1} />);
+    expect(screen.queryByRole("button", { name: "Answer" })).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 // Resources (the WorkbenchResources board, M4K.3): + Resource above the cards; one card open with
 // every field, the others closed with Edit and Remove. Every change sends the whole list.
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { DraftNodeOut, Level, ResourceIn, StudioResourceOut } from "../../api/schema";
@@ -7,6 +8,7 @@ import { SECONDARY } from "../../layout/buttons";
 import { NOTE } from "./bench";
 import { resources } from "./edits";
 import { RefusalNotice } from "./RefusalNotice";
+import { RequestNote } from "./Requests";
 import { ResourceCard, titleOf } from "./ResourceCard";
 import { refusalOf } from "./refusal";
 import { reloadDraft, useAfterSaves, useDraftEdit } from "./useDraftEdit";
@@ -85,6 +87,7 @@ export function ResourcesTab({
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[14px] font-semibold">{titleOf(r)}</span>
               <span className="truncate text-[12.5px] text-ink-2">{r.covers}</span>
+              <RequestNote draftId={draftId} keyNow={`resource/${at}`} />
             </div>
             {editable && (
               <div className="flex gap-2">

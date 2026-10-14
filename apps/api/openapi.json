@@ -1812,6 +1812,110 @@
         "title": "QuestionOut",
         "type": "object"
       },
+      "QueueKeyOut": {
+        "properties": {
+          "answered": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verdict"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "label",
+          "verdict",
+          "answered"
+        ],
+        "title": "QueueKeyOut",
+        "type": "object"
+      },
+      "QueuedDraftOut": {
+        "description": "A draft in the review queue (M4.9b spec, M4RS.1): its keys and your verdicts, no content.",
+        "properties": {
+          "contributors": {
+            "items": {
+              "$ref": "#/components/schemas/MemberOut"
+            },
+            "title": "Contributors",
+            "type": "array"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/QueueKeyOut"
+            },
+            "title": "Keys",
+            "type": "array"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "reads": {
+            "title": "Reads",
+            "type": "boolean"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "node_id",
+          "title",
+          "revision",
+          "submitted_at",
+          "contributors",
+          "reads",
+          "keys"
+        ],
+        "title": "QueuedDraftOut",
+        "type": "object"
+      },
       "RefusedOut": {
         "description": "A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist\nthat fails, its items (M4.5 spec, M4R.6).",
         "properties": {
@@ -1896,12 +2000,24 @@
           "note": {
             "title": "Note",
             "type": "string"
+          },
+          "now": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Now"
           }
         },
         "required": [
           "key",
           "kind",
-          "note"
+          "note",
+          "now"
         ],
         "title": "RequestOut",
         "type": "object"
@@ -2116,6 +2232,82 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "ReviewContentOut": {
+        "description": "A key's content, by kind (M4V.4); a question's key only once answered.",
+        "properties": {
+          "block": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "callout": "#/components/schemas/CalloutBlockOut",
+                    "sequence": "#/components/schemas/SequenceBlockOut",
+                    "text": "#/components/schemas/TextBlockOut",
+                    "try": "#/components/schemas/TryBlockOut"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/TextBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TryBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CalloutBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SequenceBlockOut"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewFieldsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewQuestionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resource": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StudioResourceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "fields",
+          "block",
+          "resource",
+          "question"
+        ],
+        "title": "ReviewContentOut",
+        "type": "object"
+      },
       "ReviewFieldsOut": {
         "description": "The `node` key's content: the node's own fields and its links (M4V.1).",
         "properties": {
@@ -2175,8 +2367,18 @@
         "type": "object"
       },
       "ReviewItemOut": {
-        "description": "One key of your review (M4V.4): its content by kind, and your verdict and note.",
+        "description": "One key of your review (M4V.4): its content, your verdict and note, and what it was before\nthis draft when it changed (M4.9b spec, M4RS.2).",
         "properties": {
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewContentOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "block": {
             "anyOf": [
               {
@@ -2209,6 +2411,10 @@
               }
             ],
             "title": "Block"
+          },
+          "change": {
+            "title": "Change",
+            "type": "string"
           },
           "fields": {
             "anyOf": [
@@ -2265,14 +2471,16 @@
           }
         },
         "required": [
+          "fields",
+          "block",
+          "resource",
+          "question",
           "key",
           "kind",
           "verdict",
           "note",
-          "fields",
-          "block",
-          "resource",
-          "question"
+          "change",
+          "before"
         ],
         "title": "ReviewItemOut",
         "type": "object"
@@ -6008,6 +6216,37 @@
           }
         ],
         "summary": "Close a failed landing",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/review": {
+      "get": {
+        "operationId": "code_api_studio_review_api_queue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QueuedDraftOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The drafts to review, and their keys",
         "tags": [
           "studio"
         ]

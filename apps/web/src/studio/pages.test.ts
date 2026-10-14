@@ -9,8 +9,14 @@ describe("Studio's pages", () => {
   });
 
   it("gives each role the pages it can open", () => {
-    expect(pagesFor("operator").map((page) => page.label)).toEqual(["Drafts", "Team"]);
+    expect(pagesFor("operator").map((page) => page.label)).toEqual(["Drafts", "Review", "Team"]);
     expect(pagesFor("author").map((page) => page.label)).toEqual(["Drafts"]);
     expect(pagesFor("")).toEqual([]);
+  });
+
+  it("offers Review to reviewers and above", () => {
+    expect(pagesFor("author").map((p) => p.label)).not.toContain("Review");
+    expect(pagesFor("reviewer").map((p) => p.label)).toContain("Review");
+    expect(pageAt("/studio/review")?.minRole).toBe("reviewer");
   });
 });

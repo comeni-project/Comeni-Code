@@ -16,7 +16,8 @@ from code_api.content.schemas import (
     TextBlockOut,
     TryBlockOut,
 )
-from code_api.studio.review import Answered, Reviewed, SentBack, Sheet
+from code_api.studio.keys import Key
+from code_api.studio.review import Answered, Reviewed, SentBack, Sheet, question_of
 from code_schema import (
     Answer,
     Callout,
@@ -132,6 +133,7 @@ class RequestOut(Schema):
     key: str
     kind: str
     note: str
+    now: str | None  # its key in the latest revision; null when the author deleted that block
 
 
 class RequestsOut(Schema):
@@ -150,7 +152,10 @@ def requests_out(back: SentBack | None) -> RequestsOut | None:
         by=None if back.event.by is None else MemberOut.of(back.event.by),
         at=back.event.at,
         reason=back.event.reason,
-        items=[RequestOut(key=v.key, kind=v.kind, note=v.note) for v in back.requests],
+        items=[
+            RequestOut(key=v.key, kind=v.kind, note=v.note, now=back.now.get(v.key))
+            for v in back.requests
+        ],
     )
 
 
@@ -428,17 +433,46 @@ class ReviewFieldsOut(Schema):
     related: list[LinkOut]
 
 
-class ReviewItemOut(Schema):
-    """One key of your review (M4V.4): its content by kind, and your verdict and note."""
+class ReviewContentOut(Schema):
+    """A key's content, by kind (M4V.4); a question's key only once answered."""
+
+    fields: ReviewFieldsOut | None
+    block: BlockOut | None
+    resource: StudioResourceOut | None
+    question: ReviewQuestionOut | None
+
+
+class ReviewItemOut(ReviewContentOut):
+    """One key of your review (M4V.4): its content, your verdict and note, and what it was before
+    this draft when it changed (M4.9b spec, M4RS.2)."""
 
     key: str
     kind: str
     verdict: str | None
     note: str
-    fields: ReviewFieldsOut | None
-    block: BlockOut | None
-    resource: StudioResourceOut | None
-    question: ReviewQuestionOut | None  # its key and rationale only once answered
+    change: str  # new, changed or same, against the live index
+    before: ReviewContentOut | None
+
+
+class QueueKeyOut(Schema):
+    key: str
+    kind: str
+    label: str
+    verdict: str | None
+    answered: bool | None  # a question's: whether you answered it; null for other keys
+
+
+class QueuedDraftOut(Schema):
+    """A draft in the review queue (M4.9b spec, M4RS.1): its keys and your verdicts, no content."""
+
+    public_id: UUID
+    node_id: str
+    title: str
+    revision: int
+    submitted_at: datetime
+    contributors: list[MemberOut]
+    reads: bool
+    keys: list[QueueKeyOut]
 
 
 class ReviewOut(Schema):
@@ -459,17 +493,34 @@ def _fields_out(node: Node) -> ReviewFieldsOut:
     )
 
 
+def _content(key: Key, given: object | None) -> ReviewContentOut:
+    """`given` is the reviewer's answer to the current question: the before's key shows only once
+    there is one (M4RS.2)."""
+    content = key.content
+    asked = question_of(key)
+    return ReviewContentOut(
+        fields=_fields_out(content) if isinstance(content, Node) else None,
+        block=_block_out(content) if isinstance(content, Text | Callout | SequenceBlock) else None,
+        resource=_resource_out(content) if isinstance(content, Resource) else None,
+        question=None if asked is None else review_question_out(Answered(asked, given, None)),
+    )
+
+
 def _review_item_out(item: Reviewed) -> ReviewItemOut:
-    content = item.key.content
+    given = None if item.answered is None else item.answered.given
+    now = _content(item.key, given)
     return ReviewItemOut(
+        fields=now.fields,
+        block=now.block,
+        resource=now.resource,
+        # the current question keeps its graded answer
+        question=None if item.answered is None else review_question_out(item.answered),
         key=item.key.key,
         kind=item.key.kind,
         verdict=item.verdict,
         note=item.note,
-        fields=_fields_out(content) if isinstance(content, Node) else None,
-        block=_block_out(content) if isinstance(content, Text | Callout | SequenceBlock) else None,
-        resource=_resource_out(content) if isinstance(content, Resource) else None,
-        question=None if item.answered is None else review_question_out(item.answered),
+        change=item.change,
+        before=None if item.before is None else _content(item.before, given),
     )
 
 

@@ -24,6 +24,8 @@ export function TestQuestion({
   of,
   phone = false,
   shuffle = shuffled,
+  onAnswer,
+  busy = false,
 }: {
   ask: TestAsk;
   number: number;
@@ -31,6 +33,9 @@ export function TestQuestion({
   phone?: boolean;
   /** How an order's steps are dealt: shuffled, and fixed in tests. */
   shuffle?: (steps: string[]) => string[];
+  /** Review asks for an answer (M4.9b spec, M4RS.4); without it, nothing is sent (the builder). */
+  onAnswer?: (given: number | string | string[]) => void;
+  busy?: boolean;
 }) {
   const field = useId();
   const [picked, setPicked] = useState<number | null>(null);
@@ -41,10 +46,21 @@ export function TestQuestion({
   // biome-ignore lint/correctness/useExhaustiveDependencies: dealt again only when the count changes
   const places = useMemo(() => shuffle([...Array(count).keys()].map(String)).map(Number), [count]);
   const steps = places.map((at) => ask.steps[at] ?? "");
+  const answerOf = (): number | string | null => {
+    if (ask.kind === "choice") return picked;
+    if (given.trim() === "") return null;
+    if (ask.kind === "number") {
+      const read = Number(given);
+      return Number.isFinite(read) ? read : null;
+    }
+    return given.trim();
+  };
+  const ready = answerOf();
   return (
     <section className="flex flex-col gap-2.5 text-ink">
       <span className="text-[11px] text-ink-3">
-        Question {number} of {of} · no hints in a test
+        Question {number} of {of} ·{" "}
+        {onAnswer === undefined ? "no hints in a test" : "answer before you see the key"}
       </span>
       <div className="flex flex-col gap-2 text-[15px] leading-[1.35] font-semibold">
         <Body blocks={ask.stem} questions={[]} />
@@ -67,7 +83,12 @@ export function TestQuestion({
           ))}
         </div>
       ) : ask.kind === "order" ? (
-        <OrderAnswer key={steps.join("\u0000")} steps={steps} disabled={false} />
+        <OrderAnswer
+          key={steps.join("\u0000")}
+          steps={steps}
+          disabled={busy}
+          {...(onAnswer === undefined ? {} : { onCheck: (order: string[]) => onAnswer(order) })}
+        />
       ) : (
         <div className="flex flex-wrap items-center gap-2.5">
           <label htmlFor={field} className="sr-only">
@@ -86,6 +107,18 @@ export function TestQuestion({
             <span className="text-[14px] text-ink-2">{ask.unit}</span>
           ) : null}
         </div>
+      )}
+      {onAnswer !== undefined && ask.kind !== "order" && (
+        <button
+          type="button"
+          disabled={busy || ready === null}
+          onClick={() => {
+            if (ready !== null) onAnswer(ready);
+          }}
+          className="self-start rounded-control border border-border-2 bg-surface px-3.5 py-2 text-[13px] font-semibold disabled:text-ink-3"
+        >
+          Answer
+        </button>
       )}
     </section>
   );

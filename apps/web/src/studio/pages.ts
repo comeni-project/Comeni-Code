@@ -10,6 +10,8 @@ export interface StudioPage {
   minRole: Role;
   /** The rail's top groups, or its foot (AI, Library, Team on the boards). */
   place: "top" | "foot";
+  /** A count drawn beside the label: for Review, the keys still without your verdict. */
+  count?: "review";
 }
 
 export const STUDIO_PAGES: readonly StudioPage[] = [
@@ -19,6 +21,14 @@ export const STUDIO_PAGES: readonly StudioPage[] = [
     icon: "M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3",
     minRole: "author",
     place: "top",
+  },
+  {
+    path: "/studio/review",
+    label: "Review",
+    icon: "M8 14.5A6.5 6.5 0 1 0 8 1.5a6.5 6.5 0 0 0 0 13zM5 8l2 2 4-4",
+    minRole: "reviewer",
+    place: "top",
+    count: "review",
   },
   {
     path: "/studio/team",
