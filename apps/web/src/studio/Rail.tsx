@@ -1,6 +1,19 @@
 // The rail (M4S.4): the pages a role can open, from STUDIO_PAGES; on a phone it is a row.
 import { NavLink } from "react-router";
+import { useReviewQueue } from "../api/queries";
 import { pagesFor, type StudioPage } from "./pages";
+
+/** The keys still without your verdict, from the one queue GET the review page shares. */
+function ToReview() {
+  const queue = useReviewQueue();
+  const left = (queue.data ?? []).flatMap((d) => d.keys).filter((k) => k.verdict === null).length;
+  if (left === 0) return null;
+  return (
+    <span className="ml-auto rounded-pill bg-bg px-[7px] text-[11.5px] text-ink-3 tabular-nums">
+      {left}
+    </span>
+  );
+}
 
 function Item({ page }: { page: StudioPage }) {
   return (
@@ -24,6 +37,7 @@ function Item({ page }: { page: StudioPage }) {
         />
       </svg>
       {page.label}
+      {page.count === "review" && <ToReview />}
     </NavLink>
   );
 }

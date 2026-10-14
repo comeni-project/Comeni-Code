@@ -11,8 +11,9 @@ import { getJson } from "./client";
 import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
 import { fetchHealth } from "./health";
 import { fetchNode } from "./nodes";
+import { fetchQueue, fetchReview } from "./review";
 import { fetchRoute } from "./routes";
-import type { DraftOut, IndexOut } from "./schema";
+import type { DraftOut, IndexOut, QueuedDraftOut, ReviewOut } from "./schema";
 import { fetchSearch } from "./search";
 
 // A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
@@ -34,6 +35,8 @@ export const queryKeys = {
   draft: (id: string) => ["draft", id] as const,
   draftChecks: (id: string) => ["draft", id, "checks"] as const,
   studioIndex: ["studio-index"] as const,
+  reviewQueue: ["review-queue"] as const,
+  review: (id: string) => ["review", id] as const,
 };
 
 export const useNode = (id: string) =>
@@ -154,4 +157,51 @@ export const useRegions = () =>
 export function draftMoved(client: QueryClient, draft: DraftOut) {
   client.setQueryData(queryKeys.draft(draft.public_id), draft);
   return client.invalidateQueries({ queryKey: ["drafts"] });
+}
+
+/** The drafts to review and their keys: one GET opens the review page (M4.9b spec, M4RS.1). */
+export const useReviewQueue = () =>
+  useQuery({
+    queryKey: queryKeys.reviewQueue,
+    queryFn: ({ signal }) => fetchQueue(signal),
+    retry: false,
+  });
+
+/** A draft's review, asked once, when one of its blocks is first opened (M4RS.4). */
+export const useReview = (id: string | null) =>
+  useQuery({
+    queryKey: queryKeys.review(id ?? ""),
+    queryFn: ({ signal }) => fetchReview(id ?? "", signal),
+    enabled: id !== null,
+    retry: false,
+  });
+
+/** A review a write answered with: in its own cache, and its verdicts and answers in the queue. */
+export function reviewed(client: QueryClient, draftId: string, review: ReviewOut) {
+  client.setQueryData(queryKeys.review(draftId), review);
+  const by = new Map(review.items.map((item) => [item.key, item]));
+  client.setQueryData<QueuedDraftOut[]>(queryKeys.reviewQueue, (queue) =>
+    queue?.map((draft) =>
+      draft.public_id !== draftId
+        ? draft
+        : {
+            ...draft,
+            keys: draft.keys.map((key) => {
+              const now = by.get(key.key);
+              if (now === undefined) return key;
+              const answered = now.question === null ? null : now.question.given !== null;
+              return { ...key, verdict: now.verdict, answered };
+            }),
+          },
+    ),
+  );
+}
+
+/** A draft approved or sent back leaves the queue (M4RS.4). */
+export function decided(client: QueryClient, draft: DraftOut) {
+  client.setQueryData<QueuedDraftOut[]>(queryKeys.reviewQueue, (queue) =>
+    queue?.filter((queued) => queued.public_id !== draft.public_id),
+  );
+  client.removeQueries({ queryKey: queryKeys.review(draft.public_id) });
+  return draftMoved(client, draft);
 }

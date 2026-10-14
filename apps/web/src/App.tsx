@@ -11,6 +11,7 @@ import { NodePage } from "./node/NodePage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
 import { DraftsPage } from "./studio/drafts/DraftsPage";
+import { ReviewPage } from "./studio/review/ReviewPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
 import { TeamPage } from "./studio/team/TeamPage";
@@ -53,6 +54,7 @@ export function App() {
         <Route path="drafts" element={<DraftsPage />} />
         <Route path="drafts/:id" element={<WorkbenchPage />} />
         <Route path="drafts/:id/preview" element={<PreviewPage />} />
+        <Route path="review" element={<ReviewPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="*" element={<p className="text-[15px] text-ink-2">Nothing lives here.</p>} />
       </Route>
