@@ -55,11 +55,15 @@ export interface ApiSchemas {
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
-  RejectIn: RejectIn;
+  RequestOut: RequestOut;
+  RequestsOut: RequestsOut;
   ResourceIn: ResourceIn;
   ResourceOut: ResourceOut;
   ResourcesIn: ResourcesIn;
   ResultOut: ResultOut;
+  ReviewFieldsOut: ReviewFieldsOut;
+  ReviewItemOut: ReviewItemOut;
+  ReviewOut: ReviewOut;
   ReviewQuestionOut: ReviewQuestionOut;
   RevisionOut: RevisionOut;
   Role: Role;
@@ -82,6 +86,8 @@ export interface ApiSchemas {
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
+  VerdictIn: VerdictIn;
+  VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
 }
 export interface ApproveIn {
@@ -259,6 +265,7 @@ export interface DraftOut {
   node_id: string;
   problems: ProblemOut[];
   public_id: string;
+  requests?: RequestsOut | null;
   revision: number;
   state: string;
   submitted_revision: number | null;
@@ -271,6 +278,20 @@ export interface MemberOut {
   name: string;
   public_id: string;
   role: string;
+}
+/**
+ * The last send back, while the draft has not been submitted again (M4.9a spec, M4V.4).
+ */
+export interface RequestsOut {
+  at: string;
+  by: MemberOut | null;
+  items: RequestOut[];
+  reason: string;
+}
+export interface RequestOut {
+  key: string;
+  kind: string;
+  note: string;
 }
 export interface DraftSummaryOut {
   base_digest: string;
@@ -289,6 +310,7 @@ export interface DraftSummaryOut {
 export interface EventOut {
   answered: number | null;
   at: string;
+  blocks: number | null;
   by: MemberOut | null;
   kind: string;
   reason: string;
@@ -551,10 +573,6 @@ export interface RefusedOut {
   items?: ItemOut[];
   problems: ProblemOut[];
 }
-export interface RejectIn {
-  reason: string;
-  revision: number;
-}
 export interface ResourceIn {
   covers: string;
   display: string;
@@ -582,12 +600,39 @@ export interface ResultOut {
   title: string;
 }
 /**
+ * The `node` key's content: the node's own fields and its links (M4V.1).
+ */
+export interface ReviewFieldsOut {
+  claim: string;
+  goes_deeper: LinkOut[];
+  level: string;
+  minutes: number;
+  needs: LinkOut[];
+  region: string;
+  related: LinkOut[];
+  title: string;
+}
+/**
+ * One key of your review (M4V.4): its content by kind, and your verdict and note.
+ */
+export interface ReviewItemOut {
+  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
+  fields: ReviewFieldsOut | null;
+  key: string;
+  kind: string;
+  note: string;
+  question: ReviewQuestionOut | null;
+  resource: StudioResourceOut | null;
+  verdict: string | null;
+}
+/**
  * One question of the submitted revision, as its reviewer sees it: the key and rationale only
  * once they have answered it (M4R.4). A choice is answered by its option's index.
  */
 export interface ReviewQuestionOut {
   ask: string;
   given: unknown;
+  hints: string[];
   id: string;
   kind: string;
   options: string[] | null;
@@ -601,6 +646,10 @@ export interface ReviewQuestionOut {
   tolerance: number | null;
   unit: string;
   value: number | string | null;
+}
+export interface ReviewOut {
+  items: ReviewItemOut[];
+  revision: number;
 }
 export interface RevisionOut {
   change: string;
@@ -644,7 +693,8 @@ export interface SearchOut {
   unmatched: string[];
 }
 export interface SendBackIn {
-  reason: string;
+  reason?: string;
+  revision?: number | null;
 }
 export interface SubmitIn {
   revision: number;
@@ -660,6 +710,15 @@ export interface UpdateBlockIn {
   block: BlockIn;
   question?: TryQuestionIn | null;
   revision: number;
+}
+export interface VerdictIn {
+  key: string;
+  note?: string;
+  verdict: ("approved" | "changes") | null;
+}
+export interface VerdictsIn {
+  revision: number;
+  verdicts: VerdictIn[];
 }
 /**
  * `clean` when no problem refuses; warnings may still be listed (M4W.5).

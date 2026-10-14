@@ -72,11 +72,41 @@ def code_of(response: Any) -> tuple[int, str]:
     return response.status_code, response.json()["code"]
 
 
+TPM_REVIEW_KEYS = [
+    "node",
+    "block/0",
+    "block/1",
+    "block/2",
+    "resource/0",
+    *(f"exam/{question_id}" for question_id in TPM_KEYS),
+]
+
+
+def items(draft: Draft, by: User) -> list[dict[str, Any]]:
+    response = call(by, "get", at(draft, "/review"))
+    assert response.status_code == 200, response.content
+    found: list[dict[str, Any]] = response.json()["items"]
+    return found
+
+
+def question(draft: Draft, by: User, question_id: str) -> dict[str, Any]:
+    return next(i["question"] for i in items(draft, by) if i["key"] == f"exam/{question_id}")
+
+
+def verdicts(draft: Draft, by: User, given: list[dict[str, Any]], revision: int = 2) -> Any:
+    return call(by, "put", at(draft, "/review/verdicts"), {"revision": revision, "verdicts": given})
+
+
+def approve_every_key(draft: Draft, by: User) -> None:
+    response = verdicts(draft, by, [{"key": k, "verdict": "approved"} for k in TPM_REVIEW_KEYS])
+    assert response.status_code == 200, response.content
+
+
 def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) -> None:
     draft = ready(ada)
     sent = call(ada, "post", at(draft, "/submit"), {"revision": 2})
     assert (sent.json()["state"], sent.json()["submitted_revision"]) == ("submitted", 2)
-    unanswered = call(grace, "get", at(draft, "/review")).json()
+    unanswered = [i["question"] for i in items(draft, grace) if i["question"]]
     hidden = ("right_option", "value", "tolerance", "rationale")
     assert all(q[key] is None for q in unanswered for key in hidden)  # #188: no key unanswered
     assert unanswered[1] == {
@@ -92,6 +122,7 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         ],
         "unit": "",
         "steps": None,
+        "hints": [],
         "given": None,
         "right": None,
         "right_option": None,
@@ -111,6 +142,7 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         "TPM",
     )
     answer_all(draft, grace)
+    approve_every_key(draft, grace)
     approved = call(grace, "post", at(draft, "/approve"), {"revision": 2})
     assert approved.status_code == 200, approved.content
     assert (approved.json()["state"], approved.json()["submitted_revision"]) == ("approved", 2)
@@ -125,18 +157,20 @@ def test_the_whole_walk_through_the_api(ada: User, grace: User, ready: Ready) ->
         0,
         False,
     )
+    assert events[-1]["blocks"] == 11
 
 
-def test_reject_and_withdraw_and_send_back(
+def test_send_back_from_review_withdraw_and_send_back(
     ada: User, grace: User, otto: User, ready: Ready
 ) -> None:
     draft = submitted(ada, ready)
-    rejected = call(grace, "post", at(draft, "/reject"), {"revision": 2, "reason": "Too long."})
-    assert rejected.json()["state"] == "open"
+    body = {"revision": 2, "reason": "Too long."}
+    assert call(grace, "post", at(draft, "/send-back"), body).json()["state"] == "open"
     call(ada, "post", at(draft, "/submit"), {"revision": 2})
     assert call(ada, "post", at(draft, "/withdraw")).json()["state"] == "open"
     call(ada, "post", at(draft, "/submit"), {"revision": 2})
     answer_all(draft, grace)
+    approve_every_key(draft, grace)
     call(grace, "post", at(draft, "/approve"), {"revision": 2})
     back = call(otto, "post", at(draft, "/send-back"), {"reason": "A typo in the claim."})
     assert (back.json()["state"], back.json()["submitted_revision"]) == ("open", None)
@@ -147,6 +181,7 @@ def test_reject_and_withdraw_and_send_back(
 def test_an_operator_self_approves_with_a_reason(otto: User, ready: Ready) -> None:
     draft = submitted(otto, ready)
     answer_all(draft, otto)
+    approve_every_key(draft, otto)
     assert code_of(call(otto, "post", at(draft, "/approve"), {"revision": 2})) == (422, "CA0214")
     done = call(otto, "post", at(draft, "/approve"), {"revision": 2, "reason": "Team of one."})
     assert done.status_code == 200, done.content
@@ -176,9 +211,7 @@ def test_an_order_shows_its_written_steps_once_answered(
     call(ada, "post", at(draft, "/submit"), {"revision": 2})
     steps = TPM_KEYS["tpm-steps"]
     assert isinstance(steps, list)
-    before = next(
-        q for q in call(grace, "get", at(draft, "/review")).json() if q["id"] == "tpm-steps"
-    )
+    before = question(draft, grace, "tpm-steps")
     assert before["right_steps"] is None
     given = list(reversed(steps))
     after = call(grace, "put", at(draft, "/review/answers/tpm-steps"), {"given": given}).json()
@@ -190,28 +223,105 @@ def test_a_reviewer_who_contributed_is_ca0213(ada: User, grace: User, ready: Rea
     drafts.save(draft, based_on=2, edit=lambda n: set_fields(n, minutes=9), by=grace, change="m")
     call(ada, "post", at(draft, "/submit"), {"revision": 3})
     answer_all(draft, grace)
+    given = [{"key": "node", "verdict": "approved"}]
+    assert code_of(verdicts(draft, grace, given, revision=3)) == (403, "CA0213")
     assert code_of(call(grace, "post", at(draft, "/approve"), {"revision": 3})) == (403, "CA0213")
 
 
-def test_a_rejection_without_a_reason_is_ca0214(ada: User, grace: User, ready: Ready) -> None:
-    draft = submitted(ada, ready)
-    response = call(grace, "post", at(draft, "/reject"), {"revision": 2, "reason": ""})
-    assert code_of(response) == (422, "CA0214")
-
-
-def test_approving_with_questions_unanswered_is_ca0215(
+def test_a_send_back_from_review_with_nothing_to_say_is_ca0223(
     ada: User, grace: User, ready: Ready
 ) -> None:
     draft = submitted(ada, ready)
-    answer_all(draft, grace, skip=("twice-as-long", "tpm-of-a"))
+    response = call(grace, "post", at(draft, "/send-back"), {"revision": 2, "reason": " "})
+    assert code_of(response) == (422, "CA0223")
+
+
+def test_sending_back_an_approval_without_a_reason_is_ca0214(
+    ada: User, otto: User, ready: Ready
+) -> None:
+    draft = submitted(ada, ready)
+    Draft.objects.filter(pk=draft.pk).update(state="approved")
+    assert code_of(call(otto, "post", at(draft, "/send-back"), {"reason": ""})) == (422, "CA0214")
+
+
+def test_approving_with_keys_not_approved_is_ca0222(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    answer_all(draft, grace)
+    verdicts(draft, grace, [{"key": k, "verdict": "approved"} for k in TPM_REVIEW_KEYS[2:]])
     response = call(grace, "post", at(draft, "/approve"), {"revision": 2})
-    assert code_of(response) == (422, "CA0215")
-    assert "twice-as-long, tpm-of-a" in response.json()["detail"]
+    assert code_of(response) == (422, "CA0222")
+    assert "node, block/0" in response.json()["detail"]
+
+
+def test_a_key_the_revision_lacks_is_ca0219(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    response = verdicts(draft, grace, [{"key": "block/9", "verdict": "approved"}])
+    assert code_of(response) == (404, "CA0219")
+    assert "block/9" in response.json()["detail"]
+
+
+def test_approving_a_question_not_answered_is_ca0220(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    response = verdicts(draft, grace, [{"key": "exam/tpm-of-a", "verdict": "approved"}])
+    assert code_of(response) == (422, "CA0220")
+    assert "exam/tpm-of-a" in response.json()["detail"]
+
+
+def test_changes_without_a_note_is_ca0221(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    response = verdicts(draft, grace, [{"key": "node", "verdict": "changes", "note": ""}])
+    assert code_of(response) == (422, "CA0221")
+
+
+def test_the_review_carries_each_keys_content(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    shown = {i["key"]: i for i in items(draft, grace)}
+    assert list(shown) == TPM_REVIEW_KEYS
+    assert shown["node"]["fields"]["title"] == "What TPM measures"
+    assert shown["block/1"]["block"]["kind"] == "callout"
+    assert shown["resource/0"]["resource"]["provider"] == "openstax"
+    assert shown["exam/tpm-of-a"]["question"]["value"] is None  # hidden until answered
+    assert all(i["verdict"] is None and i["note"] == "" for i in shown.values())
+
+
+def test_verdicts_come_back_with_the_review(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    response = verdicts(draft, grace, [{"key": "block/0", "verdict": "changes", "note": "Long."}])
+    assert response.status_code == 200, response.content
+    item = next(i for i in response.json()["items"] if i["key"] == "block/0")
+    assert (item["verdict"], item["note"]) == ("changes", "Long.")
+    cleared = verdicts(draft, grace, [{"key": "block/0", "verdict": None}])
+    assert next(i for i in cleared.json()["items"] if i["key"] == "block/0")["verdict"] is None
+
+
+def test_the_author_reads_the_requests_on_the_draft(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    verdicts(
+        draft,
+        grace,
+        [
+            {"key": "block/1", "verdict": "changes", "note": "Say what TPM is not."},
+            {"key": "exam/tpm-of-a", "verdict": "changes", "note": "The key is off by one."},
+        ],
+    )
+    call(grace, "post", at(draft, "/send-back"), {"revision": 2, "reason": "Two small things."})
+    requests = call(ada, "get", at(draft)).json()["requests"]
+    assert (requests["by"]["email"], requests["reason"]) == (
+        "grace@example.org",
+        "Two small things.",
+    )
+    assert [(r["key"], r["kind"], r["note"]) for r in requests["items"]] == [
+        ("block/1", "callout", "Say what TPM is not."),
+        ("exam/tpm-of-a", "exam", "The key is off by one."),
+    ]
+    call(ada, "post", at(draft, "/submit"), {"revision": 2})
+    assert call(ada, "get", at(draft)).json()["requests"] is None
 
 
 def test_approving_another_revision_is_ca0216(ada: User, grace: User, ready: Ready) -> None:
     draft = submitted(ada, ready)
     answer_all(draft, grace)
+    approve_every_key(draft, grace)
     assert code_of(call(grace, "post", at(draft, "/approve"), {"revision": 1})) == (409, "CA0216")
 
 
@@ -228,7 +338,7 @@ def test_an_answer_of_the_wrong_kind_is_ca0218_and_not_stored(
     draft = submitted(ada, ready)
     response = call(grace, "put", at(draft, "/review/answers/tpm-or-count"), {"given": given})
     assert code_of(response) == (422, "CA0218")
-    assert all(q["given"] is None for q in call(grace, "get", at(draft, "/review")).json())
+    assert all(i["question"]["given"] is None for i in items(draft, grace) if i["question"])
 
 
 def test_an_author_approving_is_ca0102(ada: User, ready: Ready) -> None:

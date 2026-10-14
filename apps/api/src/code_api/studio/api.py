@@ -31,10 +31,13 @@ from code_api.studio.schemas import (
     ProblemOut,
     QuestionChecksOut,
     RefusedOut,
+    ReviewOut,
     ReviewQuestionOut,
     RevisionOut,
     VerifyOut,
     node_out,
+    requests_out,
+    review_out,
     review_question_out,
 )
 from code_schema import (
@@ -122,6 +125,7 @@ def draft_out(draft: Draft) -> DraftOut:
         **summary_out(draft).dict(),
         node=None if node is None else node_out(node, pool),
         problems=[ProblemOut.of(problem) for problem in problems],
+        requests=requests_out(review.sent_back(draft)),
     )
 
 
@@ -734,6 +738,21 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
         case review.NeedsReason():
             detail = "Say why, in a sentence."
             return Status(422, RefusedOut(detail=detail, code="CA0214", problems=[]))
+        case review.NoSuchKey(keys=keys):
+            detail = f"The submitted revision has no {', '.join(keys)}."
+            return Status(404, Message(detail=detail, code="CA0219"))
+        case review.NotAnswered(keys=keys):
+            detail = f"Answer each question before approving it: {', '.join(keys)}."
+            return Status(422, RefusedOut(detail=detail, code="CA0220", problems=[]))
+        case review.NeedsNote(keys=keys):
+            detail = f"Say what to change: {', '.join(keys)}."
+            return Status(422, RefusedOut(detail=detail, code="CA0221", problems=[]))
+        case review.NotApproved(keys=keys):
+            detail = f"Approve every block first; not approved: {', '.join(keys)}."
+            return Status(422, RefusedOut(detail=detail, code="CA0222", problems=[]))
+        case review.NothingToSendBack():
+            detail = "Request a change on a block, or say why, to send it back."
+            return Status(422, RefusedOut(detail=detail, code="CA0223", problems=[]))
         case review.NotSubmittedRevision(submitted=submitted):
             detail = f"Revision {submitted} is the one submitted; reload the draft and review it."
             return Status(409, Message(detail=detail, code="CA0216"))
@@ -764,6 +783,11 @@ _REFUSALS = (
     review.RoleTooLow,
     review.NeedsReason,
     review.NotSubmittedRevision,
+    review.NoSuchKey,
+    review.NotAnswered,
+    review.NeedsNote,
+    review.NotApproved,
+    review.NothingToSendBack,
     review.NoSuchQuestion,
     NotAnAnswer,
     drafts.Stale,
@@ -806,7 +830,7 @@ def approve(request: HttpRequest, public_id: UUID, body: ApproveIn) -> Acted:
     )
 
 
-@router.post("/{public_id}/send-back", response=_ACT_RESPONSES, summary="Send an approval back")
+@router.post("/{public_id}/send-back", response=_ACT_RESPONSES, summary="Send back to its author")
 def send_back(request: HttpRequest, public_id: UUID, body: SendBackIn) -> Acted:
     return _act(
         request,
@@ -817,18 +841,13 @@ def send_back(request: HttpRequest, public_id: UUID, body: SendBackIn) -> Acted:
     )
 
 
-ReviewAnswer = Status[list[ReviewQuestionOut]] | Status[Message] | Status[RefusedOut]
+ReviewAnswer = Status[ReviewOut] | Status[Message] | Status[RefusedOut]
+_REVIEW_RESPONSES = {200: ReviewOut, 403: Message, 404: Message, 409: Message, 422: RefusedOut}
 
 
 @router.get(
     "/{public_id}/review",
-    response={
-        200: list[ReviewQuestionOut],
-        403: Message,
-        404: Message,
-        409: Message,
-        422: RefusedOut,
-    },
+    response=_REVIEW_RESPONSES,
     summary="Your review of the submitted revision",
 )
 def your_review(request: HttpRequest, public_id: UUID) -> ReviewAnswer:
@@ -836,11 +855,40 @@ def your_review(request: HttpRequest, public_id: UUID) -> ReviewAnswer:
     if draft is None:
         return Status(404, _NO_DRAFT)
     try:
-        answered = review.review_of(draft, by=_member(request))
+        sheet = review.review_of(draft, by=_member(request))
     except _REFUSALS as error:
         return _refusal(error)
-    questions = [each.answered for each in answered.items if each.answered is not None]
-    return Status(200, [review_question_out(each) for each in questions])
+    return Status(200, review_out(sheet))
+
+
+class VerdictIn(Schema):
+    key: str
+    verdict: Literal["approved", "changes"] | None  # null clears it
+    note: str = ""
+
+
+class VerdictsIn(Schema):
+    revision: int
+    verdicts: list[VerdictIn]
+
+
+@router.put(
+    "/{public_id}/review/verdicts",
+    response=_REVIEW_RESPONSES,
+    summary="Set verdicts, all or nothing",
+)
+def set_verdicts(request: HttpRequest, public_id: UUID, body: VerdictsIn) -> ReviewAnswer:
+    draft = find(public_id)
+    if draft is None:
+        return Status(404, _NO_DRAFT)
+    given = [review.Given(v.key, v.verdict, v.note) for v in body.verdicts]
+    try:
+        sheet = review.set_verdicts(
+            draft, revision=body.revision, verdicts=given, by=_member(request)
+        )
+    except _REFUSALS as error:
+        return _refusal(error)
+    return Status(200, review_out(sheet))
 
 
 @router.put(
@@ -880,6 +928,7 @@ def events(request: HttpRequest, public_id: UUID) -> Status[list[EventOut]] | St
                 self_approved=event.self_approved,
                 answered=event.answered,
                 wrong=event.wrong,
+                blocks=event.blocks,
             )
             for event in history(draft)
         ],
