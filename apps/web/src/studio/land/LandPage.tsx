@@ -2,7 +2,8 @@
 // the index beside them. Three GETs open it.
 import { useState } from "react";
 import { moving } from "../../api/landing";
-import { useLandings, useReadyDrafts } from "../../api/queries";
+import { useLanding, useLandings, useReadyDrafts } from "../../api/queries";
+import type { LandingOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { FailedCard } from "./FailedCard";
 import { IndexCard } from "./IndexCard";
@@ -83,8 +84,19 @@ export function LandPage() {
               <FailedCard key={l.public_id} landing={l} />
             ))}
           <IndexCard />
+          {all
+            .filter((l) => moving(l) && l.public_id !== shown?.public_id)
+            .map((l) => (
+              <Watch key={l.public_id} landing={l} />
+            ))}
         </aside>
       </div>
     </>
   );
+}
+
+/** A moving landing not on show, still asked every 15 s, so its settling is seen (#319). */
+function Watch({ landing }: { landing: LandingOut }) {
+  useLanding(landing);
+  return null;
 }

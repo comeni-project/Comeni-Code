@@ -267,11 +267,12 @@ export const useStudioIndex = () =>
     retry: false,
   });
 
-/** The ready list and the landings asked again: a landing started, closed or settled. */
+/** The ready list, the landings and the index asked again: a landing started, closed or settled. */
 function landChanged(client: QueryClient) {
   void client.invalidateQueries({ queryKey: queryKeys.landReady });
   void client.invalidateQueries({ queryKey: queryKeys.landings });
   void client.invalidateQueries({ queryKey: ["drafts"] });
+  void client.invalidateQueries({ queryKey: queryKeys.studioIndex }); // a landing landed (#321)
 }
 
 /** A write's answer in place, and the lists asked again. */
@@ -296,6 +297,13 @@ export function useLanding(listed: LandingOut) {
       q.state.data !== undefined && moving(q.state.data) ? LANDING_POLL_MS : false,
     retry: false,
   });
+  // The list's copy wins once it has settled and the one held has not: a card opened again
+  // after its landing moved on unwatched (#320).
+  useEffect(() => {
+    const key = queryKeys.landing(listed.public_id);
+    const held = client.getQueryData<LandingOut>(key);
+    if (held !== undefined && moving(held) && !moving(listed)) client.setQueryData(key, listed);
+  }, [listed, client]);
   const was = useRef(moving(query.data));
   useEffect(() => {
     const now = moving(query.data);

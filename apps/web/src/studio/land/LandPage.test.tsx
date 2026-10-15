@@ -209,6 +209,51 @@ describe("LandPage — the landings", () => {
   });
 });
 
+describe("LandPage — keeping up (final review)", () => {
+  it("keeps watching a moving landing while another is shown (#319)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let polls = 0;
+      renderLand({
+        "GET /api/studio/landings": {
+          body: [
+            landingOf(),
+            landingOf({ public_id: "l-2", pull_number: 41, state: "merged", landed: true }),
+          ],
+        },
+        "GET /api/studio/landings/l-1": () => {
+          polls += 1;
+          return { body: landingOf() };
+        },
+      });
+      await screen.findByText("Its checks are running");
+      await userEvent.click(screen.getByRole("tab", { name: /Landed/ }));
+      await userEvent.click(screen.getByRole("button", { name: /#41/ }));
+      expect(screen.getByText("comeni-code-content#41 · studio/land-7f3a")).toBeInTheDocument();
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(polls).toBe(1); // watched, not shown, and asked once, not twice
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("asks for the index again when a landing settles (#321)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const fake = renderLand({
+        "GET /api/studio/landings": { body: [landingOf()] },
+        "GET /api/studio/landings/l-1": { body: landingOf({ state: "merged", landed: true }) },
+      });
+      await screen.findByText("Its checks are running");
+      await vi.advanceTimersByTimeAsync(15_000);
+      const index = () => fake.mock.calls.filter(([url]) => url === "/api/studio/index").length;
+      await vi.waitFor(() => expect(index()).toBe(2));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe("LandPage — the failed card and the index", () => {
   const failed = landingOf({
     public_id: "l-4",
