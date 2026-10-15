@@ -44,6 +44,7 @@ def landing_out(made: Landing) -> LandingOut:
         pull_number=made.pull_number,
         pull_url=made.pull_url,
         reason=made.reason,
+        landed=landing.landed(made),
         entries=[
             LandingEntryOut(
                 draft=entry.draft.public_id,

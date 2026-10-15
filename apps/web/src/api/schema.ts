@@ -22,6 +22,7 @@ export interface ApiSchemas {
   ExamIn: ExamIn;
   ExamQuestionIn: ExamQuestionIn;
   FieldsIn: FieldsIn;
+  FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
   GivenIn: GivenIn;
   HealthOut: HealthOut;
@@ -54,6 +55,7 @@ export interface ApiSchemas {
   QuestionOut: QuestionOut;
   QueueKeyOut: QueueKeyOut;
   QueuedDraftOut: QueuedDraftOut;
+  ReadyDraftOut: ReadyDraftOut;
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
@@ -356,6 +358,10 @@ export interface FieldsIn {
   revision: number;
   title?: string | null;
 }
+export interface FileChangeOut {
+  change: string;
+  file: string;
+}
 /**
  * A revision's files, exactly as they would land; `exam_yaml` is empty without a pool.
  */
@@ -379,6 +385,7 @@ export interface HealthOut {
 export interface IndexOut {
   behind: boolean;
   checked_at: string | null;
+  follow_seconds: number;
   latest: BuildOut | null;
   live: BuildOut | null;
   main_head: string | null;
@@ -433,6 +440,7 @@ export interface LandingIn {
 export interface LandingOut {
   branch: string;
   entries: LandingEntryOut[];
+  landed: boolean;
   main_head: string;
   public_id: string;
   pull_number: number | null;
@@ -586,6 +594,19 @@ export interface QueuedDraftOut {
   revision: number;
   submitted_at: string;
   title: string;
+}
+/**
+ * An approved draft no landing holds, as Land lists it (M4.9c spec, M4LS.1).
+ */
+export interface ReadyDraftOut {
+  approved_by: MemberOut | null;
+  files: FileChangeOut[];
+  folder: string;
+  node_id: string;
+  public_id: string;
+  region: string;
+  revision: number;
+  self_approved: boolean;
 }
 /**
  * A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist

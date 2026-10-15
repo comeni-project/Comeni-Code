@@ -564,6 +564,7 @@ class LandingOut(Schema):
     pull_number: int | None
     pull_url: str
     reason: str
+    landed: bool  # merged, and every draft it kept is in the index (M4.9c, M4LS.1)
     entries: list[LandingEntryOut]
 
 
@@ -608,5 +609,6 @@ class IndexOut(Schema):
     main_head: str | None
     checked_at: datetime | None
     behind: bool
+    follow_seconds: int  # how often the worker follows main (FOLLOW_SECONDS)
     # The regions a node can be in, in regions.yaml's order, for the workbench (M4K.6).
     regions: list[RegionChoiceOut]

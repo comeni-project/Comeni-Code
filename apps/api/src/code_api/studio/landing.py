@@ -224,6 +224,14 @@ def ready() -> list[Ready]:
     return found
 
 
+def landed(made: Landing) -> bool:
+    """Merged, and every draft it kept is in the index (M4.9c spec, M4LS.1)."""
+    if made.state != Landing.State.MERGED:
+        return False
+    kept = made.entries.filter(dropped_code="")
+    return not kept.exclude(draft__state=Draft.State.LANDED).exists()
+
+
 def provenance(made: Landing, entries: list[LandingDraft]) -> str:
     """The pull request's body (M4L.4, W9): who stands behind each node, then the marker."""
     lines = [

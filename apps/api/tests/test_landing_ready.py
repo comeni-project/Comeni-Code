@@ -6,13 +6,14 @@ from typing import Any
 
 import pytest
 from django.test import Client
+from fake_github import FakeGitHub
 
 from code_api.accounts.models import User
 from code_api.content.index import rebuild_index
 from code_api.content.models import Region
-from code_api.studio import drafts, landing
+from code_api.studio import drafts, github, landing
 from code_api.studio.log import record
-from code_api.studio.models import Draft, DraftEvent
+from code_api.studio.models import Draft, DraftEvent, Landing
 from code_schema import Level, Text
 from code_schema.edits import delete_exam_question, set_fields, update_block
 
@@ -115,3 +116,76 @@ def test_a_landing_id_still_reads_as_one(otto: User) -> None:
     client.force_login(otto)
     answer = client.get("/api/studio/landings/00000000-0000-0000-0000-000000000000")
     assert (answer.status_code, answer.json()["code"]) == (404, "CA0310")
+
+
+def land(client: Client, *ids: object) -> dict[str, Any]:
+    answer = client.post(
+        "/api/studio/landings", {"drafts": [str(i) for i in ids]}, content_type="application/json"
+    )
+    assert answer.status_code == 202, answer.content
+    return answer.json()
+
+
+def test_a_landing_from_ready_to_landed(ada: User, grace: User, otto: User) -> None:
+    # Done when (M4LS.4): two drafts land, one is dropped with its reason, the rest reach the index.
+    tpm = approve(edited("tpm", lambda n: set_fields(n, minutes=n.minutes + 1), ada), grace)
+    salmon = approve(edited("salmon", lambda n: set_fields(n, minutes=n.minutes + 1), ada), grace)
+    client = Client()
+    client.force_login(otto)
+    assert set(listed(otto)) == {"tpm", "salmon"}
+    started = land(client, tpm.public_id, salmon.public_id)
+    assert (started["state"], started["landed"]) == ("pending", False)
+    assert listed(otto) == {}
+
+    fake = FakeGitHub(since={"base-1": {"transcriptomics/tpm/body.md"}})
+    made = landing.run(Landing.objects.get(public_id=started["public_id"]), fake)
+    read = client.get(f"/api/studio/landings/{made.public_id}").json()
+    assert read["state"] == "open"
+    dropped = next(e for e in read["entries"] if e["node_id"] == "tpm")
+    assert (dropped["live"], dropped["dropped_code"]) == (False, "CA0306")
+    assert set(listed(otto)) == {"tpm"}  # dropped, still approved, ready again
+
+    fake.merged.add(made.pull_number or 0)
+    landing.watch(made, fake)
+    read = client.get(f"/api/studio/landings/{made.public_id}").json()
+    assert (read["state"], read["landed"]) == ("merged", False)
+
+    landing.mark_landed("index-2", lambda ancestor, commit: True)
+    read = client.get(f"/api/studio/landings/{made.public_id}").json()
+    assert (read["state"], read["landed"]) == ("merged", True)
+    assert set(listed(otto)) == {"tpm"}
+
+
+def test_a_closed_landing_gives_its_drafts_back(
+    ada: User, grace: User, otto: User, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = FakeGitHub()
+    monkeypatch.setattr(github, "from_settings", lambda: fake)
+    salmon = approve(edited("salmon", lambda n: set_fields(n, minutes=n.minutes + 1), ada), grace)
+    client = Client()
+    client.force_login(otto)
+    made = landing.run(
+        Landing.objects.get(public_id=land(client, salmon.public_id)["public_id"]), fake
+    )
+    fake.checks[made.pull_number or 0] = (("validate", "https://ci.test/1"),)
+    landing.watch(made, fake)
+    assert listed(otto) == {}  # a failed landing holds its drafts
+    answer = client.post(f"/api/studio/landings/{made.public_id}/close")
+    assert (answer.status_code, answer.json()["landed"]) == (200, False)
+    assert set(listed(otto)) == {"salmon"}
+
+
+def test_a_landing_whose_drafts_were_all_dropped_is_refused_and_gives_them_back(
+    ada: User, grace: User, otto: User
+) -> None:
+    # Review Focus 1.
+    tpm = approve(edited("tpm", lambda n: set_fields(n, minutes=n.minutes + 1), ada), grace)
+    client = Client()
+    client.force_login(otto)
+    started = land(client, tpm.public_id)
+    fake = FakeGitHub(since={"base-1": {"transcriptomics/tpm/body.md"}})
+    landing.run(Landing.objects.get(public_id=started["public_id"]), fake)
+    read = client.get(f"/api/studio/landings/{started['public_id']}").json()
+    assert (read["state"], read["landed"]) == ("refused", False)
+    assert read["reason"]
+    assert set(listed(otto)) == {"tpm"}
