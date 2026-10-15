@@ -5,15 +5,24 @@
 // (#137). The same question from two pages is one entry, on purpose: Start's preview is the route
 // with nothing known, which the Route page reuses.
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
 import { fetchProviders } from "./auth";
 import { getJson } from "./client";
 import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
 import { fetchHealth } from "./health";
+import { fetchLanding, fetchLandings, fetchReady, moving } from "./landing";
 import { fetchNode } from "./nodes";
 import { fetchQueue, fetchReview } from "./review";
 import { fetchRoute } from "./routes";
-import type { DraftOut, IndexOut, QueuedDraftOut, ReviewOut, ReviewQuestionOut } from "./schema";
+import type {
+  DraftOut,
+  IndexOut,
+  LandingOut,
+  QueuedDraftOut,
+  ReviewOut,
+  ReviewQuestionOut,
+} from "./schema";
 import { fetchSearch } from "./search";
 
 // A tab coming back does not re-ask every question; a write's answer updates what it changed (M4K.4).
@@ -37,6 +46,9 @@ export const queryKeys = {
   studioIndex: ["studio-index"] as const,
   reviewQueue: ["review-queue"] as const,
   review: (id: string) => ["review", id] as const,
+  landReady: ["land", "ready"] as const,
+  landings: ["land", "landings"] as const,
+  landing: (id: string) => ["land", "landing", id] as const,
 };
 
 export const useNode = (id: string) =>
@@ -226,4 +238,69 @@ export function answeredInto(client: QueryClient, draftId: string, question: Rev
         : { ...d, keys: d.keys.map((k) => (k.key === key ? { ...k, answered: true } : k)) },
     ),
   );
+}
+
+/** A landing is asked for again this often, only while it moves (M4.9c spec, M4LS.2). */
+export const LANDING_POLL_MS = 15_000;
+
+/** Approved drafts no landing holds: Land's table (M4LS.1). */
+export const useReadyDrafts = () =>
+  useQuery({
+    queryKey: queryKeys.landReady,
+    queryFn: ({ signal }) => fetchReady(signal),
+    retry: false,
+  });
+
+/** Every landing, newest first: Land's other views, filtered here. */
+export const useLandings = () =>
+  useQuery({
+    queryKey: queryKeys.landings,
+    queryFn: ({ signal }) => fetchLandings(signal),
+    retry: false,
+  });
+
+/** The index and main, whole; `useRegions` reads the same entry. */
+export const useStudioIndex = () =>
+  useQuery({
+    queryKey: queryKeys.studioIndex,
+    queryFn: ({ signal }) => getJson<IndexOut>("/api/studio/index", signal),
+    retry: false,
+  });
+
+/** The ready list and the landings asked again: a landing started, closed or settled. */
+function landChanged(client: QueryClient) {
+  void client.invalidateQueries({ queryKey: queryKeys.landReady });
+  void client.invalidateQueries({ queryKey: queryKeys.landings });
+  void client.invalidateQueries({ queryKey: ["drafts"] });
+}
+
+/** A write's answer in place, and the lists asked again. */
+export function landingMoved(client: QueryClient, made: LandingOut) {
+  client.setQueryData(queryKeys.landing(made.public_id), made);
+  landChanged(client);
+}
+
+/**
+ * One landing, starting from the list's copy (no GET on open), asked again every 15 s while it
+ * moves. When it settles, the lists are asked once. Key the component by the landing's id, so a
+ * new landing starts its own watch.
+ */
+export function useLanding(listed: LandingOut) {
+  const client = useQueryClient();
+  const query = useQuery({
+    queryKey: queryKeys.landing(listed.public_id),
+    queryFn: ({ signal }) => fetchLanding(listed.public_id, signal),
+    initialData: listed,
+    staleTime: Number.POSITIVE_INFINITY,
+    refetchInterval: (q) =>
+      q.state.data !== undefined && moving(q.state.data) ? LANDING_POLL_MS : false,
+    retry: false,
+  });
+  const was = useRef(moving(query.data));
+  useEffect(() => {
+    const now = moving(query.data);
+    if (was.current && !now) landChanged(client);
+    was.current = now;
+  }, [query.data, client]);
+  return query;
 }
