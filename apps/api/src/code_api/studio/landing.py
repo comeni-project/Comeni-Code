@@ -18,11 +18,11 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from code_api.accounts.models import User
-from code_api.content.models import IndexBuild
+from code_api.content.models import IndexBuild, Region
 from code_api.studio import drafts
 from code_api.studio.github import GitHub, GitHubError, Pull
 from code_api.studio.log import record
-from code_api.studio.models import Draft, DraftEvent, Landing, LandingDraft
+from code_api.studio.models import Draft, DraftEvent, Landing, LandingDraft, Revision
 from code_schema import Problem
 from code_schema.exam import EXAM_FILE
 from code_schema.node import BODY_FILE, NODE_FILE
@@ -179,6 +179,48 @@ def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | No
 def _approval(draft: Draft) -> DraftEvent:
     found = draft.events.filter(kind=DraftEvent.Kind.APPROVED).order_by("-id").first()
     assert found is not None  # only approved drafts enter a landing
+    return found
+
+
+# A revision's files by name, in the order Land shows them (M4.9c spec, M4LS.1).
+_FILES = (("node", "node_yaml"), ("body", "body_md"), ("exam", "exam_yaml"))
+
+
+def changes(first: Revision | None, last: Revision) -> list[tuple[str, str]]:
+    """Which of `last`'s files differ from the draft's first revision, and how. Revision 1 holds
+    the live node as the draft started from it; a new node has none, so all it carries is new."""
+    found: list[tuple[str, str]] = []
+    for name, attribute in _FILES:
+        before = "" if first is None else getattr(first, attribute)
+        now = getattr(last, attribute)
+        if before != now:
+            found.append((name, "new" if not before else "removed" if not now else "changed"))
+    return found
+
+
+@dataclass(frozen=True)
+class Ready:
+    """An approved draft no landing holds, as Land lists it (M4LS.1)."""
+
+    draft: Draft
+    revision: int
+    region: str
+    approval: DraftEvent
+    files: list[tuple[str, str]]
+
+
+def ready() -> list[Ready]:
+    """Every approved draft no landing holds, in node order. Read from Postgres only."""
+    held = LandingDraft.objects.filter(live=True).values("draft")
+    names = dict(Region.objects.values_list("id", "name"))
+    found: list[Ready] = []
+    approved = Draft.objects.filter(state=Draft.State.APPROVED).exclude(pk__in=held)
+    for draft in approved.order_by("node_id"):
+        last = drafts.latest(draft)
+        first = draft.revisions.get(number=1) if draft.base_digest else None
+        node, _ = drafts.node_of(draft, last)
+        region = "" if node is None else names.get(node.region, node.region)
+        found.append(Ready(draft, last.number, region, _approval(draft), changes(first, last)))
     return found
 
 
