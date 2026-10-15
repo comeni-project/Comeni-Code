@@ -2,6 +2,7 @@
 
 import shutil
 from pathlib import Path
+from typing import Any
 
 import pytest
 from django.test import Client
@@ -51,6 +52,7 @@ def test_an_empty_index_answers_with_nothing(ada: User) -> None:
         "main_head": None,
         "checked_at": None,
         "behind": False,
+        "follow_seconds": 300,
         "regions": [],
     }
 
@@ -64,3 +66,8 @@ def test_the_index_route_lists_the_regions_in_order(ada: User) -> None:
     regions = signed_in(ada).get("/api/studio/index").json()["regions"]
     assert len(regions) == 6
     assert set(regions[0]) == {"id", "name"}
+
+
+def test_the_index_route_says_how_often_main_is_followed(ada: User, settings: Any) -> None:
+    settings.FOLLOW_SECONDS = 300
+    assert signed_in(ada).get("/api/studio/index").json()["follow_seconds"] == 300

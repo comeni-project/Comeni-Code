@@ -31,6 +31,13 @@ export const STUDIO_PAGES: readonly StudioPage[] = [
     count: "review",
   },
   {
+    path: "/studio/land",
+    label: "Land",
+    icon: "M8 10.5V2M4.5 5.5 8 2l3.5 3.5M2 10v3.5h12V10",
+    minRole: "operator",
+    place: "top",
+  },
+  {
     path: "/studio/team",
     label: "Team",
     icon: "M6 7a2.3 2.3 0 1 0 0-.01M1.8 13.5c.6-2.3 2.2-3.5 4.2-3.5s3.6 1.2 4.2 3.5M11 6.5a2 2 0 1 0 0-.01M11.5 9.8c1.4.2 2.4 1.3 2.8 3.2",

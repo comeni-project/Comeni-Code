@@ -3,6 +3,7 @@ its problems, and main's last-seen head. Asks GitHub nothing: the follower write
 
 from datetime import datetime
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest
 from ninja import Router
@@ -42,6 +43,7 @@ def index(request: HttpRequest) -> IndexOut:
         main_head=head,
         checked_at=None if checked is None else datetime.fromisoformat(checked),
         behind=head is not None and (live is None or live.commit != head),
+        follow_seconds=settings.FOLLOW_SECONDS,
         regions=[
             RegionChoiceOut(id=region.id, name=region.name)
             for region in Region.objects.order_by("position")

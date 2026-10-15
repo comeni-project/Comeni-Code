@@ -795,6 +795,24 @@
         "title": "FieldsIn",
         "type": "object"
       },
+      "FileChangeOut": {
+        "properties": {
+          "change": {
+            "title": "Change",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "change"
+        ],
+        "title": "FileChangeOut",
+        "type": "object"
+      },
       "FilesOut": {
         "description": "A revision's files, exactly as they would land; `exam_yaml` is empty without a pool.",
         "properties": {
@@ -880,6 +898,10 @@
             ],
             "title": "Checked At"
           },
+          "follow_seconds": {
+            "title": "Follow Seconds",
+            "type": "integer"
+          },
           "latest": {
             "anyOf": [
               {
@@ -925,6 +947,7 @@
           "main_head",
           "checked_at",
           "behind",
+          "follow_seconds",
           "regions"
         ],
         "title": "IndexOut",
@@ -1090,6 +1113,10 @@
             "title": "Entries",
             "type": "array"
           },
+          "landed": {
+            "title": "Landed",
+            "type": "boolean"
+          },
           "main_head": {
             "title": "Main Head",
             "type": "string"
@@ -1148,6 +1175,7 @@
           "pull_number",
           "pull_url",
           "reason",
+          "landed",
           "entries"
         ],
         "title": "LandingOut",
@@ -1914,6 +1942,65 @@
           "keys"
         ],
         "title": "QueuedDraftOut",
+        "type": "object"
+      },
+      "ReadyDraftOut": {
+        "description": "An approved draft no landing holds, as Land lists it (M4.9c spec, M4LS.1).",
+        "properties": {
+          "approved_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileChangeOut"
+            },
+            "title": "Files",
+            "type": "array"
+          },
+          "folder": {
+            "title": "Folder",
+            "type": "string"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "self_approved": {
+            "title": "Self Approved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "public_id",
+          "node_id",
+          "folder",
+          "revision",
+          "region",
+          "approved_by",
+          "self_approved",
+          "files"
+        ],
+        "title": "ReadyDraftOut",
         "type": "object"
       },
       "RefusedOut": {
@@ -6090,6 +6177,37 @@
           }
         ],
         "summary": "Land a batch of approved drafts",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/landings/ready": {
+      "get": {
+        "operationId": "code_api_studio_landing_api_ready_drafts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReadyDraftOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Approved drafts no landing holds",
         "tags": [
           "studio"
         ]

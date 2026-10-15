@@ -564,7 +564,26 @@ class LandingOut(Schema):
     pull_number: int | None
     pull_url: str
     reason: str
+    landed: bool  # merged, and every draft it kept is in the index (M4.9c, M4LS.1)
     entries: list[LandingEntryOut]
+
+
+class FileChangeOut(Schema):
+    file: str  # node, body or exam
+    change: str  # new, changed or removed
+
+
+class ReadyDraftOut(Schema):
+    """An approved draft no landing holds, as Land lists it (M4.9c spec, M4LS.1)."""
+
+    public_id: UUID
+    node_id: str
+    folder: str
+    revision: int
+    region: str  # its name; empty when the draft no longer reads against the index
+    approved_by: MemberOut | None
+    self_approved: bool
+    files: list[FileChangeOut]  # only the files that change, in node, body, exam order
 
 
 # ── The index (M4.7 spec, M4F.5) ────────────────────────────────────────────────────────────────
@@ -590,5 +609,6 @@ class IndexOut(Schema):
     main_head: str | None
     checked_at: datetime | None
     behind: bool
+    follow_seconds: int  # how often the worker follows main (FOLLOW_SECONDS)
     # The regions a node can be in, in regions.yaml's order, for the workbench (M4K.6).
     regions: list[RegionChoiceOut]

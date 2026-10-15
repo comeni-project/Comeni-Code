@@ -12,7 +12,14 @@ from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
 from code_api.studio import github, landing
 from code_api.studio.models import Landing
-from code_api.studio.schemas import LandingEntryOut, LandingOut, ProblemOut, RefusedOut
+from code_api.studio.schemas import (
+    FileChangeOut,
+    LandingEntryOut,
+    LandingOut,
+    ProblemOut,
+    ReadyDraftOut,
+    RefusedOut,
+)
 
 router = Router(tags=["studio"], auth=studio(Role.OPERATOR))
 
@@ -37,6 +44,7 @@ def landing_out(made: Landing) -> LandingOut:
         pull_number=made.pull_number,
         pull_url=made.pull_url,
         reason=made.reason,
+        landed=landing.landed(made),
         entries=[
             LandingEntryOut(
                 draft=entry.draft.public_id,
@@ -91,6 +99,24 @@ def start(
 @router.get("", response=list[LandingOut], summary="The landings, newest first")
 def landings(request: HttpRequest) -> list[LandingOut]:
     return [landing_out(made) for made in Landing.objects.order_by("-started_at", "-id")]
+
+
+# Before `/{public_id}`, so `ready` is never read as a landing's id.
+@router.get("/ready", response=list[ReadyDraftOut], summary="Approved drafts no landing holds")
+def ready_drafts(request: HttpRequest) -> list[ReadyDraftOut]:
+    return [
+        ReadyDraftOut(
+            public_id=one.draft.public_id,
+            node_id=one.draft.node_id,
+            folder=one.draft.folder,
+            revision=one.revision,
+            region=one.region,
+            approved_by=None if one.approval.by is None else MemberOut.of(one.approval.by),
+            self_approved=one.approval.self_approved,
+            files=[FileChangeOut(file=name, change=change) for name, change in one.files],
+        )
+        for one in landing.ready()
+    ]
 
 
 @router.get("/{public_id}", response={200: LandingOut, 404: Message}, summary="A landing")
