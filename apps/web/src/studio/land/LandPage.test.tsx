@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { answering, renderAt } from "../../test-kit";
-import { landingOf, READY, renderLand } from "./landKit";
+import { INDEX, landingOf, READY, renderLand } from "./landKit";
 import { ReadyTable } from "./ReadyTable";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -180,5 +180,42 @@ describe("LandPage — the landings", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("LandPage — the failed card and the index", () => {
+  const failed = landingOf({
+    public_id: "l-4",
+    pull_number: 41,
+    state: "failed",
+    reason: "validate failed: https://ci.test/run/9",
+  });
+
+  it("closes a failed landing and asks for the lists again", async () => {
+    const fake = renderLand({
+      "GET /api/studio/landings": { body: [failed] },
+      "POST /api/studio/landings/l-4/close": { body: { ...failed, state: "closed" } },
+    });
+    expect(await screen.findByText("validate failed: https://ci.test/run/9")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Close the landing" }));
+    const asked = () =>
+      fake.mock.calls.filter(([url]) => url === "/api/studio/landings/ready").length;
+    await vi.waitFor(() => expect(asked()).toBe(2));
+  });
+
+  it("says main, the live build and how often main is followed", async () => {
+    renderLand();
+    const card = await screen.findByRole("region", { name: "Main and the index" });
+    expect(card).toHaveTextContent("a1b2c3d");
+    expect(card).toHaveTextContent("26 nodes");
+    expect(card).toHaveTextContent("every 5 minutes, and on a merge");
+    expect(card).toHaveTextContent("Up to date.");
+  });
+
+  it("says when the index is behind main", async () => {
+    renderLand({
+      "GET /api/studio/index": { body: { ...INDEX, behind: true, main_head: "ffff000" } },
+    });
+    expect(await screen.findByText("Behind main.")).toBeInTheDocument();
   });
 });

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { moving } from "../../api/landing";
 import { useLandings, useReadyDrafts } from "../../api/queries";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { FailedCard } from "./FailedCard";
 import { IndexCard } from "./IndexCard";
 import { LandingCard } from "./LandingCard";
 import { LandingRows } from "./LandingRows";
@@ -76,6 +77,11 @@ export function LandPage() {
           {shown !== undefined && shown.state !== "failed" && (
             <LandingCard key={shown.public_id} landing={shown} />
           )}
+          {all
+            .filter((l) => l.state === "failed")
+            .map((l) => (
+              <FailedCard key={l.public_id} landing={l} />
+            ))}
           <IndexCard />
         </aside>
       </div>
