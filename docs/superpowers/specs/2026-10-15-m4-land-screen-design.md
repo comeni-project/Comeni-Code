@@ -93,7 +93,7 @@ measurement of its list, as on the board.
 region, revision, *Approved by* (with *self-approved*), files. Picking rows shows the bulk bar,
 *Land N drafts as one pull request*. Starting a landing refetches the ready list and the landings
 and selects the new landing. A refusal is said above the bulk bar: CA0305's problems beside the
-drafts they name, CA0301 as *Landing is not configured yet*, the others in their own words.
+drafts they name; every refusal in the API's own sentence (CA0301: *Landing is not configured*).
 
 **The other views list landings, one row each**: its pull request (#42, linked), its nodes, who
 started it, when, its state. Picking a row shows its card. *Operator: A, a row per landing.*
@@ -111,14 +111,16 @@ started it, when, its state. Picking a row shows its card. *Operator: A, a row p
   | Merged into main | merged |
   | The index follows main | `landed` |
 
-  *In this landing* lists its drafts at their revisions; a dropped draft is said in amber with its
-  code and reason, as the board has it. A refused landing shows its reason in place of the steps.
+  *In this landing* lists its drafts at their revisions; a dropped draft is said in red (`open`)
+  with its code and reason, as the board has it. A refused landing shows its reason in place of
+  the steps.
 - **The failed card**, for each failed landing: its reason and *Close the landing*. Closing
   refetches the landings and the ready list: the drafts come back.
 - **Main and the index**: main's head and when it was checked, the live build and its node count,
   *Follows main every {follow_seconds}*, and *Up to date* or *Behind main* from `behind`.
 
-Red is spent only on the *Failed* tag, as on the board; settled states spend none (invariant 11).
+Red is spent only on the *Failed* tag and a dropped draft, as on the board; settled states spend
+none (invariant 11).
 
 Rejected:
 
