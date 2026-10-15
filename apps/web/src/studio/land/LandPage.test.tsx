@@ -111,3 +111,74 @@ describe("LandPage — ready to land", () => {
     expect(await screen.findByText("No approved drafts are waiting to land.")).toBeInTheDocument();
   });
 });
+
+describe("LandPage — the landings", () => {
+  const dropped = {
+    draft: "d-8",
+    node_id: "de-bruijn-graphs",
+    revision: 2,
+    live: false,
+    dropped_code: "CA0306",
+    dropped_reason: "de-bruijn-graphs changed on main since this draft was opened.",
+  };
+
+  it("lists a view's landings and shows the one picked", async () => {
+    renderLand();
+    await userEvent.click(await screen.findByRole("tab", { name: /Landed/ }));
+    await userEvent.click(screen.getByRole("button", { name: /#41/ }));
+    expect(screen.getByText("1 node in one pull request")).toBeInTheDocument();
+    expect(screen.getAllByText("The index follows main")).toHaveLength(1);
+  });
+
+  it("shows the moving landing's steps and what was dropped", async () => {
+    const live = landingOf({ entries: [...landingOf().entries, dropped] });
+    renderLand({ "GET /api/studio/landings": { body: [live] } });
+    expect(await screen.findByText("Its checks are running")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
+    expect(screen.getByText(/de-bruijn-graphs/, { selector: "b" }).parentElement).toHaveTextContent(
+      "dropped: de-bruijn-graphs changed on main since this draft was opened. (CA0306)",
+    );
+    expect(screen.getByText("k-mers · rev 6")).toBeInTheDocument();
+  });
+
+  it("says a refused landing's reason in place of its steps", async () => {
+    const refused = landingOf({
+      state: "refused",
+      pull_number: null,
+      reason: "Every draft was dropped.",
+    });
+    renderLand({ "GET /api/studio/landings": { body: [refused] } });
+    await userEvent.click(await screen.findByRole("tab", { name: /Failed/ }));
+    await userEvent.click(screen.getByRole("button", { name: /no pull request/ }));
+    expect(screen.getByText("Every draft was dropped.")).toBeInTheDocument();
+    expect(screen.queryByText("Merged into main")).toBeNull();
+  });
+
+  it("asks for a moving landing every 15 s and stops once it settles", async () => {
+    // Review Focus 3.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      let polls = 0;
+      const fake = renderLand({
+        "GET /api/studio/landings": { body: [landingOf()] },
+        "GET /api/studio/landings/l-1": () => {
+          polls += 1;
+          return { body: landingOf({ state: "merged", landed: true }) };
+        },
+      });
+      await screen.findByText("Its checks are running");
+      await vi.advanceTimersByTimeAsync(15_000);
+      expect(polls).toBe(1);
+      const lists = () =>
+        fake.mock.calls.filter(([url]) => url === "/api/studio/landings/ready").length;
+      await vi.waitFor(() => expect(lists()).toBe(2)); // asked once more when it settled
+      await vi.advanceTimersByTimeAsync(45_000);
+      expect(polls).toBe(1);
+      expect(lists()).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

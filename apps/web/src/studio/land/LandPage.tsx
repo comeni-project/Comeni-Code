@@ -1,9 +1,12 @@
 // S10 · Land (M4.9c spec, M4LS.3): approved drafts go out as one pull request; the landings and
 // the index beside them. Three GETs open it.
 import { useState } from "react";
+import { moving } from "../../api/landing";
 import { useLandings, useReadyDrafts } from "../../api/queries";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { IndexCard } from "./IndexCard";
+import { LandingCard } from "./LandingCard";
+import { LandingRows } from "./LandingRows";
 import { ReadyTable } from "./ReadyTable";
 import { landingsIn, VIEWS, type View } from "./views";
 
@@ -11,8 +14,10 @@ export function LandPage() {
   const ready = useReadyDrafts();
   const landings = useLandings();
   const [view, setView] = useState<View>("Ready to land");
-  const [, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const all = landings.data ?? [];
+  const live = all.find(moving);
+  const shown = all.find((l) => l.public_id === picked) ?? live;
   const count = (name: View) =>
     name === "Ready to land" ? ready.data?.length : landings.data && landingsIn(name, all).length;
   return (
@@ -59,8 +64,18 @@ export function LandPage() {
               }}
             />
           )}
+          {view !== "Ready to land" && (
+            <LandingRows
+              landings={landingsIn(view, all)}
+              picked={shown?.public_id ?? null}
+              onPick={setPicked}
+            />
+          )}
         </section>
         <aside className="flex flex-col gap-4">
+          {shown !== undefined && shown.state !== "failed" && (
+            <LandingCard key={shown.public_id} landing={shown} />
+          )}
           <IndexCard />
         </aside>
       </div>
