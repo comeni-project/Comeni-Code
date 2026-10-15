@@ -123,7 +123,8 @@ def land(client: Client, *ids: object) -> dict[str, Any]:
         "/api/studio/landings", {"drafts": [str(i) for i in ids]}, content_type="application/json"
     )
     assert answer.status_code == 202, answer.content
-    return answer.json()
+    body: dict[str, Any] = answer.json()
+    return body
 
 
 def test_a_landing_from_ready_to_landed(ada: User, grace: User, otto: User) -> None:
