@@ -170,6 +170,10 @@ settings.
   request was closed (#317). A landing without one says *none* in its row (#318).
 - **A build without a commit** (an index rebuilt from a folder) reads by its node count (#314).
 - The walk's other two: kept drafts stand apart (#315), a state tag fits its word (#316).
+- **The picked landing's card is shown, and every moving landing is watched** (#319). M4LS.3's
+  *the live landing if there is one, else the picked row's* would make picking a row useless while
+  a landing moves. A settled copy from the list replaces a moving one held in the cache (#320), and
+  the index is asked again when a landing settles (#321).
 - Left from the board, as Review left them: the bulk bar under the table, the subtitle beside the
   title, no select-all box. A landing's row lists every draft it took, dropped ones too.
 
