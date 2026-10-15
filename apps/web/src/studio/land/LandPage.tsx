@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useLandings, useReadyDrafts } from "../../api/queries";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { IndexCard } from "./IndexCard";
+import { ReadyTable } from "./ReadyTable";
 import { landingsIn, VIEWS, type View } from "./views";
 
 export function LandPage() {
   const ready = useReadyDrafts();
   const landings = useLandings();
   const [view, setView] = useState<View>("Ready to land");
+  const [, setPicked] = useState<string | null>(null);
   const all = landings.data ?? [];
   const count = (name: View) =>
     name === "Ready to land" ? ready.data?.length : landings.data && landingsIn(name, all).length;
@@ -45,7 +47,23 @@ export function LandPage() {
       </div>
       {ready.isError && <ErrorNotice error={ready.error} />}
       {landings.isError && <ErrorNotice error={landings.error} />}
-      <IndexCard />
+      <div className="grid min-h-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <section className="flex min-w-0 flex-col gap-3">
+          {view === "Ready to land" && (
+            <ReadyTable
+              rows={ready.data ?? []}
+              loaded={ready.data !== undefined}
+              onLanded={(made) => {
+                setPicked(made.public_id);
+                setView("Landing");
+              }}
+            />
+          )}
+        </section>
+        <aside className="flex flex-col gap-4">
+          <IndexCard />
+        </aside>
+      </div>
     </>
   );
 }
