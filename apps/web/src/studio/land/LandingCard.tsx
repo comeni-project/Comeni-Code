@@ -20,6 +20,14 @@ function Mark({ step }: { step: string }) {
   );
 }
 
+/** A refused landing opened no pull request; a closed one's was closed (#317). */
+function titleOf(landing: LandingOut, kept: number): string {
+  const nodes = `${kept} ${kept === 1 ? "node" : "nodes"}`;
+  if (landing.state === "refused") return "No pull request was opened";
+  if (landing.state === "closed") return `${nodes}; its pull request was closed`;
+  return `${nodes} in one pull request`;
+}
+
 export function LandingCard({ landing: listed }: { landing: LandingOut }) {
   const { data } = useLanding(listed);
   const landing = data ?? listed;
@@ -38,9 +46,7 @@ export function LandingCard({ landing: listed }: { landing: LandingOut }) {
           {`started ${ago(landing.started_at)} by ${who(landing.started_by)}`}
         </span>
       </div>
-      <span className="text-[16px] font-semibold">
-        {`${kept.length} ${kept.length === 1 ? "node" : "nodes"} in one pull request`}
-      </span>
+      <span className="text-[16px] font-semibold">{titleOf(landing, kept.length)}</span>
       {landing.pull_number !== null && (
         <a href={landing.pull_url} className="font-mono text-[12.5px] text-sel">
           {`comeni-code-content#${landing.pull_number} · ${landing.branch}`}
@@ -75,8 +81,10 @@ export function LandingCard({ landing: listed }: { landing: LandingOut }) {
       )}
       <div className="flex flex-col gap-[5px] border-t border-border pt-2.5">
         <span className="text-[12.5px] font-semibold">In this landing</span>
-        <span className="font-mono text-[12.5px] text-ink-2">
-          {kept.map((e) => `${e.node_id} · rev ${e.revision}`).join("   ")}
+        <span className="flex flex-wrap gap-x-4 font-mono text-[12.5px] text-ink-2">
+          {kept.map((e) => (
+            <span key={e.draft}>{`${e.node_id} · rev ${e.revision}`}</span>
+          ))}
         </span>
         {dropped.map((e) => (
           <span key={e.draft} className="text-[12px] text-open">

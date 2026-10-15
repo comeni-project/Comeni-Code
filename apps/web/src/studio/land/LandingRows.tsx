@@ -35,7 +35,7 @@ export function LandingRows({
           }`}
         >
           <span className="font-mono text-[13px] text-ink-2">
-            {landing.pull_number === null ? "no pull request" : `#${landing.pull_number}`}
+            {landing.pull_number === null ? "none" : `#${landing.pull_number}`}
           </span>
           <span className="truncate font-mono text-[12.5px]">
             {landing.entries.map((e) => e.node_id).join(" · ")}

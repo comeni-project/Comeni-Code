@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { Route } from "react-router";
@@ -143,6 +143,21 @@ describe("LandPage — the landings", () => {
     expect(screen.getByText("k-mers · rev 6")).toBeInTheDocument();
   });
 
+  it("keeps each kept draft apart (#315)", async () => {
+    const two = { ...landingOf().entries[0], draft: "d-7", node_id: "salmon", revision: 4 };
+    const live = landingOf({ entries: [...landingOf().entries, two] });
+    renderLand({ "GET /api/studio/landings": { body: [live] } });
+    expect(await screen.findByText("k-mers · rev 6")).toBeInTheDocument();
+    expect(screen.getByText("salmon · rev 4")).toBeInTheDocument();
+  });
+
+  it("draws a state tag at its word's width (#316)", async () => {
+    renderLand();
+    await userEvent.click(await screen.findByRole("tab", { name: /Landed/ }));
+    const row = screen.getByRole("button", { name: /#41/ });
+    expect(within(row).getByText("Landed")).toHaveClass("w-fit");
+  });
+
   it("says a refused landing's reason in place of its steps", async () => {
     const refused = landingOf({
       state: "refused",
@@ -151,8 +166,12 @@ describe("LandPage — the landings", () => {
     });
     renderLand({ "GET /api/studio/landings": { body: [refused] } });
     await userEvent.click(await screen.findByRole("tab", { name: /Failed/ }));
-    await userEvent.click(screen.getByRole("button", { name: /no pull request/ }));
+    // #318: one short word in the pull request's column.
+    await userEvent.click(screen.getByRole("button", { name: /^none/ }));
     expect(screen.getByText("Every draft was dropped.")).toBeInTheDocument();
+    // #317: no pull request was opened, so none is counted.
+    expect(screen.getByText("No pull request was opened")).toBeInTheDocument();
+    expect(screen.queryByText(/in one pull request/)).toBeNull();
     expect(screen.queryByText("Merged into main")).toBeNull();
   });
 
@@ -210,6 +229,14 @@ describe("LandPage — the failed card and the index", () => {
     expect(card).toHaveTextContent("26 nodes");
     expect(card).toHaveTextContent("every 5 minutes, and on a merge");
     expect(card).toHaveTextContent("Up to date.");
+  });
+
+  it("says a live build without a commit by its node count alone (#314)", async () => {
+    const live = { ...INDEX.live, commit: "" } as typeof INDEX.live;
+    renderLand({ "GET /api/studio/index": { body: { ...INDEX, live } } });
+    const card = await screen.findByRole("region", { name: "Main and the index" });
+    expect(card).toHaveTextContent("Live build26 nodes");
+    expect(card).not.toHaveTextContent("· 26 nodes");
   });
 
   it("says when the index is behind main", async () => {

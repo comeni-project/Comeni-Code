@@ -34,7 +34,10 @@ export function IndexCard() {
         value={
           index.live === null
             ? "none yet"
-            : `${short(index.live.commit)} · ${index.live.node_count} nodes`
+            : // A build from a folder has no commit (#314).
+              [short(index.live.commit), `${index.live.node_count} nodes`]
+                .filter((part) => part !== "")
+                .join(" · ")
         }
       />
       <Fact name="Follows main" value={`${every(index.follow_seconds)}, and on a merge`} />
