@@ -1,6 +1,6 @@
 # M4.9c — The land screen
 
-**Status: agreed 2026-10-15 in conversation; this spec awaits the operator's review.** The third
+**Status: agreed 2026-10-15; built.** The third
 slice of M4.9 (#127), the last part of M4 (#74). Designed with the operator on 2026-10-15, section
 by section, from the board *S10 · Land* (`land()` in `.design/build_pages.mjs`, approved on the M4
 canvas). It puts a screen on M4.6's landing (archived spec `2026-10-06-m4-landing-design.md`,
@@ -161,6 +161,17 @@ settings.
 - In vitest: the same flow on the screen; the poll runs while a landing moves and stops when it
   settles.
 - The full checks pass with CI's environment, and the walk above matches the board.
+
+## Notes from the build
+
+- **Ready to land is a real table** (`<table>`), not a grid of roles, as Biome's accessibility
+  rules ask; a refusal's problem is its own row under the draft it names.
+- **A refused landing's card says *No pull request was opened*;** a closed one, that its pull
+  request was closed (#317). A landing without one says *none* in its row (#318).
+- **A build without a commit** (an index rebuilt from a folder) reads by its node count (#314).
+- The walk's other two: kept drafts stand apart (#315), a state tag fits its word (#316).
+- Left from the board, as Review left them: the bulk bar under the table, the subtitle beside the
+  title, no select-all box. A landing's row lists every draft it took, dropped ones too.
 
 ## Not in this part
 
