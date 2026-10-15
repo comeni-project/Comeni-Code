@@ -144,7 +144,14 @@ describe("LandPage — the landings", () => {
   });
 
   it("keeps each kept draft apart (#315)", async () => {
-    const two = { ...landingOf().entries[0], draft: "d-7", node_id: "salmon", revision: 4 };
+    const two = {
+      draft: "d-7",
+      node_id: "salmon",
+      revision: 4,
+      live: true,
+      dropped_code: "",
+      dropped_reason: "",
+    };
     const live = landingOf({ entries: [...landingOf().entries, two] });
     renderLand({ "GET /api/studio/landings": { body: [live] } });
     expect(await screen.findByText("k-mers · rev 6")).toBeInTheDocument();
