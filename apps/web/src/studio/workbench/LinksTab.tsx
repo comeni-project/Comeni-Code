@@ -9,10 +9,12 @@ import { reloadDraft } from "./useDraftEdit";
 
 export function LinksTab({
   draftId,
+  nodeId,
   node,
   editable,
 }: {
   draftId: string;
+  nodeId: string;
   node: DraftNodeOut;
   editable: boolean;
 }) {
@@ -20,7 +22,8 @@ export function LinksTab({
   const reload = () => void reloadDraft(client, draftId);
   const common = { draftId, editable, onReload: reload };
   // Suggestions only: any id may still be typed, and verify judges it.
-  const targets = useLinkTargets().data ?? [];
+  // A node never links to itself (#338).
+  const targets = (useLinkTargets().data ?? []).filter((t) => t.id !== nodeId);
   return (
     <>
       <datalist id={LINK_TARGETS}>

@@ -10,6 +10,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 const NEEDS = [{ node: "sequencing-reads", reason: "k-mers are cut from reads." }];
 const TARGETS = [
+  { id: "k-mers", title: "k-mers", draft: true },
   { id: "node-a", title: "Node A", draft: true },
   { id: "sequencing-reads", title: "Sequencing reads", draft: false },
 ];
@@ -92,7 +93,7 @@ describe("LinksTab", () => {
     expect(screen.getByText("At most four.")).toBeInTheDocument();
   });
 
-  it("suggests landed nodes and drafts for every link's node (M6LD.4)", async () => {
+  it("suggests landed nodes and drafts for every link's node, never its own (M6LD.4, #338)", async () => {
     bench();
     const node = (
       await within(await screen.findByRole("group", { name: "Needs" })).findAllByLabelText("Node")
