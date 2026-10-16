@@ -107,3 +107,27 @@ def test_a_failure_is_said_in_words() -> None:
     session = Session(Answer(status=503))
     with pytest.raises(CommonsError, match="Commons did not answer"):
         look_up(LINK, session=session)  # type: ignore[arg-type]
+
+
+def test_a_file_without_an_artist_is_credited_to_its_uploader() -> None:
+    # #352: Commons gives no Artist; the uploader is named, and nothing repeats the credit's "via".
+    answer = info()
+    file = answer["query"]["pages"][0]["imageinfo"][0]
+    del file["extmetadata"]["Artist"]
+    file["user"] = "Maksim"
+    credit = look_up(LINK, session=Session(Answer(json=answer)))  # type: ignore[arg-type]
+    assert credit.author == "Maksim (Wikimedia Commons user)"
+
+
+def test_an_attribution_wins_over_the_artist() -> None:
+    answer = info()
+    meta = answer["query"]["pages"][0]["imageinfo"][0]["extmetadata"]
+    meta["Attribution"] = {"value": "Photo: J. Doe / Some Museum"}
+    credit = look_up(LINK, session=Session(Answer(json=answer)))  # type: ignore[arg-type]
+    assert credit.author == "Photo: J. Doe / Some Museum"
+
+
+def test_the_metadata_asks_for_the_uploader() -> None:
+    session = Session(Answer(json=info()))
+    look_up(LINK, session=session)  # type: ignore[arg-type]
+    assert "user" in session.asked[0][1]["iiprop"].split("|")

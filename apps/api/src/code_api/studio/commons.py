@@ -91,7 +91,7 @@ def _info(session: requests.Session, title: str, width: int) -> dict[str, Any]:
         "formatversion": 2,
         "titles": title,
         "prop": "imageinfo",
-        "iiprop": "url|mime|extmetadata",
+        "iiprop": "url|mime|extmetadata|user",
         "iiurlwidth": width,
     }
     try:
@@ -124,7 +124,15 @@ def _credit(title: str, info: dict[str, Any]) -> Credit:
         raise CommonsError(
             f"{title} is under {said}; an image here must be CC0, public domain, CC BY or CC BY-SA."
         )
-    author = _plain(meta.get("Artist", {}).get("value")) or "Unknown author, via Wikimedia Commons"
+    # The attribution the file asks for, else its artist, else who uploaded it: a licence that
+    # requires attribution needs a name (#352).
+    author = (
+        _plain(meta.get("Attribution", {}).get("value"))
+        or _plain(meta.get("Artist", {}).get("value"))
+        or (f"{info['user']} (Wikimedia Commons user)" if info.get("user") else "")
+    )
+    if not author:
+        raise CommonsError(f"{title} names no author or uploader to credit.")
     rendered = info.get("thumbmime") or info.get("mime") or ""
     media_type = rendered if rendered in _EXTENSIONS else "image/png"
     return Credit(
