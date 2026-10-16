@@ -20,11 +20,14 @@ _ENVIRONMENT = re.compile(r"\\(begin|end)\s*\{([^{}]*)\}")
 # What a formula's own check emits: about what a formula says, never about how blocks are written.
 FORMULA_CODES = frozenset({"CS0422", "CS0423", "CS0424"})
 
+# Links, images and markup (invariant 6), and colour an author would spend (invariant 11, #346).
 UNTRUSTED = frozenset(
     {"href", "url", "includegraphics", "htmlClass", "htmlId", "htmlStyle", "htmlData"}
+    | {"color", "textcolor", "colorbox", "fcolorbox"}
 )
 DEFINES = frozenset(
-    {"def", "gdef", "edef", "xdef", "let", "newcommand", "renewcommand", "providecommand"}
+    {"def", "gdef", "edef", "xdef", "let", "futurelet"}
+    | {"newcommand", "renewcommand", "providecommand"}
 )
 
 

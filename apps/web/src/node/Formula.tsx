@@ -11,7 +11,18 @@ export const InStudio = createContext(false);
 /** KaTeX's markup, or why it cannot draw the formula: a parse error or an unknown command. */
 function drawnOrError(tex: string, display: boolean): { html: string; error: string | null } {
   try {
-    const options = { displayMode: display, trust: false, throwOnError: true, macros: {} };
+    const options = {
+      displayMode: display,
+      // An untrusted command (\href, \url, \html…) throws rather than drawing in KaTeX's red,
+      // so it takes the plain-source path below (#346).
+      trust: () => {
+        throw new Error("This command is not allowed in a formula.");
+      },
+      throwOnError: true,
+      errorColor: "currentColor",
+      maxSize: 20, // em: no formula outgrows the page (#346)
+      macros: {},
+    };
     return { html: katex.renderToString(tex, options), error: null };
   } catch (error) {
     return { html: "", error: error instanceof Error ? error.message : String(error) };

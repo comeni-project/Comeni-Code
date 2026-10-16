@@ -76,26 +76,30 @@ executing code (M6.7's sandbox question, and invariant 6: no script from authors
 
 ## M6MX.3 How a formula is checked, and drawn
 
-**Drawn with KaTeX** in the browser, pinned to an exact release at least two weeks old, with
-`trust: false` (no `\href`, `\url`, `\includegraphics` or `\html…`) and `throwOnError: false`, so a
-formula KaTeX cannot read never breaks the page: **learners see its source in the mono face, plainly**;
+**Drawn with KaTeX** in the browser, pinned to an exact release at least two weeks old, in strict
+mode inside a `try`: a parse error, an unknown command or an untrusted one (`trust` is a callback
+that throws, so `\href`, `\url`, `\includegraphics` and `\html…` never draw, not even in KaTeX's
+red) is caught, so a formula KaTeX will not draw never breaks the page; `errorColor` is the text's
+own and `maxSize` is bounded (corrected by the final review, #346: this line first said
+`trust: false` and `throwOnError: false`, which draw untrusted commands in red). **Learners see such
+a formula's source in the mono face, plainly**;
 **Studio's preview** shows it in the colour Studio already gives a problem (`text-open`, as Land's
 refusals), with KaTeX's message (*my call*: a learner is not shown an error colour for an author's
-slip, and review sees it first).
-Inline formulas reach KaTeX through `remark-math`, a remark plugin beside the `remark-gfm` the
+slip, and review sees it first). Inline formulas reach KaTeX through `remark-math`, a remark plugin beside the `remark-gfm` the
 app already uses; the app renders them itself rather than through `rehype-katex`, which
 pins an older KaTeX (*my call*: one KaTeX).
 
 **Checked in `code-schema`** (pure, no JavaScript), *my call*: a formula is refused when it is
 empty, its braces or `\begin{…}`/`\end{…}` do not balance, or it uses a command KaTeX would run
 untrusted (`\href`, `\url`, `\includegraphics`, `\htmlClass`, `\htmlId`, `\htmlStyle`,
-`\htmlData`) — invariant 6, no markup from an author or a model — or one that defines a macro
-(`\def`, `\gdef`, `\edef`, `\xdef`, `\let`, `\newcommand`, `\renewcommand`,
+`\htmlData`) — invariant 6, no markup from an author or a model — or one that spends colour
+(`\color`, `\textcolor`, `\colorbox`, `\fcolorbox`; invariant 11, #346), or one that defines a macro
+(`\def`, `\gdef`, `\edef`, `\xdef`, `\let`, `\futurelet`, `\newcommand`, `\renewcommand`,
 `\providecommand`), which KaTeX allows even untrusted and which would let one formula change how
 later ones draw (invariant 3: a block reads correctly alone). Each formula is also drawn with its own
 empty `macros`. That is *parses* as far as a pure
 check can say; whether KaTeX knows every command is shown in the workbench preview, which draws
-with the same KaTeX as learners see, and errors there read in the error colour.
+with the same KaTeX as learners see, and is marked there in Studio's problem colour.
 
 *Rejected:* running KaTeX in Node in the content repository's CI (a second runtime in a check
 that is Python today); a Python LaTeX parser such as `pylatexenc` (it parses LaTeX, not KaTeX's

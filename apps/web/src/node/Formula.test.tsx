@@ -27,9 +27,18 @@ describe("Formula (M6MX.3)", () => {
     expect(source.getAttribute("title")).toMatch(/notacommand/);
   });
 
-  it("never draws a link from a formula", () => {
+  it("never draws a link from a formula, nor KaTeX's error red (#346)", () => {
     const { container } = render(<Formula tex="\href{https://example.org}{x}" display={false} />);
     expect(container.querySelector("a")).toBeNull();
+    expect(container.innerHTML).not.toMatch(/#cc0000|color:/i);
+    expect(screen.getByText("\\href{https://example.org}{x}")).toHaveClass("font-mono");
+  });
+
+  it("bounds a formula's size (#346)", () => {
+    const { container } = render(<Formula tex="\rule{5000em}{1em}" display={false} />);
+    // The source stays in KaTeX's MathML annotation; the drawn rule is clamped.
+    expect(container.innerHTML).not.toMatch(/width:\s*5000em/);
+    expect(container.innerHTML).toMatch(/width:\s*20em/);
   });
 
   it("keeps no macro from one formula to the next", () => {

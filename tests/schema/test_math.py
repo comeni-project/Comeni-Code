@@ -47,6 +47,10 @@ def test_inline_formulas_follow_remark_math(markdown: str, found: list[tuple[int
         ("\\newcommand{\\a}{b}", ["CS0424"]),
         ("\\def\\a{b}", ["CS0424"]),
         ("\\gdef\\a{b} \\href{x}{y}", ["CS0423", "CS0424"]),
+        ("\\color{red}{x}", ["CS0423"]),
+        ("\\textcolor{red}{x}", ["CS0423"]),
+        ("\\colorbox{red}{x}", ["CS0423"]),
+        ("\\futurelet\\a\\b", ["CS0424"]),
     ],
 )
 def test_formula_problems(tex: str, codes: list[str]) -> None:

@@ -890,7 +890,7 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Fix.** Remove the command: a formula holds mathematics, not links, images or markup. Link from the text around it.
 
-**Why.** `\href`, `\url`, `\includegraphics` and `\html…` would put links or markup on the page; nothing an author or a model writes does (invariant 6; M6MX.3).
+**Why.** `\href`, `\url`, `\includegraphics` and `\html…` would put links or markup on the page, and nothing an author or a model writes does (invariant 6; M6MX.3); `\color` and its kin would spend colour, which has one meaning across the product (invariant 11; #346).
 
 #### CS0424 — a formula defines a macro
 
