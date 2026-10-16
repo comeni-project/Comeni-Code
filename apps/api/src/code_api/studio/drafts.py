@@ -7,7 +7,7 @@ nothing; a warning is stored with it. Each save names the revision it was based 
 a stale one is refused (optimistic concurrency, M4W.0).
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Container
 from dataclasses import dataclass, field
 
 from django.db import IntegrityError, connection, transaction
@@ -295,9 +295,15 @@ def in_place(standing: list[Draft]) -> list[Problem]:
     return sorted([*problems, *_graph(nodes, folders)], key=Problem.sort_key)
 
 
-def live_drafts() -> dict[str, Draft]:
-    """Each live draft by its node's id (one per node, M4W.1)."""
-    return {draft.node_id: draft for draft in Draft.objects.filter(state__in=LIVE_STATES)}
+def live_nodes() -> dict[str, tuple[Draft, Node]]:
+    """Each live draft that reads, with its node, by its node's id (one per node, M4W.1). A draft
+    that no longer reads is no link target: a link to it is CS0501, never also CA0224 (#341)."""
+    found: dict[str, tuple[Draft, Node]] = {}
+    for draft in Draft.objects.filter(state__in=LIVE_STATES):
+        node, _ = node_of(draft)  # its own problems are its own (M6LD.2)
+        if node is not None:
+            found[draft.node_id] = (draft, node)
+    return found
 
 
 def indexed_ids() -> set[str]:
@@ -312,14 +318,19 @@ def _kinds(node: Node) -> list[tuple[str, str]]:
     ]
 
 
-def unlanded_links(node: Node, indexed: set[str], live: dict[str, Draft]) -> list[tuple[str, str]]:
-    """The node's links to a live draft of a node the index does not have (M6LD.1), as
+def unlanded_links(node: Node, indexed: set[str], live: Container[str]) -> list[tuple[str, str]]:
+    """The node's links to a live draft (of `live`'s ids) of a node the index does not have
+    (M6LD.1), as
     `(kind, target)` in link order: needs, goes-deeper, related."""
     return [
         (kind, target)
         for kind, target in _kinds(node)
         if target not in indexed and target in live and target != node.id
     ]
+
+
+def _where(problem: Problem) -> tuple[str, str | None, int | None, str]:
+    return problem.file, problem.field, problem.line, problem.code
 
 
 def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
@@ -332,13 +343,10 @@ def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
         return None, problems
     indexed, indexed_folders = _index_nodes()
     nodes, folders = dict(indexed), dict(indexed_folders)
-    live = live_drafts()
-    for other in live.values():
-        if other.pk == draft.pk:
-            continue
-        placed, _ = node_of(other)  # its own problems are its own (M6LD.2)
-        if placed is not None:
-            nodes[other.node_id], folders[other.node_id] = placed, other.folder
+    live = live_nodes()
+    for node_id, (other, placed) in live.items():
+        if other.pk != draft.pk:
+            nodes[node_id], folders[node_id] = placed, other.folder
     without_nodes, without_folders = dict(nodes), dict(folders)
     if draft.node_id in indexed:
         without_nodes[draft.node_id] = indexed[draft.node_id]
@@ -347,9 +355,13 @@ def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
         without_nodes.pop(draft.node_id, None)
         without_folders.pop(draft.node_id, None)
     nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
-    without = set(_graph(without_nodes, without_folders))
+    # Compared without their message: a CS0501's "closest is" may name this draft's node, and
+    # rewording another draft's problem does not make it this draft's (#340).
+    without = {_where(p) for p in _graph(without_nodes, without_folders)}
     own = f"{draft.folder}/"
-    shown = [p for p in _graph(nodes, folders) if p.file.startswith(own) or p not in without]
+    shown = [
+        p for p in _graph(nodes, folders) if p.file.startswith(own) or _where(p) not in without
+    ]
     lines = link_lines(node, draft.folder)
     shown += [
         Problem(

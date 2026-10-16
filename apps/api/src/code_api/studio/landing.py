@@ -73,7 +73,7 @@ _VERBS = {"needs": "needs", "goes-deeper": "goes deeper to", "related": "is rela
 def _missing(batch: list[Draft]) -> list[Problem]:
     """One CA0312 per link from a batch draft to a live draft of a new node left out of the batch,
     worded by where that draft is: in a landing, approved, or not yet approved."""
-    indexed, live = drafts.indexed_ids(), drafts.live_drafts()
+    indexed, live = drafts.indexed_ids(), drafts.live_nodes()
     carried = {draft.node_id for draft in batch}
     found: list[Problem] = []
     for draft in batch:
@@ -84,7 +84,7 @@ def _missing(batch: list[Draft]) -> list[Problem]:
         for kind, target in drafts.unlanded_links(node, indexed, live):
             if target in carried:
                 continue
-            needed = live[target]
+            needed = live[target][0]
             said = f"{draft.node_id} {_VERBS[kind]} {target}"
             held = live_landing(needed)
             if held is not None:
@@ -265,7 +265,7 @@ def ready() -> list[Ready]:
     names = dict(Region.objects.values_list("id", "name"))
     found: list[Ready] = []
     approved = Draft.objects.filter(state=Draft.State.APPROVED).exclude(pk__in=held)
-    indexed, live = drafts.indexed_ids(), drafts.live_drafts()
+    indexed, live = drafts.indexed_ids(), drafts.live_nodes()
     for draft in approved.order_by("node_id"):
         last = drafts.latest(draft)
         first = draft.revisions.get(number=1) if draft.base_digest else None

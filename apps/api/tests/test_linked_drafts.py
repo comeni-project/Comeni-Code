@@ -138,3 +138,24 @@ def test_the_checklist_passes_verify_with_a_warning(ada: User) -> None:
     link(b, "needs", "node-a", by=ada)
     [clean] = [item for item in drafts.checklist(b) if item.rule == "verifies clean"]
     assert clean.passed
+
+
+def test_another_drafts_typo_never_blocks_this_one(ada: User) -> None:
+    # #340: the other draft's CS0501 says "closest is zebra-reads" once zebra-reads is in place;
+    # its wording changes, not its cause, so it stays the other draft's problem.
+    zebra = new("zebra-reads", ada)
+    other = new("other-node", ada)
+    link(other, "goes-deeper", "zebra-read", by=ada)
+    assert "closest is `zebra-reads`" in " ".join(p.message for p in drafts.verify(other))
+    assert drafts.verify(zebra) == []
+
+
+def test_a_draft_that_does_not_read_is_no_target(ada: User) -> None:
+    # #341: a link to it is CS0501 only, never also CA0224.
+    a = new("node-a", ada)
+    b = new("node-b", ada)
+    link(b, "needs", "node-a", by=ada)
+    latest = drafts.latest(a)
+    latest.node_yaml = "title: [\n"
+    latest.save(update_fields=["node_yaml"])
+    assert codes(drafts.verify(b)) == ["CS0501"]

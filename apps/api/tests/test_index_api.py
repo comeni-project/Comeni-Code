@@ -93,7 +93,7 @@ def test_link_targets_list_nodes_and_drafts(ada: User) -> None:
 
     opened("base")
     opened("gone")
-    gone = drafts.live_drafts()["gone"]
+    gone, _ = drafts.live_nodes()["gone"]
     drafts.discard(gone, by=ada)
     drafts.open_existing("tpm", by=ada)  # a draft of an indexed node is listed once, as a node
     targets = signed_in(ada).get("/api/studio/index/nodes").json()

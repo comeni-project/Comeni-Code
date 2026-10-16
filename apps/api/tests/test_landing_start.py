@@ -177,3 +177,15 @@ def test_the_needed_draft_in_the_batch_lands_together(otto: User) -> None:
     tied = approve(new_draft("tied", otto, needs=("base",)), otto)
     made = landing.start([tied.public_id, base.public_id], by=otto)
     assert made.state == "pending"
+
+
+def test_a_needed_draft_that_does_not_read_is_left_to_the_in_place_check(otto: User) -> None:
+    # #341: no "tick it too" for a draft that cannot land; CS0501 says what is wrong.
+    base = approve(new_draft("base", otto), otto)
+    tied = approve(new_draft("tied", otto, needs=("base",)), otto)
+    latest = drafts.latest(base)
+    latest.node_yaml = "title: [\n"
+    latest.save(update_fields=["node_yaml"])
+    with pytest.raises(landing.BatchFails) as refused:
+        landing.start([tied.public_id], by=otto)
+    assert "CS0501" in {p.code for p in refused.value.problems}

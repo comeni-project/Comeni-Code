@@ -61,10 +61,7 @@ def link_targets(request: HttpRequest) -> list[LinkTargetOut]:
         node_id: LinkTargetOut(id=node_id, title=title, draft=False)
         for node_id, title in IndexedNode.objects.values_list("id", "title")
     }
-    for node_id, draft in drafts.live_drafts().items():
-        if node_id in found:
-            continue
-        node, _ = drafts.node_of(draft)
-        if node is not None:
+    for node_id, (_, node) in drafts.live_nodes().items():
+        if node_id not in found:
             found[node_id] = LinkTargetOut(id=node_id, title=node.title, draft=True)
     return [found[node_id] for node_id in sorted(found)]
