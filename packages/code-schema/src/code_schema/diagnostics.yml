@@ -1139,6 +1139,47 @@ codes:
     explanation: |
       A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 
+  CS0419:
+    emitted_by: schema
+    concern: body
+    says: the math block is empty
+    refuses: true
+    fix: |
+      Write the formula in TeX between the fences, or delete the block.
+    explanation: |
+      A math block is a formula and nothing else; an empty one would draw nothing (M6.2 spec,
+      M6MX.1).
+
+  CS0420:
+    emitted_by: schema
+    concern: body
+    says: an example has no title
+    refuses: true
+    fix: |
+      Write what the example shows after the directive: `:::{example} Three reads into one sequence`.
+    explanation: |
+      A worked example says what it shows, so a reader knows why to follow its steps (M6MX.2).
+
+  CS0421:
+    emitted_by: schema
+    concern: body
+    says: the example is empty
+    refuses: true
+    fix: |
+      Write the example's steps between the fences, or delete the block.
+    explanation: |
+      An example is its steps; a title alone teaches nothing (M6MX.2).
+
+  CS0425:
+    emitted_by: schema
+    concern: body
+    says: a math block takes no title
+    refuses: true
+    fix: |
+      Put the formula between the fences and any words about it in the text around it.
+    explanation: |
+      A math block holds TeX only; the prose around it says what the formula means (M6MX.1).
+
   # ── CS0500–CS0599 · the graph ───────────────────────────────────────────────────────────────
 
   CS0501:

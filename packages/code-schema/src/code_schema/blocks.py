@@ -2,7 +2,9 @@
 
 body.md is Markdown with MyST colon-fence directives at the top level: `:::{try} <id>` then `:::`
 places a question; `:::{misconception|caveat|convention} <title>`, Markdown, then `:::` is a
-callout; `:::{sequence}`, letters, then `:::` is a sequence (M4.8c spec, M4Q.2). Everything between
+callout; `:::{sequence}`, letters, then `:::` is a sequence (M4.8c spec, M4Q.2); `:::{math}`, TeX,
+then `:::` is a formula, and `:::{example} <title>`, Markdown, then `:::` a worked example (M6.2
+spec, M6MX.1–M6MX.2). Everything between
 directives is one text block, so blocks read and written back give the same text, byte for byte.
 Inside a code fence a directive is prose. W5.1's other blocks are refused by name until the phase
 that builds them.
@@ -22,9 +24,7 @@ CalloutKind = Literal["misconception", "caveat", "convention"]
 CALLOUTS: tuple[CalloutKind, ...] = get_args(CalloutKind)
 _LATER = {
     "figure": "M6",
-    "math": "M6",
     "image": "M6",
-    "example": "M6",
     "problem": "M6",
     "claim": "a later phase",
 }
@@ -61,16 +61,33 @@ class SequenceBlock:
     letters: str
 
 
-Block = Text | Try | Callout | SequenceBlock
+@dataclass(frozen=True)
+class Math:
+    """A display formula in TeX, drawn by KaTeX (M6.2 spec, M6MX.1)."""
+
+    tex: str
+
+
+@dataclass(frozen=True)
+class Example:
+    """A worked example: a title and Markdown, read step by step, never run (M6MX.2)."""
+
+    title: str
+    markdown: str
+
+
+Block = Text | Try | Callout | SequenceBlock | Math | Example
 
 
 def block_text(block: Block) -> str:
     """What a block carries as text, whatever its kind: nothing for a try."""
     match block:
-        case Text(markdown=markdown) | Callout(markdown=markdown):
+        case Text(markdown=markdown) | Callout(markdown=markdown) | Example(markdown=markdown):
             return markdown
         case SequenceBlock(letters=letters):
             return letters
+        case Math(tex=tex):
+            return tex
         case Try():
             return ""
 
@@ -223,6 +240,26 @@ def parse_blocks(
                 blocks.append(SequenceBlock(letters))
                 starts.append(number)
             continue
+        if name == "math":
+            tex = "".join(inner)
+            if argument:
+                problem("CS0425", ":::{math} takes no title", number)
+            elif not tex.strip():
+                problem("CS0419", "the math block is empty", number)
+            else:
+                blocks.append(Math(tex))
+                starts.append(number)
+            continue
+        if name == "example":
+            markdown = "".join(inner)
+            if not argument:
+                problem("CS0420", ":::{example} needs a title: what the example shows", number)
+            elif not markdown.strip():
+                problem("CS0421", "the example is empty", number)
+            else:
+                blocks.append(Example(argument, markdown))
+                starts.append(number)
+            continue
         if name in CALLOUTS:
             if not "".join(inner).strip():
                 problem("CS0411", f"the {name} callout is empty", number)
@@ -238,7 +275,8 @@ def parse_blocks(
             )
             continue
         message = f":::{{{name}}} is not a directive this format reads"
-        if close := difflib.get_close_matches(name, ["try", "sequence", *CALLOUTS], n=1):
+        known = ["try", "sequence", "math", "example", *CALLOUTS]
+        if close := difflib.get_close_matches(name, known, n=1):
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
     flush()
@@ -264,6 +302,10 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             out.append(f":::{{try}} {block.question}{newline}:::{newline}")
         elif isinstance(block, SequenceBlock):
             out.append(f":::{{sequence}}{newline}{block.letters}:::{newline}")
+        elif isinstance(block, Math):
+            out.append(f":::{{math}}{newline}{block.tex}:::{newline}")
+        elif isinstance(block, Example):
+            out.append(f":::{{example}} {block.title}{newline}{block.markdown}:::{newline}")
         else:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
@@ -281,6 +323,10 @@ def block_json(block: Block) -> dict[str, str]:
             return {"kind": "callout", "callout": kind, "title": title, "markdown": markdown}
         case SequenceBlock(letters=letters):
             return {"kind": "sequence", "letters": letters}
+        case Math(tex=tex):
+            return {"kind": "math", "tex": tex}
+        case Example(title=title, markdown=markdown):
+            return {"kind": "example", "title": title, "markdown": markdown}
 
 
 def block_from_json(stored: dict[str, str]) -> Block:
@@ -292,6 +338,10 @@ def block_from_json(stored: dict[str, str]) -> Block:
             return Try(stored["question"])
         case "sequence":
             return SequenceBlock(stored["letters"])
+        case "math":
+            return Math(stored["tex"])
+        case "example":
+            return Example(stored["title"], stored["markdown"])
         case "callout" if (kind := stored.get("callout")) in CALLOUTS:
             return Callout(kind, stored["title"], stored["markdown"])
         case other:

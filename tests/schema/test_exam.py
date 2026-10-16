@@ -495,3 +495,21 @@ def test_a_problem_before_the_id_carries_no_question(tmp_path: Path) -> None:
     )
     found = [p for p in problems_of(tmp_path, pool, try_field=TRY) if p.code == "CS0304"]
     assert [p.question for p in found] == [None]
+
+
+def test_a_stem_holds_math(tmp_path: Path) -> None:
+    # M6MX.4: a formula may set the question.
+    mathed = STEM_POOL.replace(
+        "      :::{sequence}\n      ACGTAGCA\n      :::\n",
+        "      :::{math}\n      x^2\n      :::\n",
+    )
+    assert "CS0817" not in codes(tmp_path, mathed)
+
+
+def test_a_stem_holds_no_example(tmp_path: Path) -> None:
+    # M6MX.4: a worked example belongs on the page.
+    exampled = STEM_POOL.replace(
+        "      :::{sequence}\n      ACGTAGCA\n      :::\n",
+        "      :::{example} Worked\n      Steps.\n      :::\n",
+    )
+    assert "CS0817" in codes(tmp_path, exampled)

@@ -852,6 +852,38 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 
+#### CS0419 — the math block is empty
+
+*Refuses.*
+
+**Fix.** Write the formula in TeX between the fences, or delete the block.
+
+**Why.** A math block is a formula and nothing else; an empty one would draw nothing (M6.2 spec, M6MX.1).
+
+#### CS0420 — an example has no title
+
+*Refuses.*
+
+**Fix.** Write what the example shows after the directive: `:::{example} Three reads into one sequence`.
+
+**Why.** A worked example says what it shows, so a reader knows why to follow its steps (M6MX.2).
+
+#### CS0421 — the example is empty
+
+*Refuses.*
+
+**Fix.** Write the example's steps between the fences, or delete the block.
+
+**Why.** An example is its steps; a title alone teaches nothing (M6MX.2).
+
+#### CS0425 — a math block takes no title
+
+*Refuses.*
+
+**Fix.** Put the formula between the fences and any words about it in the text around it.
+
+**Why.** A math block holds TeX only; the prose around it says what the formula means (M6MX.1).
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have
