@@ -5676,7 +5676,7 @@
     },
     "/api/studio/drafts/{public_id}/images": {
       "post": {
-        "description": "An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4).",
+        "description": "An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4); a\nname the draft already holds takes the next free one, so nothing is replaced (#355).",
         "operationId": "code_api_studio_api_add_image",
         "parameters": [
           {
