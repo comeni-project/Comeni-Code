@@ -1,6 +1,6 @@
 # M6.1 — Linked drafts
 
-**Status: for the operator's approval, 2026-10-16.** The first part of M6 (#325), issue #328.
+**Status: agreed 2026-10-16; built.** The first part of M6 (#325), issue #328.
 Designed with the operator on 2026-10-16. It changes M4.4's verify and checklist (archived
 `2026-10-05-m4-drafts-design.md`, M4W.5) and M4.6's landing batch (archived
 `2026-10-06-m4-landing-design.md`, M4L.3).
