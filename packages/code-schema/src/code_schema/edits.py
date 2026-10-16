@@ -89,7 +89,9 @@ def remove_image(node: Node, file: str) -> Node:
         for q in node.exam
     )
     images = tuple(each for each in node.images if each.file != file)
-    return replace(_with_blocks(node, kept(node.blocks), list(node.questions)), images=images, exam=exam)
+    return replace(
+        _with_blocks(node, kept(node.blocks), list(node.questions)), images=images, exam=exam
+    )
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:
