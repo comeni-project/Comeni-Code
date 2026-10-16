@@ -123,6 +123,7 @@ def ready_drafts(request: HttpRequest) -> list[ReadyDraftOut]:
             approved_by=None if one.approval.by is None else MemberOut.of(one.approval.by),
             self_approved=one.approval.self_approved,
             files=[FileChangeOut(file=name, change=change) for name, change in one.files],
+            needs=one.needs,
         )
         for one in landing.ready()
     ]

@@ -37,6 +37,7 @@ export interface ApiSchemas {
   Level: Level;
   LinkIn: LinkIn;
   LinkOut: LinkOut;
+  LinkTargetOut: LinkTargetOut;
   LinksIn: LinksIn;
   MeOut: MeOut;
   MemberOut: MemberOut;
@@ -454,6 +455,14 @@ export interface LinkIn {
   node: string;
   reason: string;
 }
+/**
+ * A node a link may name: a landed node, or a live draft of a new one (M6.1 spec, M6LD.4).
+ */
+export interface LinkTargetOut {
+  draft: boolean;
+  id: string;
+  title: string;
+}
 export interface LinksIn {
   links: LinkIn[];
   revision: number;
@@ -602,6 +611,7 @@ export interface ReadyDraftOut {
   approved_by: MemberOut | null;
   files: FileChangeOut[];
   folder: string;
+  needs: string[];
   node_id: string;
   public_id: string;
   region: string;

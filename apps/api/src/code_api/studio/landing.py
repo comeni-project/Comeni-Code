@@ -256,6 +256,7 @@ class Ready:
     region: str
     approval: DraftEvent
     files: list[tuple[str, str]]
+    needs: list[str]  # the live drafts of new nodes its links name, in link order (M6LD.3)
 
 
 def ready() -> list[Ready]:
@@ -264,12 +265,20 @@ def ready() -> list[Ready]:
     names = dict(Region.objects.values_list("id", "name"))
     found: list[Ready] = []
     approved = Draft.objects.filter(state=Draft.State.APPROVED).exclude(pk__in=held)
+    indexed, live = drafts.indexed_ids(), drafts.live_drafts()
     for draft in approved.order_by("node_id"):
         last = drafts.latest(draft)
         first = draft.revisions.get(number=1) if draft.base_digest else None
         node, _ = drafts.node_of(draft, last)
         region = "" if node is None else names.get(node.region, node.region)
-        found.append(Ready(draft, last.number, region, _approval(draft), changes(first, last)))
+        needs = (
+            []
+            if node is None
+            else list(dict.fromkeys(t for _, t in drafts.unlanded_links(node, indexed, live)))
+        )
+        found.append(
+            Ready(draft, last.number, region, _approval(draft), changes(first, last), needs)
+        )
     return found
 
 

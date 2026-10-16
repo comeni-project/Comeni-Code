@@ -11,8 +11,10 @@ from ninja import Router
 from code_api.accounts.access import studio
 from code_api.accounts.roles import Role
 from code_api.content.models import IndexBuild, Region
+from code_api.content.models import Node as IndexedNode
+from code_api.studio import drafts
 from code_api.studio.follow import MAIN_KEY
-from code_api.studio.schemas import BuildOut, IndexOut, RegionChoiceOut
+from code_api.studio.schemas import BuildOut, IndexOut, LinkTargetOut, RegionChoiceOut
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
 
@@ -49,3 +51,20 @@ def index(request: HttpRequest) -> IndexOut:
             for region in Region.objects.order_by("position")
         ],
     )
+
+
+@router.get("/nodes", response=list[LinkTargetOut], summary="The nodes a link may name")
+def link_targets(request: HttpRequest) -> list[LinkTargetOut]:
+    """Every indexed node, and each live draft of a node the index does not have that still
+    reads, its title from its latest revision; by id (M6.1 spec, M6LD.4)."""
+    found = {
+        node_id: LinkTargetOut(id=node_id, title=title, draft=False)
+        for node_id, title in IndexedNode.objects.values_list("id", "title")
+    }
+    for node_id, draft in drafts.live_drafts().items():
+        if node_id in found:
+            continue
+        node, _ = drafts.node_of(draft)
+        if node is not None:
+            found[node_id] = LinkTargetOut(id=node_id, title=node.title, draft=True)
+    return [found[node_id] for node_id in sorted(found)]

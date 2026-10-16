@@ -584,6 +584,15 @@ class ReadyDraftOut(Schema):
     approved_by: MemberOut | None
     self_approved: bool
     files: list[FileChangeOut]  # only the files that change, in node, body, exam order
+    needs: list[str]  # live drafts of new nodes its links name: land them with it (M6LD.3)
+
+
+class LinkTargetOut(Schema):
+    """A node a link may name: a landed node, or a live draft of a new one (M6.1 spec, M6LD.4)."""
+
+    id: str
+    title: str
+    draft: bool
 
 
 # ── The index (M4.7 spec, M4F.5) ────────────────────────────────────────────────────────────────

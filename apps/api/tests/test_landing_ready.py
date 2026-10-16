@@ -190,3 +190,30 @@ def test_a_landing_whose_drafts_were_all_dropped_is_refused_and_gives_them_back(
     assert (read["state"], read["landed"]) == ("refused", False)
     assert read["reason"]
     assert set(listed(otto)) == {"tpm"}
+
+
+def test_a_ready_row_names_the_drafts_it_needs(otto: User) -> None:
+    from code_schema import Link
+    from code_schema.edits import set_links
+
+    def opened(node_id: str) -> Draft:
+        return drafts.open_new(
+            node_id,
+            title=node_id.capitalize(),
+            claim=f"The claim of {node_id}.",
+            region="transcriptomics",
+            level=Level.FOUNDATIONS,
+            minutes=10,
+            by=otto,
+        )
+
+    base, tied = opened("base"), opened("tied")
+    ties = [Link(node="base", reason="It leans on base."), Link(node="tpm", reason="Indexed.")]
+    drafts.save(tied, based_on=1, edit=lambda n: set_links(n, "needs", ties), by=otto, change="t")
+    approve(base, otto)
+    approve(tied, otto)
+    rows = {row.draft.node_id: row.needs for row in landing.ready()}
+    assert rows == {"base": [], "tied": ["base"]}
+    listed = Client()
+    listed.force_login(otto)
+    assert {row["node_id"]: row["needs"] for row in listed.get(READY).json()} == rows
