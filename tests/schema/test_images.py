@@ -173,3 +173,38 @@ def test_each_licence_links_its_deed() -> None:
     assert deed_url("CC BY 4.0") == "https://creativecommons.org/licenses/by/4.0/"
     assert deed_url("CC0 1.0") == "https://creativecommons.org/publicdomain/zero/1.0/"
     assert deed_url("Public domain") == "https://creativecommons.org/publicdomain/mark/1.0/"
+
+
+# ── Edits (#356, #355) ────────────────────────────────────────────────────────────────────────
+
+
+def test_removing_an_image_takes_it_from_the_body_and_every_stem(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    from code_schema import ExamQuestion, NumberAnswer
+    from code_schema.edits import remove_image
+
+    node, _ = read_node(folder(tmp_path, graph_png=PNG), regions=REGIONS)
+    assert node is not None
+    stem = "How many paths?\n\n:::{image} graph.png\nThe graph.\n:::\n"
+    asked = ExamQuestion(
+        id="paths",
+        title="Paths",
+        claim="",
+        stem=stem,
+        answer=NumberAnswer(value=3, unit="", tolerance=None),
+        level=None,
+        rationale="Count them.",
+    )
+    gone = remove_image(replace(node, exam=(asked,)), "graph.png")
+    assert gone.images == ()
+    assert not any(isinstance(b, Image) for b in gone.blocks)
+    assert gone.exam[0].stem == "How many paths?\n\n"
+
+
+def test_a_free_name_for_a_new_image() -> None:
+    from code_schema.images import free_name
+
+    taken = {"image.png", "image-2.png"}
+    assert free_name("image.png", taken) == "image-3.png"
+    assert free_name("kmers.jpg", taken) == "kmers.jpg"

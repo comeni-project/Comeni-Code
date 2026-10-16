@@ -6,6 +6,7 @@ review step past that is `studio.review`'s to say; too low a role is CA0102, as 
 """
 
 from collections.abc import Callable, Mapping
+from dataclasses import replace
 from typing import Any, Literal
 from uuid import UUID
 
@@ -81,7 +82,7 @@ from code_schema.edits import (
     write_faithfully,
 )
 from code_schema.grading import NotAnAnswer
-from code_schema.images import MAX_IMAGE_BYTES, sniff
+from code_schema.images import MAX_IMAGE_BYTES, free_name, sniff
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
 
@@ -648,6 +649,12 @@ class ImageRecordIn(Schema):
     licence: str
 
 
+def _taken(public_id: UUID) -> set[str]:
+    """The image names the draft's latest revision holds."""
+    draft = find(public_id)
+    return set() if draft is None else set(drafts.latest(draft).images)
+
+
 def _uploaded(upload: UploadedFile) -> bytes:
     # Read at most one byte over the limit: code-schema then says it is too large.
     return bytes(upload.read(MAX_IMAGE_BYTES + 1))
@@ -667,7 +674,9 @@ def add_image(
     source: Form[str],
     licence: Form[str],
 ) -> SaveAnswer:
-    """An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4)."""
+    """An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4); a
+    name the draft already holds takes the next free one, so nothing is replaced (#355)."""
+    file = free_name(file, _taken(public_id))
     record = ImageRecord(file=file, alt=alt, author=author, source=source, licence=licence)
     block = Image(file=file, caption=caption if caption.endswith("\n") else f"{caption}\n")
     data = _uploaded(upload)
@@ -705,6 +714,7 @@ def add_from_commons(
     except commons.CommonsError as no:
         return Status(422, Message(detail=str(no), code="CA0226"))
     credit = fetched.credit
+    credit = replace(credit, file=free_name(credit.file, _taken(public_id)))
     record = ImageRecord(
         file=credit.file,
         alt=body.alt,

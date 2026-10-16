@@ -46,6 +46,17 @@ class ImageRecord:
     licence: str
 
 
+def free_name(name: str, taken: Collection[str]) -> str:
+    """`name`, or the first `<stem>-N.<ext>` not taken, so a new image never replaces one (#355)."""
+    if name not in taken:
+        return name
+    stem, _, extension = name.rpartition(".")
+    count = 2
+    while f"{stem}-{count}.{extension}" in taken:
+        count += 1
+    return f"{stem}-{count}.{extension}"
+
+
 def sniff(data: bytes) -> str | None:
     """The image's media type by its first bytes; None for anything not PNG, JPEG or WebP."""
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
