@@ -2671,6 +2671,16 @@
               }
             ]
           },
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageRecordOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "question": {
             "anyOf": [
               {
@@ -2825,6 +2835,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/ReviewFieldsOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImageRecordOut"
               },
               {
                 "type": "null"

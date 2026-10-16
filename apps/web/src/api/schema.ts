@@ -764,6 +764,7 @@ export interface ReviewContentOut {
       )
     | null;
   fields: ReviewFieldsOut | null;
+  image?: ImageRecordOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
 }
@@ -829,6 +830,7 @@ export interface ReviewItemOut {
     | null;
   change: string;
   fields: ReviewFieldsOut | null;
+  image?: ImageRecordOut | null;
   key: string;
   kind: string;
   note: string;

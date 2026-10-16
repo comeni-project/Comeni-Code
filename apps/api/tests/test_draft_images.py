@@ -252,3 +252,22 @@ def test_a_draft_without_that_image_is_404(client: Client) -> None:
     draft = opened(client)
     answer = client.get(f"/api/studio/drafts/{draft}/images/nope.png")
     assert (answer.status_code, answer.json()["code"]) == (404, "CA0225")
+
+
+def test_review_shows_every_block_kind_and_an_images_record(client: Client) -> None:
+    # #350: math and example blocks reached review with nothing to read; an image brings its record.
+    from code_api.studio.keys import review_keys
+    from code_api.studio.schemas import _content
+
+    answer = client.post(
+        "/api/studio/drafts", {"node_id": "de-bruijn-graphs"}, content_type="application/json"
+    )
+    row = Draft.objects.get(public_id=answer.json()["public_id"])
+    node, _ = drafts.node_of(row)
+    assert node is not None
+    keys = {k.kind: k for k in review_keys(node, drafts.latest(row).images)}
+    assert _content(keys["math"], None).block is not None
+    assert _content(keys["example"], None).block is not None
+    image = _content(keys["image"], None)
+    assert image.block is not None and image.block.kind == "image"
+    assert image.image is not None and image.image.licence == "CC BY 4.0"

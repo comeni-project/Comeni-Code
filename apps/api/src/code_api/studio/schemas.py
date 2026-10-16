@@ -21,7 +21,7 @@ from code_api.content.schemas import (
     TextBlockOut,
     TryBlockOut,
 )
-from code_api.studio.keys import Key
+from code_api.studio.keys import Key, Pictured
 from code_api.studio.review import Answered, Reviewed, SentBack, Sheet, question_of
 from code_schema import (
     Answer,
@@ -460,6 +460,7 @@ class ReviewContentOut(Schema):
     block: BlockOut | None
     resource: StudioResourceOut | None
     question: ReviewQuestionOut | None
+    image: ImageRecordOut | None = None  # an image key's record, drawn as the page draws it
 
 
 class ReviewItemOut(ReviewContentOut):
@@ -518,11 +519,26 @@ def _content(key: Key, given: object | None) -> ReviewContentOut:
     there is one (M4RS.2)."""
     content = key.content
     asked = question_of(key)
+    block = None
+    if isinstance(content, Text | Callout | SequenceBlock | Math | Example):
+        block = _block_out(content)
+    elif isinstance(content, Pictured):
+        block = _block_out(content.block)
+    record = content.record if isinstance(content, Pictured) else None
     return ReviewContentOut(
         fields=_fields_out(content) if isinstance(content, Node) else None,
-        block=_block_out(content) if isinstance(content, Text | Callout | SequenceBlock) else None,
+        block=block,
         resource=_resource_out(content) if isinstance(content, Resource) else None,
         question=None if asked is None else review_question_out(Answered(asked, given, None)),
+        image=None
+        if record is None
+        else ImageRecordOut(
+            file=record.file,
+            alt=record.alt,
+            author=record.author,
+            source=record.source,
+            licence=record.licence,
+        ),
     )
 
 
@@ -533,6 +549,7 @@ def _review_item_out(item: Reviewed) -> ReviewItemOut:
         fields=now.fields,
         block=now.block,
         resource=now.resource,
+        image=now.image,
         # the current question keeps its graded answer
         question=None if item.answered is None else review_question_out(item.answered),
         key=item.key.key,
