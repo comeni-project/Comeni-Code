@@ -24,10 +24,10 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+from code_schema.images import IMAGE_FIELD, IMAGE_FOLDER, ImageRecord, image_problems, parse_images
 
 # Re-exported: every earlier part imports Level from here (M1P1.3).
 from code_schema.levels import Level as Level
-from code_schema.images import IMAGE_FIELD, IMAGE_FOLDER, ImageRecord, image_problems, parse_images
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.providers import Provider

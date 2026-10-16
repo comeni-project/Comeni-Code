@@ -11,8 +11,8 @@ from pathlib import Path
 
 import yaml
 
-from code_schema.images import IMAGE_FIELD
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
+from code_schema.images import IMAGE_FIELD
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
 from code_schema.questions import (
