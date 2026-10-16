@@ -14,6 +14,8 @@ from code_api.content.schemas import (
     BlockOut,
     CalloutBlockOut,
     ExampleBlockOut,
+    ImageBlockOut,
+    ImageRecordOut,
     MathBlockOut,
     SequenceBlockOut,
     TextBlockOut,
@@ -28,6 +30,7 @@ from code_schema import (
     ChoiceAnswer,
     Example,
     ExamQuestion,
+    Image,
     Math,
     Node,
     NumberAnswer,
@@ -119,6 +122,7 @@ class DraftNodeOut(Schema):
     resources: list[StudioResourceOut]
     questions: list[StudioQuestionOut]
     exam: list[StudioExamQuestionOut]
+    images: list[ImageRecordOut] = []  # each file's credit (M6.3 spec, M6IM.1)
 
 
 class DraftSummaryOut(Schema):
@@ -273,6 +277,8 @@ def _block_out(block: Block) -> AnyBlockOut:
             return MathBlockOut(kind="math", tex=tex)
         case Example(title=title, markdown=markdown):
             return ExampleBlockOut(kind="example", title=title, markdown=markdown)
+        case Image(file=file, caption=caption):
+            return ImageBlockOut(kind="image", file=file, caption=caption)
 
 
 def _question_out(question: TryQuestion) -> StudioQuestionOut:
@@ -330,6 +336,12 @@ def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> Draf
         resources=[_resource_out(r) for r in node.resources],
         questions=[_question_out(question) for question in node.questions],
         exam=[_exam_out(question, live or {}) for question in node.exam],
+        images=[
+            ImageRecordOut(
+                file=i.file, alt=i.alt, author=i.author, source=i.source, licence=i.licence
+            )
+            for i in node.images
+        ],
     )
 
 

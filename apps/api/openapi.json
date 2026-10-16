@@ -27,6 +27,16 @@
             "title": "Callout",
             "type": "string"
           },
+          "caption": {
+            "default": "",
+            "title": "Caption",
+            "type": "string"
+          },
+          "file": {
+            "default": "",
+            "title": "File",
+            "type": "string"
+          },
           "kind": {
             "enum": [
               "text",
@@ -34,7 +44,8 @@
               "callout",
               "sequence",
               "math",
-              "example"
+              "example",
+              "image"
             ],
             "title": "Kind",
             "type": "string"
@@ -220,6 +231,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
@@ -245,6 +257,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ExampleBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ImageBlockOut"
                 }
               ]
             },
@@ -267,6 +282,14 @@
               "$ref": "#/components/schemas/LinkOut"
             },
             "title": "Goes Deeper",
+            "type": "array"
+          },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageRecordOut"
+            },
+            "title": "Images",
             "type": "array"
           },
           "level": {
@@ -920,6 +943,98 @@
         "title": "HealthOut",
         "type": "object"
       },
+      "ImageBlockOut": {
+        "description": "An image from the node's images/ folder, and its caption (M6.3 spec, M6IM.1).",
+        "properties": {
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "kind": {
+            "const": "image",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "file",
+          "caption"
+        ],
+        "title": "ImageBlockOut",
+        "type": "object"
+      },
+      "ImageRecordIn": {
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "alt",
+          "author",
+          "source",
+          "licence"
+        ],
+        "title": "ImageRecordIn",
+        "type": "object"
+      },
+      "ImageRecordOut": {
+        "description": "An image's credit, as node.yaml records it (M6IM.1).",
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "alt",
+          "author",
+          "source",
+          "licence"
+        ],
+        "title": "ImageRecordOut",
+        "type": "object"
+      },
       "IndexOut": {
         "properties": {
           "behind": {
@@ -1489,6 +1604,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
@@ -1514,6 +1630,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ExampleBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ImageBlockOut"
                 }
               ]
             },
@@ -2429,6 +2548,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
@@ -2454,6 +2574,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ExampleBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ImageBlockOut"
                   }
                 ]
               },
@@ -2581,6 +2704,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
@@ -2606,6 +2730,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ExampleBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ImageBlockOut"
                   }
                 ]
               },
@@ -2809,6 +2936,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
@@ -2834,6 +2962,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ExampleBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ImageBlockOut"
                 }
               ]
             },
@@ -3284,6 +3415,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
@@ -3309,6 +3441,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ExampleBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ImageBlockOut"
                 }
               ]
             },
@@ -5337,6 +5472,460 @@
           }
         ],
         "summary": "Set fields",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/images": {
+      "post": {
+        "description": "An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4).",
+        "operationId": "code_api_studio_api_add_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "alt": {
+                    "title": "Alt",
+                    "type": "string"
+                  },
+                  "at": {
+                    "title": "At",
+                    "type": "integer"
+                  },
+                  "author": {
+                    "title": "Author",
+                    "type": "string"
+                  },
+                  "caption": {
+                    "title": "Caption",
+                    "type": "string"
+                  },
+                  "file": {
+                    "title": "File",
+                    "type": "string"
+                  },
+                  "licence": {
+                    "title": "Licence",
+                    "type": "string"
+                  },
+                  "revision": {
+                    "title": "Revision",
+                    "type": "integer"
+                  },
+                  "source": {
+                    "title": "Source",
+                    "type": "string"
+                  },
+                  "upload": {
+                    "format": "binary",
+                    "title": "Upload",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "upload",
+                  "revision",
+                  "file",
+                  "at",
+                  "caption",
+                  "alt",
+                  "author",
+                  "source",
+                  "licence"
+                ],
+                "title": "MultiPartBodyParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Add an image",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/images/{file}": {
+      "delete": {
+        "description": "The image whole: its block, its record and its file, as one save (M6IM.3).",
+        "operationId": "code_api_studio_api_delete_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "title": "File",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "title": "Revision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Remove an image",
+        "tags": [
+          "studio"
+        ]
+      },
+      "get": {
+        "description": "The latest revision's file, for Studio's preview (M6IM.3).",
+        "operationId": "code_api_studio_api_image_file",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "title": "File",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "An image's file",
+        "tags": [
+          "studio"
+        ]
+      },
+      "put": {
+        "operationId": "code_api_studio_api_edit_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "title": "File",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageRecordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Edit an image's record",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/images/{file}/file": {
+      "post": {
+        "operationId": "code_api_studio_api_replace_image_file",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "title": "File",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "revision": {
+                    "title": "Revision",
+                    "type": "integer"
+                  },
+                  "upload": {
+                    "format": "binary",
+                    "title": "Upload",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "upload",
+                  "revision"
+                ],
+                "title": "MultiPartBodyParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Replace an image's file",
         "tags": [
           "studio"
         ]

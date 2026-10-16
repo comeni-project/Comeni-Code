@@ -184,13 +184,16 @@ def sent_back(draft: Draft) -> SentBack | None:
     sent = None if last.revision is None else draft.revisions.filter(number=last.revision).first()
     node = None if sent is None else drafts.node_of(draft, sent)[0]
     if node is not None:
-        place = {key.key: at for at, key in enumerate(review_keys(node))}
+        shas = {} if sent is None else sent.images
+        place = {key.key: at for at, key in enumerate(review_keys(node, shas))}
         asks.sort(key=lambda verdict: place.get(verdict.key, len(place)))
     latest, _ = drafts.node_of(draft)
     if node is None or latest is None:
         now: dict[str, str | None] = {verdict.key: None for verdict in asks}
     else:
-        onward = {b: a for a, b in align(review_keys(node), review_keys(latest)).items() if b}
+        sent_keys = review_keys(node, {} if sent is None else sent.images)
+        latest_keys = review_keys(latest, drafts.latest(draft).images)
+        onward = {b: a for a, b in align(sent_keys, latest_keys).items() if b}
         now = {verdict.key: onward.get(verdict.key) for verdict in asks}
     return SentBack(last, asks, now)
 
@@ -221,7 +224,7 @@ def keys_of(draft: Draft) -> list[Key]:
     node, problems = drafts.node_of(draft)
     if node is None:
         raise drafts.Refused(problems)
-    return review_keys(node)
+    return review_keys(node, drafts.latest(draft).images)
 
 
 def question_of(key: Key) -> Asked | None:
@@ -386,7 +389,7 @@ def queue(by: User) -> list[Queued]:
         verdicts = _verdicts(mine)
         given = {} if mine is None else dict(mine.answers)
         node, _ = drafts.node_of(draft)
-        keys = [] if node is None else review_keys(node)
+        keys = [] if node is None else review_keys(node, drafts.latest(draft).images)
         found.append(
             Queued(
                 draft=draft,

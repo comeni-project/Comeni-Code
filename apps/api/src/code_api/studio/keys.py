@@ -5,6 +5,7 @@ block, try blocks included; it is stable because a submitted draft is frozen (M4
 """
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 
@@ -12,6 +13,8 @@ from code_schema import (
     Callout,
     Example,
     ExamQuestion,
+    Image,
+    ImageRecord,
     Math,
     Node,
     Resource,
@@ -21,21 +24,44 @@ from code_schema import (
     TryQuestion,
 )
 
-Content = (
-    Node | Text | Callout | SequenceBlock | Math | Example | Resource | TryQuestion | ExamQuestion
-)
 QUESTIONS = ("try", "exam")
+
+
+@dataclass(frozen=True)
+class Pictured:
+    """An image as review sees it: its block, its record and its file's sha256 together, so a new
+    file under the same name is a change (M6.3 spec, M6IM.3)."""
+
+    block: Image
+    record: ImageRecord | None
+    sha256: str
+
+
+Content = (
+    Node
+    | Text
+    | Callout
+    | SequenceBlock
+    | Math
+    | Example
+    | Pictured
+    | Resource
+    | TryQuestion
+    | ExamQuestion
+)
 
 
 @dataclass(frozen=True)
 class Key:
     key: str
-    kind: str  # node, text, callout, sequence, math, example, try, resource or exam
+    kind: str  # node, text, callout, sequence, math, example, image, try, resource or exam
     content: Content
 
 
-def review_keys(node: Node) -> list[Key]:
+def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
+    """`shas` names each image file's sha256, from the revision the node came from."""
     asked = {question.id: question for question in node.questions}
+    records = {record.file: record for record in node.images}
     keys = [Key("node", "node", node)]
     for at, block in enumerate(node.blocks):
         match block:
@@ -51,12 +77,15 @@ def review_keys(node: Node) -> list[Key]:
                 keys.append(Key(f"block/{at}", "math", block))
             case Example():
                 keys.append(Key(f"block/{at}", "example", block))
+            case Image(file=file):
+                seen = Pictured(block, records.get(file), (shas or {}).get(file, ""))
+                keys.append(Key(f"block/{at}", "image", seen))
     keys += [Key(f"resource/{at}", "resource", r) for at, r in enumerate(node.resources)]
     keys += [Key(f"exam/{question.id}", "exam", question) for question in node.exam]
     return keys
 
 
-BODY = ("text", "callout", "sequence", "math", "example")
+BODY = ("text", "callout", "sequence", "math", "example", "image")
 LABEL_LENGTH = 60
 _FIELDS = ("title", "claim", "region", "level", "minutes", "needs", "goes_deeper", "related")
 
@@ -82,6 +111,8 @@ def label(key: Key) -> str:
         return _cut(content.tex)
     if isinstance(content, Example):
         return _cut(content.title)
+    if isinstance(content, Pictured):
+        return _cut(content.block.file)
     if isinstance(content, TryQuestion):
         return _cut(content.ask)
     if isinstance(content, ExamQuestion):
@@ -108,6 +139,8 @@ def _signature(key: Key) -> str:
         return content.tex
     if isinstance(content, Example):
         return f"{content.title}\n{content.markdown}"
+    if isinstance(content, Pictured):
+        return f"{content.block.file}\n{content.sha256}\n{content.block.caption}"
     return key.key
 
 

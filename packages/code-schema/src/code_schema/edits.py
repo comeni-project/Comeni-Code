@@ -13,8 +13,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import replace
 
-from code_schema.blocks import Block, Text, Try, block_text, parse_blocks, write_blocks
+from code_schema.blocks import Block, Image, Text, Try, block_text, parse_blocks, write_blocks
 from code_schema.exam import ExamQuestion
+from code_schema.images import ImageRecord
 from code_schema.levels import Level
 from code_schema.links import Link
 from code_schema.math import FORMULA_CODES
@@ -66,6 +67,21 @@ def set_links(node: Node, kind: str, links: Sequence[Link]) -> Node:
 
 def set_resources(node: Node, resources: Sequence[Resource]) -> Node:
     return replace(node, resources=tuple(resources))
+
+
+def set_image_record(node: Node, record: ImageRecord) -> Node:
+    """An image's record added, or replaced where its file is already recorded (M6IM.1)."""
+    kept = [each for each in node.images if each.file != record.file]
+    at = next((i for i, each in enumerate(node.images) if each.file == record.file), len(kept))
+    kept.insert(at, record)
+    return replace(node, images=tuple(kept))
+
+
+def remove_image(node: Node, file: str) -> Node:
+    """An image gone whole: its record and every block on the page that places it (M6IM.3)."""
+    blocks = [b for b in node.blocks if not (isinstance(b, Image) and b.file == file)]
+    images = tuple(each for each in node.images if each.file != file)
+    return replace(_with_blocks(node, blocks, list(node.questions)), images=images)
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:

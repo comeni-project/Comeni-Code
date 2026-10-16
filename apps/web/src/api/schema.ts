@@ -27,6 +27,9 @@ export interface ApiSchemas {
   FilesOut: FilesOut;
   GivenIn: GivenIn;
   HealthOut: HealthOut;
+  ImageBlockOut: ImageBlockOut;
+  ImageRecordIn: ImageRecordIn;
+  ImageRecordOut: ImageRecordOut;
   IndexOut: IndexOut;
   InsertBlockIn: InsertBlockIn;
   InviteIn: InviteIn;
@@ -109,7 +112,9 @@ export interface ApproveIn {
  */
 export interface BlockIn {
   callout?: string;
-  kind: "text" | "try" | "callout" | "sequence" | "math" | "example";
+  caption?: string;
+  file?: string;
+  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image";
   letters?: string;
   markdown?: string;
   question?: string;
@@ -171,11 +176,18 @@ export interface QuestionChecksOut {
 }
 export interface DraftNodeOut {
   blocks: (
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+    | TextBlockOut
+    | TryBlockOut
+    | CalloutBlockOut
+    | SequenceBlockOut
+    | MathBlockOut
+    | ExampleBlockOut
+    | ImageBlockOut
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
   goes_deeper: LinkOut[];
+  images?: ImageRecordOut[];
   level: string;
   minutes: number;
   needs: LinkOut[];
@@ -219,6 +231,14 @@ export interface ExampleBlockOut {
   title: string;
 }
 /**
+ * An image from the node's images/ folder, and its caption (M6.3 spec, M6IM.1).
+ */
+export interface ImageBlockOut {
+  caption: string;
+  file: string;
+  kind: "image";
+}
+/**
  * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
  * file holds, and whether the live index holds it unchanged.
  */
@@ -234,7 +254,13 @@ export interface StudioExamQuestionOut {
   rationale: string;
   state: "approved" | "draft";
   stem: (
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+    | TextBlockOut
+    | TryBlockOut
+    | CalloutBlockOut
+    | SequenceBlockOut
+    | MathBlockOut
+    | ExampleBlockOut
+    | ImageBlockOut
   )[];
   stem_text: string;
   steps: string[] | null;
@@ -251,6 +277,16 @@ export interface StudioOptionOut {
 export interface LinkOut {
   node: string;
   reason: string;
+}
+/**
+ * An image's credit, as node.yaml records it (M6IM.1).
+ */
+export interface ImageRecordOut {
+  alt: string;
+  author: string;
+  file: string;
+  licence: string;
+  source: string;
 }
 /**
  * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
@@ -406,6 +442,13 @@ export interface HealthOut {
   checks: CheckOut[];
   status: "ok" | "down";
 }
+export interface ImageRecordIn {
+  alt: string;
+  author: string;
+  licence: string;
+  revision: number;
+  source: string;
+}
 export interface IndexOut {
   behind: boolean;
   checked_at: string | null;
@@ -522,7 +565,13 @@ export interface NewNodeIn {
 }
 export interface NodeOut {
   blocks: (
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+    | TextBlockOut
+    | TryBlockOut
+    | CalloutBlockOut
+    | SequenceBlockOut
+    | MathBlockOut
+    | ExampleBlockOut
+    | ImageBlockOut
   )[];
   claim: string;
   folder: string;
@@ -691,6 +740,7 @@ export interface ReviewContentOut {
         | SequenceBlockOut
         | MathBlockOut
         | ExampleBlockOut
+        | ImageBlockOut
       )
     | null;
   fields: ReviewFieldsOut | null;
@@ -727,7 +777,13 @@ export interface ReviewQuestionOut {
   right_option: number | null;
   right_steps: string[] | null;
   stem: (
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+    | TextBlockOut
+    | TryBlockOut
+    | CalloutBlockOut
+    | SequenceBlockOut
+    | MathBlockOut
+    | ExampleBlockOut
+    | ImageBlockOut
   )[];
   steps: string[] | null;
   tolerance: number | null;
@@ -748,6 +804,7 @@ export interface ReviewItemOut {
         | SequenceBlockOut
         | MathBlockOut
         | ExampleBlockOut
+        | ImageBlockOut
       )
     | null;
   change: string;

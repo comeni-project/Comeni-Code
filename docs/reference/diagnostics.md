@@ -1822,6 +1822,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A link may name a live draft, so linked new nodes are written side by side and each goes to review when it is done; the warning shows the node leans on work not yet landed (M6.1 spec, M6LD.1).
 
+#### CA0225 — a draft has no image of that name
+
+*Refuses.*
+
+**Fix.** Use a file name from the draft's images.
+
+**Why.** Studio's preview reads a draft's images by name (M6.3 spec, M6IM.3).
+
 ### CA0300–CA0399 · landing
 
 #### CA0301 — landing is not configured

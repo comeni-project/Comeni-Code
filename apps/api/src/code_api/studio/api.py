@@ -5,12 +5,13 @@ Every route is the team's: `studio(Role.AUTHOR)`, so any author or above (M4W.1)
 review step past that is `studio.review`'s to say; too low a role is CA0102, as M4.3's gate says.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any, Literal
 from uuid import UUID
 
-from django.http import HttpRequest
-from ninja import Router, Schema, Status
+from django.http import HttpRequest, HttpResponse
+from ninja import File, Form, Router, Schema, Status
+from ninja.files import UploadedFile
 
 from code_api.accounts.access import studio
 from code_api.accounts.api import MemberOut
@@ -47,6 +48,8 @@ from code_schema import (
     ChoiceAnswer,
     Example,
     ExamQuestion,
+    Image,
+    ImageRecord,
     Level,
     Link,
     Math,
@@ -68,7 +71,9 @@ from code_schema.edits import (
     delete_exam_question,
     insert_block,
     move_block,
+    remove_image,
     set_fields,
+    set_image_record,
     set_links,
     set_resources,
     update_block,
@@ -76,6 +81,7 @@ from code_schema.edits import (
     write_faithfully,
 )
 from code_schema.grading import NotAnAnswer
+from code_schema.images import MAX_IMAGE_BYTES, sniff
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
 
@@ -314,10 +320,12 @@ class BlockIn(Schema):
     (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
     markdown)."""
 
-    kind: Literal["text", "try", "callout", "sequence", "math", "example"]
+    kind: Literal["text", "try", "callout", "sequence", "math", "example", "image"]
     markdown: str = ""
     letters: str = ""
     tex: str = ""
+    file: str = ""
+    caption: str = ""
     question: str = ""
     callout: str = ""
     title: str = ""
@@ -466,6 +474,8 @@ def _block(given: BlockIn) -> Block:
             return Math(tex=given.tex)
         case "example":
             return Example(title=given.title, markdown=given.markdown)
+        case "image":
+            return Image(file=given.file, caption=given.caption)
     return Text(markdown=given.markdown)
 
 
@@ -474,7 +484,12 @@ _EDIT_RESPONSES = {200: SavedOut, 404: Message, 409: Message, 422: RefusedOut}
 
 
 def _edit(
-    request: HttpRequest, public_id: UUID, based_on: int, edit: drafts.Edit, change: str
+    request: HttpRequest,
+    public_id: UUID,
+    based_on: int,
+    edit: drafts.Edit,
+    change: str,
+    images: Mapping[str, bytes | None] | None = None,
 ) -> SaveAnswer:
     """One save through `drafts.save`, each outcome in the API's words."""
     draft = find(public_id)
@@ -482,7 +497,14 @@ def _edit(
         return refusal
     assert draft is not None
     try:
-        saved = drafts.save(draft, based_on=based_on, edit=edit, by=_member(request), change=change)
+        saved = drafts.save(
+            draft,
+            based_on=based_on,
+            edit=edit,
+            by=_member(request),
+            change=change,
+            images=images,
+        )
     except drafts.NotOpen as moved:
         draft.state = moved.state
         return not_open(draft)  # type: ignore[return-value]
@@ -587,6 +609,109 @@ def delete(request: HttpRequest, public_id: UUID, at: int, revision: int) -> Sav
     return _edit(
         request, public_id, revision, lambda node: delete_block(node, at), f"deleted block {at}"
     )
+
+
+class ImageRecordIn(Schema):
+    revision: int
+    alt: str
+    author: str
+    source: str
+    licence: str
+
+
+def _uploaded(upload: UploadedFile) -> bytes:
+    # Read at most one byte over the limit: code-schema says it is too large (CS0914).
+    return bytes(upload.read(MAX_IMAGE_BYTES + 1))
+
+
+@router.post("/{public_id}/images", response=_EDIT_RESPONSES, summary="Add an image")
+def add_image(
+    request: HttpRequest,
+    public_id: UUID,
+    upload: File[UploadedFile],
+    revision: Form[int],
+    file: Form[str],
+    at: Form[int],
+    caption: Form[str],
+    alt: Form[str],
+    author: Form[str],
+    source: Form[str],
+    licence: Form[str],
+) -> SaveAnswer:
+    """An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4)."""
+    record = ImageRecord(file=file, alt=alt, author=author, source=source, licence=licence)
+    block = Image(file=file, caption=caption if caption.endswith("\n") else f"{caption}\n")
+    data = _uploaded(upload)
+    return _edit(
+        request,
+        public_id,
+        revision,
+        lambda node: insert_block(set_image_record(node, record), at, block),
+        f"added the image {file}",
+        images={file: data},
+    )
+
+
+@router.post(
+    "/{public_id}/images/{file}/file", response=_EDIT_RESPONSES, summary="Replace an image's file"
+)
+def replace_image_file(
+    request: HttpRequest,
+    public_id: UUID,
+    file: str,
+    upload: File[UploadedFile],
+    revision: Form[int],
+) -> SaveAnswer:
+    return _edit(
+        request,
+        public_id,
+        revision,
+        lambda node: node,
+        f"replaced the image {file}",
+        images={file: _uploaded(upload)},
+    )
+
+
+@router.put(
+    "/{public_id}/images/{file}", response=_EDIT_RESPONSES, summary="Edit an image's record"
+)
+def edit_image(request: HttpRequest, public_id: UUID, file: str, body: ImageRecordIn) -> SaveAnswer:
+    record = ImageRecord(
+        file=file, alt=body.alt, author=body.author, source=body.source, licence=body.licence
+    )
+    return _edit(
+        request,
+        public_id,
+        body.revision,
+        lambda node: set_image_record(node, record),
+        f"edited the image {file}",
+    )
+
+
+@router.delete("/{public_id}/images/{file}", response=_EDIT_RESPONSES, summary="Remove an image")
+def delete_image(request: HttpRequest, public_id: UUID, file: str, revision: int) -> SaveAnswer:
+    """The image whole: its block, its record and its file, as one save (M6IM.3)."""
+    return _edit(
+        request,
+        public_id,
+        revision,
+        lambda node: remove_image(node, file),
+        f"removed the image {file}",
+        images={file: None},
+    )
+
+
+@router.get(
+    "/{public_id}/images/{file}", response={200: None, 404: Message}, summary="An image's file"
+)
+def image_file(request: HttpRequest, public_id: UUID, file: str) -> HttpResponse | Status[Message]:
+    """The latest revision's file, for Studio's preview (M6IM.3)."""
+    draft = find(public_id)
+    if draft is not None:
+        data = drafts.images_of(drafts.latest(draft)).get(file)
+        if data is not None:
+            return HttpResponse(data, content_type=sniff(data) or "application/octet-stream")
+    return Status(404, Message(detail=f"This draft has no image {file}.", code="CA0225"))
 
 
 @router.put("/{public_id}/resources", response=_EDIT_RESPONSES, summary="Replace the resources")

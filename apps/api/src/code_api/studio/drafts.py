@@ -7,7 +7,8 @@ nothing; a warning is stored with it. Each save names the revision it was based 
 a stale one is refused (optimistic concurrency, M4W.0).
 """
 
-from collections.abc import Callable, Container
+import hashlib
+from collections.abc import Callable, Container, Mapping
 from dataclasses import dataclass, field
 
 from django.db import IntegrityError, connection, transaction
@@ -19,9 +20,10 @@ from code_api.content.models import IndexBuild
 from code_api.content.models import Node as IndexedNode
 from code_api.content.snapshot import node_from_index, providers_from_index, regions_from_index
 from code_api.studio.log import record
-from code_api.studio.models import LIVE_STATES, Draft, DraftEvent, Revision
+from code_api.studio.models import LIVE_STATES, Asset, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
 from code_schema.graph import graph_problems
+from code_schema.images import sniff
 from code_schema.links import locate_links
 from code_schema.node import NODE_FILE
 from code_schema.question_rules import question_checks
@@ -84,7 +86,12 @@ def _files(node: Node) -> tuple[str, str, str]:
 
 
 def _read(
-    node_id: str, folder: str, node_yaml: str, body: str, exam: str
+    node_id: str,
+    folder: str,
+    node_yaml: str,
+    body: str,
+    exam: str,
+    images: Mapping[str, bytes] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """The draft's files read as CI reads a node folder, against the index's registries."""
     return parse_node_files(
@@ -95,7 +102,35 @@ def _read(
         regions=set(regions_from_index()),
         providers=providers_from_index(),
         where=f"{folder}/",
+        images={} if images is None else images,
     )
+
+
+def images_of(revision: Revision) -> dict[str, bytes]:
+    """The revision's image files by name, read from their assets (M6IM.3)."""
+    if not revision.images:
+        return {}
+    found = {
+        a.sha256: bytes(a.data) for a in Asset.objects.filter(sha256__in=revision.images.values())
+    }
+    return {name: found[sha] for name, sha in revision.images.items() if sha in found}
+
+
+def _stored(images: Mapping[str, bytes]) -> dict[str, str]:
+    """Each file kept once as an asset, by its sha256; the revision's mapping (M6IM.3)."""
+    mapping: dict[str, str] = {}
+    for name, data in images.items():
+        sha = hashlib.sha256(data).hexdigest()
+        Asset.objects.get_or_create(
+            sha256=sha,
+            defaults={
+                "media_type": sniff(data) or "application/octet-stream",
+                "size": len(data),
+                "data": data,
+            },
+        )
+        mapping[name] = sha
+    return mapping
 
 
 def latest(draft: Draft) -> Revision:
@@ -110,7 +145,14 @@ def node_of(draft: Draft, revision: Revision | None = None) -> tuple[Node | None
     say why, never a 500 (#173). Such a draft is discarded, or the registry is restored.
     """
     shown = revision or latest(draft)
-    return _read(draft.node_id, draft.folder, shown.node_yaml, shown.body_md, shown.exam_yaml)
+    return _read(
+        draft.node_id,
+        draft.folder,
+        shown.node_yaml,
+        shown.body_md,
+        shown.exam_yaml,
+        images_of(shown),
+    )
 
 
 def contributors(draft: Draft) -> list[User]:
@@ -122,9 +164,16 @@ def contributors(draft: Draft) -> list[User]:
     return list(seen.values())
 
 
-def _start(node: Node, folder: str, base_digest: str, by: User, change: str) -> Draft:
+def _start(
+    node: Node,
+    folder: str,
+    base_digest: str,
+    by: User,
+    change: str,
+    images: Mapping[str, bytes] | None = None,
+) -> Draft:
     node_yaml, body, exam = _files(node)
-    _, problems = _read(node.id, folder, node_yaml, body, exam)
+    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {})
     if any(problem.refuses for problem in problems):
         raise Refused(problems)
     try:
@@ -138,6 +187,7 @@ def _start(node: Node, folder: str, base_digest: str, by: User, change: str) -> 
                 node_yaml=node_yaml,
                 body_md=body,
                 exam_yaml=exam,
+                images=_stored(images or {}),
                 saved_by=by,
                 change=change,
             )
@@ -201,8 +251,17 @@ def open_new(
     return _start(node, f"{region}/{node_id}", "", by, "opened as a new node")
 
 
-def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> Saved:
+def save(
+    draft: Draft,
+    *,
+    based_on: int,
+    edit: Edit,
+    by: User,
+    change: str,
+    images: Mapping[str, bytes | None] | None = None,
+) -> Saved:
     """One edit, one revision — or none, if the edit's files have errors or `based_on` is stale.
+    `images` changes the image files with the edit: a file by name, or None to remove it (M6IM.3).
 
     The draft row is locked for the save, so two saves on one draft run one after the other, and
     the second sees the first's revision.
@@ -219,7 +278,13 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
             raise Refused(problems)  # it no longer reads against today's registries
         edited = edit(node)
         node_yaml, body, exam = _files(edited)
-        again, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam)
+        files = images_of(current)
+        for name, data in (images or {}).items():
+            if data is None:
+                files.pop(name, None)
+            else:
+                files[name] = data
+        again, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam, files)
         if any(problem.refuses for problem in problems):
             raise Refused(problems)
         if again != edited:
@@ -232,6 +297,7 @@ def save(draft: Draft, *, based_on: int, edit: Edit, by: User, change: str) -> S
             node_yaml=node_yaml,
             body_md=body,
             exam_yaml=exam,
+            images=_stored(files),
             saved_by=by,
             change=change,
         )

@@ -16,6 +16,7 @@ from code_api.content.schemas import (
     AnyBlockOut,
     CalloutBlockOut,
     ExampleBlockOut,
+    ImageBlockOut,
     MathBlockOut,
     Message,
     NeighbourOut,
@@ -38,6 +39,7 @@ from code_api.content.schemas import (
 from code_schema import (
     Callout,
     Example,
+    Image,
     Level,
     Math,
     SequenceBlock,
@@ -104,6 +106,8 @@ def _block(stored: dict[str, Any]) -> AnyBlockOut:
             return MathBlockOut(kind="math", tex=tex)
         case Example(title=title, markdown=markdown):
             return ExampleBlockOut(kind="example", title=title, markdown=markdown)
+        case Image(file=file, caption=caption):
+            return ImageBlockOut(kind="image", file=file, caption=caption)
 
 
 def _question(question: Question) -> QuestionOut:

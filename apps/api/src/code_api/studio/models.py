@@ -51,6 +51,15 @@ class Draft(models.Model):
 LIVE_STATES = (Draft.State.OPEN, Draft.State.SUBMITTED, Draft.State.APPROVED)
 
 
+class Asset(models.Model):
+    """One image file a draft holds, kept once however many revisions name it (M6IM.3)."""
+
+    sha256 = models.CharField(max_length=64, primary_key=True)
+    media_type = models.CharField(max_length=32)
+    size = models.PositiveIntegerField()
+    data = models.BinaryField()
+
+
 class Revision(models.Model):
     """One save: the node's files exactly as they would land, and who saved them."""
 
@@ -59,6 +68,8 @@ class Revision(models.Model):
     node_yaml = models.TextField()
     body_md = models.TextField(blank=True)
     exam_yaml = models.TextField(blank=True)  # empty: the node has no exam pool
+    # Each image file in the node's images/ by name, as its Asset's sha256 (M6.3 spec, M6IM.3).
+    images = models.JSONField(default=dict, blank=True)
     saved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )

@@ -2398,6 +2398,16 @@ codes:
       review when it is done; the warning shows the node leans on work not yet landed (M6.1 spec,
       M6LD.1).
 
+  CA0225:
+    emitted_by: api
+    concern: drafts
+    says: a draft has no image of that name
+    refuses: true
+    fix: |
+      Use a file name from the draft's images.
+    explanation: |
+      Studio's preview reads a draft's images by name (M6.3 spec, M6IM.3).
+
   # ── CA0300–CA0399 · landing ─────────────────────────────────────────────────────────────────
 
   CA0301:
