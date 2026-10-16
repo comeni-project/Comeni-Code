@@ -171,12 +171,7 @@ export interface QuestionChecksOut {
 }
 export interface DraftNodeOut {
   blocks: (
-    | TextBlockOut
-    | TryBlockOut
-    | CalloutBlockOut
-    | SequenceBlockOut
-    | MathBlockOut
-    | ExampleBlockOut
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
@@ -239,12 +234,7 @@ export interface StudioExamQuestionOut {
   rationale: string;
   state: "approved" | "draft";
   stem: (
-    | TextBlockOut
-    | TryBlockOut
-    | CalloutBlockOut
-    | SequenceBlockOut
-    | MathBlockOut
-    | ExampleBlockOut
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
   )[];
   stem_text: string;
   steps: string[] | null;
@@ -532,12 +522,7 @@ export interface NewNodeIn {
 }
 export interface NodeOut {
   blocks: (
-    | TextBlockOut
-    | TryBlockOut
-    | CalloutBlockOut
-    | SequenceBlockOut
-    | MathBlockOut
-    | ExampleBlockOut
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
   )[];
   claim: string;
   folder: string;
@@ -742,12 +727,7 @@ export interface ReviewQuestionOut {
   right_option: number | null;
   right_steps: string[] | null;
   stem: (
-    | TextBlockOut
-    | TryBlockOut
-    | CalloutBlockOut
-    | SequenceBlockOut
-    | MathBlockOut
-    | ExampleBlockOut
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
   )[];
   steps: string[] | null;
   tolerance: number | null;
