@@ -111,11 +111,11 @@ def _read_stem(entry: Entry, name: str, *, file: str) -> str | None:
         entry.sound = False
         return None
     for block, start in zip(blocks, starts, strict=True):
-        if isinstance(block, Try | Callout | Example):
+        if isinstance(block, Try | Callout | Example):  # an Image is a stem's, as on a page
             said = {Try: "a try question", Callout: "a callout", Example: "an example"}[type(block)]
             entry.problem(
                 "CS0817",
-                f"the stem of {name} holds {said} — a stem holds text, sequences and math",
+                f"the stem of {name} holds {said} — a stem holds text, sequences, math and images",
                 line=start + at,
             )
             return None

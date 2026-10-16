@@ -26,6 +26,7 @@ bands:
   - {first: CS0600, last: CS0699, concern: registries}
   - {first: CS0700, last: CS0799, concern: discovery}
   - {first: CS0800, last: CS0899, concern: exam}
+  - {first: CS0900, last: CS0999, concern: images}
   - {first: CW0001, last: CW0099, concern: routes}
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
@@ -1206,6 +1207,26 @@ codes:
       A macro defined in one formula would change how later ones draw, and a block must read
       correctly alone (invariant 3; M6MX.3).
 
+  CS0426:
+    emitted_by: schema
+    concern: body
+    says: an image block names no file
+    refuses: true
+    fix: |
+      Name the file from images/ after the directive: `:::{image} graph.png`.
+    explanation: |
+      The block places one file of the node's images/ folder (M6.3 spec, M6IM.1).
+
+  CS0427:
+    emitted_by: schema
+    concern: body
+    says: an image has no caption
+    refuses: true
+    fix: |
+      Write one paragraph between the fences saying what the image shows and why it is here.
+    explanation: |
+      A figure on the page is read with its caption; the board draws every image with one (M6IM.1).
+
   CS0425:
     emitted_by: schema
     concern: body
@@ -1787,6 +1808,148 @@ codes:
       Give at least one word to search for.
     explanation: |
       Search ranks topics by the words typed; with none there is nothing to rank (M3P2.3).
+
+  # ── CS0900–CS0999 · images ──────────────────────────────────────────────────────────────────
+
+  CS0901:
+    emitted_by: schema
+    concern: images
+    says: the images field is not a list
+    refuses: true
+    fix: |
+      Write the images field as a list, one entry per file.
+    explanation: |
+      node.yaml records each image as one entry of a list (M6IM.1).
+
+  CS0902:
+    emitted_by: schema
+    concern: images
+    says: an images entry is not an image
+    refuses: true
+    fix: |
+      Give each entry file, alt, author, source and licence.
+    explanation: |
+      Each entry is one image's record (M6IM.1).
+
+  CS0903:
+    emitted_by: schema
+    concern: images
+    says: an unknown key in an image
+    refuses: true
+    fix: |
+      Use only file, alt, author, source and licence.
+    explanation: |
+      A key nothing reads is a mistake waiting to be trusted (M6IM.1).
+
+  CS0904:
+    emitted_by: schema
+    concern: images
+    says: an image has no file, alt, author, source or licence
+    refuses: true
+    fix: |
+      Add the missing field: every image carries all five.
+    explanation: |
+      Invariant 6: an image carries its author and licence, or it is refused; alt text is how a reader who cannot see it reads it (M6IM.1).
+
+  CS0905:
+    emitted_by: schema
+    concern: images
+    says: an image's file name is not one the folder takes
+    refuses: true
+    fix: |
+      Name it in lowercase words joined by hyphens, ending .png, .jpg, .jpeg or .webp.
+    explanation: |
+      Names stay safe in every path and URL, and say the format (M6IM.1).
+
+  CS0906:
+    emitted_by: schema
+    concern: images
+    says: an image's licence is not one an image may carry
+    refuses: true
+    fix: |
+      Use CC0 1.0, Public domain, CC BY or CC BY-SA in its written form; find another image if it is NC or ND.
+    explanation: |
+      The content repository is public and CC BY; only images whose licence allows copying them as they are may sit in it (M6IM.2).
+
+  CS0907:
+    emitted_by: schema
+    concern: images
+    says: an image's source is not a link or own work
+    refuses: true
+    fix: |
+      Give the https:// page the image came from, or `own work`.
+    explanation: |
+      A reader can follow the credit to where the image came from (M6IM.1).
+
+  CS0908:
+    emitted_by: schema
+    concern: images
+    says: an image is recorded twice
+    refuses: true
+    fix: |
+      Keep one record per file.
+    explanation: |
+      One file has one credit (M6IM.1).
+
+  CS0909:
+    emitted_by: schema
+    concern: images
+    says: an image is recorded but no block places it
+    refuses: true
+    fix: |
+      Place it with :::{image} <file>, or remove its record and file.
+    explanation: |
+      Nothing sits in a node folder that no page shows (M6IM.1).
+
+  CS0910:
+    emitted_by: schema
+    concern: images
+    says: an image is placed but has no record
+    refuses: true
+    fix: |
+      Add its record to the images field in node.yaml.
+    explanation: |
+      Invariant 6: no image is shown without its author and licence (M6IM.1).
+
+  CS0911:
+    emitted_by: schema
+    concern: images
+    says: an image is recorded but its file is missing
+    refuses: true
+    fix: |
+      Add the file to the node's images/ folder.
+    explanation: |
+      A record names a file that is there (M6IM.1).
+
+  CS0912:
+    emitted_by: schema
+    concern: images
+    says: a file in images/ has no record
+    refuses: true
+    fix: |
+      Record it in the images field, or remove the file.
+    explanation: |
+      Invariant 6: every image carries its author and licence (M6IM.1).
+
+  CS0913:
+    emitted_by: schema
+    concern: images
+    says: a file is not a PNG, JPEG or WebP image, or not the format its name says
+    refuses: true
+    fix: |
+      Save the image as PNG, JPEG or WebP under the matching extension; SVG is not taken.
+    explanation: |
+      Files are read by their first bytes; an SVG is a document that can carry script (invariant 6; M6IM.2).
+
+  CS0914:
+    emitted_by: schema
+    concern: images
+    says: an image is over 2 MB
+    refuses: true
+    fix: |
+      Save it smaller: at most 2 MB.
+    explanation: |
+      A page loads every image it shows, and the content repository checks sizes (M6IM.2).
 
   # ── CA0001–CA0099 · the index and the read API ──────────────────────────────────────────────
 

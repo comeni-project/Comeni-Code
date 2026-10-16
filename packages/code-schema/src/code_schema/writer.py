@@ -11,6 +11,7 @@ from pathlib import Path
 
 import yaml
 
+from code_schema.images import IMAGE_FIELD
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
@@ -153,6 +154,17 @@ def write_node_yaml(node: Node) -> str:
             fields[key] = [{"node": link.node, "reason": link.reason} for link in links]
     if node.resources:
         fields[RESOURCE_FIELD] = [_resource(resource) for resource in node.resources]
+    if node.images:
+        fields[IMAGE_FIELD] = [
+            {
+                "file": i.file,
+                "alt": i.alt,
+                "author": i.author,
+                "source": i.source,
+                "licence": i.licence,
+            }
+            for i in node.images
+        ]
     if node.questions:
         fields[TRY_FIELD] = [_question(question) for question in node.questions]
     return _dump(fields)
