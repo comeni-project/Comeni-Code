@@ -38,3 +38,10 @@ def test_nginx_passes_the_host_with_its_port() -> None:
 def test_compose_points_invite_links_at_its_own_web_app() -> None:
     compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
     assert "CODE_WEB_ORIGIN: http://127.0.0.1:8090" in compose
+
+
+def test_nginx_takes_an_image_upload() -> None:
+    # #353: nginx's default body limit is 1 MB; an image may be 2 MB, with its form fields.
+    api = NGINX[NGINX.index("location /api/ {") :]
+    api = api[: api.index("}")]
+    assert re.search(r"client_max_body_size 3m;", api)
