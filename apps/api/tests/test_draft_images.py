@@ -154,3 +154,84 @@ def test_an_image_is_a_review_key_and_a_new_file_changes_it(client: Client) -> N
         {"revision": 2, "upload": SimpleUploadedFile("knots.png", PNG2)},
     )
     assert not same(before, image_key())
+
+
+# ── From Commons (M6IM.4): the client is stubbed; test_commons.py covers it ──────────────────
+
+COMMONS = "https://commons.wikimedia.org/wiki/File:Kmers.png"
+
+
+def credited(licence: str = "CC BY-SA 4.0") -> Any:
+    from code_api.studio.commons import Credit
+
+    return Credit(
+        title="File:Kmers.png",
+        author="Jane Doe",
+        source="https://commons.wikimedia.org/wiki/File:Kmers.png",
+        licence=licence,
+        licences=(licence,),
+        file="kmers.png",
+        thumb_url="https://upload.wikimedia.org/kmers.png",
+    )
+
+
+def test_a_commons_link_is_looked_up_before_saving(
+    client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("code_api.studio.commons.look_up", lambda link: credited())
+    answer = client.get("/api/studio/drafts/commons", {"link": COMMONS})
+    assert answer.status_code == 200, answer.content
+    assert answer.json() == {
+        "file": "kmers.png",
+        "author": "Jane Doe",
+        "source": "https://commons.wikimedia.org/wiki/File:Kmers.png",
+        "licence": "CC BY-SA 4.0",
+        "thumb_url": "https://upload.wikimedia.org/kmers.png",
+    }
+
+
+def test_an_image_from_commons_comes_with_its_credit(
+    client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from code_api.studio.commons import Fetched
+
+    monkeypatch.setattr("code_api.studio.commons.fetch", lambda link: Fetched(credited(), PNG))
+    draft = opened(client)
+    answer = client.post(
+        f"/api/studio/drafts/{draft}/images/commons",
+        {
+            "revision": 1,
+            "link": COMMONS,
+            "at": 0,
+            "caption": "Reads cut into k-mers.",
+            "alt": "Three reads cut into overlapping k-mers.",
+        },
+        content_type="application/json",
+    )
+    assert answer.status_code == 200, answer.content
+    [record] = answer.json()["draft"]["node"]["images"]
+    assert (record["file"], record["author"], record["licence"]) == (
+        "kmers.png",
+        "Jane Doe",
+        "CC BY-SA 4.0",
+    )
+
+
+def test_commons_refusing_is_said_in_words(client: Client, monkeypatch: pytest.MonkeyPatch) -> None:
+    from code_api.studio.commons import CommonsError
+
+    def refuse(link: str) -> Any:
+        raise CommonsError(
+            "File:Kmers.png is under CC BY-NC 2.0; an image here must be CC0, public domain, "
+            "CC BY or CC BY-SA."
+        )
+
+    monkeypatch.setattr("code_api.studio.commons.fetch", refuse)
+    draft = opened(client)
+    answer = client.post(
+        f"/api/studio/drafts/{draft}/images/commons",
+        {"revision": 1, "link": COMMONS, "at": 0, "caption": "C.", "alt": "A."},
+        content_type="application/json",
+    )
+    assert (answer.status_code, answer.json()["code"]) == (422, "CA0226")
+    assert "CC BY-NC 2.0" in answer.json()["detail"]

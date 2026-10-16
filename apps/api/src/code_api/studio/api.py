@@ -19,7 +19,7 @@ from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
 from code_api.content.snapshot import node_from_index
-from code_api.studio import drafts, landing, review
+from code_api.studio import commons, drafts, landing, review
 from code_api.studio.log import history
 from code_api.studio.models import LIVE_STATES, Draft
 from code_api.studio.schemas import (
@@ -221,6 +221,35 @@ def open_drafts(
     return [
         summary_out(draft) for draft in Draft.objects.filter(state=state).order_by("created_at")
     ]
+
+
+class CreditOut(Schema):
+    """A Commons file's credit, before it is kept (M6IM.4)."""
+
+    file: str
+    author: str
+    source: str
+    licence: str
+    thumb_url: str
+
+
+# Before /{public_id}: routes match in the order they are registered.
+@router.get("/commons", response={200: CreditOut, 422: Message}, summary="A Commons file's credit")
+def commons_credit(request: HttpRequest, link: str) -> Status[CreditOut] | Status[Message]:
+    try:
+        found = commons.look_up(link)
+    except commons.CommonsError as no:
+        return Status(422, Message(detail=str(no), code="CA0226"))
+    return Status(
+        200,
+        CreditOut(
+            file=found.file,
+            author=found.author,
+            source=found.source,
+            licence=found.licence,
+            thumb_url=found.thumb_url,
+        ),
+    )
 
 
 @router.get("/{public_id}", response={200: DraftOut, 404: Message}, summary="A draft")
@@ -649,6 +678,49 @@ def add_image(
         lambda node: insert_block(set_image_record(node, record), at, block),
         f"added the image {file}",
         images={file: data},
+    )
+
+
+class CommonsIn(Schema):
+    revision: int
+    link: str
+    at: int
+    caption: str
+    alt: str
+
+
+# Before /{public_id}/images/{file}: routes match in the order they are registered.
+@router.post(
+    "/{public_id}/images/commons",
+    response={200: SavedOut, 404: Message, 409: Message, 422: RefusedOut | Message},
+    summary="Add an image from Wikimedia Commons",
+)
+def add_from_commons(
+    request: HttpRequest, public_id: UUID, body: CommonsIn
+) -> SaveAnswer | Status[Message]:
+    """The file and its credit from Commons, the author's alt text and caption, and its block,
+    as one save (M6IM.4)."""
+    try:
+        fetched = commons.fetch(body.link)
+    except commons.CommonsError as no:
+        return Status(422, Message(detail=str(no), code="CA0226"))
+    credit = fetched.credit
+    record = ImageRecord(
+        file=credit.file,
+        alt=body.alt,
+        author=credit.author,
+        source=credit.source,
+        licence=credit.licence,
+    )
+    caption = body.caption if body.caption.endswith("\n") else f"{body.caption}\n"
+    block = Image(file=credit.file, caption=caption)
+    return _edit(
+        request,
+        public_id,
+        body.revision,
+        lambda node: insert_block(set_image_record(node, record), body.at, block),
+        f"added the image {credit.file} from Commons",
+        images={credit.file: fetched.data},
     )
 
 

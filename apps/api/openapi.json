@@ -223,6 +223,73 @@
         "title": "ChecklistOut",
         "type": "object"
       },
+      "CommonsIn": {
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "at": {
+            "title": "At",
+            "type": "integer"
+          },
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "link",
+          "at",
+          "caption",
+          "alt"
+        ],
+        "title": "CommonsIn",
+        "type": "object"
+      },
+      "CreditOut": {
+        "description": "A Commons file's credit, before it is kept (M6IM.4).",
+        "properties": {
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "thumb_url": {
+            "title": "Thumb Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "author",
+          "source",
+          "licence",
+          "thumb_url"
+        ],
+        "title": "CreditOut",
+        "type": "object"
+      },
       "DraftNodeOut": {
         "properties": {
           "blocks": {
@@ -4510,6 +4577,53 @@
         ]
       }
     },
+    "/api/studio/drafts/commons": {
+      "get": {
+        "operationId": "code_api_studio_api_commons_credit",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "link",
+            "required": true,
+            "schema": {
+              "title": "Link",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "A Commons file's credit",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
     "/api/studio/drafts/{public_id}": {
       "get": {
         "operationId": "code_api_studio_api_read_draft",
@@ -5602,6 +5716,93 @@
           }
         ],
         "summary": "Add an image",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/images/commons": {
+      "post": {
+        "description": "The file and its credit from Commons, the author's alt text and caption, and its block,\nas one save (M6IM.4).",
+        "operationId": "code_api_studio_api_add_from_commons",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommonsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/RefusedOut"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Message"
+                    }
+                  ],
+                  "title": "Response"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Add an image from Wikimedia Commons",
         "tags": [
           "studio"
         ]

@@ -1830,6 +1830,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Studio's preview reads a draft's images by name (M6.3 spec, M6IM.3).
 
+#### CA0226 — Wikimedia Commons gave no image to keep
+
+*Refuses.*
+
+**Fix.** Read the reason: pick a file whose licence is CC0, public domain, CC BY or CC BY-SA, check the link is a Commons file page, or try again if Commons did not answer.
+
+**Why.** An image from Commons comes with the credit Commons itself gives it, and only licences that allow copying are kept (M6.3 spec, M6IM.4).
+
 ### CA0300–CA0399 · landing
 
 #### CA0301 — landing is not configured

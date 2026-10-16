@@ -15,6 +15,8 @@ export interface ApiSchemas {
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   ChecklistOut: ChecklistOut;
+  CommonsIn: CommonsIn;
+  CreditOut: CreditOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
@@ -173,6 +175,23 @@ export interface ProblemOut {
 export interface QuestionChecksOut {
   id: string;
   items: ItemOut[];
+}
+export interface CommonsIn {
+  alt: string;
+  at: number;
+  caption: string;
+  link: string;
+  revision: number;
+}
+/**
+ * A Commons file's credit, before it is kept (M6IM.4).
+ */
+export interface CreditOut {
+  author: string;
+  file: string;
+  licence: string;
+  source: string;
+  thumb_url: string;
 }
 export interface DraftNodeOut {
   blocks: (
