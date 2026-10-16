@@ -253,6 +253,13 @@ def changes(first: Revision | None, last: Revision) -> list[tuple[str, str]]:
         now = getattr(last, attribute)
         if before != now:
             found.append((name, "new" if not before else "removed" if not now else "changed"))
+    # Each image by its sha256 (M6IM.3, #358).
+    started: dict[str, str] = {} if first is None else first.images
+    for name in sorted(set(started) | set(last.images)):
+        was, is_now = started.get(name), last.images.get(name)
+        if was != is_now:
+            change = "new" if was is None else "removed" if is_now is None else "changed"
+            found.append((f"{IMAGE_FOLDER}/{name}", change))
     return found
 
 
