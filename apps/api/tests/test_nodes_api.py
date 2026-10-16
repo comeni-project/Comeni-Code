@@ -326,7 +326,10 @@ def test_a_nodes_image_is_served_with_its_credit(client: Client) -> None:
     assert body["images"] == [
         {
             "file": "kmers-in-a-row.png",
-            "alt": "Three teal squares in a row, joined by a grey line, standing for k-mers along a path.",
+            "alt": (
+                "Three teal squares in a row, joined by a grey line, "
+                "standing for k-mers along a path."
+            ),
             "author": "Comeni Code",
             "source": "own work",
             "licence": "CC BY 4.0",
