@@ -1,6 +1,6 @@
 # M6.3 — Images
 
-**Status: agreed 2026-10-16.** The third part of M6 (#325), issue #330.
+**Status: agreed 2026-10-16; built.** The third part of M6 (#325), issue #330.
 Designed with the operator on 2026-10-16: **images are stored in the node's folder**, and an author
 adds one **by upload or from Wikimedia Commons**. The rest is the agent's, each marked *my call*.
 From W5.1 (*an asset, alt text, caption, author, source, licence — refused without author and
