@@ -71,3 +71,35 @@ def test_the_index_route_lists_the_regions_in_order(ada: User) -> None:
 def test_the_index_route_says_how_often_main_is_followed(ada: User, settings: Any) -> None:
     settings.FOLLOW_SECONDS = 300
     assert signed_in(ada).get("/api/studio/index").json()["follow_seconds"] == 300
+
+
+def test_link_targets_list_nodes_and_drafts(ada: User) -> None:
+    from code_api.content.index import rebuild_index
+    from code_api.studio import drafts
+    from code_schema import Level
+
+    rebuild_index(FIXTURES)
+
+    def opened(node_id: str) -> None:
+        drafts.open_new(
+            node_id,
+            title=f"Title of {node_id}",
+            claim=f"The claim of {node_id}.",
+            region="transcriptomics",
+            level=Level.FOUNDATIONS,
+            minutes=10,
+            by=ada,
+        )
+
+    opened("base")
+    opened("gone")
+    gone, _ = drafts.live_nodes()["gone"]
+    drafts.discard(gone, by=ada)
+    drafts.open_existing("tpm", by=ada)  # a draft of an indexed node is listed once, as a node
+    targets = signed_in(ada).get("/api/studio/index/nodes").json()
+    assert [t["id"] for t in targets] == sorted(t["id"] for t in targets)
+    assert len([t for t in targets if not t["draft"]]) == 26
+    assert [t for t in targets if t["draft"]] == [
+        {"id": "base", "title": "Title of base", "draft": True}
+    ]
+    assert {"id": "tpm", "title": "What TPM measures", "draft": False} in targets

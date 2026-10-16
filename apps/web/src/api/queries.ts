@@ -19,6 +19,7 @@ import type {
   DraftOut,
   IndexOut,
   LandingOut,
+  LinkTargetOut,
   QueuedDraftOut,
   ReviewOut,
   ReviewQuestionOut,
@@ -44,6 +45,7 @@ export const queryKeys = {
   draft: (id: string) => ["draft", id] as const,
   draftChecks: (id: string) => ["draft", id, "checks"] as const,
   studioIndex: ["studio-index"] as const,
+  linkTargets: ["link-targets"] as const,
   reviewQueue: ["review-queue"] as const,
   review: (id: string) => ["review", id] as const,
   landReady: ["land", "ready"] as const,
@@ -151,6 +153,14 @@ export const useDraftChecks = (id: string, enabled: boolean) =>
     queryKey: queryKeys.draftChecks(id),
     queryFn: ({ signal }) => fetchChecks(id, signal),
     enabled,
+    retry: false,
+  });
+
+/** The nodes a link may name: landed ones and live drafts of new ones (M6.1, M6LD.4). */
+export const useLinkTargets = () =>
+  useQuery({
+    queryKey: queryKeys.linkTargets,
+    queryFn: ({ signal }) => getJson<LinkTargetOut[]>("/api/studio/index/nodes", signal),
     retry: false,
   });
 

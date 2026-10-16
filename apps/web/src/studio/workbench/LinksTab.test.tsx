@@ -9,6 +9,11 @@ import { WorkbenchPage } from "./WorkbenchPage";
 afterEach(() => vi.unstubAllGlobals());
 
 const NEEDS = [{ node: "sequencing-reads", reason: "k-mers are cut from reads." }];
+const TARGETS = [
+  { id: "k-mers", title: "k-mers", draft: true },
+  { id: "node-a", title: "Node A", draft: true },
+  { id: "sequencing-reads", title: "Sequencing reads", draft: false },
+];
 const savedAs = { body: { draft: { ...DRAFT, revision: 4 }, warnings: [] } };
 const bench = () => {
   const fake = answering({
@@ -17,6 +22,7 @@ const bench = () => {
     "PUT /api/studio/drafts/d-1/links/needs": savedAs,
     "PUT /api/studio/drafts/d-1/links/goes_deeper": savedAs,
     "PUT /api/studio/drafts/d-1/links/related": savedAs,
+    "GET /api/studio/index/nodes": { body: TARGETS },
   });
   renderAt(
     "/studio/drafts/d-1?tab=links",
@@ -85,5 +91,19 @@ describe("LinksTab", () => {
       );
     }
     expect(screen.getByText("At most four.")).toBeInTheDocument();
+  });
+
+  it("suggests landed nodes and drafts for every link's node, never its own (M6LD.4, #338)", async () => {
+    bench();
+    const node = (
+      await within(await screen.findByRole("group", { name: "Needs" })).findAllByLabelText("Node")
+    )[0] as HTMLInputElement;
+    const listed = node.list;
+    await vi.waitFor(() => expect(listed?.querySelectorAll("option")).toHaveLength(2));
+    const options = [...(listed?.querySelectorAll("option") ?? [])].map((o) => [o.value, o.label]);
+    expect(options).toEqual([
+      ["node-a", "Node A · draft"],
+      ["sequencing-reads", "Sequencing reads"],
+    ]);
   });
 });

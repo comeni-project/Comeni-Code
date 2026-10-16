@@ -1229,6 +1229,30 @@
         "title": "LinkOut",
         "type": "object"
       },
+      "LinkTargetOut": {
+        "description": "A node a link may name: a landed node, or a live draft of a new one (M6.1 spec, M6LD.4).",
+        "properties": {
+          "draft": {
+            "title": "Draft",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "draft"
+        ],
+        "title": "LinkTargetOut",
+        "type": "object"
+      },
       "LinksIn": {
         "properties": {
           "links": {
@@ -1968,6 +1992,13 @@
             "title": "Folder",
             "type": "string"
           },
+          "needs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
           "node_id": {
             "title": "Node Id",
             "type": "string"
@@ -1998,7 +2029,8 @@
           "region",
           "approved_by",
           "self_approved",
-          "files"
+          "files",
+          "needs"
         ],
         "title": "ReadyDraftOut",
         "type": "object"
@@ -6071,6 +6103,38 @@
           }
         ],
         "summary": "The index and main",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/index/nodes": {
+      "get": {
+        "description": "Every indexed node, and each live draft of a node the index does not have that still\nreads, its title from its latest revision; by id (M6.1 spec, M6LD.4).",
+        "operationId": "code_api_studio_index_api_link_targets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LinkTargetOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The nodes a link may name",
         "tags": [
           "studio"
         ]

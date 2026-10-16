@@ -20,6 +20,7 @@ export const READY: ReadyDraftOut[] = [
       { file: "node", change: "changed" },
       { file: "body", change: "changed" },
     ],
+    needs: [],
   },
   {
     public_id: "d-2",
@@ -30,6 +31,7 @@ export const READY: ReadyDraftOut[] = [
     approved_by: OTTO,
     self_approved: true,
     files: [{ file: "exam", change: "removed" }],
+    needs: [],
   },
 ];
 

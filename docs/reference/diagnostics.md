@@ -1628,6 +1628,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** The author reads why their draft came back: the reviewer's requests, a note, or both (M4.9a spec, M4V.2).
 
+#### CA0224 — a link to a draft that has not landed
+
+*Warns; never blocks.*
+
+**Fix.** Nothing to fix here: the node lands with that draft, in the same landing, or after it.
+
+**Why.** A link may name a live draft, so linked new nodes are written side by side and each goes to review when it is done; the warning shows the node leans on work not yet landed (M6.1 spec, M6LD.1).
+
 ### CA0300–CA0399 · landing
 
 #### CA0301 — landing is not configured
@@ -1717,3 +1725,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Try again; the reason says what GitHub answered.
 
 **Why.** Every GitHub call has a timeout, and a failure is reported in words, never as a server error (M4L.4).
+
+#### CA0312 — a batch without a draft it links to
+
+*Refuses.*
+
+**Fix.** Tick the draft the message names, or land this one after it is approved or after its landing merges.
+
+**Why.** A new node a batch links to must land with it, or the content repository's check refuses the pull request; Studio says which draft to add and never adds it for you (M6.1 spec, M6LD.3).
