@@ -12,6 +12,7 @@ import { addExam, deleteExam, updateExam } from "./edits";
 import { sent } from "./exam";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
+import { MathField } from "./MathField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { reloadDraft, useDraftEdit } from "./useDraftEdit";
@@ -217,6 +218,12 @@ export function ExamEditor({
                       value={block.letters ?? ""}
                       onChange={(letters) => put({ ...block, letters })}
                     />
+                  ) : block.kind === "math" ? (
+                    <MathField
+                      label={label}
+                      value={block.tex ?? ""}
+                      onChange={(tex) => put({ ...block, tex })}
+                    />
                   ) : (
                     <MarkdownField
                       label={label}
@@ -230,18 +237,22 @@ export function ExamEditor({
             {editable && (
               <div className="flex flex-wrap items-center gap-1.5 rounded-[9px] border border-dashed border-border-2 px-2 py-1.5">
                 <span className="pr-1 text-[12px] text-ink-3">Add to stem</span>
-                {(["text", "sequence"] as const).map((kind) => (
+                {(["text", "sequence", "math"] as const).map((kind) => (
                   <button
                     key={kind}
                     ref={kind === "text" ? addStem : undefined}
                     type="button"
-                    aria-label={`Add a ${kind === "text" ? "text block" : "sequence"} to the stem`}
+                    aria-label={`Add a ${{ text: "text block", sequence: "sequence", math: "math block" }[kind]} to the stem`}
                     onClick={() => {
                       made.current += 1;
                       setStem(
                         [
                           ...question.stem,
-                          kind === "text" ? { kind, markdown: "" } : { kind, letters: "" },
+                          kind === "text"
+                            ? { kind, markdown: "" }
+                            : kind === "math"
+                              ? { kind, tex: "" }
+                              : { kind, letters: "" },
                         ],
                         [...keys, made.current],
                       );

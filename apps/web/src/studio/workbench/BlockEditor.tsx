@@ -2,6 +2,7 @@
 // and left empty, it closes with no request; refused, it stays open with what you typed.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Field } from "../../account/Field";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
@@ -10,6 +11,7 @@ import { CalloutFields } from "./CalloutFields";
 import { insertBlock, updateBlock } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
+import { MathField } from "./MathField";
 import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { TryEditor } from "./TryEditor";
@@ -30,6 +32,8 @@ function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   if (block.kind === "text") return block.markdown.trim() === "";
   if (block.kind === "callout") return block.title.trim() === "" && block.markdown.trim() === "";
   if (block.kind === "sequence") return block.letters.trim() === "";
+  if (block.kind === "math") return block.tex.trim() === "";
+  if (block.kind === "example") return block.title.trim() === "" && block.markdown.trim() === "";
   return question === undefined || question.ask.trim() === "";
 }
 
@@ -38,6 +42,9 @@ function ended(block: Block): Block {
   if (block.kind === "try") return block;
   if (block.kind === "sequence") {
     return block.letters.endsWith("\n") ? block : { ...block, letters: `${block.letters}\n` };
+  }
+  if (block.kind === "math") {
+    return block.tex.endsWith("\n") ? block : { ...block, tex: `${block.tex}\n` };
   }
   return block.markdown.endsWith("\n") ? block : { ...block, markdown: `${block.markdown}\n` };
 }
@@ -85,6 +92,22 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         />
       )}
       {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
+      {block.kind === "math" && (
+        <MathField value={block.tex} onChange={(tex) => setBlock({ ...block, tex })} />
+      )}
+      {block.kind === "example" && (
+        <>
+          <Field
+            label="Title"
+            value={block.title}
+            onChange={(title) => setBlock({ ...block, title })}
+          />
+          <MarkdownField
+            value={block.markdown}
+            onChange={(markdown) => setBlock({ ...block, markdown })}
+          />
+        </>
+      )}
       {block.kind === "sequence" && (
         <LettersField
           value={block.letters}

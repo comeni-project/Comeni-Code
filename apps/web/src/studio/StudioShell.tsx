@@ -1,10 +1,12 @@
 // The Studio shell (M4.8a spec, M4S.4): the boards' bar and rail, and one gate for every page.
 // The API checks every route itself (M4A.4); the gate only decides what the screen shows.
+
 import type { ReactNode } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { canActAs } from "../api/accounts";
 import { useMe } from "../api/queries";
 import { ErrorNotice } from "../layout/ErrorNotice";
+import { InStudio } from "../node/Formula";
 import { pageAt } from "./pages";
 import { Rail } from "./Rail";
 import { StudioBar } from "./StudioBar";
@@ -44,13 +46,16 @@ export function StudioShell() {
       inside = <Outlet />;
     }
   }
+  // Inside Studio a formula KaTeX cannot read is marked, for the author (M6MX.3).
   return (
-    <div className="flex min-h-screen flex-col">
-      <StudioBar />
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        {role !== null && <Rail role={role} />}
-        <main className="flex min-w-0 flex-1 flex-col gap-4 px-[26px] py-[22px]">{inside}</main>
+    <InStudio.Provider value={true}>
+      <div className="flex min-h-screen flex-col">
+        <StudioBar />
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          {role !== null && <Rail role={role} />}
+          <main className="flex min-w-0 flex-1 flex-col gap-4 px-[26px] py-[22px]">{inside}</main>
+        </div>
       </div>
-    </div>
+    </InStudio.Provider>
   );
 }

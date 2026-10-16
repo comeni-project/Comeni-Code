@@ -9,7 +9,7 @@ import { BulkBar } from "./BulkBar";
 import { inView, type Opened, QueueList, VIEWS, type View } from "./QueueList";
 import { VerdictPanel } from "./VerdictPanel";
 
-const KINDS = ["node", "text", "callout", "sequence", "try", "resource", "exam"];
+const KINDS = ["node", "text", "callout", "sequence", "math", "example", "try", "resource", "exam"];
 const FILTER = "rounded-[7px] border border-border-2 bg-surface px-2 py-1 text-sel";
 
 export function ReviewPage() {

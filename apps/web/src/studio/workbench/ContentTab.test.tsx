@@ -101,6 +101,61 @@ describe("ContentTab", () => {
     });
   });
 
+  it("adds a math block, drawn as you type it (M6MX.4)", async () => {
+    const fake = bench({ "POST /api/studio/drafts/d-1/blocks": saved(4) });
+    await screen.findByRole("heading", { level: 1 });
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Add a math block" })[1] as HTMLElement,
+    );
+    await userEvent.click(screen.getByLabelText("TeX"));
+    await userEvent.paste("\\frac{a}{b}");
+    expect(document.querySelector("[aria-label='Blocks'] .katex")).not.toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    expect(sent(fake).block).toEqual({ kind: "math", tex: "\\frac{a}{b}\n" });
+  });
+
+  it("adds an example with its title (M6MX.4)", async () => {
+    const fake = bench({ "POST /api/studio/drafts/d-1/blocks": saved(4) });
+    await screen.findByRole("heading", { level: 1 });
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Add an example" })[1] as HTMLElement,
+    );
+    await userEvent.type(screen.getByLabelText("Title"), "Three reads");
+    await userEvent.type(screen.getByLabelText("Markdown"), "Cut them into 3-mers.");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    expect(sent(fake).block).toEqual({
+      kind: "example",
+      title: "Three reads",
+      markdown: "Cut them into 3-mers.\n",
+    });
+  });
+
+  it("wraps the selection in $…$ with Math, and says how to write a dollar", async () => {
+    bench();
+    await screen.findByRole("heading", { level: 1 });
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Add an example" })[1] as HTMLElement,
+    );
+    const box = screen.getByLabelText("Markdown") as HTMLTextAreaElement;
+    await userEvent.type(box, "k");
+    box.setSelectionRange(0, 1);
+    await userEvent.click(screen.getByRole("button", { name: "Math" }));
+    expect(box.value).toBe("$k$");
+    expect(screen.getByText(/a dollar sign as \\\$/)).toBeInTheDocument();
+  });
+
+  it("names math and examples in the outline", async () => {
+    bench({}, [
+      { kind: "math", tex: "G_k(R) = (V, E)\n" },
+      { kind: "example", title: "Three reads", markdown: "Steps.\n" },
+    ]);
+    const outline = await screen.findByRole("navigation", { name: "Outline" });
+    expect(outline).toHaveTextContent("mathG_k(R) = (V, E)");
+    expect(outline).toHaveTextContent("exampleThree reads");
+  });
+
   it("opens the block you chose once an insert lands, and saves it in its new place (#255)", async () => {
     const alpha = { kind: "callout", callout: "caveat", title: "Alpha", markdown: "A.\n" } as const;
     const beta = { kind: "text", markdown: "Beta." } as const;

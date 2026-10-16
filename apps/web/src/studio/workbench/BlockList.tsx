@@ -33,11 +33,15 @@ export function existing(node: DraftNodeOut, at: number): Opened {
 const BLANK = {
   text: { kind: "text", markdown: "" },
   callout: { kind: "callout", callout: "misconception", title: "", markdown: "" },
+  math: { kind: "math", tex: "" },
+  example: { kind: "example", title: "", markdown: "" },
 } as const satisfies Record<string, Block>;
 const ADDS = [
   ["text", "Add a text block"],
   ["try", "Add a try block"],
   ["callout", "Add a callout"],
+  ["math", "Add a math block"],
+  ["example", "Add an example"],
 ] as const;
 const TOOL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40";
 
