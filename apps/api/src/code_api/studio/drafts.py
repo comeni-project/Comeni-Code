@@ -297,7 +297,8 @@ def in_place(standing: list[Draft]) -> list[Problem]:
 
 def live_nodes() -> dict[str, tuple[Draft, Node]]:
     """Each live draft that reads, with its node, by its node's id (one per node, M4W.1). A draft
-    that no longer reads is no link target: a link to it is CS0501, never also CA0224 (#341)."""
+    that no longer reads is no link target: a link to it is a missing node, never also CA0224
+    (#341)."""
     found: dict[str, tuple[Draft, Node]] = {}
     for draft in Draft.objects.filter(state__in=LIVE_STATES):
         node, _ = node_of(draft)  # its own problems are its own (M6LD.2)
@@ -355,7 +356,7 @@ def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
         without_nodes.pop(draft.node_id, None)
         without_folders.pop(draft.node_id, None)
     nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
-    # Compared without their message: a CS0501's "closest is" may name this draft's node, and
+    # Compared without their message: a missing node's "closest is" may name this draft's node, and
     # rewording another draft's problem does not make it this draft's (#340).
     without = {_where(p) for p in _graph(without_nodes, without_folders)}
     own = f"{draft.folder}/"
