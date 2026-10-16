@@ -32,9 +32,9 @@ It holds the TeX and nothing else: no title, no options (CS0407, as every direct
 one is refused. The index stores `{"kind": "math", "tex": …}`.
 
 **A formula inside text** is `$…$`, never inside code, **wherever the app draws Markdown**: text
-blocks, callouts and examples, and the question fields drawn as Markdown (a try's ask, options and
-hints; an exam stem's text and rationale) — the shared prose component draws them all, so all are
-checked (*my call*). **Which dollars make a formula is `remark-math`'s rule, and `code-schema`
+blocks, callouts and examples, and an exam stem's text blocks — the shared prose component draws
+them all, so all are checked (*my call*). A question's ask, options, hints and rationale are plain
+one-line text, drawn as text, and stay so (corrected while planning: they were never Markdown). **Which dollars make a formula is `remark-math`'s rule, and `code-schema`
 copies it** (*my call*): what the check sees is what learners see. It pairs dollars much as
 Markdown pairs code spans, so `$5 and $10` is a formula; a literal dollar is written `\$`, and the
 workbench's Markdown help says so. Inline formulas are checked like blocks (M6MX.3). The text
