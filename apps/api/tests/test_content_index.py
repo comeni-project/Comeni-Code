@@ -338,8 +338,13 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
         "text",
         "try",
         "text",
+        "math",
+        "text",
+        "example",
+        "text",
     ]
     assert stored[1] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
+    assert stored[11]["kind"] == "math" and stored[11]["tex"].startswith("G_k(R)")
     assert stored[3] == {"kind": "try", "question": "kmers-per-read"}
     callout = Node.objects.get(id="tpm").blocks[1]
     assert (callout["kind"], callout["callout"]) == ("callout", "misconception")

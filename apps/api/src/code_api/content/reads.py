@@ -13,7 +13,10 @@ from ninja import Status
 from code_api.content.models import IndexBuild, Link, Node, Question, Region, Resource
 from code_api.content.numbers import number_from
 from code_api.content.schemas import (
+    AnyBlockOut,
     CalloutBlockOut,
+    ExampleBlockOut,
+    MathBlockOut,
     Message,
     NeighbourOut,
     NodeOut,
@@ -32,7 +35,16 @@ from code_api.content.schemas import (
     TextBlockOut,
     TryBlockOut,
 )
-from code_schema import Callout, Level, SequenceBlock, Text, Try, block_from_json
+from code_schema import (
+    Callout,
+    Example,
+    Level,
+    Math,
+    SequenceBlock,
+    Text,
+    Try,
+    block_from_json,
+)
 from code_weaver.find import Target, find
 from code_weaver.graph import Graph, Need, Topic
 from code_weaver.weave import weave
@@ -78,9 +90,7 @@ def _resource(resource: Resource) -> ResourceOut:
     )
 
 
-def _block(
-    stored: dict[str, Any],
-) -> TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut:
+def _block(stored: dict[str, Any]) -> AnyBlockOut:
     match block_from_json(stored):
         case Text(markdown=markdown):
             return TextBlockOut(kind="text", markdown=markdown)
@@ -90,6 +100,10 @@ def _block(
             return TryBlockOut(kind="try", question=question)
         case SequenceBlock(letters=letters):
             return SequenceBlockOut(kind="sequence", letters=letters)
+        case Math(tex=tex):
+            return MathBlockOut(kind="math", tex=tex)
+        case Example(title=title, markdown=markdown):
+            return ExampleBlockOut(kind="example", title=title, markdown=markdown)
 
 
 def _question(question: Question) -> QuestionOut:

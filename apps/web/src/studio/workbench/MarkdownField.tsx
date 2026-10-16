@@ -1,5 +1,5 @@
-// A block's Markdown (M4K.3): a labelled text box and the board's B, I and Link, each wrapping
-// the selection.
+// A block's Markdown (M4K.3): a labelled text box and the board's B, I, Link and Math (M6MX.1),
+// each wrapping the selection.
 import { useId, useRef } from "react";
 import { wrap } from "./markdown";
 
@@ -7,6 +7,7 @@ const MARKS = [
   { label: "Bold", shown: <b>B</b>, before: "**", after: "**" },
   { label: "Italic", shown: <i>I</i>, before: "*", after: "*" },
   { label: "Link", shown: "Link", before: "[", after: "](https://)" },
+  { label: "Math", shown: "Math", before: "$", after: "$" },
 ] as const;
 
 export function MarkdownField({
@@ -58,6 +59,9 @@ export function MarkdownField({
         rows={Math.min(16, Math.max(4, value.split("\n").length + 1))}
         className="rounded-control border border-border-2 bg-surface px-3 py-2 text-[14.5px] leading-[1.6] outline-none focus:border-sel"
       />
+      <span className="text-[11.5px] text-ink-3">
+        A formula is written $…$; write a dollar sign as \$.
+      </span>
     </div>
   );
 }

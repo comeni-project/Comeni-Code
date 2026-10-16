@@ -103,9 +103,25 @@ class SequenceBlockOut(Schema):
     letters: str
 
 
-BlockOut = Annotated[
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut, Field(discriminator="kind")
-]
+class MathBlockOut(Schema):
+    """A display formula in TeX (M6.2 spec, M6MX.1)."""
+
+    kind: Literal["math"]
+    tex: str
+
+
+class ExampleBlockOut(Schema):
+    """A worked example: its title and Markdown (M6MX.2)."""
+
+    kind: Literal["example"]
+    title: str
+    markdown: str
+
+
+AnyBlockOut = (
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+)
+BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
 
 
 class NodeOut(Schema):

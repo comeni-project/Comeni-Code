@@ -72,6 +72,10 @@ export function stemIn(stem: BlockIn[]): BlockIn[] {
       const letters = trimmed(block.letters ?? "");
       return letters.trim() === "" ? [] : [{ ...block, letters: ended(letters) }];
     }
+    if (block.kind === "math") {
+      const tex = trimmed(block.tex ?? "");
+      return tex.trim() === "" ? [] : [{ ...block, tex: ended(tex) }];
+    }
     const markdown = trimmed(block.markdown ?? "");
     return markdown.trim() === "" ? [] : [{ ...block, markdown: ended(markdown) }];
   });
@@ -94,7 +98,9 @@ export function testAskOf(question: ExamQuestionIn): TestAsk {
       (block): Block =>
         block.kind === "sequence"
           ? { kind: "sequence", letters: block.letters ?? "" }
-          : { kind: "text", markdown: block.markdown ?? "" },
+          : block.kind === "math"
+            ? { kind: "math", tex: block.tex ?? "" }
+            : { kind: "text", markdown: block.markdown ?? "" },
     ),
     options: (question.options ?? []).map((option) => option.text),
     unit: question.unit ?? "",

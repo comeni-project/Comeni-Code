@@ -5,6 +5,8 @@ import pytest
 from code_schema.blocks import (
     Block,
     Callout,
+    Example,
+    Math,
     SequenceBlock,
     Text,
     Try,
@@ -226,3 +228,58 @@ def test_a_sequence_block_is_not_empty() -> None:
 def test_a_sequence_block_takes_no_title() -> None:
     _, _, problems = parse_blocks(":::{sequence} a read\nACGT\n:::\n", file="body.md")
     assert [p.code for p in problems] == ["CS0418"]
+
+
+# ── M6.2 (M6MX.1–M6MX.2): math and example blocks ─────────────────────────────────────────────
+
+EXAMPLE = (
+    ":::{example} Three reads into one sequence\n"
+    "Cut each read into 3-mers:\n\n"
+    "```\nreads  ACGTT  CGTTA\n```\n"
+    ":::\n"
+)
+
+
+def test_a_math_block_round_trips() -> None:
+    body = ":::{math}\nG_k(R) = (V, E)\n:::\n"
+    blocks, starts, problems = parse(body)
+    assert (blocks, starts, problems) == ((Math("G_k(R) = (V, E)\n"),), (1,), [])
+    assert write_blocks(blocks) == body
+
+
+def test_an_example_round_trips() -> None:
+    blocks, _, problems = parse(EXAMPLE)
+    assert problems == []
+    assert blocks == (
+        Example(
+            "Three reads into one sequence",
+            "Cut each read into 3-mers:\n\n```\nreads  ACGTT  CGTTA\n```\n",
+        ),
+    )
+    assert write_blocks(blocks) == EXAMPLE
+
+
+@pytest.mark.parametrize(
+    ("body", "code"),
+    [
+        (":::{math}\n\n:::\n", "CS0419"),
+        (":::{example}\nSteps.\n:::\n", "CS0420"),
+        (":::{example} A title\n\n:::\n", "CS0421"),
+        (":::{math} A title\nx\n:::\n", "CS0425"),
+    ],
+)
+def test_math_and_example_refusals(body: str, code: str) -> None:
+    _, _, problems = parse(body)
+    assert [(problem.code, problem.line) for problem in problems] == [(code, 1)]
+
+
+def test_math_and_example_are_read_now() -> None:
+    _, _, problems = parse(":::{math}\nx\n:::\n" + EXAMPLE)
+    assert "CS0413" not in [problem.code for problem in problems]
+
+
+def test_block_json_round_trips_math_and_example() -> None:
+    for block in (Math("x^2\n"), Example("A title", "Steps.\n")):
+        assert block_from_json(block_json(block)) == block
+    assert block_json(Math("x\n")) == {"kind": "math", "tex": "x\n"}
+    assert block_json(Example("T", "m\n")) == {"kind": "example", "title": "T", "markdown": "m\n"}

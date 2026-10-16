@@ -1,0 +1,196 @@
+{
+  "_about": "Markdown and the formulas remark-math finds in it (micromark-extension-math with GFM, as the app draws prose). code-schema's inline_formulas must find the same (M6.2 spec, M6MX.1; #345). Regenerate the formulas from remark-math, never by hand.",
+  "cases": [
+    {
+      "markdown": "$k$-mers",
+      "formulas": [
+        "k"
+      ]
+    },
+    {
+      "markdown": "$5 and $10",
+      "formulas": [
+        "5 and "
+      ]
+    },
+    {
+      "markdown": "\\$5 and \\$10",
+      "formulas": []
+    },
+    {
+      "markdown": "`$x$`",
+      "formulas": []
+    },
+    {
+      "markdown": "Run `echo $HOME` then $y$.",
+      "formulas": [
+        "y"
+      ]
+    },
+    {
+      "markdown": "```\n$x$\n```\n",
+      "formulas": []
+    },
+    {
+      "markdown": "~~~sh\n$x$\n~~~\nThen $z$.\n",
+      "formulas": [
+        "z"
+      ]
+    },
+    {
+      "markdown": "$$x$$",
+      "formulas": [
+        "x"
+      ]
+    },
+    {
+      "markdown": "$$x$ y",
+      "formulas": []
+    },
+    {
+      "markdown": "a $b\nc$ d",
+      "formulas": [
+        "b\nc"
+      ]
+    },
+    {
+      "markdown": "a $b\n\nc$",
+      "formulas": []
+    },
+    {
+      "markdown": "first\n\nsecond $q$",
+      "formulas": [
+        "q"
+      ]
+    },
+    {
+      "markdown": "a lone $ sign",
+      "formulas": []
+    },
+    {
+      "markdown": "$`a`$",
+      "formulas": [
+        "`a`"
+      ]
+    },
+    {
+      "markdown": "- First point\n\n    Then $\\href{a}{b}$ here\n",
+      "formulas": [
+        "\\href{a}{b}"
+      ]
+    },
+    {
+      "markdown": "# Cost $5\nand $6 more\n",
+      "formulas": []
+    },
+    {
+      "markdown": "- costs $a{\n- and b$\n",
+      "formulas": []
+    },
+    {
+      "markdown": "| a | b |\n|---|---|\n| $x{ | y$ |\n",
+      "formulas": []
+    },
+    {
+      "markdown": "Text\n\n$$\na\n\nb\n$$\n",
+      "formulas": [
+        "a\n\nb"
+      ]
+    },
+    {
+      "markdown": "$$\n\\frac{a}{\n",
+      "formulas": [
+        "\\frac{a}{"
+      ]
+    },
+    {
+      "markdown": "[x](http://a/$b) and $c$\n",
+      "formulas": [
+        "c"
+      ]
+    },
+    {
+      "markdown": "```$x$``` then\n\n$\\href{u}{v}$\n",
+      "formulas": [
+        "\\href{u}{v}"
+      ]
+    },
+    {
+      "markdown": "## Title\n    $a{$\n",
+      "formulas": []
+    },
+    {
+      "markdown": "> $a\n> b$\n",
+      "formulas": [
+        "a\nb"
+      ]
+    },
+    {
+      "markdown": "a\\\\$x$ and `$y$` and $$z$$\n",
+      "formulas": [
+        "x",
+        "z"
+      ]
+    },
+    {
+      "markdown": "line $a\r\n\r\nb$\r\n",
+      "formulas": []
+    },
+    {
+      "markdown": "1. one $a$\n2. two $b$\n",
+      "formulas": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "markdown": "| $x$ | $y$ |\n|---|---|\n| $z$ | w |\n",
+      "formulas": [
+        "x",
+        "y",
+        "z"
+      ]
+    },
+    {
+      "markdown": "Para\n    $not code$ continues\n",
+      "formulas": [
+        "not code"
+      ]
+    },
+    {
+      "markdown": "    $indented code$\n",
+      "formulas": []
+    },
+    {
+      "markdown": "- item\n  $cont$ inside\n",
+      "formulas": [
+        "cont"
+      ]
+    },
+    {
+      "markdown": "> quote $q$\n",
+      "formulas": [
+        "q"
+      ]
+    },
+    {
+      "markdown": "[$t$](http://x) after\n",
+      "formulas": [
+        "t"
+      ]
+    },
+    {
+      "markdown": "$$\nG = (V, E)\n$$\nThen $k$.\n",
+      "formulas": [
+        "G = (V, E)",
+        "k"
+      ]
+    },
+    {
+      "markdown": "text $$ display\nnot$$\n",
+      "formulas": [
+        " display\nnot"
+      ]
+    }
+  ]
+}

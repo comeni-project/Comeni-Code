@@ -852,6 +852,62 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A sequence block holds letters only; the prose around it says what they are (M4Q.2).
 
+#### CS0419 — the math block is empty
+
+*Refuses.*
+
+**Fix.** Write the formula in TeX between the fences, or delete the block.
+
+**Why.** A math block is a formula and nothing else; an empty one would draw nothing (M6.2 spec, M6MX.1).
+
+#### CS0420 — an example has no title
+
+*Refuses.*
+
+**Fix.** Write what the example shows after the directive: `:::{example} Three reads into one sequence`.
+
+**Why.** A worked example says what it shows, so a reader knows why to follow its steps (M6MX.2).
+
+#### CS0421 — the example is empty
+
+*Refuses.*
+
+**Fix.** Write the example's steps between the fences, or delete the block.
+
+**Why.** An example is its steps; a title alone teaches nothing (M6MX.2).
+
+#### CS0422 — a formula's braces or environments do not balance
+
+*Refuses.*
+
+**Fix.** Close every `{` with `}` and every `\begin{name}` with `\end{name}`; write a literal brace as `\{` or `\}`.
+
+**Why.** KaTeX cannot draw a formula whose groups are open; the check catches what a pure reading can before a learner sees broken source (M6.2 spec, M6MX.3).
+
+#### CS0423 — a formula uses a command that is not allowed
+
+*Refuses.*
+
+**Fix.** Remove the command: a formula holds mathematics, not links, images or markup. Link from the text around it.
+
+**Why.** `\href`, `\url`, `\includegraphics` and `\html…` would put links or markup on the page, and nothing an author or a model writes does (invariant 6; M6MX.3); `\color` and its kin would spend colour, which has one meaning across the product (invariant 11; #346).
+
+#### CS0424 — a formula defines a macro
+
+*Refuses.*
+
+**Fix.** Write the expression out in full where it is used.
+
+**Why.** A macro defined in one formula would change how later ones draw, and a block must read correctly alone (invariant 3; M6MX.3).
+
+#### CS0425 — a math block takes no title
+
+*Refuses.*
+
+**Fix.** Put the formula between the fences and any words about it in the text around it.
+
+**Why.** A math block holds TeX only; the prose around it says what the formula means (M6MX.1).
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have

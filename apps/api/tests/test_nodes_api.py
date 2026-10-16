@@ -304,3 +304,14 @@ def test_a_callouts_kind_is_one_of_three_in_the_schema(client: Client) -> None:
         "caveat",
         "convention",
     ]
+
+
+def test_a_node_serves_its_math_and_example_blocks(client: Client) -> None:
+    # M6.2 (M6MX.4): the de Bruijn fixture's formal definition and worked example.
+    rebuild_index(FIXTURES)
+    blocks = get(client, "de-bruijn-graphs").json()["blocks"]
+    [math] = [block for block in blocks if block["kind"] == "math"]
+    [example] = [block for block in blocks if block["kind"] == "example"]
+    assert math["tex"].startswith("G_k(R) = (V, E)")
+    assert example["title"] == "Three reads into one sequence"
+    assert "spells    ACGTTAG" in example["markdown"]

@@ -20,7 +20,7 @@
         "type": "object"
       },
       "BlockIn": {
-        "description": "A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`\n(callout, title, markdown).",
+        "description": "A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`\n(callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,\nmarkdown).",
         "properties": {
           "callout": {
             "default": "",
@@ -32,7 +32,9 @@
               "text",
               "try",
               "callout",
-              "sequence"
+              "sequence",
+              "math",
+              "example"
             ],
             "title": "Kind",
             "type": "string"
@@ -50,6 +52,11 @@
           "question": {
             "default": "",
             "title": "Question",
+            "type": "string"
+          },
+          "tex": {
+            "default": "",
+            "title": "Tex",
             "type": "string"
           },
           "title": {
@@ -212,6 +219,8 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "example": "#/components/schemas/ExampleBlockOut",
+                  "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -230,6 +239,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/SequenceBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/MathBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ExampleBlockOut"
                 }
               ]
             },
@@ -726,6 +741,31 @@
           "rationale"
         ],
         "title": "ExamQuestionIn",
+        "type": "object"
+      },
+      "ExampleBlockOut": {
+        "description": "A worked example: its title and Markdown (M6MX.2).",
+        "properties": {
+          "kind": {
+            "const": "example",
+            "title": "Kind",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "title",
+          "markdown"
+        ],
+        "title": "ExampleBlockOut",
         "type": "object"
       },
       "FieldsIn": {
@@ -1274,6 +1314,26 @@
         "title": "LinksIn",
         "type": "object"
       },
+      "MathBlockOut": {
+        "description": "A display formula in TeX (M6.2 spec, M6MX.1).",
+        "properties": {
+          "kind": {
+            "const": "math",
+            "title": "Kind",
+            "type": "string"
+          },
+          "tex": {
+            "title": "Tex",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "tex"
+        ],
+        "title": "MathBlockOut",
+        "type": "object"
+      },
       "MeOut": {
         "properties": {
           "user": {
@@ -1428,6 +1488,8 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "example": "#/components/schemas/ExampleBlockOut",
+                  "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -1446,6 +1508,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/SequenceBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/MathBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ExampleBlockOut"
                 }
               ]
             },
@@ -2360,6 +2428,8 @@
                 "discriminator": {
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
+                    "example": "#/components/schemas/ExampleBlockOut",
+                    "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
                     "try": "#/components/schemas/TryBlockOut"
@@ -2378,6 +2448,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/SequenceBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MathBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ExampleBlockOut"
                   }
                 ]
               },
@@ -2504,6 +2580,8 @@
                 "discriminator": {
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
+                    "example": "#/components/schemas/ExampleBlockOut",
+                    "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
                     "try": "#/components/schemas/TryBlockOut"
@@ -2522,6 +2600,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/SequenceBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MathBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ExampleBlockOut"
                   }
                 ]
               },
@@ -2724,6 +2808,8 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "example": "#/components/schemas/ExampleBlockOut",
+                  "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -2742,6 +2828,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/SequenceBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/MathBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ExampleBlockOut"
                 }
               ]
             },
@@ -3191,6 +3283,8 @@
               "discriminator": {
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
+                  "example": "#/components/schemas/ExampleBlockOut",
+                  "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -3209,6 +3303,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/SequenceBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/MathBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ExampleBlockOut"
                 }
               ]
             },

@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
-from code_schema.blocks import Block, Callout, Try, parse_blocks
+from code_schema.blocks import Block, Callout, Example, Try, parse_blocks
 from code_schema.fields import one_line, one_of, shown
 from code_schema.levels import Level
 from code_schema.problems import Problem
@@ -111,11 +111,11 @@ def _read_stem(entry: Entry, name: str, *, file: str) -> str | None:
         entry.sound = False
         return None
     for block, start in zip(blocks, starts, strict=True):
-        if isinstance(block, Try | Callout):
-            said = "a try question" if isinstance(block, Try) else "a callout"
+        if isinstance(block, Try | Callout | Example):
+            said = {Try: "a try question", Callout: "a callout", Example: "an example"}[type(block)]
             entry.problem(
                 "CS0817",
-                f"the stem of {name} holds {said} — a stem holds text and sequences",
+                f"the stem of {name} holds {said} — a stem holds text, sequences and math",
                 line=start + at,
             )
             return None

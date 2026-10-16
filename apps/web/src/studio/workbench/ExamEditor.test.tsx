@@ -160,6 +160,20 @@ describe("ExamEditor", () => {
     ]);
   });
 
+  it("a stem gains a math block, drawn and sent (M6MX.4)", async () => {
+    const a = examQuestion("a", "draft");
+    const fake = renderPool([a], { "PUT /api/studio/drafts/d-1/exam/a": savedWith([a]) });
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Add a math block to the stem" }),
+    );
+    await userEvent.click(screen.getByLabelText("Stem block 2"));
+    await userEvent.paste("x^2");
+    expect(document.querySelector(".katex-display")).not.toBeNull();
+    await leave();
+    const stem = (await bodyOf(fake, "PUT")).question.stem;
+    expect(stem.at(-1)).toEqual({ kind: "math", tex: "x^2\n" });
+  });
+
   it("delete question asks first, sends DELETE and opens the first left", async () => {
     const b = examQuestion("b", "draft");
     const fake = renderPool([examQuestion("a", "draft"), b], {

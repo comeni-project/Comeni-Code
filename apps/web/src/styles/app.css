@@ -1,5 +1,7 @@
-/* The app's one stylesheet: Tailwind, the bundled fonts, and the generated tokens (M0 part 6 spec, P6.3). */
+/* The app's one stylesheet: Tailwind, the bundled fonts, and the generated tokens (M0 part 6 spec, P6.3).
+   KaTeX's styles sit in the base layer, so a page's utilities can place a formula (M6.2, #344). */
 @import "tailwindcss";
+@import "katex/dist/katex.min.css" layer(base);
 @import "@fontsource-variable/lexend";
 @import "@fontsource-variable/geist-mono";
 @import "./tokens.css";

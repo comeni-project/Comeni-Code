@@ -3,8 +3,10 @@ import type { DraftNodeOut } from "../../api/schema";
 import type { Block } from "../../node/body";
 
 /** What a block is called in lists: a text's first words, a callout's title, a try's ask, a
- * sequence's first ten letters. */
+ * sequence's first ten letters, a formula's first line, an example's title. */
 export function firstWords(block: Block, node: DraftNodeOut): string {
+  if (block.kind === "math") return block.tex.trim().split("\n")[0] || "(empty)";
+  if (block.kind === "example") return block.title || "(empty)";
   if (block.kind === "sequence") {
     const letters = block.letters.replace(/\s+/g, "");
     return letters.length > 10 ? `${letters.slice(0, 10)}…` : letters || "(empty)";
