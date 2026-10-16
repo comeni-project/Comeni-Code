@@ -256,43 +256,112 @@ def verify(draft: Draft) -> list[Problem]:
     return _checked(draft)[1]
 
 
-def in_place(standing: list[Draft]) -> list[Problem]:
-    """Every problem of `standing` together (M4W.5, M4L.3): `code-schema`'s graph rules, as
-    `validate` runs them, with each draft's latest revision in place of its indexed node, against
-    every other node in the index, plus each draft's own problems. A draft that no longer reads
-    adds its problems and stays out of the graph."""
+def _index_nodes() -> tuple[dict[str, Node], dict[str, str]]:
+    """Every indexed node and its folder, read under the rebuild's lock, shared, so no rebuild
+    commits between listing the nodes and reading each (#174)."""
     nodes: dict[str, Node] = {}
     folders: dict[str, str] = {}
-    problems: list[Problem] = []
     with transaction.atomic():
-        # Under the rebuild's lock, shared, so no rebuild commits between listing the nodes and
-        # reading each (#174).
         with connection.cursor() as cursor:
             cursor.execute("SELECT pg_advisory_xact_lock_shared(%s)", [INDEX_LOCK])
         for row in IndexedNode.objects.order_by("id"):
             indexed = node_from_index(row.id)
             assert indexed is not None
             nodes[row.id], folders[row.id] = indexed, row.folder
+    return nodes, folders
+
+
+def _link_lines(node: Node, folder: str) -> dict[tuple[str, str], int]:
+    return locate_links(write_node_yaml(node), file=f"{folder}/{NODE_FILE}")
+
+
+def _graph(nodes: dict[str, Node], folders: dict[str, str]) -> list[Problem]:
+    lines = {node_id: _link_lines(each, folders[node_id]) for node_id, each in nodes.items()}
+    return graph_problems(nodes, folders, lines)
+
+
+def in_place(standing: list[Draft]) -> list[Problem]:
+    """Every problem of `standing` together (M4W.5, M4L.3): `code-schema`'s graph rules, as
+    `validate` runs them, with each draft's latest revision in place of its indexed node, against
+    every other node in the index, plus each draft's own problems. A draft that no longer reads
+    adds its problems and stays out of the graph. Landing's check: the index and the batch."""
+    nodes, folders = _index_nodes()
+    problems: list[Problem] = []
     for draft in standing:
         node, own = node_of(draft)
         problems.extend(own)
         if node is not None:
             nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
-    link_lines = {
-        node_id: locate_links(write_node_yaml(each), file=f"{folders[node_id]}/{NODE_FILE}")
-        for node_id, each in nodes.items()
-    }
-    every = [*problems, *graph_problems(nodes, folders, link_lines)]
-    return sorted(every, key=Problem.sort_key)
+    return sorted([*problems, *_graph(nodes, folders)], key=Problem.sort_key)
+
+
+def live_drafts() -> dict[str, Draft]:
+    """Each live draft by its node's id (one per node, M4W.1)."""
+    return {draft.node_id: draft for draft in Draft.objects.filter(state__in=LIVE_STATES)}
+
+
+def indexed_ids() -> set[str]:
+    return set(IndexedNode.objects.values_list("id", flat=True))
+
+
+def _kinds(node: Node) -> list[tuple[str, str]]:
+    return [
+        *(("needs", link.node) for link in node.needs),
+        *(("goes-deeper", link.node) for link in node.goes_deeper),
+        *(("related", link.node) for link in node.related),
+    ]
+
+
+def unlanded_links(node: Node, indexed: set[str], live: dict[str, Draft]) -> list[tuple[str, str]]:
+    """The node's links to a live draft of a node the index does not have (M6LD.1), as
+    `(kind, target)` in link order: needs, goes-deeper, related."""
+    return [
+        (kind, target)
+        for kind, target in _kinds(node)
+        if target not in indexed and target in live and target != node.id
+    ]
 
 
 def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
-    """The draft's node and every problem it has, against the index (M4W.5). A link to another
-    draft's new node is missing until that node lands. It loads the whole index per call."""
+    """The draft's node and the problems it carries or causes (M6LD.1–M6LD.2), with every live
+    draft in place over the index. A problem shows when it is in the draft's folder, or when it is
+    gone with the draft taken back out; a link to a draft not landed adds CA0224. It loads the
+    whole index and runs the graph rules twice per call."""
     node, problems = node_of(draft)
     if node is None:
         return None, problems
-    return node, in_place([draft])
+    indexed, indexed_folders = _index_nodes()
+    nodes, folders = dict(indexed), dict(indexed_folders)
+    live = live_drafts()
+    for other in live.values():
+        if other.pk == draft.pk:
+            continue
+        placed, _ = node_of(other)  # its own problems are its own (M6LD.2)
+        if placed is not None:
+            nodes[other.node_id], folders[other.node_id] = placed, other.folder
+    without_nodes, without_folders = dict(nodes), dict(folders)
+    if draft.node_id in indexed:
+        without_nodes[draft.node_id] = indexed[draft.node_id]
+        without_folders[draft.node_id] = indexed_folders[draft.node_id]
+    else:
+        without_nodes.pop(draft.node_id, None)
+        without_folders.pop(draft.node_id, None)
+    nodes[draft.node_id], folders[draft.node_id] = node, draft.folder
+    without = set(_graph(without_nodes, without_folders))
+    own = f"{draft.folder}/"
+    shown = [p for p in _graph(nodes, folders) if p.file.startswith(own) or p not in without]
+    lines = _link_lines(node, draft.folder)
+    shown += [
+        Problem(
+            file=f"{draft.folder}/{NODE_FILE}",
+            field=kind,
+            line=lines.get((kind, target)),
+            code="CA0224",
+            message=f"{kind.replace('-', ' ')} {target}, a draft that has not landed",
+        )
+        for kind, target in unlanded_links(node, set(indexed), live)
+    ]
+    return node, sorted([*problems, *shown], key=Problem.sort_key)
 
 
 @dataclass(frozen=True)
