@@ -1,9 +1,10 @@
 // Links (the WorkbenchLinks board, M4K.3): the three kinds v1 has, each its own list. Only needs
-// builds routes; a link names a node by its id.
+// builds routes; a link names a node by its id, suggested from the landed nodes and the drafts.
 import { useQueryClient } from "@tanstack/react-query";
+import { useLinkTargets } from "../../api/queries";
 import type { DraftNodeOut } from "../../api/schema";
 import { NOTE } from "./bench";
-import { LinkList } from "./LinkList";
+import { LINK_TARGETS, LinkList } from "./LinkList";
 import { reloadDraft } from "./useDraftEdit";
 
 export function LinksTab({
@@ -18,8 +19,15 @@ export function LinksTab({
   const client = useQueryClient();
   const reload = () => void reloadDraft(client, draftId);
   const common = { draftId, editable, onReload: reload };
+  // Suggestions only: any id may still be typed, and verify judges it.
+  const targets = useLinkTargets().data ?? [];
   return (
     <>
+      <datalist id={LINK_TARGETS}>
+        {targets.map((t) => (
+          <option key={t.id} value={t.id} label={t.draft ? `${t.title} · draft` : t.title} />
+        ))}
+      </datalist>
       <p className={NOTE}>
         Each list saves when you leave it. Only <b className="font-semibold text-ink">needs</b>{" "}
         builds routes; a link names a node by its id.

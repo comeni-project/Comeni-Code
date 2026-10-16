@@ -10,6 +10,9 @@ import { RefusalNotice } from "./RefusalNotice";
 import { refusalOf } from "./refusal";
 import { useLeaveEdit } from "./useLeaveEdit";
 
+/** The one datalist the Links tab draws: every node a link may name (M6LD.4). */
+export const LINK_TARGETS = "link-targets";
+
 const ROW = "grid gap-2.5 sm:grid-cols-[220px_minmax(0,1fr)_auto] sm:items-center";
 const kept = (rows: LinkOut[]) => rows.filter((row) => row.node.trim() !== "");
 
@@ -55,6 +58,7 @@ export function LinkList(props: {
           <div key={at} className={ROW}>
             <input
               aria-label="Node"
+              list={LINK_TARGETS}
               value={row.node}
               disabled={!editable}
               onChange={(e) => put(at, { ...row, node: e.target.value })}

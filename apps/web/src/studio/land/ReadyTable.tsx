@@ -1,5 +1,6 @@
 // Ready to land (M4.9c spec, M4LS.3): approved drafts no landing holds; the picked ones land as
-// one pull request. A refusal is said in the API's words, each problem under its draft.
+// one pull request. A refusal is said in the API's words, each problem under its draft; a row
+// names the drafts of new nodes it needs, which land with it (M6.1, M6LD.3).
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
 import { Link } from "react-router";
@@ -95,6 +96,11 @@ export function ReadyTable({
                     >
                       {row.node_id}
                     </Link>
+                    {row.needs.length > 0 && (
+                      <span className="block truncate text-[11.5px] text-ink-3">
+                        {`needs ${row.needs.join(", ")}`}
+                      </span>
+                    )}
                   </td>
                   <td className="truncate pr-3 text-ink-2">{row.region}</td>
                   <td className="pr-3 text-ink-3 tabular-nums">{`rev ${row.revision}`}</td>

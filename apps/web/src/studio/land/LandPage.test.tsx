@@ -81,6 +81,20 @@ describe("LandPage — ready to land", () => {
     expect(screen.getByText("a cycle through k-mers")).toBeInTheDocument();
   });
 
+  it("names the drafts a row needs, under its node (M6LD.3)", async () => {
+    const [salmon, tpm] = READY;
+    renderLand({
+      "GET /api/studio/landings/ready": {
+        body: [salmon, { ...tpm, needs: ["node-a", "node-b"] }],
+      },
+    });
+    const cell = (await screen.findByRole("link", { name: "tpm" })).closest("td");
+    expect(cell).toHaveTextContent("needs node-a, node-b");
+    expect(screen.getByRole("link", { name: "salmon" }).closest("td")).not.toHaveTextContent(
+      "needs",
+    );
+  });
+
   it("sends only the picked drafts still listed", async () => {
     // Review Focus 4: salmon left the list (landed from another tab) after it was picked.
     function Shrinking() {
