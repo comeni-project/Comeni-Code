@@ -3,12 +3,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Field } from "../../account/Field";
+import { useDraft } from "../../api/queries";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
 import { BOX, LABEL } from "./bench";
 import { CalloutFields } from "./CalloutFields";
-import { insertBlock, updateBlock } from "./edits";
+import { editImageRecord, insertBlock, updateBlock } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
 import { MathField } from "./MathField";
@@ -33,6 +34,7 @@ function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   if (block.kind === "callout") return block.title.trim() === "" && block.markdown.trim() === "";
   if (block.kind === "sequence") return block.letters.trim() === "";
   if (block.kind === "math") return block.tex.trim() === "";
+  if (block.kind === "image") return block.caption.trim() === "";
   if (block.kind === "example") return block.title.trim() === "" && block.markdown.trim() === "";
   return question === undefined || question.ask.trim() === "";
 }
@@ -45,6 +47,9 @@ function ended(block: Block): Block {
   }
   if (block.kind === "math") {
     return block.tex.endsWith("\n") ? block : { ...block, tex: `${block.tex}\n` };
+  }
+  if (block.kind === "image") {
+    return block.caption.endsWith("\n") ? block : { ...block, caption: `${block.caption}\n` };
   }
   return block.markdown.endsWith("\n") ? block : { ...block, markdown: `${block.markdown}\n` };
 }
@@ -62,9 +67,18 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
   const edit = useDraftEdit(draftId);
   const [block, setBlock] = useState<Block>(initial);
   const [asked, setAsked] = useState(question);
+  // An image's alt text is its record's, not the block's (M6IM.1).
+  const cached = useDraft(draftId).data;
+  const record =
+    initial.kind === "image"
+      ? cached?.node?.images?.find((r) => r.file === initial.file)
+      : undefined;
+  const [alt, setAlt] = useState(record?.alt ?? "");
+  const altChanged = record !== undefined && alt.trim() !== record.alt;
   const changed =
     JSON.stringify(block) !== JSON.stringify(initial) ||
-    JSON.stringify(cleaned(asked)) !== JSON.stringify(question);
+    JSON.stringify(cleaned(asked)) !== JSON.stringify(question) ||
+    altChanged;
   useLeaveWarning(changed);
 
   const commit = () => {
@@ -72,6 +86,19 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
     if (!changed || (insert && empty(block, asked))) return onClose();
     const sent = ended(block) as BlockIn;
     const q = cleaned(asked);
+    if (block.kind === "image" && record !== undefined) {
+      // Two saves in order through the draft's one queue: the caption, then the alt text.
+      const captionChanged = JSON.stringify(block) !== JSON.stringify(initial);
+      if (captionChanged)
+        edit.mutate(updateBlock(at, sent), altChanged ? {} : { onSuccess: onClose });
+      if (altChanged) {
+        const { file: _file, ...credit } = record;
+        edit.mutate(editImageRecord(record.file, { ...credit, alt: alt.trim() }), {
+          onSuccess: onClose,
+        });
+      }
+      return;
+    }
     edit.mutate(insert ? insertBlock(at, sent, q) : updateBlock(at, sent, q), {
       onSuccess: onClose,
     });
@@ -92,6 +119,16 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         />
       )}
       {block.kind === "callout" && <CalloutFields block={block} onChange={setBlock} />}
+      {block.kind === "image" && (
+        <>
+          <Field label="Alt text" value={alt} onChange={setAlt} />
+          <MarkdownField
+            label="Caption"
+            value={block.caption}
+            onChange={(caption) => setBlock({ ...block, caption })}
+          />
+        </>
+      )}
       {block.kind === "math" && (
         <MathField value={block.tex} onChange={(tex) => setBlock({ ...block, tex })} />
       )}

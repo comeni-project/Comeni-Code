@@ -7,6 +7,7 @@ import type { Block } from "../../node/body";
 export function firstWords(block: Block, node: DraftNodeOut): string {
   if (block.kind === "math") return block.tex.trim().split("\n")[0] || "(empty)";
   if (block.kind === "example") return block.title || "(empty)";
+  if (block.kind === "image") return block.file || "(empty)";
   if (block.kind === "sequence") {
     const letters = block.letters.replace(/\s+/g, "");
     return letters.length > 10 ? `${letters.slice(0, 10)}…` : letters || "(empty)";

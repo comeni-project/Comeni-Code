@@ -8,6 +8,7 @@ import type {
   ReviewQuestionOut,
 } from "../../api/schema";
 import { Body } from "../../node/Body";
+import { imageUrl } from "../../node/Picture";
 import { wordDiff } from "./diff";
 import { ReviewQuestion, shownGiven, theKey } from "./ReviewQuestion";
 
@@ -21,7 +22,7 @@ function Links({ name, list }: { name: string; list: { node: string; reason: str
   );
 }
 
-function Content({ content }: { content: ReviewContentOut }) {
+function Content({ content, url }: { content: ReviewContentOut; url: (file: string) => string }) {
   if (content.fields !== null) {
     const f = content.fields;
     return (
@@ -38,7 +39,11 @@ function Content({ content }: { content: ReviewContentOut }) {
   if (content.block !== null) {
     return (
       <div className="flex flex-col gap-2 text-[14px] leading-[1.65]">
-        <Body blocks={[content.block]} questions={[]} />
+        <Body
+          blocks={[content.block]}
+          questions={[]}
+          pictures={content.image ? { records: [content.image], url } : undefined}
+        />
       </div>
     );
   }
@@ -86,7 +91,9 @@ function Asked({ question }: { question: ReviewQuestionOut }) {
   );
 }
 
-function Changes({ item }: { item: ReviewItemOut }) {
+function Changes({ item, draft }: { item: ReviewItemOut; draft: QueuedDraftOut }) {
+  const now = (file: string) =>
+    `/api/studio/drafts/${draft.public_id}/images/${encodeURIComponent(file)}`;
   if (item.change === "new") return <p className="text-[14px] text-ink-2">New in this draft.</p>;
   if (item.change === "same" || item.before === null)
     return <p className="text-[14px] text-ink-2">Unchanged since it landed.</p>;
@@ -121,11 +128,11 @@ function Changes({ item }: { item: ReviewItemOut }) {
     <div className="grid gap-3.5 md:grid-cols-2">
       <div className="flex flex-col gap-1.5">
         <span className="text-[12px] text-ink-3">Before</span>
-        <Content content={item.before} />
+        <Content content={item.before} url={(file) => imageUrl(draft.node_id, file)} />
       </div>
       <div className="flex flex-col gap-1.5">
         <span className="text-[12px] text-ink-3">Now</span>
-        <Content content={item} />
+        <Content content={item} url={now} />
       </div>
     </div>
   );
@@ -134,6 +141,9 @@ function Changes({ item }: { item: ReviewItemOut }) {
 export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: ReviewItemOut }) {
   const [changes, setChanges] = useState(false);
   const label = draft.keys.find((k) => k.key === item.key)?.label ?? item.key;
+  // Now is the draft's file; Before, the landed one (M6IM.3).
+  const now = (file: string) =>
+    `/api/studio/drafts/${draft.public_id}/images/${encodeURIComponent(file)}`;
   const by = draft.contributors.map((c) => c.name || c.email).join(", ");
   return (
     <section
@@ -168,7 +178,7 @@ export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: Revie
         </div>
       </div>
       {changes ? (
-        <Changes item={item} />
+        <Changes item={item} draft={draft} />
       ) : item.question !== null ? (
         <ReviewQuestion
           draftId={draft.public_id}
@@ -176,7 +186,7 @@ export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: Revie
           changed={item.change === "changed"}
         />
       ) : (
-        <Content content={item} />
+        <Content content={item} url={now} />
       )}
       <div className="flex flex-col gap-1 rounded-[10px] border-[1.5px] border-dashed border-border-2 px-3.5 py-3 text-[12.5px] text-ink-3">
         <span className="font-semibold text-ink-2">Judge’s score · arrives with M5</span>

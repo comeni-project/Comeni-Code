@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { DraftNodeOut } from "../../api/schema";
 import { Body } from "../../node/Body";
 
-export function PreviewPanel({ node }: { node: DraftNodeOut }) {
+export function PreviewPanel({ node, draftId }: { node: DraftNodeOut; draftId: string }) {
   const [phone, setPhone] = useState(false);
   return (
     <div className="flex flex-col gap-3">
@@ -27,7 +27,7 @@ export function PreviewPanel({ node }: { node: DraftNodeOut }) {
         })}
       </div>
       <div className="rounded-[10px] border border-border bg-bg">
-        <NodePreview node={node} phone={phone} />
+        <NodePreview node={node} draftId={draftId} phone={phone} />
       </div>
       <p className="text-[12px] leading-[1.45] text-ink-3">
         Drawn in your browser from the saved draft; it changes with each save.
@@ -37,7 +37,20 @@ export function PreviewPanel({ node }: { node: DraftNodeOut }) {
 }
 
 /** The node as a learner reads it: its title, its claim and its body. */
-export function NodePreview({ node, phone = false }: { node: DraftNodeOut; phone?: boolean }) {
+export function NodePreview({
+  node,
+  draftId,
+  phone = false,
+}: {
+  node: DraftNodeOut;
+  draftId: string;
+  phone?: boolean;
+}) {
+  // The draft's own files, as Studio serves them (M6IM.3).
+  const pictures = {
+    records: node.images ?? [],
+    url: (file: string) => `/api/studio/drafts/${draftId}/images/${encodeURIComponent(file)}`,
+  };
   return (
     <div
       data-testid="preview"
@@ -47,7 +60,7 @@ export function NodePreview({ node, phone = false }: { node: DraftNodeOut; phone
       <p className="rounded-[9px] border-[1.5px] border-ink bg-surface px-3 py-2.5 text-[14px] leading-[1.45]">
         {node.claim}
       </p>
-      <Body blocks={node.blocks} questions={node.questions} />
+      <Body blocks={node.blocks} questions={node.questions} pictures={pictures} />
     </div>
   );
 }

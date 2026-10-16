@@ -11,5 +11,5 @@ export function PreviewPage() {
   if (draft.isError) return <ErrorNotice error={draft.error} />;
   if (draft.data.node === null)
     return <p className="text-[15px] text-ink-2">This draft's files no longer read.</p>;
-  return <NodePreview node={draft.data.node} />;
+  return <NodePreview node={draft.data.node} draftId={id} />;
 }

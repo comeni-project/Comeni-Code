@@ -1,7 +1,7 @@
 // The drafts API (M4.4 spec, M4W; M4.5, M4R): list, open, read, check, and the review steps a
 // workbench takes. Edits go through the workbench's one executor, never from here.
 import { getJson, sendJson } from "./client";
-import type { ChecklistOut, DraftOut, DraftSummaryOut, OpenIn } from "./schema";
+import type { ChecklistOut, CreditOut, DraftOut, DraftSummaryOut, OpenIn } from "./schema";
 
 const BASE = "/api/studio/drafts";
 export type DraftState = "open" | "submitted";
@@ -11,6 +11,10 @@ export const fetchDrafts = (state: DraftState, signal?: AbortSignal) =>
 
 export const fetchDraft = (id: string, signal?: AbortSignal) =>
   getJson<DraftOut>(`${BASE}/${id}`, signal);
+
+/** A Commons file's credit, before it is kept (M6IM.4). */
+export const lookUpCommons = (link: string) =>
+  getJson<CreditOut>(`${BASE}/commons?link=${encodeURIComponent(link)}`);
 
 export const openDraft = (body: OpenIn) => sendJson<DraftOut>("POST", BASE, body);
 

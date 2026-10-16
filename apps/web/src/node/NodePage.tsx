@@ -4,6 +4,7 @@
 // Everything the page knows is in the URL: the node, and the route as goal and known (M3P5.4).
 // What the board also shows — progress, review, the problem, figures, "Not yet reviewed" —
 // needs learner records (T7), problems (M6) or reviewers (M4), and is not drawn.
+
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useNode, useRoute } from "../api/queries";
@@ -16,6 +17,7 @@ import { Body } from "./Body";
 import { headingsOf } from "./body";
 import { FirstSteps } from "./FirstSteps";
 import { LearnIt } from "./LearnIt";
+import { imageUrl } from "./Picture";
 import { RouteStrip } from "./RouteStrip";
 import { LevelTag } from "./tags";
 
@@ -190,7 +192,11 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
         </section>
         <Needs node={node} goals={goals} known={known} />
         <LearnIt resources={node.resources} />
-        <Body blocks={node.blocks} questions={node.questions} />
+        <Body
+          blocks={node.blocks}
+          questions={node.questions}
+          pictures={{ records: node.images ?? [], url: (file) => imageUrl(node.id, file) }}
+        />
       </article>
       <Aside around={around} goals={goals} known={known} open={open} onToggle={toggle} />
     </main>
