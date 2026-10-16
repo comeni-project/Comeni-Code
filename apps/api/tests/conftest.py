@@ -1,6 +1,7 @@
 """Shared for the API's tests."""
 
 from collections.abc import Callable, Iterator
+from typing import Any
 
 import pytest
 from django.core.cache import cache
@@ -23,6 +24,13 @@ def _a_cache_per_test() -> Iterator[None]:
     with override_settings(CACHES=LOCAL_CACHE):
         cache.clear()
         yield
+
+
+@pytest.fixture(autouse=True)
+def _landing_off(settings: Any) -> None:
+    """The GitHub App is off unless a test turns it on: a developer's `.env` may set it, and the
+    follower would then read GitHub instead of the folder a test names (#337)."""
+    settings.CODE_GITHUB_APP = None
 
 
 # ── Review (M4.5): three members and a draft ready to submit ─────────────────────────────────────
