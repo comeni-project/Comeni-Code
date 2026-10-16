@@ -271,12 +271,12 @@ def _index_nodes() -> tuple[dict[str, Node], dict[str, str]]:
     return nodes, folders
 
 
-def _link_lines(node: Node, folder: str) -> dict[tuple[str, str], int]:
+def link_lines(node: Node, folder: str) -> dict[tuple[str, str], int]:
     return locate_links(write_node_yaml(node), file=f"{folder}/{NODE_FILE}")
 
 
 def _graph(nodes: dict[str, Node], folders: dict[str, str]) -> list[Problem]:
-    lines = {node_id: _link_lines(each, folders[node_id]) for node_id, each in nodes.items()}
+    lines = {node_id: link_lines(each, folders[node_id]) for node_id, each in nodes.items()}
     return graph_problems(nodes, folders, lines)
 
 
@@ -350,7 +350,7 @@ def _checked(draft: Draft) -> tuple[Node | None, list[Problem]]:
     without = set(_graph(without_nodes, without_folders))
     own = f"{draft.folder}/"
     shown = [p for p in _graph(nodes, folders) if p.file.startswith(own) or p not in without]
-    lines = _link_lines(node, draft.folder)
+    lines = link_lines(node, draft.folder)
     shown += [
         Problem(
             file=f"{draft.folder}/{NODE_FILE}",

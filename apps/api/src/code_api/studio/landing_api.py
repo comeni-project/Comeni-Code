@@ -84,6 +84,15 @@ def start(
     except landing.AlreadyLanding as held:
         detail = f"{held.draft.node_id} is already in landing {held.landing.public_id}."
         return Status(409, Message(detail=detail, code="CA0303"))
+    except landing.NeedsDrafts as needs:
+        return Status(
+            422,
+            RefusedOut(
+                detail="The batch needs drafts it does not carry.",
+                code="CA0312",
+                problems=[ProblemOut.of(problem) for problem in needs.problems],
+            ),
+        )
     except landing.BatchFails as fails:
         return Status(
             422,

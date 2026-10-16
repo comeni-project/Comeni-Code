@@ -60,6 +60,53 @@ class BatchFails(Exception):
     problems: list[Problem] = field(default_factory=list)
 
 
+@dataclass
+class NeedsDrafts(Exception):
+    """The batch links to a live draft of a new node it does not carry (M6.1 spec, M6LD.3)."""
+
+    problems: list[Problem] = field(default_factory=list)
+
+
+_VERBS = {"needs": "needs", "goes-deeper": "goes deeper to", "related": "is related to"}
+
+
+def _missing(batch: list[Draft]) -> list[Problem]:
+    """One CA0312 per link from a batch draft to a live draft of a new node left out of the batch,
+    worded by where that draft is: in a landing, approved, or not yet approved."""
+    indexed, live = drafts.indexed_ids(), drafts.live_drafts()
+    carried = {draft.node_id for draft in batch}
+    found: list[Problem] = []
+    for draft in batch:
+        node, _ = drafts.node_of(draft)
+        if node is None:
+            continue  # its own problems refuse it in the in-place check
+        lines = drafts.link_lines(node, draft.folder)
+        for kind, target in drafts.unlanded_links(node, indexed, live):
+            if target in carried:
+                continue
+            needed = live[target]
+            said = f"{draft.node_id} {_VERBS[kind]} {target}"
+            held = live_landing(needed)
+            if held is not None:
+                message = (
+                    f"{said}, which is landing in {held.public_id}: land this after it merges."
+                )
+            elif needed.state == Draft.State.APPROVED:
+                message = f"{said}: tick it too."
+            else:
+                message = f"{said}, which is not approved yet."
+            found.append(
+                Problem(
+                    file=f"{draft.folder}/{NODE_FILE}",
+                    field=kind,
+                    line=lines.get((kind, target)),
+                    code="CA0312",
+                    message=message,
+                )
+            )
+    return found
+
+
 def live_landing(draft: Draft) -> Landing | None:
     entry = LandingDraft.objects.filter(draft=draft, live=True).select_related("landing").first()
     return None if entry is None else entry.landing
@@ -82,6 +129,8 @@ def start(public_ids: list[UUID], *, by: User) -> Landing:
         held = live_landing(draft)
         if held is not None:
             raise AlreadyLanding(draft, held)
+    if missing := _missing(batch):
+        raise NeedsDrafts(missing)
     errors = [problem for problem in drafts.in_place(batch) if problem.refuses]
     if errors:
         raise BatchFails(errors)

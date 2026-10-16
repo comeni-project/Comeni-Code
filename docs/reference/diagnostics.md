@@ -1725,3 +1725,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Try again; the reason says what GitHub answered.
 
 **Why.** Every GitHub call has a timeout, and a failure is reported in words, never as a server error (M4L.4).
+
+#### CA0312 — a batch without a draft it links to
+
+*Refuses.*
+
+**Fix.** Tick the draft the message names, or land this one after it is approved or after its landing merges.
+
+**Why.** A new node a batch links to must land with it, or the content repository's check refuses the pull request; Studio says which draft to add and never adds it for you (M6.1 spec, M6LD.3).

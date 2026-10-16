@@ -144,3 +144,32 @@ def test_sending_back_a_draft_in_a_landing_is_ca0303(otto: User) -> None:
         content_type="application/json",
     )
     assert (answer.status_code, answer.json()["code"]) == (409, "CA0303")
+
+
+def test_a_missing_needed_draft_is_422_ca0312(otto: User) -> None:
+    from code_schema import Level, Link
+    from code_schema.edits import set_links
+
+    def opened(node_id: str) -> Draft:
+        return drafts.open_new(
+            node_id,
+            title=node_id.capitalize(),
+            claim=f"The claim of {node_id}.",
+            region="transcriptomics",
+            level=Level.FOUNDATIONS,
+            minutes=10,
+            by=otto,
+        )
+
+    opened("base")
+    tied = opened("tied")
+    tie = Link(node="base", reason="It leans on base for the test.")
+    drafts.save(tied, based_on=1, edit=lambda n: set_links(n, "needs", [tie]), by=otto, change="t")
+    Draft.objects.filter(pk=tied.pk).update(state=Draft.State.APPROVED)
+    record(tied, DraftEvent.Kind.APPROVED, by=otto, revision=2, reason="r", self_approved=True)
+    answer = signed_in(otto).post(
+        BASE, {"drafts": [str(tied.public_id)]}, content_type="application/json"
+    )
+    assert (answer.status_code, answer.json()["code"]) == (422, "CA0312")
+    [problem] = answer.json()["problems"]
+    assert problem["text"].endswith("tied needs base, which is not approved yet.")

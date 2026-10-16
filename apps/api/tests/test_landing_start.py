@@ -111,3 +111,69 @@ def test_an_approved_draft_in_a_landing_is_not_sent_back(otto: User) -> None:
     landing.start([draft.public_id], by=otto)
     with pytest.raises(landing.AlreadyLanding):
         review.send_back(draft, reason="not yet", by=otto)
+
+
+# ── M6.1 (M6LD.3): a batch carries every draft its links need ────────────────────────────────
+
+
+def new_draft(node_id: str, by: User, needs: tuple[str, ...] = ()) -> Draft:
+    from code_schema import Level
+
+    draft = drafts.open_new(
+        node_id,
+        title=node_id.capitalize(),
+        claim=f"The claim of {node_id}.",
+        region="transcriptomics",
+        level=Level.FOUNDATIONS,
+        minutes=10,
+        by=by,
+    )
+    if needs:
+        links = [Link(target, f"It leans on {target} for the test.") for target in needs]
+        drafts.save(
+            draft, based_on=1, edit=lambda n: set_links(n, "needs", links), by=by, change="needs"
+        )
+    return draft
+
+
+def approve(draft: Draft, by: User) -> Draft:
+    draft.state = Draft.State.APPROVED
+    draft.save(update_fields=["state"])
+    record(draft, DraftEvent.Kind.APPROVED, by=by, revision=drafts.latest(draft).number)
+    return draft
+
+
+def refusal(public_ids: list[uuid.UUID], by: User) -> list[str]:
+    with pytest.raises(landing.NeedsDrafts) as refused:
+        landing.start(public_ids, by=by)
+    assert {p.code for p in refused.value.problems} == {"CA0312"}
+    assert {p.file for p in refused.value.problems} == {"transcriptomics/tied/node.yaml"}
+    return [p.message for p in refused.value.problems]
+
+
+def test_a_batch_missing_an_approved_draft_says_tick_it(otto: User) -> None:
+    approve(new_draft("base", otto), otto)
+    tied = approve(new_draft("tied", otto, needs=("base",)), otto)
+    assert refusal([tied.public_id], otto) == ["tied needs base: tick it too."]
+
+
+def test_a_needed_draft_not_yet_approved_is_named(otto: User) -> None:
+    new_draft("base", otto)
+    tied = approve(new_draft("tied", otto, needs=("base",)), otto)
+    assert refusal([tied.public_id], otto) == ["tied needs base, which is not approved yet."]
+
+
+def test_a_needed_draft_in_a_live_landing_says_wait(otto: User) -> None:
+    base = approve(new_draft("base", otto), otto)
+    tied = approve(new_draft("tied", otto, needs=("base",)), otto)
+    first = landing.start([base.public_id], by=otto)
+    assert refusal([tied.public_id], otto) == [
+        f"tied needs base, which is landing in {first.public_id}: land this after it merges."
+    ]
+
+
+def test_the_needed_draft_in_the_batch_lands_together(otto: User) -> None:
+    base = approve(new_draft("base", otto), otto)
+    tied = approve(new_draft("tied", otto, needs=("base",)), otto)
+    made = landing.start([tied.public_id, base.public_id], by=otto)
+    assert made.state == "pending"
