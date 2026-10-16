@@ -908,6 +908,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A math block holds TeX only; the prose around it says what the formula means (M6MX.1).
 
+#### CS0426 — an image block names no file
+
+*Refuses.*
+
+**Fix.** Name the file from images/ after the directive: `:::{image} graph.png`.
+
+**Why.** The block places one file of the node's images/ folder (M6.3 spec, M6IM.1).
+
+#### CS0427 — an image has no caption
+
+*Refuses.*
+
+**Fix.** Write one paragraph between the fences saying what the image shows and why it is here.
+
+**Why.** A figure on the page is read with its caption; the board draws every image with one (M6IM.1).
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have
@@ -1276,6 +1292,120 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
 
+### CS0900–CS0999 · images
+
+#### CS0901 — the images field is not a list
+
+*Refuses.*
+
+**Fix.** Write the images field as a list, one entry per file.
+
+**Why.** node.yaml records each image as one entry of a list (M6IM.1).
+
+#### CS0902 — an images entry is not an image
+
+*Refuses.*
+
+**Fix.** Give each entry file, alt, author, source and licence.
+
+**Why.** Each entry is one image's record (M6IM.1).
+
+#### CS0903 — an unknown key in an image
+
+*Refuses.*
+
+**Fix.** Use only file, alt, author, source and licence.
+
+**Why.** A key nothing reads is a mistake waiting to be trusted (M6IM.1).
+
+#### CS0904 — an image has no file, alt, author, source or licence
+
+*Refuses.*
+
+**Fix.** Add the missing field: every image carries all five.
+
+**Why.** Invariant 6: an image carries its author and licence, or it is refused; alt text is how a reader who cannot see it reads it (M6IM.1).
+
+#### CS0905 — an image's file name is not one the folder takes
+
+*Refuses.*
+
+**Fix.** Name it in lowercase words joined by hyphens, ending .png, .jpg, .jpeg or .webp.
+
+**Why.** Names stay safe in every path and URL, and say the format (M6IM.1).
+
+#### CS0906 — an image's licence is not one an image may carry
+
+*Refuses.*
+
+**Fix.** Use CC0 1.0, Public domain, CC BY or CC BY-SA in its written form; find another image if it is NC or ND.
+
+**Why.** The content repository is public and CC BY; only images whose licence allows copying them as they are may sit in it (M6IM.2).
+
+#### CS0907 — an image's source is not a link or own work
+
+*Refuses.*
+
+**Fix.** Give the https:// page the image came from, or `own work`.
+
+**Why.** A reader can follow the credit to where the image came from (M6IM.1).
+
+#### CS0908 — an image is recorded twice
+
+*Refuses.*
+
+**Fix.** Keep one record per file.
+
+**Why.** One file has one credit (M6IM.1).
+
+#### CS0909 — an image is recorded but no block places it
+
+*Refuses.*
+
+**Fix.** Place it with :::{image} <file>, or remove its record and file.
+
+**Why.** Nothing sits in a node folder that no page shows (M6IM.1).
+
+#### CS0910 — an image is placed but has no record
+
+*Refuses.*
+
+**Fix.** Add its record to the images field in node.yaml.
+
+**Why.** Invariant 6: no image is shown without its author and licence (M6IM.1).
+
+#### CS0911 — an image is recorded but its file is missing
+
+*Refuses.*
+
+**Fix.** Add the file to the node's images/ folder.
+
+**Why.** A record names a file that is there (M6IM.1).
+
+#### CS0912 — a file in images/ has no record
+
+*Refuses.*
+
+**Fix.** Record it in the images field, or remove the file.
+
+**Why.** Invariant 6: every image carries its author and licence (M6IM.1).
+
+#### CS0913 — a file is not a PNG, JPEG or WebP image, or not the format its name says
+
+*Refuses.*
+
+**Fix.** Save the image as PNG, JPEG or WebP under the matching extension; SVG is not taken.
+
+**Why.** Files are read by their first bytes; an SVG is a document that can carry script (invariant 6; M6IM.2).
+
+#### CS0914 — an image is over 2 MB
+
+*Refuses.*
+
+**Fix.** Save it smaller: at most 2 MB.
+
+**Why.** A page loads every image it shows, and the content repository checks sizes (M6IM.2).
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes
@@ -1413,6 +1543,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Check the GitHub App's settings and GitHub's status, then run the command again.
 
 **Why.** rebuild_index follows the configured source; when it is main on GitHub and GitHub cannot be reached, nothing could start, which is exit 2, not a refused build (M4F.2).
+
+#### CA0008 — a node has no image of that name
+
+*Refuses.*
+
+**Fix.** Use a file name from the node's images.
+
+**Why.** A node's images are served by the names its record gives them (M6.3 spec, M6IM.3).
 
 ### CA0100–CA0199 · accounts
 
@@ -1691,6 +1829,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Nothing to fix here: the node lands with that draft, in the same landing, or after it.
 
 **Why.** A link may name a live draft, so linked new nodes are written side by side and each goes to review when it is done; the warning shows the node leans on work not yet landed (M6.1 spec, M6LD.1).
+
+#### CA0225 — a draft has no image of that name
+
+*Refuses.*
+
+**Fix.** Use a file name from the draft's images.
+
+**Why.** Studio's preview reads a draft's images by name (M6.3 spec, M6IM.3).
+
+#### CA0226 — Wikimedia Commons gave no image to keep
+
+*Refuses.*
+
+**Fix.** Read the reason: pick a file whose licence is CC0, public domain, CC BY or CC BY-SA, check the link is a Commons file page, or try again if Commons did not answer.
+
+**Why.** An image from Commons comes with the credit Commons itself gives it, and only licences that allow copying are kept (M6.3 spec, M6IM.4).
 
 ### CA0300–CA0399 · landing
 

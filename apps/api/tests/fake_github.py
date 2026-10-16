@@ -21,7 +21,7 @@ class FakeGitHub:
     pull_anyway: bool = False  # open_pull makes the pull request even when it then fails
     # Run just before a method's step: how a test lets something happen mid-landing.
     before: dict[str, Callable[[], None]] = field(default_factory=dict)
-    commits: dict[str, tuple[str, dict[str, str | None], str]] = field(default_factory=dict)
+    commits: dict[str, tuple[str, dict[str, str | bytes | None], str]] = field(default_factory=dict)
     branches: dict[str, str] = field(default_factory=dict)
     pulls: dict[int, tuple[str, str, str]] = field(default_factory=dict)  # branch, title, body
     auto_merged: set[int] = field(default_factory=set)
@@ -59,7 +59,7 @@ class FakeGitHub:
         self._step("exists")
         return any(each == path or each.startswith(f"{path}/") for each in self.files)
 
-    def commit(self, *, parent: str, files: dict[str, str | None], message: str) -> str:
+    def commit(self, *, parent: str, files: dict[str, str | bytes | None], message: str) -> str:
         self._step("commit")
         for path, text in files.items():
             if text is None and path not in self.files:

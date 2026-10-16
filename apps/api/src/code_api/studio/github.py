@@ -5,6 +5,7 @@ with its key and trades it for an installation token, kept until shortly before 
 call has a timeout, and every failure is a `GitHubError` whose message is a sentence.
 """
 
+import base64
 import functools
 import tarfile
 import threading
@@ -22,7 +23,7 @@ from django.conf import settings
 from code_api.config.landing import GitHubApp
 
 TIMEOUT: float = 10
-MAX_TARBALL = 50 * 1024 * 1024  # bytes; content is text (M4F.2)
+MAX_TARBALL = 500 * 1024 * 1024  # bytes; text and images, each image at most 2 MB (M6IM.3)
 API_VERSION = "2022-11-28"
 _EARLY = 300  # a token is renewed five minutes before it expires
 
@@ -70,7 +71,7 @@ class GitHub(Protocol):
     def head(self) -> str: ...
     def folder(self, path: str, ref: str) -> str | None: ...
     def exists(self, path: str, ref: str) -> bool: ...
-    def commit(self, *, parent: str, files: dict[str, str | None], message: str) -> str: ...
+    def commit(self, *, parent: str, files: dict[str, str | bytes | None], message: str) -> str: ...
     def branch(self, name: str, sha: str) -> None: ...
     def delete_branch(self, name: str) -> None: ...
     def open_pull(self, *, branch: str, title: str, body: str) -> Pull: ...
@@ -199,12 +200,20 @@ class Client:
         return True
 
     @_expected
-    def commit(self, *, parent: str, files: dict[str, str | None], message: str) -> str:
+    def commit(self, *, parent: str, files: dict[str, str | bytes | None], message: str) -> str:
+        """Text goes inline in the tree; an image becomes a blob first (M6IM.3); None deletes."""
         base_tree = self._call("GET", f"/git/commits/{parent}")["tree"]["sha"]
         entries: list[dict[str, object]] = []
-        for path, text in sorted(files.items()):
+        for path, held in sorted(files.items()):
             entry: dict[str, object] = {"path": path, "mode": "100644", "type": "blob"}
-            entry.update({"sha": None} if text is None else {"content": text})
+            if held is None:
+                entry["sha"] = None
+            elif isinstance(held, bytes):
+                encoded = base64.b64encode(held).decode()
+                blob = self._call("POST", "/git/blobs", {"content": encoded, "encoding": "base64"})
+                entry["sha"] = blob["sha"]
+            else:
+                entry["content"] = held
             entries.append(entry)
         tree = self._call("POST", "/git/trees", {"base_tree": base_tree, "tree": entries})
         made = self._call(

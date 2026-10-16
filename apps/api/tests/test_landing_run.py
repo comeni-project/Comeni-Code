@@ -312,3 +312,36 @@ def test_a_worker_whose_landing_was_recovered_closes_the_pull_request_it_opened(
     assert (after.state, after.reason) == ("refused", "recovered")
     assert fake.closed == {1} and fake.branches == {}
     assert "auto_merge" not in fake.calls
+
+
+# ── M6.3 (M6IM.3): an image lands as a blob; only what changed is written ─────────────────────
+
+IMAGE = "algorithms/de-bruijn-graphs/images/kmers-in-a-row.png"
+
+
+def test_an_unchanged_image_is_not_written_again(batch: Ready) -> None:
+    fake = FakeGitHub()
+    landing.run(batch("de-bruijn-graphs"), fake)
+    _, files, _ = fake.commits["commit-1"]
+    assert IMAGE not in files
+
+
+def test_a_replaced_image_lands_as_its_bytes(
+    otto: User, ada: User, grace: User, queued: None
+) -> None:
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    redrawn = (FIXTURES / IMAGE).read_bytes() + b"\x00"  # still a PNG by its first bytes
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda n: n,
+        by=ada,
+        change="redrawn",
+        images={"kmers-in-a-row.png": redrawn},
+    )
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=grace, revision=2, answered=0, wrong=0)
+    fake = FakeGitHub()
+    landing.run(landing.start([draft.public_id], by=otto), fake)
+    _, files, _ = fake.commits["commit-1"]
+    assert files[IMAGE] == redrawn

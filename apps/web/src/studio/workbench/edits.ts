@@ -1,6 +1,6 @@
 // Every change a workbench makes, as a command (M4K.2): a method, a path under the draft and a
 // body without the revision. `sendEdit` adds the revision and sends it; nothing else writes.
-import { sendJson } from "../../api/client";
+import { sendForm, sendJson } from "../../api/client";
 import type {
   BlockIn,
   ExamQuestionIn,
@@ -15,6 +15,8 @@ export interface Edit {
   method: "PATCH" | "PUT" | "POST" | "DELETE";
   path: string;
   body?: Record<string, unknown>;
+  /** A multipart body in place of `body`: an image's file (M6IM.4). */
+  form?: Record<string, string | Blob>;
 }
 
 export type LinkKind = "needs" | "goes_deeper" | "related";
@@ -74,8 +76,45 @@ export const deleteExam = (id: string): Edit => ({
   path: `exam/${encodeURIComponent(id)}`,
 });
 
+/** An image from Commons: its file and credit fetched by the API, placed at `at` (M6IM.4). */
+export const addImageFromCommons = (
+  at: number,
+  link: string,
+  alt: string,
+  caption: string,
+): Edit => ({ method: "POST", path: "images/commons", body: { at, link, alt, caption } });
+
+/** An uploaded image: its file, its record and its block, one save (M6IM.4). */
+export const addImageUpload = (
+  at: number,
+  upload: Blob,
+  record: { file: string; alt: string; author: string; source: string; licence: string },
+  caption: string,
+): Edit => ({
+  method: "POST",
+  path: "images",
+  form: { ...record, at: String(at), caption, upload },
+});
+
+export const editImageRecord = (
+  file: string,
+  record: { alt: string; author: string; source: string; licence: string },
+): Edit => ({ method: "PUT", path: `images/${encodeURIComponent(file)}`, body: record });
+
+/** The image whole: its block, its record and its file (M6IM.3). */
+export const removeImage = (file: string): Edit => ({
+  method: "DELETE",
+  path: `images/${encodeURIComponent(file)}`,
+});
+
 export function sendEdit(id: string, revision: number, edit: Edit): Promise<SavedOut> {
   const url = `/api/studio/drafts/${id}/${edit.path}`;
   if (edit.method === "DELETE") return sendJson<SavedOut>("DELETE", `${url}?revision=${revision}`);
+  if (edit.form !== undefined) {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(edit.form)) form.append(key, value);
+    form.append("revision", String(revision));
+    return sendForm<SavedOut>(url, form);
+  }
   return sendJson<SavedOut>(edit.method, url, { ...edit.body, revision });
 }

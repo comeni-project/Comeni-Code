@@ -6,6 +6,7 @@
 import type {
   CalloutBlockOut,
   ExampleBlockOut,
+  ImageBlockOut,
   MathBlockOut,
   SequenceBlockOut,
   TextBlockOut,
@@ -18,7 +19,8 @@ export type Block =
   | CalloutBlockOut
   | SequenceBlockOut
   | MathBlockOut
-  | ExampleBlockOut;
+  | ExampleBlockOut
+  | ImageBlockOut;
 
 const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const SECOND = /^##\s+(.+?)\s*#*\s*$/;

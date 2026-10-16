@@ -32,6 +32,12 @@ resources:
     licence: CC BY 4.0
     display: link
     level: intermediate
+images:
+  - file: kmers-in-a-row.png
+    alt: Three teal squares in a row, joined by a grey line, standing for k-mers along a path.
+    author: Comeni Code
+    source: own work
+    licence: CC BY 4.0
 try:
   - id: kmers-per-read
     kind: number

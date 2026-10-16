@@ -12,6 +12,7 @@ from code_schema.blocks import (
     Block,
     Callout,
     Example,
+    Image,
     Math,
     SequenceBlock,
     Text,
@@ -25,6 +26,7 @@ from code_schema.content import Content, read_content
 from code_schema.diagnostics import Diagnostic, UnknownDiagnostic, diagnostic
 from code_schema.exam import ExamQuestion
 from code_schema.grading import score
+from code_schema.images import ImageRecord
 from code_schema.links import Link
 from code_schema.node import Level, Node, parse_node, parse_node_files, read_node
 from code_schema.problems import Problem
@@ -64,6 +66,8 @@ __all__ = [
     "SequenceBlock",
     "Math",
     "Example",
+    "Image",
+    "ImageRecord",
     "Text",
     "Try",
     "TryQuestion",
