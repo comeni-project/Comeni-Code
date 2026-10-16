@@ -55,11 +55,14 @@ describe("Body — math and examples (M6MX.4)", () => {
     expect(screen.getByText("echo $x$")).toBeInTheDocument();
   });
 
-  it("draws a math block as a display formula", () => {
+  it("draws a math block as a display formula in the board's panel (#344)", () => {
     const { container } = render(
       <Body blocks={[{ kind: "math", tex: "G_k(R) = (V, E)\n" }]} questions={[]} />,
     );
-    expect(container.querySelector(".katex-display")).not.toBeNull();
+    const formula = container.querySelector(".katex-display");
+    expect(formula).not.toBeNull();
+    const panel = formula?.closest("[data-block='math']");
+    expect(panel).toHaveClass("rounded-xl", "border", "bg-surface");
   });
 
   it("draws an example as a titled panel, its code in mono", () => {

@@ -110,8 +110,11 @@ subset, so it would accept and refuse differently from what learners see).
 - **Exam stems** may hold a `math` block (tutor spec T7.1 lists it); `example` stays out of stems.
 - **The index and the API**: the block union gains both kinds; `openapi.json` and `schema.ts`
   follow. Review's per-block keys and verdicts (M4.9a) take them as any block.
-- **The Node page** draws a math block centred in the reading column, and an example as a panel
-  headed *Worked example · <title>*, its code in the mono face, as the Node board draws them.
+- **The Node page** draws a math block in its own panel, left-aligned, as the Node board draws a
+  formal definition (corrected by the walk, #344: this line first said *centred*), and an example
+  as a panel headed *Worked example · <title>*, its code in the mono face. The board draws an
+  example as a bare code panel under an authored heading; the title the format requires is shown
+  in the panel instead.
 - **The workbench**: *Add* offers **Math** and **Example**. The math editor is a TeX box with the
   formula drawn live under it; the example editor is the callout's (title and Markdown). The
   outline names them *math* and *example* with their first words.

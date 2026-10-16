@@ -49,8 +49,17 @@ export function Body({
           return <SequenceBlock key={`sequence:${index}`} letters={block.letters} />;
         }
         if (block.kind === "math") {
-          // biome-ignore lint/suspicious/noArrayIndexKey: formulas have no identity beyond their place
-          return <Formula key={`math:${index}`} tex={block.tex} display />;
+          // In its own panel, left-aligned, as the Node board draws a formal definition (#344).
+          return (
+            <div
+              // biome-ignore lint/suspicious/noArrayIndexKey: formulas have no identity beyond their place
+              key={`math:${index}`}
+              data-block="math"
+              className="rounded-xl border border-border bg-surface px-5 py-4 text-[17px] [&_.katex-display]:my-0 [&_.katex-display]:text-left [&_.katex-display>.katex]:text-left"
+            >
+              <Formula tex={block.tex} display />
+            </div>
+          );
         }
         if (block.kind === "example") {
           return (
