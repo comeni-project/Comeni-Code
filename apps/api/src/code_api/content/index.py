@@ -142,6 +142,7 @@ def _image_rows(root: Path, content: Content) -> list[NodeImage]:
                     source=image.source,
                     licence=image.licence,
                     media_type=sniff(data) or "application/octet-stream",
+                    sha256=hashlib.sha256(data).hexdigest(),
                     data=data,
                 )
             )

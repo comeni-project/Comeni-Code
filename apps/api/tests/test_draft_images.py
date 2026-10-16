@@ -271,3 +271,42 @@ def test_review_shows_every_block_kind_and_an_images_record(client: Client) -> N
     image = _content(keys["image"], None)
     assert image.block is not None and image.block.kind == "image"
     assert image.image is not None and image.image.licence == "CC BY 4.0"
+
+
+def test_a_second_image_of_the_same_name_gets_a_free_name(client: Client) -> None:
+    # #355: clipboard pastes are all image.png; neither replaces the other.
+    draft = opened(client)
+    add(client, draft)
+    form = {
+        "revision": 2,
+        "file": "knots.png",
+        "at": 0,
+        "caption": "Another.",
+        **CREDIT,
+        "upload": SimpleUploadedFile("knots.png", PNG2),
+    }
+    answer = client.post(f"/api/studio/drafts/{draft}/images", form)
+    assert answer.status_code == 200, answer.content
+    files = [image["file"] for image in answer.json()["draft"]["node"]["images"]]
+    assert files == ["knots.png", "knots-2.png"]
+    assert client.get(f"/api/studio/drafts/{draft}/images/knots.png").content == PNG
+    assert client.get(f"/api/studio/drafts/{draft}/images/knots-2.png").content == PNG2
+
+
+def test_a_landed_image_is_the_same_in_review(client: Client) -> None:
+    # #354: the live node's keys carry the landed files' sha256, so an untouched image is same.
+    from code_api.content.snapshot import image_shas_from_index, node_from_index
+    from code_api.studio.keys import review_keys, same
+
+    answer = client.post(
+        "/api/studio/drafts", {"node_id": "de-bruijn-graphs"}, content_type="application/json"
+    )
+    row = Draft.objects.get(public_id=answer.json()["public_id"])
+    node, _ = drafts.node_of(row)
+    live = node_from_index("de-bruijn-graphs")
+    assert node is not None and live is not None
+    [now] = [k for k in review_keys(node, drafts.latest(row).images) if k.kind == "image"]
+    [was] = [
+        k for k in review_keys(live, image_shas_from_index("de-bruijn-graphs")) if k.kind == "image"
+    ]
+    assert same(was, now)

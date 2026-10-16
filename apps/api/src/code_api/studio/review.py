@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
-from code_api.content.snapshot import node_from_index
+from code_api.content.snapshot import image_shas_from_index, node_from_index
 from code_api.studio import drafts
 from code_api.studio.keys import Key, align, review_keys, same
 from code_api.studio.landing import AlreadyLanding
@@ -307,7 +307,7 @@ def _sheet(draft: Draft, by: User) -> Sheet:
     verdicts = _verdicts(found)
     keys = keys_of(draft)
     live = node_from_index(draft.node_id)
-    earlier = [] if live is None else review_keys(live)
+    earlier = [] if live is None else review_keys(live, image_shas_from_index(draft.node_id))
     by_key = {key.key: key for key in earlier}
     matched = align(earlier, keys)
     items = []

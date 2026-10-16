@@ -82,6 +82,11 @@ def images_from_index(node_id: str) -> dict[str, bytes]:
     }
 
 
+def image_shas_from_index(node_id: str) -> dict[str, str]:
+    """A landed node's image files by name, as their sha256: what review compares (#354)."""
+    return dict(models.NodeImage.objects.filter(node_id=node_id).values_list("file", "sha256"))
+
+
 def node_from_index(node_id: str) -> Node | None:
     """The node as its files hold it, or None when the index has no such node."""
     row = models.Node.objects.filter(id=node_id).first()
