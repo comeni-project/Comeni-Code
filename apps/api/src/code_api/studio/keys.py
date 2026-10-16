@@ -10,7 +10,9 @@ from difflib import SequenceMatcher
 
 from code_schema import (
     Callout,
+    Example,
     ExamQuestion,
+    Math,
     Node,
     Resource,
     SequenceBlock,
@@ -19,14 +21,16 @@ from code_schema import (
     TryQuestion,
 )
 
-Content = Node | Text | Callout | SequenceBlock | Resource | TryQuestion | ExamQuestion
+Content = (
+    Node | Text | Callout | SequenceBlock | Math | Example | Resource | TryQuestion | ExamQuestion
+)
 QUESTIONS = ("try", "exam")
 
 
 @dataclass(frozen=True)
 class Key:
     key: str
-    kind: str  # node, text, callout, sequence, try, resource or exam
+    kind: str  # node, text, callout, sequence, math, example, try, resource or exam
     content: Content
 
 
@@ -43,12 +47,16 @@ def review_keys(node: Node) -> list[Key]:
                 keys.append(Key(f"block/{at}", "callout", block))
             case SequenceBlock():
                 keys.append(Key(f"block/{at}", "sequence", block))
+            case Math():
+                keys.append(Key(f"block/{at}", "math", block))
+            case Example():
+                keys.append(Key(f"block/{at}", "example", block))
     keys += [Key(f"resource/{at}", "resource", r) for at, r in enumerate(node.resources)]
     keys += [Key(f"exam/{question.id}", "exam", question) for question in node.exam]
     return keys
 
 
-BODY = ("text", "callout", "sequence")
+BODY = ("text", "callout", "sequence", "math", "example")
 LABEL_LENGTH = 60
 _FIELDS = ("title", "claim", "region", "level", "minutes", "needs", "goes_deeper", "related")
 
@@ -70,6 +78,10 @@ def label(key: Key) -> str:
         return _cut(content.title)
     if isinstance(content, SequenceBlock):
         return _cut(content.letters)
+    if isinstance(content, Math):
+        return _cut(content.tex)
+    if isinstance(content, Example):
+        return _cut(content.title)
     if isinstance(content, TryQuestion):
         return _cut(content.ask)
     if isinstance(content, ExamQuestion):
@@ -92,6 +104,10 @@ def _signature(key: Key) -> str:
         return f"{content.kind}\n{content.title}\n{content.markdown}"
     if isinstance(content, SequenceBlock):
         return content.letters
+    if isinstance(content, Math):
+        return content.tex
+    if isinstance(content, Example):
+        return f"{content.title}\n{content.markdown}"
     return key.key
 
 

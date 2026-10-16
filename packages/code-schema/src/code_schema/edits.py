@@ -17,6 +17,7 @@ from code_schema.blocks import Block, Text, Try, block_text, parse_blocks, write
 from code_schema.exam import ExamQuestion
 from code_schema.levels import Level
 from code_schema.links import Link
+from code_schema.math import FORMULA_CODES
 from code_schema.node import Node
 from code_schema.questions import TryQuestion
 from code_schema.resources import Resource
@@ -118,7 +119,9 @@ def write_faithfully(blocks: Sequence[Block], *, file: str = "body.md") -> str:
     intended = _merged(blocks)
     text = write_blocks(intended)
     read, _, problems = parse_blocks(text, file=file)
-    if problems or list(read) != intended:
+    # A formula's own problems say what it holds, not how it is written: the save's check
+    # refuses them by their codes (M6MX.3).
+    if any(p.code not in FORMULA_CODES for p in problems) or list(read) != intended:
         raise Unfaithful(
             "the blocks would read back as something else: keep a title on one line, and ::: "
             "lines out of a block's text"

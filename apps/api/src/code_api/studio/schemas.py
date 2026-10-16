@@ -10,8 +10,11 @@ from ninja import Schema
 
 from code_api.accounts.api import MemberOut
 from code_api.content.schemas import (
+    AnyBlockOut,
     BlockOut,
     CalloutBlockOut,
+    ExampleBlockOut,
+    MathBlockOut,
     SequenceBlockOut,
     TextBlockOut,
     TryBlockOut,
@@ -20,9 +23,12 @@ from code_api.studio.keys import Key
 from code_api.studio.review import Answered, Reviewed, SentBack, Sheet, question_of
 from code_schema import (
     Answer,
+    Block,
     Callout,
     ChoiceAnswer,
+    Example,
     ExamQuestion,
+    Math,
     Node,
     NumberAnswer,
     OrderAnswer,
@@ -253,9 +259,7 @@ def _answer_out(answer: Answer) -> dict[str, object]:
             return empty | {"steps": list(steps)}
 
 
-def _block_out(
-    block: Text | Try | Callout | SequenceBlock,
-) -> TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut:
+def _block_out(block: Block) -> AnyBlockOut:
     match block:
         case Text(markdown=markdown):
             return TextBlockOut(kind="text", markdown=markdown)
@@ -265,6 +269,10 @@ def _block_out(
             return TryBlockOut(kind="try", question=question)
         case SequenceBlock(letters=letters):
             return SequenceBlockOut(kind="sequence", letters=letters)
+        case Math(tex=tex):
+            return MathBlockOut(kind="math", tex=tex)
+        case Example(title=title, markdown=markdown):
+            return ExampleBlockOut(kind="example", title=title, markdown=markdown)
 
 
 def _question_out(question: TryQuestion) -> StudioQuestionOut:

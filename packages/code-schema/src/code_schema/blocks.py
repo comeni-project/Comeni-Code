@@ -285,8 +285,8 @@ def parse_blocks(
         at, said = _first_difference(body, written)
         problem("CS0415", said, at)
     for block, start in zip(blocks, starts, strict=True):
-        for code, message, line in _formulas(block, start):
-            problem(code, message, line)
+        for said_code, message, said_line in _formulas(block, start):
+            problem(said_code, message, said_line)
     return tuple(blocks), tuple(starts), problems
 
 

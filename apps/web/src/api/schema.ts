@@ -21,6 +21,7 @@ export interface ApiSchemas {
   EventOut: EventOut;
   ExamIn: ExamIn;
   ExamQuestionIn: ExamQuestionIn;
+  ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
   FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
@@ -39,6 +40,7 @@ export interface ApiSchemas {
   LinkOut: LinkOut;
   LinkTargetOut: LinkTargetOut;
   LinksIn: LinksIn;
+  MathBlockOut: MathBlockOut;
   MeOut: MeOut;
   MemberOut: MemberOut;
   Message: Message;
@@ -101,15 +103,17 @@ export interface ApproveIn {
   revision: number;
 }
 /**
- * A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
- * (callout, title, markdown).
+ * A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`
+ * (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
+ * markdown).
  */
 export interface BlockIn {
   callout?: string;
-  kind: "text" | "try" | "callout" | "sequence";
+  kind: "text" | "try" | "callout" | "sequence" | "math" | "example";
   letters?: string;
   markdown?: string;
   question?: string;
+  tex?: string;
   title?: string;
 }
 export interface BuildOut {
@@ -166,7 +170,9 @@ export interface QuestionChecksOut {
   items: ItemOut[];
 }
 export interface DraftNodeOut {
-  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  blocks: (
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+  )[];
   claim: string;
   exam: StudioExamQuestionOut[];
   goes_deeper: LinkOut[];
@@ -198,6 +204,21 @@ export interface SequenceBlockOut {
   letters: string;
 }
 /**
+ * A display formula in TeX (M6.2 spec, M6MX.1).
+ */
+export interface MathBlockOut {
+  kind: "math";
+  tex: string;
+}
+/**
+ * A worked example: its title and Markdown (M6MX.2).
+ */
+export interface ExampleBlockOut {
+  kind: "example";
+  markdown: string;
+  title: string;
+}
+/**
  * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
  * file holds, and whether the live index holds it unchanged.
  */
@@ -212,7 +233,9 @@ export interface StudioExamQuestionOut {
   options: StudioOptionOut[] | null;
   rationale: string;
   state: "approved" | "draft";
-  stem: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  stem: (
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+  )[];
   stem_text: string;
   steps: string[] | null;
   title: string;
@@ -498,7 +521,9 @@ export interface NewNodeIn {
   title: string;
 }
 export interface NodeOut {
-  blocks: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  blocks: (
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+  )[];
   claim: string;
   folder: string;
   goes_deeper: SideCardOut[];
@@ -658,7 +683,16 @@ export interface ResultOut {
  * A key's content, by kind (M4V.4); a question's key only once answered.
  */
 export interface ReviewContentOut {
-  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
+  block:
+    | (
+        | TextBlockOut
+        | TryBlockOut
+        | CalloutBlockOut
+        | SequenceBlockOut
+        | MathBlockOut
+        | ExampleBlockOut
+      )
+    | null;
   fields: ReviewFieldsOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
@@ -692,7 +726,9 @@ export interface ReviewQuestionOut {
   right: boolean | null;
   right_option: number | null;
   right_steps: string[] | null;
-  stem: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut)[];
+  stem: (
+    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+  )[];
   steps: string[] | null;
   tolerance: number | null;
   unit: string;
@@ -704,7 +740,16 @@ export interface ReviewQuestionOut {
  */
 export interface ReviewItemOut {
   before: ReviewContentOut | null;
-  block: (TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut) | null;
+  block:
+    | (
+        | TextBlockOut
+        | TryBlockOut
+        | CalloutBlockOut
+        | SequenceBlockOut
+        | MathBlockOut
+        | ExampleBlockOut
+      )
+    | null;
   change: string;
   fields: ReviewFieldsOut | null;
   key: string;

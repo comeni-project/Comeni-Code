@@ -33,6 +33,26 @@ Reading a path back is how an assembler spells a sequence: each edge adds one le
 :::{try} assembly-order
 :::
 
+Formally, for reads $R$ and an integer $k$:
+
+:::{math}
+G_k(R) = (V, E), \quad V = \{\,(k-1)\text{-mers of } R\,\}, \quad E = \{\,k\text{-mers of } R\,\}
+:::
+
+:::{example} Three reads into one sequence
+Cut each read into 3-mers, keep the distinct ones, and walk them in order:
+
+```text
+reads     ACGTT        CGTTA        GTTAG
+3-mers    ACG CGT GTT  CGT GTT TTA  GTT TTA TAG
+distinct  ACG CGT GTT TTA TAG
+path      ACG → CGT → GTT → TTA → TAG
+spells    ACGTTAG
+```
+
+Each step along the path adds one letter, so five 3-mers spell $5 + 3 - 1 = 7$ letters.
+:::
+
 ## Further reading
 
 - [How to apply de Bruijn graphs to genome assembly](https://doi.org/10.1038/nbt.2023) — Compeau, Pevzner and Tesler, 2011

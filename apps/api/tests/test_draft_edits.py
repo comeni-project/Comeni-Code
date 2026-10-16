@@ -493,3 +493,39 @@ def test_a_stem_that_would_not_read_back_is_refused(client: Client) -> None:
         client, "post", f"/api/studio/drafts/{draft}/exam", {"revision": 1, "question": question}
     )
     assert (refused.status_code, refused.json()["code"]) == (422, "CA0210")
+
+
+def test_math_and_example_blocks_are_inserted(client: Client) -> None:
+    # M6.2 (M6MX.4): both kinds through the one block route.
+    draft = opened(client, "tpm")
+    math = {"kind": "math", "tex": "\\frac{a}{b}\n"}
+    example = {"kind": "example", "title": "A worked case", "markdown": "Step one.\n"}
+    first = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 1, "at": 0, "block": math},
+    )
+    assert first.status_code == 200, first.content
+    second = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 2, "at": 1, "block": example},
+    )
+    assert second.status_code == 200, second.content
+    assert second.json()["draft"]["node"]["blocks"][:2] == [math, example]
+
+
+def test_a_formula_with_a_link_is_refused(client: Client) -> None:
+    draft = opened(client, "tpm")
+    block = {"kind": "math", "tex": "\\href{https://example.org}{x}\n"}
+    response = call(
+        client,
+        "post",
+        f"/api/studio/drafts/{draft}/blocks",
+        {"revision": 1, "at": 0, "block": block},
+    )
+    assert response.status_code == 422, response.content
+    assert "CS0423" in {problem["code"] for problem in response.json()["problems"]}
+    assert len(revisions(draft)) == 1

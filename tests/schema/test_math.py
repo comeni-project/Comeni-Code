@@ -78,3 +78,11 @@ def test_a_math_blocks_tex_is_checked() -> None:
 
 def test_formulas_inside_code_are_never_checked() -> None:
     assert problems_of("```\n$\\href{x}{y}$\n```\n") == []
+
+
+def test_a_formulas_problem_is_not_unfaithful_writing() -> None:
+    # The save refuses it by its code; the writer only guards how blocks are written.
+    from code_schema.blocks import Math
+    from code_schema.edits import write_faithfully
+
+    assert write_faithfully([Math("\\href{x}{y}\n")]) == ":::{math}\n\\href{x}{y}\n:::\n"

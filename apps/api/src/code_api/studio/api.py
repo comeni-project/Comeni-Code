@@ -45,9 +45,11 @@ from code_schema import (
     Block,
     Callout,
     ChoiceAnswer,
+    Example,
     ExamQuestion,
     Level,
     Link,
+    Math,
     NumberAnswer,
     Option,
     OrderAnswer,
@@ -308,12 +310,14 @@ class OptionIn(Schema):
 
 
 class BlockIn(Schema):
-    """A block as the node's JSON shows it: `text` (markdown), `try` (question) or `callout`
-    (callout, title, markdown)."""
+    """A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`
+    (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
+    markdown)."""
 
-    kind: Literal["text", "try", "callout", "sequence"]
+    kind: Literal["text", "try", "callout", "sequence", "math", "example"]
     markdown: str = ""
     letters: str = ""
+    tex: str = ""
     question: str = ""
     callout: str = ""
     title: str = ""
@@ -458,6 +462,10 @@ def _block(given: BlockIn) -> Block:
             return Callout(kind=given.callout, title=given.title, markdown=given.markdown)  # type: ignore[arg-type]
         case "sequence":
             return SequenceBlock(letters=given.letters)
+        case "math":
+            return Math(tex=given.tex)
+        case "example":
+            return Example(title=given.title, markdown=given.markdown)
     return Text(markdown=given.markdown)
 
 

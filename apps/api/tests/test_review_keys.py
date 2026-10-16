@@ -74,3 +74,15 @@ def test_a_try_block_is_keyed_by_its_question_and_holds_it(
         ("block/3", "text"),
     ]
     assert keys[2].content == question
+
+
+def test_math_and_example_blocks_are_keyed_as_blocks(ada: User) -> None:
+    from code_schema import Example, Math
+
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    node, _ = drafts.node_of(draft)
+    assert node is not None
+    kinds = {key.kind: key for key in review_keys(node)}
+    assert isinstance(kinds["math"].content, Math)
+    assert isinstance(kinds["example"].content, Example)
+    assert kinds["math"].key.startswith("block/")

@@ -17,6 +17,9 @@ _PUNCTUATION = frozenset("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
 _COMMAND = re.compile(r"\\([A-Za-z]+)")
 _ENVIRONMENT = re.compile(r"\\(begin|end)\s*\{([^{}]*)\}")
 
+# What a formula's own check emits: about what a formula says, never about how blocks are written.
+FORMULA_CODES = frozenset({"CS0422", "CS0423", "CS0424"})
+
 UNTRUSTED = frozenset(
     {"href", "url", "includegraphics", "htmlClass", "htmlId", "htmlStyle", "htmlData"}
 )
