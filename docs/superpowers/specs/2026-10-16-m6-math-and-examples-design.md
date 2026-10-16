@@ -1,6 +1,6 @@
 # M6.2 — Math and example blocks
 
-**Status: agreed 2026-10-16.** The second part of M6 (#325), issue #329.
+**Status: agreed 2026-10-16; built.** The second part of M6 (#325), issue #329.
 The operator asked for the defaults (*"just write a normal computer science example"*): the
 choices below are the agent's, each marked *my call*. It adds two of the block kinds the format
 refuses until M6 (`code_schema/blocks.py`, `_LATER`), from W5.1 of the 2026-09-16 spec and the
