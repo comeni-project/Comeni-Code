@@ -649,7 +649,7 @@ class ImageRecordIn(Schema):
 
 
 def _uploaded(upload: UploadedFile) -> bytes:
-    # Read at most one byte over the limit: code-schema says it is too large (CS0914).
+    # Read at most one byte over the limit: code-schema then says it is too large.
     return bytes(upload.read(MAX_IMAGE_BYTES + 1))
 
 

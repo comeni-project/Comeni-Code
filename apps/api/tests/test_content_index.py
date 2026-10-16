@@ -342,6 +342,8 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
         "text",
         "example",
         "text",
+        "image",
+        "text",
     ]
     assert stored[1] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
     assert stored[11]["kind"] == "math" and stored[11]["tex"].startswith("G_k(R)")

@@ -18,7 +18,12 @@ from code_api.accounts.roles import Role
 from code_api.content.index import INDEX_LOCK
 from code_api.content.models import IndexBuild
 from code_api.content.models import Node as IndexedNode
-from code_api.content.snapshot import node_from_index, providers_from_index, regions_from_index
+from code_api.content.snapshot import (
+    images_from_index,
+    node_from_index,
+    providers_from_index,
+    regions_from_index,
+)
 from code_api.studio.log import record
 from code_api.studio.models import LIVE_STATES, Asset, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
@@ -219,7 +224,8 @@ def open_existing(node_id: str, *, by: User) -> Draft:
             raise NotIndexed(node_id)
         folder = IndexedNode.objects.get(id=node_id).folder
         build = IndexBuild.objects.filter(outcome=IndexBuild.Outcome.APPLIED).latest("created_at")
-    return _start(node, folder, build.digest, by, "opened from the index")
+        images = images_from_index(node_id)
+    return _start(node, folder, build.digest, by, "opened from the index", images)
 
 
 def open_new(

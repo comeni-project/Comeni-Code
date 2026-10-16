@@ -12,6 +12,7 @@ from code_schema import (
     Answer,
     ChoiceAnswer,
     ExamQuestion,
+    ImageRecord,
     Level,
     Link,
     Node,
@@ -73,6 +74,14 @@ def _answer(row: models.Question | models.ExamQuestion) -> Answer:
     return NumberAnswer(value=value, unit=row.unit, tolerance=number_from(row.tolerance))
 
 
+def images_from_index(node_id: str) -> dict[str, bytes]:
+    """A landed node's image files by name (M6IM.3)."""
+    return {
+        image.file: bytes(image.data)
+        for image in models.NodeImage.objects.filter(node_id=node_id).order_by("position")
+    }
+
+
 def node_from_index(node_id: str) -> Node | None:
     """The node as its files hold it, or None when the index has no such node."""
     row = models.Node.objects.filter(id=node_id).first()
@@ -105,6 +114,16 @@ def node_from_index(node_id: str) -> Node | None:
                 video=resource.video,
             )
             for resource in row.resources.order_by("position")
+        ),
+        images=tuple(
+            ImageRecord(
+                file=image.file,
+                alt=image.alt,
+                author=image.author,
+                source=image.source,
+                licence=image.licence,
+            )
+            for image in row.images.order_by("position")
         ),
         questions=tuple(
             TryQuestion(

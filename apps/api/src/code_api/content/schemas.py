@@ -163,6 +163,7 @@ class NodeOut(Schema):
     needed_by: list[SideCardOut]
     resources: list[ResourceOut]
     questions: list[QuestionOut]
+    images: list[ImageRecordOut] = []  # each file's credit; the file at /images/{file} (M6IM.5)
 
 
 class Message(Schema):

@@ -596,6 +596,7 @@ export interface NodeOut {
   folder: string;
   goes_deeper: SideCardOut[];
   id: string;
+  images?: ImageRecordOut[];
   level: string;
   minutes: number;
   needed_by: SideCardOut[];

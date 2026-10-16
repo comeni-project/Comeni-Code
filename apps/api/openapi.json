@@ -1725,6 +1725,14 @@
             "title": "Id",
             "type": "string"
           },
+          "images": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ImageRecordOut"
+            },
+            "title": "Images",
+            "type": "array"
+          },
           "level": {
             "title": "Level",
             "type": "string"
@@ -4320,6 +4328,61 @@
           }
         },
         "summary": "A node and its neighbours",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/nodes/{node_id}/images/{file}": {
+      "get": {
+        "description": "The file as it landed, cached a day: a new file lands under its node's new build (M6IM.3).",
+        "operationId": "code_api_content_api_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "title": "File",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "A node's image file",
         "tags": [
           "content"
         ]

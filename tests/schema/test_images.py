@@ -115,6 +115,10 @@ def test_a_node_reads_its_images(tmp_path: Path) -> None:
             "CS0907",
         ),
         ({"body": BODY.replace("graph.png", "other.png"), "graph_png": PNG}, "CS0910"),
+        ({"record": "images: graph.png\n", "graph_png": PNG}, "CS0901"),
+        ({"record": "images:\n  - graph.png\n", "graph_png": PNG}, "CS0902"),
+        ({"record": RECORD + "    width: 400\n", "graph_png": PNG}, "CS0903"),
+        ({"record": RECORD + RECORD.removeprefix("images:\n"), "graph_png": PNG}, "CS0908"),
     ],
 )
 def test_each_image_refusal_names_its_code(

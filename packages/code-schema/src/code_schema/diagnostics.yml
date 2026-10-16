@@ -2027,6 +2027,16 @@ codes:
       rebuild_index follows the configured source; when it is main on GitHub and GitHub cannot
       be reached, nothing could start, which is exit 2, not a refused build (M4F.2).
 
+  CA0008:
+    emitted_by: api
+    concern: index
+    says: a node has no image of that name
+    refuses: true
+    fix: |
+      Use a file name from the node's images.
+    explanation: |
+      A node's images are served by the names its record gives them (M6.3 spec, M6IM.3).
+
   # ── CA0100–CA0199 · accounts and access ────────────────────────────────────────────────────
 
   CA0101:

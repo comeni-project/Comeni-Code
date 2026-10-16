@@ -235,3 +235,20 @@ def test_commons_refusing_is_said_in_words(client: Client, monkeypatch: pytest.M
     )
     assert (answer.status_code, answer.json()["code"]) == (422, "CA0226")
     assert "CC BY-NC 2.0" in answer.json()["detail"]
+
+
+def test_opening_an_indexed_node_copies_its_images(client: Client) -> None:
+    answer = client.post(
+        "/api/studio/drafts", {"node_id": "de-bruijn-graphs"}, content_type="application/json"
+    )
+    assert answer.status_code == 201, answer.content
+    draft = answer.json()["public_id"]
+    served = client.get(f"/api/studio/drafts/{draft}/images/kmers-in-a-row.png")
+    assert served.status_code == 200
+    assert served.content.startswith(b"\x89PNG")
+
+
+def test_a_draft_without_that_image_is_404(client: Client) -> None:
+    draft = opened(client)
+    answer = client.get(f"/api/studio/drafts/{draft}/images/nope.png")
+    assert (answer.status_code, answer.json()["code"]) == (404, "CA0225")

@@ -1544,6 +1544,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** rebuild_index follows the configured source; when it is main on GitHub and GitHub cannot be reached, nothing could start, which is exit 2, not a refused build (M4F.2).
 
+#### CA0008 — a node has no image of that name
+
+*Refuses.*
+
+**Fix.** Use a file name from the node's images.
+
+**Why.** A node's images are served by the names its record gives them (M6.3 spec, M6IM.3).
+
 ### CA0100–CA0199 · accounts
 
 #### CA0101 — a Studio route was asked by nobody signed in

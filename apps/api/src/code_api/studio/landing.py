@@ -25,6 +25,7 @@ from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent, Landing, LandingDraft, Revision
 from code_schema import Problem
 from code_schema.exam import EXAM_FILE
+from code_schema.images import IMAGE_FOLDER
 from code_schema.node import BODY_FILE, NODE_FILE
 
 
@@ -211,10 +212,10 @@ def _stale(entry: LandingDraft, head: str, client: GitHub) -> tuple[str, str] | 
     return None
 
 
-def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | None]:
+def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | bytes | None]:
     revision = entry.draft.revisions.get(number=entry.revision)
     folder = entry.draft.folder
-    files: dict[str, str | None] = {
+    files: dict[str, str | bytes | None] = {
         f"{folder}/{NODE_FILE}": revision.node_yaml,
         f"{folder}/{BODY_FILE}": revision.body_md,
     }
@@ -222,6 +223,14 @@ def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | No
         files[f"{folder}/{EXAM_FILE}"] = revision.exam_yaml
     elif client.exists(f"{folder}/{EXAM_FILE}", head):
         files[f"{folder}/{EXAM_FILE}"] = None  # the pool was removed
+    # Images: what changed since revision 1, which holds the node as the draft began (M6IM.3).
+    started = entry.draft.revisions.get(number=1).images
+    now = drafts.images_of(revision)
+    for name, sha in revision.images.items():
+        if started.get(name) != sha:
+            files[f"{folder}/{IMAGE_FOLDER}/{name}"] = now[name]
+    for name in set(started) - set(revision.images):
+        files[f"{folder}/{IMAGE_FOLDER}/{name}"] = None
     return files
 
 
@@ -443,7 +452,7 @@ def _land(made: Landing, client: GitHub) -> Landing:
     kept = [entry for entry in entries if entry.live]
     if not kept:
         return _end(made, Landing.State.REFUSED, "Nothing landed: every draft was dropped.")
-    files: dict[str, str | None] = {}
+    files: dict[str, str | bytes | None] = {}
     for entry in kept:
         files.update(_files(entry, head, client))
     ids = ", ".join(entry.draft.node_id for entry in kept)
