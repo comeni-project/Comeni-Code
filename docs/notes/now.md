@@ -5,18 +5,16 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-10-14** (M4.8 closed). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-10-16** (M4.9a–c, M6.1, M6.2). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
-- **M0–M3 are done** (#79). **M4, the Studio core, is nine parts**, #119–#127 of #74, back end
-  first, screens last; the reasons are in the archived *M4 in parts* entry. (2026-09-29)
-- **M4.1–M4.7 are done** (#119–#125): the block document (#139); exam pools (#151); accounts and
-  roles (#164); drafts and checks (#177); review (#190); landing (#205); following (#218).
-  (2026-09-29 to 2026-10-06)
-- **M4.8 (#126) is done**, four slices: sign-in and Team (#236), the workbench (#259), exam
-  questions as the board draws them (#266), the exam pool's builder (#263). Its check walked end
-  to end: an invited author, all on screen, submits. **M4.9 (#127) is next.** (10-07 to 10-14)
+- **M0–M3 are done** (#79). **M4, the Studio core** (#74): M4.1–M4.8 are done (#119–#126), and
+  M4.9's screens: verdicts per block (#272), Review (#281), Land (#306). (2026-09-29 to 10-15)
+- **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
+  first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
+- **M6 (#325) is nine parts, #328–#336**: M6.1 linked drafts and M6.2 math and examples are done;
+  **M6.3 images (#330) is next**. (2026-10-16)
 - **The master's-class seeds** are the first large graphs, when the operator sends them. (2026-09-19)
 
 ## How work is done now
@@ -27,44 +25,42 @@ line is in [the archive](journal/archive/).
   the operator approving each; a fresh reviewer mid-plan and over the branch. (2026-09-17, 09-29)
 - **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
 - **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
-  built without stopping, still issues and tests first, a fresh reviewer at the end. (2026-10-05)
-- **New screens are drawn as boards** with `.design/build_pages.mjs`'s own helpers, regenerated
-  (Node 24) and shown on a Design canvas for approval before any spec. (2026-10-07)
-- **The app before the pages**: content and finishing polish wait for the end of the MVP; screens
-  still match the original boards as closely as possible. (2026-09-29)
+  built without stopping, issues and tests first. **New screens are drawn as boards** and shown on
+  a Design canvas before any spec. (2026-10-05, 10-07)
+- **The app before the pages**: content and polish wait for the end of the MVP; screens still match
+  their boards as closely as possible. (2026-09-29)
+- **Only what the operator wrote or checked goes to `comeni-code-content`**: nothing is seeded from
+  fixtures or a model, and Salmon is not the first route. (2026-10-16)
 
 ## The content format (`code-schema`)
 
 - A node is a folder: `node.yaml` (fields, links, resources, try questions), a MyST `body.md`
   and an optional `exam.yaml`; the writer round-trips all three byte for byte. (2026-09-18 to 10-05)
-- **The body is blocks**: text between top-level fences, `:::{try} <id>` then `:::`, and
-  `:::{misconception|caveat|convention} <title>` … `:::`. Fences follow CommonMark; later kinds are
-  refused by name until M6; a body its blocks would not write back unchanged is CS0415. (2026-09-29)
+- **The body is blocks** between top-level fences: text, `:::{try} <id>`, callouts, `sequence`,
+  `math` (TeX) and `example <title>` (Markdown, never run); `figure`, `image` and `problem` are
+  refused until their M6 parts; a body that would not write back is CS0415. (2026-09-29, 10-16)
+- **Formulas** (`code_schema.math`): `$…$` in text, callouts, examples and stems, found by
+  remark-math's rule and block structure (`tests/fixtures/math-cases.json`, generated from
+  remark-math, is checked by pytest and vitest); refused when unbalanced, linking, colouring or
+  defining macros (CS0419–CS0425). (2026-10-16)
 - **Every problem has a declared code** in `code_schema/diagnostics.yml` (bands of 100, never
   renumbered), a test naming it, `code-schema explain` and `docs/reference/diagnostics.md`. (09-29)
 - **Three link kinds, each with a reason**: *needs*, *goes deeper*, *related* (on both nodes, at
   most four). *helps* and *any-of* are refused until content needs them. (2026-09-18, 2026-09-19)
 - **A need is what understanding the claim requires**, never a tool or an implementation detail:
   *de Bruijn graphs* sits below *Salmon*, not on its route. (2026-09-18, 2026-09-19)
-- `code-schema validate <root>` checks every node and the graph, exits 0/1/2 (1 only for errors),
-  and speaks GitHub annotations with `--format github`. (2026-09-18, 2026-10-05)
-- **Edits are pure** (`code_schema.edits`, `Node` in, `Node` out), and `parse_node_files` reads a
-  folder or a draft by one path. `minutes` is 1 to 600 (CS0023, #175). (2026-10-05)
+- `code-schema validate <root>` exits 0/1/2 (1 only for errors), `--format github` annotates.
+  **Edits are pure** (`code_schema.edits`, `Node` in, `Node` out). (2026-09-18, 2026-10-05)
 - **A text block ends its last line** (#173); text blocks side by side are one block, joined with
   a blank line so they stay paragraphs (#258). A try option has no `misconception` (#257). (10-09)
 - **Registries are content**: `regions.yaml` (six regions) and `providers.yaml` (licences, embeds,
   `players`); a video resource names its video (`video: youtube:<id>`). (2026-09-18, 2026-09-21)
-- **A question composes an answer** (choice, number, sequence, order; order scored by pairs in
-  order, M4Q.3) in a `TryQuestion` (ask, hints) or an `ExamQuestion` (title, claim, a stem of
-  blocks; wrong options name a misconception or are `plain`; three options). (2026-09-20 to 10-09)
-- **An exam stem arrives as blocks**; code-schema writes its MyST or refuses (`write_faithfully`);
-  `question_rules.py` holds each kind's checks; `Problem.question` names one. (2026-10-13)
+- **A question composes an answer** (choice, number, sequence, order) in a `TryQuestion` (ask,
+  hints) or an `ExamQuestion` (title, claim, a stem of text, sequence and math blocks). (09-20 to 10-16)
 - **An exam pool** (`code_schema.exam`, CS08xx): at most 40, ids apart from try questions; under 4
   is a *warning* (left out of self-tests). **Exam answers are not a secret in v1** (M4E.6). (10-05)
-- **Warnings never refuse** (M4E.4): `Content.errors` is what `validate` (exit 1), the weaver and
-  `rebuild_index` refuse on; `Problem.refuses` reads the registry. (2026-10-05)
-- **`code_schema.records`** reads every nested list of mappings; `Node.blocks` is a property over
-  the body; `block_json` / `block_from_json` are the one block codec. (2026-10-05)
+- **Warnings never refuse** (M4E.4): `Content.errors` is what `validate`, the weaver and
+  `rebuild_index` refuse on. `block_json` / `block_from_json` are the one block codec. (2026-10-05)
 - `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route to *Salmon*; TPM has the one exam pool.
   Tests never read the real content repository. (2026-09-19, 2026-10-05)
 
@@ -76,17 +72,15 @@ line is in [the archive](journal/archive/).
 - `GET /api/nodes/{id}` (neighbours, *needed by*, resources, questions, and the body as `blocks`,
   never `body`), `/api/routes`, `/api/search`, `/api/health`; 404 for a miss, 503 before any build;
   error bodies carry a `code`. (2026-09-19 to 2026-09-29)
-- **`code_api/content/reads.py` holds every read** (`unbuilt()` 503, `missing()` 404), and
-  `code_api/content/schemas.py` every schema. The index stores blocks only; exam pools are their
-  own table, and **no endpoint sends them** until the self-test spec decides. (2026-10-05)
+- **`code_api/content/reads.py` holds every read; `code_api/content/schemas.py` every schema.**
+  Exam pools are their own table; **no endpoint sends them** until the self-test spec. (2026-10-05)
 - **Index numbers are text** (jsonb drops exponents); `content.snapshot` reads rows back. (10-05)
 - **Each request loads the whole index**: fine at 26 nodes; later cached per digest. (2026-09-20)
 
 ## Accounts (`code_api.accounts`)
 
-- **django-allauth, headless**, all under `/_allauth/` (Vite and nginx both forward it). Sign-in
-  providers are a table, `apps/api/src/code_api/config/providers.py`, read by the settings and
-  `Env`'s pair check; GitHub is off until its client is set; no OAuth app exists. (10-05, 10-07)
+- **django-allauth, headless**, under `/_allauth/`; sign-in providers are a table
+  (`apps/api/src/code_api/config/providers.py`); GitHub sign-in is off until its client is set. (10-07)
 - **`/api/me` hands out the CSRF cookie**, asked first, so a first write has a token (#234). (10-07)
 - **A user is keyed by email and a `public_id` UUID** (#101's key; the integer key never leaves
   the database), with one role, author < reviewer < operator, checked by `can_act_as`. (2026-10-05)
@@ -97,18 +91,20 @@ line is in [the archive](journal/archive/).
 
 ## Drafts (`code_api.studio`)
 
-- **A draft is a working copy of one node**, opened from the index or new; any author or above
-  edits it while `open`. One live draft (open, submitted, approved) per node. (2026-10-05, 10-06)
-- **A save is one edit, one `Revision`** of the three files, or none: it names its base revision
-  (stale: 409 `CA0203`); the files must re-read as exactly the edit (CA0208, CA0210). (2026-10-05)
-- **Verify** runs the graph rules with the draft in place; **the checklist** wants it clean, a
-  level, a resource and four exam questions, and carries each question's checks. (10-05, 10-13)
-- **Review** (`code_api/studio/review.py`): submitting needs the checklist and the latest revision
-  and freezes the draft (an edit: 409 CA0211); reject and send back need a reason. Each transition
-  takes the row lock; `DraftEvent`, the append-only log, replays to `Draft.state`. (2026-10-06)
-- **Approving needs every question of the submission answered** by the reviewer; a wrong answer
-  counts, never blocks. Nobody approves their own draft, except an operator with a reason, marked
-  `self_approved`. (2026-10-06)
+- **A draft is a working copy of one node**, opened from the index or new; one live draft (open,
+  submitted, approved) per node. **A save is one edit, one `Revision`**, or none: stale is 409
+  CA0203; the files must re-read as exactly the edit (CA0208, CA0210). (2026-10-05, 10-06)
+- **Verify** runs the graph rules with every live draft that reads in place over the index; a link
+  to a draft of a new node is CA0224, a warning. A draft is shown the problems in its folder and
+  those gone without it (two graph runs, compared without wording, #340). **The checklist** wants it
+  clean, a level, a resource and four exam questions, with each question's checks. (10-05 to 10-16)
+- **Review** (`review.py`): submitting needs the checklist and the latest revision and freezes the
+  draft (409 CA0211). A reviewer gives a **verdict per key** (`keys.py`: the node, each block, try,
+  resource and exam question; `Verdict` rows), approves the draft once every key is approved, or
+  **sends it back** with requests per block or a reason; reject is gone. Each transition takes the
+  row lock; `DraftEvent`, the append-only log, replays to `Draft.state`. (2026-10-06, 10-14)
+- **Approving needs every question of the submission answered**; a wrong answer counts, never
+  blocks. Nobody approves their own draft, except an operator with a reason, `self_approved`. (10-06)
 
 ## Landing (`code_api/studio/landing.py`)
 
@@ -119,6 +115,11 @@ line is in [the archive](journal/archive/).
 - **A draft is in one live landing** (Postgres); a stale one (its folder's tree changed since its
   starting commit) is dropped, CA0306–CA0308. A failed landing holds its drafts until closed; every
   failure ends it in words; a claim token keeps recovery and a slow worker apart. (2026-10-06)
+- **A batch carries every draft its links need**: one linking to a live draft of a new node it
+  leaves out is refused, CA0312, *tick it too* (nothing is added); the in-place check stays index
+  plus batch. Ready rows name what they `needs`. (2026-10-16)
+- **The GitHub App is `comeni-code-studio`**, its settings in the local `.env` only; the content
+  repository has its `providers.yaml`, and the app's login in its *studio-app* file. (2026-10-16)
 
 ## Following `main` (`code_api/studio/follow.py`)
 
@@ -132,7 +133,9 @@ line is in [the archive](journal/archive/).
   `main`'s own last good build, never a folder build, never a commit refused since; the command
   exits 2 (CA0007) when its source cannot be read. (2026-10-06)
 - **`GET /api/studio/index`** (any member): the live build, the latest attempt and its problems,
-  `main`'s last-seen head (the follower caches it), `behind`. Health stays up/down. (2026-10-06)
+  `main`'s last-seen head, `behind`; `/nodes` lists landed nodes and live drafts for links. (10-16)
+- **With the app set, the local stack follows the real content repository**, which has no nodes:
+  its index is empty until the first landing. (2026-10-16)
 
 ## The weaver and search (`code-weaver`, pure)
 
@@ -144,15 +147,20 @@ line is in [the archive](journal/archive/).
 
 - React Router: `/` Start (L1), `/route` (L4), `/node/:id` (L5, and its First steps form), `/health`,
   `/identity`, the account pages and `/studio/*`. Page state lives in the URL. (2026-09-21, 10-07)
-- **Accounts on the web** (M4.8a): *Sign in* for everyone, one button per provider allauth's config
-  lists; `NotYet` answers every way in without an invite; `safeNext` keeps return addresses on the
-  site; signing out is a full load of Start (`layout/leave.ts`). (2026-10-07)
+- **Accounts on the web**: one button per provider; `NotYet` answers every way in without an
+  invite; `safeNext` keeps return addresses on the site; signing out reloads Start. (2026-10-07)
 - **Studio's shell has one gate**: `STUDIO_PAGES` (`studio/pages.ts`) lists each page and its role;
-  the rail draws what a role can open and the gate checks the same entry. Drafts (S19) comes
-  first, then Team (S14). (2026-10-07, 2026-10-09)
-- **The workbench (S3)**: each edit is an `edits.ts` command sent by `useDraftEdit` (scoped per
-  draft, its answer cached; one GET to open, one write per save); editors save when left; a click
-  during a save waits for it (`useAfterSaves`, #255); Checks asked only while shown. (2026-10-09)
+  the rail draws what a role can open: Drafts (S19), Review (S6), Land (S10), Team (S14). (10-07 to 10-15)
+- **The workbench (S3)**: each edit is an `edits.ts` command sent by `useDraftEdit` (one GET to open,
+  one write per save); editors save when left; a click during a save waits for it (#255); Checks
+  asked only while shown; Math and Example editors; the Links tab suggests nodes and drafts. (10-09 to 10-16)
+- **Review (S6, M4.9b)**: the queue, the open block as read or changed (`align`; a colourless word
+  diff), a verdict per key, bulk approval; a send back's requests show in the workbench. (2026-10-14)
+- **Land (S10, M4.9c)**: Ready to land (a table, with *needs*), the landings (a moving one asked
+  every 15 s), a failed landing's Close, main and the index. (2026-10-15, 10-16)
+- **Formulas** (`node/Formula.tsx`): KaTeX 0.19.0 in strict mode inside a `try`, untrusted commands
+  throwing, own empty macros, bounded size; unreadable shows as plain source, marked only inside
+  Studio (`InStudio`); KaTeX's CSS in the base layer; `remark-math` in prose. (2026-10-16)
 - **The exam pool's builder**: the list, `ExamEditor`, `ExamSidePanel` (as `TestQuestion` asks it,
   and its checks); `AnswerEditor` serves both pools; `data-theme="dark"` boxes go dark. (10-13)
 - **`sendJson` is the one write** (CSRF header; only a write's 204 is empty); `auth.ts` wraps
@@ -162,8 +170,7 @@ line is in [the archive](journal/archive/).
   crowded labels, so any route shape holds (`shapes.fixture.ts`). (2026-09-21, 2026-09-29)
 - **The Node page** lists resources in *Learn it* (embedded where a provider allows), draws the
   body block by block and folds its neighbours into *Around this node*. (2026-09-21, 2026-09-29)
-- **A First steps node reads in its own form**: one column, larger type, *Read · Watch*, one large
-  question, *Next on your route*. (2026-09-21)
+- **A First steps node reads in its own form**: one column, larger type, *Read · Watch*. (2026-09-21)
 - **`api/queries.ts` alone makes query keys and hooks**; `url.ts` reads and writes route params;
   `ErrorNotice` is the one error sentence (an answer not JSON: `HTTP 502`). (2026-10-05)
 - **No page invents learner state**: what needs records or review is absent, not faked. (2026-09-21)
@@ -190,61 +197,54 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **For M4.9**: the operator registers the app; **TPM (fixtures) lands first**, once
-  `providers.yaml` is in the content repo, or following is refused. Webhooks later. (10-06, 10-14)
+- **The first landing** (#324) comes after M6 and M5. The GitHub App is installed on every
+  repository of the organisation: the operator narrows it to `comeni-code-content`. (2026-10-16)
+- **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
+  M8, the Graph screen (S2), a learner's own problem dataset before accounts (M6.8). (2026-10-16)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
-- **Deferred**: #131, #134, #176 (an empty edit makes a revision), the minors of PR #139, #189,
-  #203, #204, #216, #217, #234, #235; #188 (large float answers read back as integers); **#260,
-  #265, #269 (M4.8b–d's minors) at the end of the MVP's first loop**, as asked. (10-06, 10-13)
-- **The fixtures' Khan videos** are linked; a replacement is content, deferred (#89). Their
-  *covers* lines were written from the video pages, not by watching. (2026-09-21, 2026-09-29)
-- Whether `IndexBuild` rows need pruning (a folder source adds one every round);
-  three light chip pairs under 4.5 : 1, kept by the operator; jsdom 29 until Node 24.15 (issue 32).
-  (2026-09-17 to 2026-09-20)
+- **Deferred**: #131, #134, #176, #188, #189, #203, #204, #216, #217, #234, #235, PR #139's minors;
+  **#260, #265, #269, #279, #299, #322, #339, #347 at the end of the MVP's first loop**. (to 10-16)
+- **The fixtures' Khan videos** are linked; a replacement is content (#89); their *covers* lines
+  were written from the video pages. Pruning `IndexBuild` rows; three light chip pairs under
+  4.5 : 1, kept by the operator; jsdom 29 until Node 24.15 (issue 32). (2026-09-17 to 09-29)
 - R8 of the architecture spec: search, institutional sign-in, the consent spec. (2026-09-17)
 
 ## Known traps
 
 - **Never pipe a check into `tail` or `grep`** and trust the chain: the exit status is the pipe's.
-  A red pull request merged this way. (2026-09-17, 2026-09-21)
+  Run the suite with CI's `env:` before pushing; `ruff format --check` on docs too. (09-17 to 10-06)
 - **The link check reads tracked files only**: `git add` a new document first. (2026-09-17)
 - **Compose rebuilds nothing by itself**: rebuild the index after a fixture change, `--build` after
-  a code change, reload the browser before judging. (2026-09-21)
-- **An app must declare every workspace package it imports**; the image installs only those.
-  (2026-09-20)
-- **Stop a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17)
-- **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at M4.2's
-  merge, `38d09dc`, and the pin moves only by a pull request there. (2026-09-18, 2026-10-05)
+  a code change, reload the browser. Migrations 0007 and 0009 need `rebuild_index`. (09-21, 10-09)
+- **An app must declare every workspace package it imports**; the image installs only those. **Stop
+  a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17, 09-20)
+- **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at `38d09dc`,
+  moved only by a pull request there. (2026-09-18, 2026-10-05)
 - **After a reboot**, or when tests cannot connect (:5433, :6380): `docker compose up -d --wait
-  postgres redis`. **Node 24 is native now.** Two pytest runs on one Postgres break each other.
-  The canvas is the Design artifact named in CLAUDE.md; republish it from the generator. Merged
-  branches are kept: retarget a stacked pull request first. (2026-09-29 to 10-14)
-- **Run the suite with CI's `env:` before pushing**, and `ruff format --check` on a docs branch:
-  ruff formats Python blocks inside Markdown. Watch CI without blocking. (2026-10-05, 10-06)
-- **Migrations 0007 and 0009 need `rebuild_index` after them** (licences, numbers; exam titles and
-  stems). (2026-10-05, 10-09)
-- **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**,
-  so a later text replacement can miss: assert each test setup step. (2026-10-05)
-- **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF origin check
-  then refuses every write behind it. (2026-10-05)
-- **CI may not start when a pull request opens**: close and reopen it. **`Closes #1, #2` closes
-  only #1**: one keyword per issue. (2026-10-05, 2026-10-06)
-- **GitHub's compare lists at most 300 files**, page 1 only. **Celery acknowledges on delivery**: a
-  task lost with its worker is not redelivered. **importlib mode keeps a test's folder off the
-  path**: a helper beside the tests needs `pythonpath`. (2026-10-06)
-- **This Chrome runs Dark Reader**, which whitens every page: compare colours with headless
-  `google-chrome-stable --user-data-dir=<scratch>` (the default profile is held by the open
-  browser). **`vite preview` serves 404 after a rebuild**: restart it. (2026-10-07)
-- **Stubbed web tests never meet code-schema's rules**: walk against the API (#256, #257), with
-  `puppeteer-core` over headless Chrome's debugging port if Claude in Chrome is away; a fresh
-  browser context per user; click an `sr-only` radio by its label. (10-09, 10-14)
-- **React Router moves inside a transition**: a query refreshed right after `navigate` can re-render
-  the old page first (Studio's gate redirected a sign-out). (2026-10-07)
-- **tarfile's `data` filter strips a leading `/` instead of refusing it**: check member names
-  yourself. **`transaction.on_commit` is not robust by default**: pass `robust=True` for a nudge
-  whose failure must not turn a saved change into a 500. (2026-10-06)
+  postgres redis`. Two pytest runs on one Postgres break each other. Merged branches are kept:
+  retarget a stacked pull request first. The canvas is the Design artifact in CLAUDE.md. (to 10-14)
+- **No Node 24 on this machine now** (Node 26 system, miniconda's 22 first on `PATH`): web commands
+  run in `node:24-alpine` (`node_modules` carries the musl binding); scratch tools with
+  `PATH=/usr/bin:$PATH`. **Ports 8000 and 5173 are Labs'**: walk on 8001 and 5174. (2026-10-16)
+- **A walk that must not reach GitHub** runs `runserver` from a folder whose `.env` leaves the app
+  out, with Compose's worker and beat stopped. Tests turn the app off unless one sets it (#337). (10-16)
+- **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**, so
+  a later text replacement can miss. **`Closes #1, #2` closes only #1**. CI may not start when a
+  pull request opens: wait, or close and reopen it. (2026-10-05, 10-06)
+- **nginx must pass `Host $http_host`**: `$host` drops the port, and Django's CSRF check refuses
+  every write behind it. (2026-10-05)
+- **GitHub's compare lists at most 300 files**. **Celery acknowledges on delivery**. **importlib mode
+  keeps a test's folder off the path**. tarfile's `data` filter strips a leading `/`: check names.
+  `transaction.on_commit` needs `robust=True` for a nudge. (2026-10-06)
+- **Dark Reader whitens the Chrome**: compare colours headless. **`vite preview` serves 404 after a
+  rebuild**. React Router moves inside a transition. (2026-10-07)
+- **Stubbed web tests never meet code-schema's rules**: walk against the API with `puppeteer-core`
+  over headless Chrome when Claude in Chrome is away; a fresh context per user; a refused block's
+  editor warns on leaving, so accept the dialog. (10-09 to 10-16)
 - **A migration test pinning one app** gets the others' models at whatever state: pin `accounts`
-  too, or `User` has no `role`. (2026-10-06)
-- **`code_schema`'s messages, codes, lines and order are pinned by tests**: editing one is a
-  behaviour change. Its purity allowlist has no `functools`; widening it is reviewed. (2026-10-05)
+  too. (2026-10-06)
+- **`code_schema`'s messages, codes, lines and order are pinned by tests**; its purity allowlist
+  has no `functools`. The API's source may not name a `CS` code (ownership guard). (10-05, 10-16)
+- **Tailwind 4's utilities sit in a layer**: an unlayered third-party sheet beats them; import it
+  `layer(base)`. Biome leaves the generated `schema.ts` alone (#343). (2026-10-16)
