@@ -78,10 +78,18 @@ def set_image_record(node: Node, record: ImageRecord) -> Node:
 
 
 def remove_image(node: Node, file: str) -> Node:
-    """An image gone whole: its record and every block on the page that places it (M6IM.3)."""
-    blocks = [b for b in node.blocks if not (isinstance(b, Image) and b.file == file)]
+    """An image gone whole: its record and every block that places it, on the page and in each
+    exam stem (M6IM.3, #356)."""
+
+    def kept(blocks: Sequence[Block]) -> list[Block]:
+        return [b for b in blocks if not (isinstance(b, Image) and b.file == file)]
+
+    exam = tuple(
+        q if kept(q.blocks) == list(q.blocks) else replace(q, stem=write_faithfully(kept(q.blocks)))
+        for q in node.exam
+    )
     images = tuple(each for each in node.images if each.file != file)
-    return replace(_with_blocks(node, blocks, list(node.questions)), images=images)
+    return replace(_with_blocks(node, kept(node.blocks), list(node.questions)), images=images, exam=exam)
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:
