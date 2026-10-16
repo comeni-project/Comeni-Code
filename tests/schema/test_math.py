@@ -1,5 +1,8 @@
 """Formulas found as remark-math finds them, and checked (M6.2 spec, M6MX.1, M6MX.3)."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from code_schema.blocks import parse_blocks
@@ -27,6 +30,17 @@ from code_schema.math import formula_problems, inline_formulas
 )
 def test_inline_formulas_follow_remark_math(markdown: str, found: list[tuple[int, str]]) -> None:
     assert inline_formulas(markdown) == found
+
+
+SHARED = json.loads(
+    (Path(__file__).resolve().parents[1] / "fixtures" / "math-cases.json").read_text()
+)["cases"]
+
+
+@pytest.mark.parametrize("case", SHARED, ids=lambda case: repr(case["markdown"])[:40])
+def test_the_same_formulas_remark_math_finds(case: dict[str, object]) -> None:
+    # The table is generated from remark-math; vitest reads the same file (#345).
+    assert [tex for _, tex in inline_formulas(str(case["markdown"]))] == case["formulas"]
 
 
 @pytest.mark.parametrize(

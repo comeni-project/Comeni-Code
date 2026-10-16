@@ -35,7 +35,11 @@ one is refused. The index stores `{"kind": "math", "tex": …}`.
 blocks, callouts and examples, and an exam stem's text blocks — the shared prose component draws
 them all, so all are checked (*my call*). A question's ask, options, hints and rationale are plain
 one-line text, drawn as text, and stay so (corrected while planning: they were never Markdown). **Which dollars make a formula is `remark-math`'s rule, and `code-schema`
-copies it** (*my call*): what the check sees is what learners see. It pairs dollars much as
+copies it** (*my call*): what the check sees is what learners see. It follows the block structure
+remark-math sees — code, paragraphs, lists and their indented continuations, headings, table
+cells, quotes, `$$` blocks across blank lines, link destinations — and a table of cases generated
+from remark-math (`tests/fixtures/math-cases.json`) is checked by both vitest and pytest, so the
+two cannot drift apart silently (corrected by the final review, #345: the first finder did not). It pairs dollars much as
 Markdown pairs code spans, so `$5 and $10` is a formula; a literal dollar is written `\$`, and the
 workbench's Markdown help says so. Inline formulas are checked like blocks (M6MX.3). The text
 toolbar gains **Math**, which wraps the selection in `$…$` (the board's toolbar has it). An
