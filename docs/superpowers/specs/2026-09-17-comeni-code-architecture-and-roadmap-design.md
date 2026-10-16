@@ -165,6 +165,8 @@ decided part by part (R5).
   typed answer). All of it works without AI; M5 adds drafting and scores. **Done when** also
   includes: the landed node has a level, at least one resource, and an exam pool of at least 4
   approved questions.*
+- *2026-10-16: the landing in **done when** is the first real landing, a node the operator writes,
+  and it happens after M6 and M5 (see* Why this order*). M4 stays open until then.*
 
 ### M5 — AI gateway
 - Models are reachable only through LiteLLM at the declared call sites, and every call is recorded.
@@ -178,6 +180,8 @@ decided part by part (R5).
   and reasons, and a low score triggers a bounded redraft.*
 
 ### M6 — Figures and problems
+- *2026-10-16: built before M5 (see* Why this order*); it also brings `math`, `example` and
+  `image` blocks, which the format refuses until M6, and links between open drafts.*
 - The first figure components, the figure composer, and problems with seeded datasets and checkers.
 - **Done when** the de Bruijn page works end to end, including its problem. *Against W5.3; S4, S5.*
 - *2026-09-17 (tutor spec T7.1): figures are also used in **exam questions**: in stems, in answer
@@ -218,6 +222,19 @@ they are built and proved first. Screens come at M3 rather than last because the
 before the code, and the cheapest time to find that a board is wrong is before Studio is built on
 it. AI arrives at M5, after the content path works without it — the no-AI lane (W9) is then
 something the product already does, not a fallback added later.
+
+*Revised 2026-10-16 (operator): **M6 comes before M5, and M4's first real landing comes after
+both.** The order is now M4 (all but its landing) → M6 → M5 → the first landing, which closes M4
+→ M7 → M8 → M9. Why: the first node to land is one the operator writes in Studio, with every block
+a page needs, so Studio must have figures, images, math, examples and problems (M6) and AI
+drafting and scores (M5) first — landing earlier would test a Studio nobody writes real pages in.
+Nothing is seeded into `comeni-code-content` from fixtures or a model; only what a person wrote or
+checked lands. M6 needs no model, so the reason above for AI coming late still holds. M5's
+declared sites for figure data and problems then have their blocks to draft. Rejected: landing a
+fixture node now (TPM) — seeding, and refused anyway, since its *needs* are not in the content
+repository; M6 inside M4 as more M4.9 parts (M4 is the Studio core, not every block). The cost,
+accepted: the GitHub side of landing (the App, the pull request, auto-merge, `review`, following)
+goes unexercised against real GitHub until the first landing.*
 
 ---
 
