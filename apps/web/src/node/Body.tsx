@@ -1,9 +1,12 @@
 // A node's blocks in the identity, each where the author put it (M3P5.5, M4.1.2): text as Markdown,
-// a try as its question, a callout as a boxed note, a sequence in groups of ten (M4Q.2). A kind it
+// a try as its question, a callout as a boxed note, a sequence in groups of ten (M4Q.2), a formula by
+// KaTeX and a worked example as a titled panel (M6MX.4). A kind it
 // does not know yet draws nothing.
 import type { QuestionOut } from "../api/schema";
 import type { Block } from "./body";
 import { Callout } from "./Callout";
+import { Example } from "./Example";
+import { Formula } from "./Formula";
 import { componentsFor, Prose } from "./prose";
 import { SequenceBlock } from "./SequenceBlock";
 import { TryQuestion } from "./TryQuestion";
@@ -44,6 +47,21 @@ export function Body({
         if (block.kind === "sequence") {
           // biome-ignore lint/suspicious/noArrayIndexKey: sequences have no identity beyond their place
           return <SequenceBlock key={`sequence:${index}`} letters={block.letters} />;
+        }
+        if (block.kind === "math") {
+          // biome-ignore lint/suspicious/noArrayIndexKey: formulas have no identity beyond their place
+          return <Formula key={`math:${index}`} tex={block.tex} display />;
+        }
+        if (block.kind === "example") {
+          return (
+            <Example
+              // biome-ignore lint/suspicious/noArrayIndexKey: examples have no identity beyond their place
+              key={`example:${index}`}
+              title={block.title}
+              markdown={block.markdown}
+              components={components}
+            />
+          );
         }
         if (block.kind !== "try") return null; // a kind this page does not draw yet
         const question = byId.get(block.question);

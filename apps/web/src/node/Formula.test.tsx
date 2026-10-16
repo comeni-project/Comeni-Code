@@ -1,0 +1,84 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { Body } from "./Body";
+import { Formula, InStudio } from "./Formula";
+
+describe("Formula (M6MX.3)", () => {
+  it("draws TeX with KaTeX", () => {
+    const { container } = render(<Formula tex="\frac{a}{b}" display={false} />);
+    expect(container.querySelector(".katex")).not.toBeNull();
+  });
+
+  it("shows a formula KaTeX cannot read as plain mono source to learners", () => {
+    render(<Formula tex="\notacommand" display={false} />);
+    const source = screen.getByText("\\notacommand");
+    expect(source).toHaveClass("font-mono");
+    expect(source).not.toHaveClass("text-open");
+  });
+
+  it("marks it in Studio's problem colour, with KaTeX's message, in Studio", () => {
+    render(
+      <InStudio.Provider value={true}>
+        <Formula tex="\notacommand" display={false} />
+      </InStudio.Provider>,
+    );
+    const source = screen.getByText("\\notacommand");
+    expect(source).toHaveClass("text-open");
+    expect(source.getAttribute("title")).toMatch(/notacommand/);
+  });
+
+  it("never draws a link from a formula", () => {
+    const { container } = render(<Formula tex="\href{https://example.org}{x}" display={false} />);
+    expect(container.querySelector("a")).toBeNull();
+  });
+
+  it("keeps no macro from one formula to the next", () => {
+    const { container } = render(
+      <>
+        <Formula tex="\gdef\twice{2}" display={false} />
+        <Formula tex="\twice" display={false} />
+      </>,
+    );
+    expect(container.textContent).toContain("\\twice");
+  });
+});
+
+describe("Body — math and examples (M6MX.4)", () => {
+  it("draws $…$ in text as a formula, and leaves it alone in code", () => {
+    const { container } = render(
+      <Body
+        blocks={[{ kind: "text", markdown: "Count $k$-mers with `echo $x$`.\n" }]}
+        questions={[]}
+      />,
+    );
+    expect(container.querySelectorAll(".katex")).toHaveLength(1);
+    expect(screen.getByText("echo $x$")).toBeInTheDocument();
+  });
+
+  it("draws a math block as a display formula", () => {
+    const { container } = render(
+      <Body blocks={[{ kind: "math", tex: "G_k(R) = (V, E)\n" }]} questions={[]} />,
+    );
+    expect(container.querySelector(".katex-display")).not.toBeNull();
+  });
+
+  it("draws an example as a titled panel, its code in mono", () => {
+    render(
+      <Body
+        blocks={[
+          {
+            kind: "example",
+            title: "Three reads into one sequence",
+            markdown: "Walk them:\n\n```text\nspells ACGTTAG\n```\n",
+          },
+        ]}
+        questions={[]}
+      />,
+    );
+    const panel = screen.getByRole("region", {
+      name: "Worked example: Three reads into one sequence",
+    });
+    expect(panel).toHaveTextContent("Worked example");
+    expect(screen.getByText("spells ACGTTAG").closest("pre")).toHaveClass("font-mono");
+  });
+});

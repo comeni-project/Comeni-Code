@@ -1,4 +1,5 @@
-// Markdown in the identity, shared by the body's text and its callouts (M3P5.5, M4.1.2).
+// Markdown in the identity, shared by the body's text, its callouts and examples (M3P5.5, M4.1.2),
+// with `$…$` formulas drawn by KaTeX (M6.2 spec, M6MX.1).
 //
 // react-markdown renders to React elements and skips raw HTML, so nothing an author writes
 // reaches the page as markup (invariant 6). The page's title is the only h1: a `#` in a body is
@@ -6,7 +7,9 @@
 import type { ReactNode } from "react";
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import { slugOf } from "./body";
+import { Formula } from "./Formula";
 
 function textOf(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") return String(children);
@@ -69,22 +72,34 @@ export const componentsFor = (big: boolean): Components => {
         {children}
       </ol>
     ),
-    pre: ({ children }) => (
-      <pre className="overflow-x-auto rounded-[9px] border border-border bg-bg px-3.5 py-3 font-mono text-[13px] leading-[1.7] text-ink">
-        {children}
-      </pre>
-    ),
-    code: ({ children, className }) => (
-      <code
-        className={
-          className === undefined
-            ? "rounded-[5px] border border-border bg-surface px-1 py-px font-mono text-[0.9em] text-ink [pre_&]:border-0 [pre_&]:bg-transparent [pre_&]:p-0 [pre_&]:text-[1em]"
-            : "font-mono"
-        }
-      >
-        {children}
-      </code>
-    ),
+    // remark-math marks `$$…$$` on its own lines as display math inside a pre: drawn bare.
+    pre: ({ children, node }) => {
+      const inner = node?.children[0];
+      const classes = inner?.type === "element" ? inner.properties.className : undefined;
+      if (Array.isArray(classes) && classes.includes("math-display")) return <>{children}</>;
+      return (
+        <pre className="overflow-x-auto rounded-[9px] border border-border bg-bg px-3.5 py-3 font-mono text-[13px] leading-[1.7] text-ink">
+          {children}
+        </pre>
+      );
+    },
+    code: ({ children, className }) => {
+      // Formulas are what remark-math found, as code-schema finds them (M6MX.1).
+      if (className?.includes("math-inline"))
+        return <Formula tex={String(children)} display={false} />;
+      if (className?.includes("math-display")) return <Formula tex={String(children)} display />;
+      return (
+        <code
+          className={
+            className === undefined
+              ? "rounded-[5px] border border-border bg-surface px-1 py-px font-mono text-[0.9em] text-ink [pre_&]:border-0 [pre_&]:bg-transparent [pre_&]:p-0 [pre_&]:text-[1em]"
+              : "font-mono"
+          }
+        >
+          {children}
+        </code>
+      );
+    },
     blockquote: ({ children }) => (
       <blockquote className="border-border-2 border-l-2 pl-4 text-ink-2">{children}</blockquote>
     ),
@@ -93,7 +108,7 @@ export const componentsFor = (big: boolean): Components => {
 
 export function Prose({ markdown, components }: { markdown: string; components: Components }) {
   return (
-    <Markdown skipHtml remarkPlugins={[remarkGfm]} components={components}>
+    <Markdown skipHtml remarkPlugins={[remarkGfm, remarkMath]} components={components}>
       {markdown}
     </Markdown>
   );

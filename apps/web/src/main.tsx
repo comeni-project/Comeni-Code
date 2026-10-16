@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./App";
 import { QUERIES } from "./api/queries";
+import "katex/dist/katex.min.css";
 import "./styles/app.css";
 
 const root = document.getElementById("root");
