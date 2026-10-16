@@ -18,6 +18,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal, cast, get_args
 
+from code_schema.math import formula_problems, inline_formulas
 from code_schema.problems import Problem
 
 CalloutKind = Literal["misconception", "caveat", "convention"]
@@ -283,7 +284,29 @@ def parse_blocks(
     if not problems and (written := write_blocks(blocks)) != body:
         at, said = _first_difference(body, written)
         problem("CS0415", said, at)
+    for block, start in zip(blocks, starts, strict=True):
+        for code, message, line in _formulas(block, start):
+            problem(code, message, line)
     return tuple(blocks), tuple(starts), problems
+
+
+def _formulas(block: Block, start: int) -> list[tuple[str, str, int]]:
+    """Every formula's problems, at its line (M6MX.3): a math block's TeX, and the `$…$` inside
+    text, callouts and examples, whose Markdown starts on the line after their directive."""
+    match block:
+        case Math(tex=tex):
+            return [(code, message, start + 1) for code, message in formula_problems(tex)]
+        case Text(markdown=markdown):
+            first = start
+        case Callout(markdown=markdown) | Example(markdown=markdown):
+            first = start + 1
+        case _:
+            return []
+    return [
+        (code, message, first + offset)
+        for offset, tex in inline_formulas(markdown)
+        for code, message in formula_problems(tex)
+    ]
 
 
 def write_blocks(blocks: Sequence[Block]) -> str:

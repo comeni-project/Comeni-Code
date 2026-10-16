@@ -876,6 +876,30 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** An example is its steps; a title alone teaches nothing (M6MX.2).
 
+#### CS0422 — a formula's braces or environments do not balance
+
+*Refuses.*
+
+**Fix.** Close every `{` with `}` and every `\begin{name}` with `\end{name}`; write a literal brace as `\{` or `\}`.
+
+**Why.** KaTeX cannot draw a formula whose groups are open; the check catches what a pure reading can before a learner sees broken source (M6.2 spec, M6MX.3).
+
+#### CS0423 — a formula uses a command that is not allowed
+
+*Refuses.*
+
+**Fix.** Remove the command: a formula holds mathematics, not links, images or markup. Link from the text around it.
+
+**Why.** `\href`, `\url`, `\includegraphics` and `\html…` would put links or markup on the page; nothing an author or a model writes does (invariant 6; M6MX.3).
+
+#### CS0424 — a formula defines a macro
+
+*Refuses.*
+
+**Fix.** Write the expression out in full where it is used.
+
+**Why.** A macro defined in one formula would change how later ones draw, and a block must read correctly alone (invariant 3; M6MX.3).
+
 #### CS0425 — a math block takes no title
 
 *Refuses.*

@@ -1170,6 +1170,41 @@ codes:
     explanation: |
       An example is its steps; a title alone teaches nothing (M6MX.2).
 
+  CS0422:
+    emitted_by: schema
+    concern: body
+    says: a formula's braces or environments do not balance
+    refuses: true
+    fix: |
+      Close every `{` with `}` and every `\begin{name}` with `\end{name}`; write a literal brace as
+      `\{` or `\}`.
+    explanation: |
+      KaTeX cannot draw a formula whose groups are open; the check catches what a pure reading can
+      before a learner sees broken source (M6.2 spec, M6MX.3).
+
+  CS0423:
+    emitted_by: schema
+    concern: body
+    says: a formula uses a command that is not allowed
+    refuses: true
+    fix: |
+      Remove the command: a formula holds mathematics, not links, images or markup. Link from the
+      text around it.
+    explanation: |
+      `\href`, `\url`, `\includegraphics` and `\html…` would put links or markup on the page;
+      nothing an author or a model writes does (invariant 6; M6MX.3).
+
+  CS0424:
+    emitted_by: schema
+    concern: body
+    says: a formula defines a macro
+    refuses: true
+    fix: |
+      Write the expression out in full where it is used.
+    explanation: |
+      A macro defined in one formula would change how later ones draw, and a block must read
+      correctly alone (invariant 3; M6MX.3).
+
   CS0425:
     emitted_by: schema
     concern: body
