@@ -50,15 +50,24 @@ class Answer:
     def json(self) -> Any:
         return self._json
 
+    def iter_content(self, chunk_size: int = 1) -> Any:
+        for at in range(0, len(self.content), chunk_size):
+            yield self.content[at : at + chunk_size]
+
+    def close(self) -> None:
+        pass
+
 
 class Session:
     def __init__(self, *answers: Answer) -> None:
         self.answers = list(answers)
         self.asked: list[tuple[str, Any]] = []
+        self.options: list[dict[str, Any]] = []
 
-    def get(self, url: str, params: Any = None, timeout: float = 0) -> Answer:
+    def get(self, url: str, params: Any = None, timeout: float = 0, **options: Any) -> Answer:
         assert timeout > 0
         self.asked.append((url, params))
+        self.options.append(options)
         return self.answers.pop(0)
 
 
@@ -131,3 +140,19 @@ def test_the_metadata_asks_for_the_uploader() -> None:
     session = Session(Answer(json=info()))
     look_up(LINK, session=session)  # type: ignore[arg-type]
     assert "user" in session.asked[0][1]["iiprop"].split("|")
+
+
+def test_the_image_comes_only_from_wikimedias_upload_host() -> None:
+    # #357: an answer naming another host is never fetched.
+    answer = info()
+    answer["query"]["pages"][0]["imageinfo"][0]["thumburl"] = "https://example.org/x.png"
+    session = Session(Answer(json=answer))
+    with pytest.raises(CommonsError, match="upload.wikimedia.org"):
+        fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert len(session.asked) == 1
+
+
+def test_the_image_is_streamed_without_redirects() -> None:
+    session = Session(Answer(json=info()), Answer(content=PNG))
+    fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert session.options[1] == {"stream": True, "allow_redirects": False}

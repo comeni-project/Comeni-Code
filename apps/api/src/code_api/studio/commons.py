@@ -19,6 +19,7 @@ import requests
 from code_schema.images import MAX_IMAGE_BYTES, NAME, licence_from_commons, sniff
 
 API = "https://commons.wikimedia.org/w/api.php"
+UPLOADS = "https://upload.wikimedia.org/"  # the only host an image is fetched from (#357)
 PAGE = "https://commons.wikimedia.org/wiki/"
 WIDTHS = (1600, 1000)
 TIMEOUT = 10
@@ -146,6 +147,26 @@ def _credit(title: str, info: dict[str, Any]) -> Credit:
     )
 
 
+def _download(session: requests.Session, url: str, title: str) -> bytes | None:
+    """The image's bytes, streamed and never more than 2 MB + 1; None when it is over (#357)."""
+    try:
+        answer = session.get(url, timeout=TIMEOUT, stream=True, allow_redirects=False)
+    except requests.RequestException as error:
+        raise CommonsError(f"Commons did not send {title}: {error}.") from error
+    try:
+        answer.raise_for_status()
+        data = bytearray()
+        for chunk in answer.iter_content(chunk_size=1 << 16):
+            data += chunk
+            if len(data) > MAX_IMAGE_BYTES:
+                return None
+    except requests.RequestException as error:
+        raise CommonsError(f"Commons did not send {title}: {error}.") from error
+    finally:
+        answer.close()
+    return bytes(data)
+
+
 def fetch(link: str, *, session: requests.Session | None = None) -> Fetched:
     """The image at most 1600 px wide (1000 px if that is over 2 MB), and its credit."""
     session = session or _session()
@@ -153,12 +174,11 @@ def fetch(link: str, *, session: requests.Session | None = None) -> Fetched:
     for width in WIDTHS:
         info = _info(session, title, width)
         credit = _credit(title, info)
-        try:
-            answer = session.get(credit.thumb_url, timeout=TIMEOUT)
-            answer.raise_for_status()
-        except requests.RequestException as error:
-            raise CommonsError(f"Commons did not send the image: {error}.") from error
-        data = answer.content
+        if not credit.thumb_url.startswith(UPLOADS):
+            raise CommonsError(f"Commons named the image at {credit.thumb_url}, not {UPLOADS}.")
+        data = _download(session, credit.thumb_url, title)
+        if data is None:
+            continue  # over 2 MB at this width: the next, narrower one
         media_type = sniff(data)
         if media_type is None:
             raise CommonsError(f"Commons sent {title} in a format this cannot keep.")
