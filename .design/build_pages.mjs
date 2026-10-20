@@ -2409,8 +2409,8 @@ function firstStepsNode() {
 }
 
 // ── M6.4 general kits — table, chart, flow, sequence-track, each a component filled with data ──
-// The sample numbers are samples. One series spends no colour; two or more take the categorical
-// palette (SERIES, as S16 uses it).
+// The sample numbers are samples. One series spends no colour; two or three take the series
+// tokens (tokens.json: series1–series3), chosen to pass every colour check on both surfaces.
 const K = {
   table() {
     const cols = [['k', 'number'], ['distinct k-mers', 'number'], ['branching nodes', 'number'], ['k-mers per 100-base read', 'number']];
@@ -2422,7 +2422,7 @@ const K = {
   chart() {
     const W = 740, H = 280, L = 56, R = 150, T = 16, B = 40;
     const ks = [3, 5, 7, 9, 11, 13, 15];
-    const series = [['simple genome', SERIES[0][1], [64, 812, 3904, 6120, 6388, 6402, 6410]], ['repeat-rich genome', SERIES[1][1], [64, 702, 2310, 3120, 3460, 3910, 4380]]];
+    const series = [['simple genome', c.series1, [64, 812, 3904, 6120, 6388, 6402, 6410]], ['repeat-rich genome', c.series2, [64, 702, 2310, 3120, 3460, 3910, 4380]]];
     const x = (k) => L + ((k - 3) / 12) * (W - L - R), y = (v) => T + (1 - v / 7000) * (H - T - B);
     let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block" role="img">`;
     [0, 2000, 4000, 6000].forEach((t) => { s += `<line x1="${L}" y1="${y(t)}" x2="${W - R}" y2="${y(t)}" style="stroke:${c.border};stroke-width:1"></line><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">${t.toLocaleString('en')}</text>`; });

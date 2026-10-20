@@ -3,7 +3,8 @@
 // It is formative: the answer came with the page (M3P1.4) and is checked here. Nothing is stored,
 // so the board's "Answered · back in review in 3 days" waits for learner records (T7).
 import { useId, useState } from "react";
-import type { QuestionOut } from "../api/schema";
+import type { FigureOut, QuestionOut } from "../api/schema";
+import { Figure } from "../figures/Figure";
 import { type Given, isRight, pairsInOrder } from "./grading";
 import { OrderAnswer, shuffled } from "./OrderAnswer";
 import { SequenceAnswer } from "./SequenceAnswer";
@@ -44,10 +45,13 @@ export function TryQuestion({
   number,
   big = false,
   shuffle = shuffled,
+  figure,
 }: {
   question: QuestionOut;
   number: number;
   big?: boolean;
+  /** The figure the question shows, drawn under its ask (M6FG.1); unnumbered. */
+  figure?: FigureOut | undefined;
   /** How an order's steps are dealt: shuffled, and fixed in tests. */
   shuffle?: (steps: string[]) => string[];
 }) {
@@ -129,6 +133,10 @@ export function TryQuestion({
             <Chevron up />
           </button>
         </div>
+      )}
+
+      {question.figure && (
+        <Figure record={figure} stem={question.figure} caption="" number={null} />
       )}
 
       {question.kind === "choice" ? (

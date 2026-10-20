@@ -60,7 +60,12 @@ export function NodePreview({
       <p className="rounded-[9px] border-[1.5px] border-ink bg-surface px-3 py-2.5 text-[14px] leading-[1.45]">
         {node.claim}
       </p>
-      <Body blocks={node.blocks} questions={node.questions} pictures={pictures} />
+      <Body
+        blocks={node.blocks}
+        questions={node.questions}
+        pictures={pictures}
+        figures={node.figures ?? []}
+      />
     </div>
   );
 }

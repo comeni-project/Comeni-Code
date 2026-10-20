@@ -20,6 +20,9 @@ const ROLES: Record<string, string> = {
   open: "needs you · wrong",
   openSoft: "needs you · wrong (fill)",
   settled: "settled: spends no colour",
+  series1: "a chart's first series, identity only",
+  series2: "a chart's second series",
+  series3: "a chart's third series",
 };
 
 // Fontsource registers the variable fonts under these family names; they come first.

@@ -25,6 +25,9 @@
   --open-soft: #fce5e6; /* needs you · wrong (fill) */
   --settled: #474d63; /* settled: spends no colour */
   --exon: #eceff5;
+  --series-1: #6250d6; /* a chart's first series, identity only */
+  --series-2: #eb6834; /* a chart's second series */
+  --series-3: #c2457f; /* a chart's third series */
   --btn: #0b7f63;
   --btn-ink: #ffffff;
   --btn-sh: #075c48;
@@ -57,6 +60,9 @@
     --open-soft: #3a1b20; /* needs you · wrong (fill) */
     --settled: #b0b5c8; /* settled: spends no colour */
     --exon: #232736;
+    --series-1: #9085e9; /* a chart's first series, identity only */
+    --series-2: #d95926; /* a chart's second series */
+    --series-3: #dd5fa6; /* a chart's third series */
     --btn: #2fc79b;
     --btn-ink: #06201a;
     --btn-sh: #1e8c6c;
@@ -90,6 +96,9 @@
   --open-soft: #3a1b20; /* needs you · wrong (fill) */
   --settled: #b0b5c8; /* settled: spends no colour */
   --exon: #232736;
+  --series-1: #9085e9; /* a chart's first series, identity only */
+  --series-2: #d95926; /* a chart's second series */
+  --series-3: #dd5fa6; /* a chart's third series */
   --btn: #2fc79b;
   --btn-ink: #06201a;
   --btn-sh: #1e8c6c;
@@ -124,6 +133,9 @@
   --color-open-soft: var(--open-soft);
   --color-settled: var(--settled);
   --color-exon: var(--exon);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
   --color-btn: var(--btn);
   --color-btn-ink: var(--btn-ink);
   --color-btn-sh: var(--btn-sh);
