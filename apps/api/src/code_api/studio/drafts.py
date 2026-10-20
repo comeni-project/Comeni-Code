@@ -27,6 +27,7 @@ from code_api.content.snapshot import (
 from code_api.studio.log import record
 from code_api.studio.models import LIVE_STATES, Asset, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
+from code_schema.edits import without_unplaced_figures
 from code_schema.figures import figure_texts
 from code_schema.graph import graph_problems
 from code_schema.images import sniff
@@ -288,7 +289,7 @@ def save(
         node, problems = node_of(locked, current)
         if node is None:
             raise Refused(problems)  # it no longer reads against today's registries
-        edited = edit(node)
+        edited = without_unplaced_figures(edit(node))
         node_yaml, body, exam = _files(edited)
         files = images_of(current)
         for name, data in (images or {}).items():

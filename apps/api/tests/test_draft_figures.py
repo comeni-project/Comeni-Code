@@ -41,7 +41,7 @@ def client(ada: User) -> Client:
     return client
 
 
-def opened(client: Client, node: str = "tpm") -> str:
+def opened(client: Client, node: str = "salmon") -> str:
     answer = client.post("/api/studio/drafts", {"node_id": node}, content_type="application/json")
     assert answer.status_code == 201, answer.content
     return str(answer.json()["public_id"])

@@ -144,8 +144,8 @@ def _question(question: Question) -> QuestionOut:
 
 
 def node(node_id: str) -> NodeOut | None:
-    """One node with its neighbours, resources, questions and image records, in six queries; None
-    on a miss. The image files are served apart, by `image`."""
+    """One node with its neighbours, resources, questions, image records and figures, in seven
+    queries; None on a miss. The image files are served apart, by `image`."""
     found = Node.objects.select_related("region").filter(id=node_id).first()
     if found is None:
         return None

@@ -103,6 +103,7 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         "resources": [],
         "questions": [],
         "images": [],
+        "figures": [],
     }
     assert [card["id"] for card in body["needs"]][0] == "rna-seq-libraries"
     assert len(body["goes_deeper"]) == 5
@@ -167,12 +168,13 @@ def test_refused_builds_are_no_index(client: Client, tmp_path: Path) -> None:
     assert get(client, "salmon").status_code == 503
 
 
-def test_a_node_costs_six_queries(
+def test_a_node_costs_seven_queries(
     client: Client, django_assert_num_queries: DjangoAssertNumQueries
 ) -> None:
-    # The sixth reads the image records, never their bytes (M6.3 spec, M6IM.3).
+    # The sixth reads the image records, never their bytes (M6.3 spec, M6IM.3); the seventh the
+    # figures, never their files' text (M6FG.5).
     rebuild_index(FIXTURES)
-    with django_assert_num_queries(6):
+    with django_assert_num_queries(7):
         assert get(client, "salmon").status_code == 200
 
 

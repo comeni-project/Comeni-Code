@@ -130,7 +130,9 @@ def add_figure(node: Node, at: int, component: str, *, alt: str, caption: str) -
     if figure is None:
         raise FigureRefused("the new figure would not validate", problems)
     block = Figure(stem, caption if caption.endswith("\n") else f"{caption}\n")
-    return insert_block(replace(node, figures=(*node.figures, figure)), at, block)
+    # In file-name order, as figures/ is read, so the edit reads back as itself.
+    figures = tuple(sorted((*node.figures, figure), key=lambda each: each.name))
+    return insert_block(replace(node, figures=figures), at, block)
 
 
 def set_figure(node: Node, stem: str, text: str) -> Node:
@@ -158,6 +160,22 @@ def remove_figure(node: Node, stem: str) -> Node:
     questions = [replace(q, figure=None) if q.figure == stem else q for q in node.questions]
     figures = tuple(each for each in node.figures if each.stem != stem)
     return replace(_with_blocks(node, kept(node.blocks), questions), figures=figures, exam=exam)
+
+
+def placed_figures(node: Node) -> set[str]:
+    """The stems a node places: by its body, its try questions and its exam stems (M6FG.1)."""
+    stems = [block for question in node.exam for block in question.blocks]
+    placed = {b.file for b in (*node.blocks, *stems) if isinstance(b, Figure)}
+    return placed | {q.figure for q in node.questions if q.figure is not None}
+
+
+def without_unplaced_figures(node: Node) -> Node:
+    """A figure goes with its last placement: an edit that removes it, a block or an exam
+    question deleted, leaves no file nothing places (CS1021). A draft's save applies this after
+    every edit, so no edit has to remember it."""
+    placed = placed_figures(node)
+    kept = tuple(figure for figure in node.figures if figure.stem in placed)
+    return node if kept == node.figures else replace(node, figures=kept)
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:

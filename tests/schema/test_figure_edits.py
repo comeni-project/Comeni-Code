@@ -64,8 +64,9 @@ def test_adding_a_figure_writes_its_starter_and_places_it() -> None:
 def test_a_second_figure_of_a_component_gets_a_free_stem() -> None:
     twice = add_figure(added(), 1, "flow", alt="Another.", caption="Again.")
     # figures/ is read in file-name order, so flow-2.yaml comes before flow.yaml
-    stems = sorted(figure.stem for figure in reread(twice).figures)
-    assert stems == ["flow", "flow-2", "two-transcripts"]  # TPM's own table stays
+    # In file-name order, as figures/ is read: flow-2.yaml sorts before flow.yaml.
+    assert [figure.stem for figure in twice.figures] == ["flow-2", "flow", "two-transcripts"]
+    assert reread(twice).figures == twice.figures
 
 
 def test_setting_a_figure_keeps_its_text_as_written() -> None:
@@ -110,3 +111,15 @@ def test_remove_figure_everywhere() -> None:
     gone = reread(remove_figure(tpm, "flow"))
     assert all(figure.stem != "flow" for figure in gone.figures)
     assert not any(isinstance(b, Figure) and b.file == "flow" for q in gone.exam for b in q.blocks)
+
+
+def test_a_figure_goes_with_its_last_placement() -> None:
+    """Deleting the exam question whose stem places TPM's table leaves the table placed by nothing;
+    it goes with it, so the save stays valid (CS1021 would refuse it otherwise)."""
+    from code_schema.edits import delete_exam_question, without_unplaced_figures
+
+    gone = without_unplaced_figures(delete_exam_question(TPM, "tpm-of-a"))
+    assert [figure.stem for figure in gone.figures] == []
+    reread(gone)
+    kept = without_unplaced_figures(added())
+    assert sorted(figure.stem for figure in kept.figures) == ["flow", "two-transcripts"]
