@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
+from code_schema.figures import FIGURE_FOLDER, figure_texts
 from code_schema.images import IMAGE_FIELD, ImageRecord
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
@@ -177,7 +178,7 @@ def write_exam_yaml(node: Node) -> str:
 
 
 def write_node_folder(node: Node, folder: Path) -> None:
-    """Write node.yaml, body.md and, when the node has a pool, exam.yaml (spec M4E.8).
+    """Write node.yaml, body.md, exam.yaml when the node has a pool (spec M4E.8), and figures/.
 
     The body goes back byte for byte: M1 does not look inside it. A node with no pool removes
     exam.yaml, so write only a node read whole by `read_node`: one from `parse_node` never carries
@@ -191,3 +192,14 @@ def write_node_folder(node: Node, folder: Path) -> None:
         exam.write_text(write_exam_yaml(node), encoding="utf-8", newline="\n")
     else:
         exam.unlink(missing_ok=True)  # a pool removed from the node leaves no stale file
+    # Figures as they were written (M6FG.1); a file the node no longer has is removed.
+    figures = folder / FIGURE_FOLDER
+    texts = figure_texts(node.figures)
+    if texts:
+        figures.mkdir(exist_ok=True)
+    for name, text in texts.items():
+        (figures / name).write_text(text, encoding="utf-8", newline="")
+    if figures.is_dir():
+        for stale in figures.iterdir():
+            if stale.name not in texts:
+                stale.unlink()

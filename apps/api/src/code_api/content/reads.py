@@ -17,6 +17,8 @@ from code_api.content.schemas import (
     CalloutBlockOut,
     ExampleBlockOut,
     FigureBlockOut,
+    FigureOut,
+    FigureSourceOut,
     ImageBlockOut,
     ImageRecordOut,
     MathBlockOut,
@@ -137,6 +139,7 @@ def _question(question: Question) -> QuestionOut:
         steps=list(question.steps) if kind == "order" else None,
         hints=list(question.hints),
         rationale=question.rationale,
+        figure=question.figure,
     )
 
 
@@ -178,6 +181,17 @@ def node(node_id: str) -> NodeOut | None:
                 licence=image.licence,
             )
             for image in found.images.defer("data").order_by("position")
+        ],
+        figures=[
+            FigureOut(
+                stem=figure.stem,
+                component=figure.component,
+                alt=figure.alt,
+                data=figure.data,
+                derived=figure.derived,
+                source=None if figure.source is None else FigureSourceOut(**figure.source),
+            )
+            for figure in found.figures.defer("text").order_by("position")
         ],
     )
 

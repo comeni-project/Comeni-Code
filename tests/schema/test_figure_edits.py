@@ -55,7 +55,7 @@ def added() -> Node:
 def test_adding_a_figure_writes_its_starter_and_places_it() -> None:
     node = reread(added())
     assert node.blocks[0] == Figure("flow", "Reads, then k-mers.\n")
-    (figure,) = node.figures
+    (figure,) = [f for f in node.figures if f.stem == "flow"]
     assert (figure.stem, figure.component) == ("flow", "flow")
     assert figure.alt == "Two boxes and an arrow."
     assert figure.text.startswith("component: flow\nalt: Two boxes and an arrow.\ndata:\n")
@@ -64,7 +64,8 @@ def test_adding_a_figure_writes_its_starter_and_places_it() -> None:
 def test_a_second_figure_of_a_component_gets_a_free_stem() -> None:
     twice = add_figure(added(), 1, "flow", alt="Another.", caption="Again.")
     # figures/ is read in file-name order, so flow-2.yaml comes before flow.yaml
-    assert sorted(figure.stem for figure in reread(twice).figures) == ["flow", "flow-2"]
+    stems = sorted(figure.stem for figure in reread(twice).figures)
+    assert stems == ["flow", "flow-2", "two-transcripts"]  # TPM's own table stays
 
 
 def test_setting_a_figure_keeps_its_text_as_written() -> None:
@@ -99,13 +100,13 @@ def test_remove_figure_everywhere() -> None:
     asked = replace(dbg.questions[0], figure="flow")
     dbg = reread(replace(dbg, questions=(asked, *dbg.questions[1:])))
     gone = reread(remove_figure(dbg, "flow"))
-    assert gone.figures == ()
-    assert not any(isinstance(block, Figure) for block in gone.blocks)
-    assert all(question.figure is None for question in gone.questions)
+    assert all(figure.stem != "flow" for figure in gone.figures)
+    assert not any(isinstance(b, Figure) and b.file == "flow" for b in gone.blocks)
+    assert all(question.figure != "flow" for question in gone.questions)
     assert any(isinstance(block, Text | Try) for block in gone.blocks)
 
     stem = TPM.exam[0].stem + "\n:::{figure} flow\nThe flow again.\n:::\n"
     tpm = reread(replace(added(), exam=(replace(TPM.exam[0], stem=stem), *TPM.exam[1:])))
     gone = reread(remove_figure(tpm, "flow"))
-    assert gone.figures == ()
-    assert not any(isinstance(b, Figure) for q in gone.exam for b in q.blocks)
+    assert all(figure.stem != "flow" for figure in gone.figures)
+    assert not any(isinstance(b, Figure) and b.file == "flow" for q in gone.exam for b in q.blocks)

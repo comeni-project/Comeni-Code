@@ -1,0 +1,14 @@
+component: table
+alt: A table of k against distinct k-mers and branching nodes; branching falls to zero as k grows.
+data:
+  columns:
+    - {name: k, type: number}
+    - {name: distinct k-mers, type: number}
+    - {name: branching nodes, type: number}
+    - {name: k-mers per 100-base read, type: number}
+  rows:
+    - [3, 64, 41, 98]
+    - [5, 812, 17, 96]
+    - [7, 3904, 4, 94]
+    - [9, 6120, 1, 92]
+    - [11, 6388, 0, 90]

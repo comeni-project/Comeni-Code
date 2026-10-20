@@ -27,6 +27,7 @@ from code_schema import (
     block_from_json,
     write_blocks,
 )
+from code_schema.figures import FigureFile, file_name, read_figure
 
 
 def regions_from_index() -> dict[str, Region]:
@@ -87,6 +88,26 @@ def image_shas_from_index(node_id: str) -> dict[str, str]:
     return dict(models.NodeImage.objects.filter(node_id=node_id).values_list("file", "sha256"))
 
 
+def figures_from_index(node_id: str) -> dict[str, str]:
+    """A landed node's figure files by name, as their text: what a draft starts from (M6FG.5)."""
+    return {
+        file_name(stem): text
+        for stem, text in models.NodeFigure.objects.filter(node_id=node_id)
+        .order_by("position")
+        .values_list("stem", "text")
+    }
+
+
+def _figures(row: models.Node) -> tuple[FigureFile, ...]:
+    """Read again from their text, so a node from the index equals the node its folder reads."""
+    found: list[FigureFile] = []
+    for stored in row.figures.order_by("position"):
+        figure, problems = read_figure(stored.stem, stored.text, file=file_name(stored.stem))
+        assert figure is not None, problems  # the index holds only figures that read
+        found.append(figure)
+    return tuple(found)
+
+
 def node_from_index(node_id: str) -> Node | None:
     """The node as its files hold it, or None when the index has no such node."""
     row = models.Node.objects.filter(id=node_id).first()
@@ -137,9 +158,11 @@ def node_from_index(node_id: str) -> Node | None:
                 answer=_answer(question),
                 hints=tuple(question.hints),
                 rationale=question.rationale,
+                figure=question.figure,
             )
             for question in row.questions.order_by("position")
         ),
+        figures=_figures(row),
         exam=tuple(
             ExamQuestion(
                 id=question.question_id,

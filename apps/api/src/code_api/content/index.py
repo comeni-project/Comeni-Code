@@ -17,6 +17,7 @@ from code_api.content.models import (
     IndexBuild,
     Link,
     Node,
+    NodeFigure,
     NodeImage,
     Provider,
     Question,
@@ -24,6 +25,7 @@ from code_api.content.models import (
     Resource,
 )
 from code_api.content.numbers import number_text
+from code_figures import derived
 from code_schema import (
     Answer,
     ChoiceAnswer,
@@ -125,6 +127,27 @@ def _provider_rows(content: Content) -> list[Provider]:
     ]
 
 
+def _figure_rows(content: Content) -> list[NodeFigure]:
+    """Each node's figures: their files' text, and what the page draws from them (M6FG.5)."""
+    return [
+        NodeFigure(
+            node_id=node.id,
+            position=position,
+            stem=figure.stem,
+            text=figure.text,
+            component=figure.component,
+            alt=figure.alt,
+            data=dict(figure.data),
+            derived=derived(figure.component, figure.data),
+            source=None
+            if figure.source is None
+            else {"title": figure.source.title, "url": figure.source.url},
+        )
+        for node in content.nodes.values()
+        for position, figure in enumerate(node.figures)
+    ]
+
+
 def _image_rows(root: Path, content: Content) -> list[NodeImage]:
     """Each node's images, their records with their files from the folder (M6IM.3)."""
     rows: list[NodeImage] = []
@@ -197,6 +220,7 @@ def _question_row(node_id: str, position: int, question: TryQuestion) -> Questio
         ask=question.ask,
         hints=list(question.hints),
         rationale=question.rationale,
+        figure=question.figure,
     )
     _fill_answer(row, question.answer, exam=False)
     return row
@@ -261,6 +285,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         ExamQuestion.objects.all().delete()
         Resource.objects.all().delete()
         NodeImage.objects.all().delete()
+        NodeFigure.objects.all().delete()
         Node.objects.all().delete()
         Region.objects.all().delete()
         Provider.objects.all().delete()
@@ -270,6 +295,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         Link.objects.bulk_create(_link_rows(content))
         Resource.objects.bulk_create(_resource_rows(content))
         NodeImage.objects.bulk_create(_image_rows(root, content))
+        NodeFigure.objects.bulk_create(_figure_rows(content))
         Question.objects.bulk_create(_question_rows(content))
         ExamQuestion.objects.bulk_create(_exam_rows(content))
         return IndexBuild.objects.create(

@@ -98,6 +98,21 @@ class NodeImage(models.Model):
     data = models.BinaryField()
 
 
+class NodeFigure(models.Model):
+    """One figure of a node: its file's text as written, for drafts and review, and what the page
+    draws, read from it: the component, alt text, data, derived values and source (M6FG.5)."""
+
+    node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="figures")
+    position = models.PositiveIntegerField()
+    stem = models.TextField()
+    text = models.TextField()
+    component = models.TextField()
+    alt = models.TextField()
+    data = models.JSONField()
+    derived = models.JSONField(default=dict)
+    source = models.JSONField(null=True)  # {title, url}, when the data came from elsewhere
+
+
 class Question(models.Model):
     """One try question (M3P1.3). Its options and hints are ordered lists inside the row."""
 
@@ -120,6 +135,7 @@ class Question(models.Model):
     steps = models.JSONField(default=list)
     hints = models.JSONField(default=list)
     rationale = models.TextField()
+    figure = models.TextField(null=True)  # a figure's stem, drawn above the ask (M6FG.1)
 
 
 class ExamQuestion(models.Model):

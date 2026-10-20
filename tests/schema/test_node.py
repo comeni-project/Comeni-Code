@@ -448,6 +448,7 @@ def test_parse_node_files_reads_a_node_as_its_folder_does() -> None:
         regions=set(content.regions),
         providers=content.providers,
         where=f"{content.folders['tpm']}/",
+        figures={path.name: path.read_text() for path in (folder / "figures").iterdir()},
     )
     assert problems == []
     assert node == content.nodes["tpm"]

@@ -75,6 +75,7 @@ class QuestionOut(Schema):
     steps: list[str] | None
     hints: list[str]
     rationale: str
+    figure: str | None = None  # a figure's stem, drawn above the ask (M6FG.1)
 
 
 class TextBlockOut(Schema):
@@ -193,6 +194,7 @@ class NodeOut(Schema):
     resources: list[ResourceOut]
     questions: list[QuestionOut]
     images: list[ImageRecordOut] = []  # each file's credit; the file at /images/{file} (M6IM.5)
+    figures: list[FigureOut] = []  # each figure, read; a figure block names one by stem (M6FG.5)
 
 
 class Message(Schema):

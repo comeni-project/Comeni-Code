@@ -36,6 +36,7 @@ from code_schema.edits import (
     update_block,
     update_exam_question,
 )
+from code_schema.figures import figure_texts
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
 ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
@@ -71,6 +72,7 @@ def reread(node: Node) -> Node:
         regions=set(CONTENT.regions),
         providers=CONTENT.providers,
         where=f"{CONTENT.folders[node.id]}/",
+        figures=figure_texts(node.figures),
     )
     assert problems == [], [str(problem) for problem in problems]
     assert again is not None

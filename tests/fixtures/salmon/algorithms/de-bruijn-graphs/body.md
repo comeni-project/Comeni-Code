@@ -57,6 +57,24 @@ Each step along the path adds one letter, so five 3-mers spell $5 + 3 - 1 = 7$ l
 Three k-mers along one path: each shares all but one letter with the next.
 :::
 
+Choosing k trades branching against how many k-mers each read yields:
+
+:::{figure} kmer-counts
+Distinct k-mers and branching nodes for one 6,400-base genome.
+:::
+
+:::{figure} kmers-by-k
+Distinct k-mers as k grows, for two genomes of the same length.
+:::
+
+:::{figure} salmon-steps
+Where k is used in Salmon: once, when the index is built.
+:::
+
+:::{figure} primer-on-exon
+A 62-base stretch with two exons and a forward primer.
+:::
+
 ## Further reading
 
 - [How to apply de Bruijn graphs to genome assembly](https://doi.org/10.1038/nbt.2023) — Compeau, Pevzner and Tesler, 2011

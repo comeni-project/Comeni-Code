@@ -27,6 +27,7 @@ export interface ApiSchemas {
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
   FigureBlockOut: FigureBlockOut;
+  FigureOut: FigureOut;
   FigureSourceOut: FigureSourceOut;
   FigureTextIn: FigureTextIn;
   FileChangeOut: FileChangeOut;
@@ -485,6 +486,22 @@ export interface FieldsIn {
   revision: number;
   title?: string | null;
 }
+/**
+ * A figure's file, read: its component, alt text and data, and what its component computes
+ * from the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5).
+ */
+export interface FigureOut {
+  alt: string;
+  component: string;
+  data: {
+    [k: string]: unknown;
+  };
+  derived: {
+    [k: string]: unknown;
+  };
+  source: FigureSourceOut | null;
+  stem: string;
+}
 export interface FigureTextIn {
   revision: number;
   text: string;
@@ -647,6 +664,7 @@ export interface NodeOut {
     | FigureBlockOut
   )[];
   claim: string;
+  figures?: FigureOut[];
   folder: string;
   goes_deeper: SideCardOut[];
   id: string;
@@ -684,6 +702,7 @@ export interface QuestionOut {
   answer: number | string | null;
   ask: string;
   exact: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: string;

@@ -1,5 +1,6 @@
 """One correct rendering of a node, and the three round-trip laws (spec M1P1.6)."""
 
+import shutil
 from dataclasses import replace
 from pathlib import Path
 
@@ -364,3 +365,28 @@ def test_a_node_without_a_pool_writes_no_exam_and_removes_a_stale_one(tmp_path: 
     assert (folder / "exam.yaml").is_file()
     write_node_folder(NODE, folder)
     assert not (folder / "exam.yaml").exists()
+
+
+def test_a_folder_is_written_with_its_figures_as_they_were_written(tmp_path: Path) -> None:
+    from code_schema import read_content, read_node
+
+    root = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
+    content = read_content(root)
+    node = content.nodes["de-bruijn-graphs"]
+    folder = tmp_path / "de-bruijn-graphs"
+    (folder / "figures").mkdir(parents=True)
+    (folder / "figures" / "gone.yaml").write_text("component: table\n")
+    # The writer holds no image bytes; the image is copied as a caller would.
+    shutil.copytree(root / content.folders[node.id] / "images", folder / "images")
+    write_node_folder(node, folder)
+    written = sorted(path.name for path in (folder / "figures").iterdir())
+    assert written == [
+        "kmer-counts.yaml",
+        "kmers-by-k.yaml",
+        "primer-on-exon.yaml",
+        "salmon-steps.yaml",
+    ]
+    source = root / content.folders[node.id] / "figures" / "kmers-by-k.yaml"
+    assert (folder / "figures" / "kmers-by-k.yaml").read_text() == source.read_text()
+    again, _ = read_node(folder, regions=set(content.regions), providers=content.providers)
+    assert again is not None and again.figures == node.figures

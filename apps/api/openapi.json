@@ -996,6 +996,53 @@
         "title": "FigureBlockOut",
         "type": "object"
       },
+      "FigureOut": {
+        "description": "A figure's file, read: its component, alt text and data, and what its component computes\nfrom the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5).",
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "derived": {
+            "additionalProperties": true,
+            "title": "Derived",
+            "type": "object"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureSourceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stem",
+          "component",
+          "alt",
+          "data",
+          "derived",
+          "source"
+        ],
+        "title": "FigureOut",
+        "type": "object"
+      },
       "FigureSourceOut": {
         "description": "Where a figure's data came from, when it came from elsewhere (M6FG.1).",
         "properties": {
@@ -1842,6 +1889,14 @@
             "title": "Claim",
             "type": "string"
           },
+          "figures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "title": "Figures",
+            "type": "array"
+          },
           "folder": {
             "title": "Folder",
             "type": "string"
@@ -2170,6 +2225,17 @@
           "exact": {
             "title": "Exact",
             "type": "boolean"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
           },
           "hints": {
             "items": {
