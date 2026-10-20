@@ -4,7 +4,8 @@ body.md is Markdown with MyST colon-fence directives at the top level: `:::{try}
 places a question; `:::{misconception|caveat|convention} <title>`, Markdown, then `:::` is a
 callout; `:::{sequence}`, letters, then `:::` is a sequence (M4.8c spec, M4Q.2); `:::{math}`, TeX,
 then `:::` is a formula, and `:::{example} <title>`, Markdown, then `:::` a worked example (M6.2
-spec, M6MX.1–M6MX.2). Everything between
+spec, M6MX.1–M6MX.2); `:::{image} <file>` and `:::{figure} <stem>`, each with a caption, place an
+image (M6IM.1) and a figure (M6FG.1). Everything between
 directives is one text block, so blocks read and written back give the same text, byte for byte.
 Inside a code fence a directive is prose. W5.1's other blocks are refused by name until the phase
 that builds them.
@@ -26,7 +27,6 @@ from code_schema.problems import Problem
 CalloutKind = Literal["misconception", "caveat", "convention"]
 CALLOUTS: tuple[CalloutKind, ...] = get_args(CalloutKind)
 _LATER = {
-    "figure": "M6",
     "problem": "M6",
     "claim": "a later phase",
 }
@@ -85,7 +85,15 @@ class Image:
     caption: str
 
 
-Block = Text | Try | Callout | SequenceBlock | Math | Example | Image
+@dataclass(frozen=True)
+class Figure:
+    """A figure from the node's figures/ folder, by stem, and its caption (M6.4 spec, M6FG.1)."""
+
+    file: str  # the stem: figures/<file>.yaml
+    caption: str
+
+
+Block = Text | Try | Callout | SequenceBlock | Math | Example | Image | Figure
 
 
 def block_text(block: Block) -> str:
@@ -93,7 +101,7 @@ def block_text(block: Block) -> str:
     match block:
         case Text(markdown=markdown) | Callout(markdown=markdown) | Example(markdown=markdown):
             return markdown
-        case Image(caption=caption):
+        case Image(caption=caption) | Figure(caption=caption):
             return caption
         case SequenceBlock(letters=letters):
             return letters
@@ -240,6 +248,16 @@ def parse_blocks(
                 blocks.append(Image(argument, caption))
                 starts.append(number)
             continue
+        if name == "figure":
+            caption = "".join(inner)
+            if not argument:
+                problem("CS0428", ":::{figure} names no figure: `:::{figure} kmer-counts`", number)
+            elif not caption.strip():
+                problem("CS0429", f"the figure {argument} has no caption", number)
+            else:
+                blocks.append(Figure(argument, caption))
+                starts.append(number)
+            continue
         if name == "example":
             markdown = "".join(inner)
             if not argument:
@@ -265,7 +283,7 @@ def parse_blocks(
             )
             continue
         message = f":::{{{name}}} is not a directive this format reads"
-        known = ["try", "sequence", "math", "example", "image", *CALLOUTS]
+        known = ["try", "sequence", "math", "example", "image", "figure", *CALLOUTS]
         if close := difflib.get_close_matches(name, known, n=1):
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
@@ -289,7 +307,7 @@ def _formulas(block: Block, start: int) -> list[tuple[str, str, int]]:
             first = start
         case Callout(markdown=markdown) | Example(markdown=markdown):
             first = start + 1
-        case Image(caption=markdown):
+        case Image(caption=markdown) | Figure(caption=markdown):
             first = start + 1
         case _:
             return []
@@ -322,6 +340,8 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             out.append(f":::{{example}} {block.title}{newline}{block.markdown}:::{newline}")
         elif isinstance(block, Image):
             out.append(f":::{{image}} {block.file}{newline}{block.caption}:::{newline}")
+        elif isinstance(block, Figure):
+            out.append(f":::{{figure}} {block.file}{newline}{block.caption}:::{newline}")
         else:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
@@ -345,6 +365,8 @@ def block_json(block: Block) -> dict[str, str]:
             return {"kind": "example", "title": title, "markdown": markdown}
         case Image(file=file, caption=caption):
             return {"kind": "image", "file": file, "caption": caption}
+        case Figure(file=file, caption=caption):
+            return {"kind": "figure", "file": file, "caption": caption}
 
 
 def block_from_json(stored: dict[str, str]) -> Block:
@@ -362,6 +384,8 @@ def block_from_json(stored: dict[str, str]) -> Block:
             return Example(stored["title"], stored["markdown"])
         case "image":
             return Image(stored["file"], stored["caption"])
+        case "figure":
+            return Figure(stored["file"], stored["caption"])
         case "callout" if (kind := stored.get("callout")) in CALLOUTS:
             return Callout(kind, stored["title"], stored["markdown"])
         case other:

@@ -113,6 +113,8 @@ def _answer(answer: Answer) -> dict[str, object]:
 def _question(question: TryQuestion) -> dict[str, object]:
     """The spec's field order (M3P1.3); nothing empty is invented."""
     written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
+    if question.figure is not None:
+        written["figure"] = question.figure
     written |= _answer(question.answer)
     written["hints"] = list(question.hints)
     written["rationale"] = question.rationale

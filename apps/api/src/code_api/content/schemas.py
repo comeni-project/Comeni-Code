@@ -126,6 +126,15 @@ class ImageBlockOut(Schema):
     caption: str
 
 
+class FigureBlockOut(Schema):
+    """A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);
+    the page joins it to the node's figures by stem, as images are joined to their records."""
+
+    kind: Literal["figure"]
+    file: str
+    caption: str
+
+
 class ImageRecordOut(Schema):
     """An image's credit, as node.yaml records it (M6IM.1)."""
 
@@ -144,6 +153,7 @@ AnyBlockOut = (
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
 )
 BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
 

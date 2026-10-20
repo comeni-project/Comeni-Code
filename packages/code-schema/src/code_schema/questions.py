@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import ClassVar, TypeGuard
 
 from code_schema.fields import one_line, one_of, one_sentence, shown, slug
+from code_schema.figures import STEM
 from code_schema.problems import Problem
 from code_schema.records import Entry, Field
 from code_schema.yaml_lines import Lines
@@ -30,6 +31,7 @@ _KEYS = (
     "id",
     "kind",
     "ask",
+    "figure",
     "options",
     "answer",
     "unit",
@@ -148,6 +150,7 @@ class TryQuestion:
     answer: Answer
     hints: tuple[str, ...]
     rationale: str
+    figure: str | None = None  # a figure's stem, drawn above the ask (M6.4 spec, M6FG.1)
 
     @property
     def kind(self) -> str:
@@ -497,6 +500,13 @@ def parse_questions(
 
         hints = _read_hints(entry, name)
         rationale = read_rationale(entry, name)
+        figure = written.get("figure")
+        if "figure" in written and (not isinstance(figure, str) or not STEM.match(figure)):
+            entry.problem(
+                "CS1022",
+                f"{shown(figure)} is not a figure's name (lowercase words joined by hyphens)",
+                key="figure",
+            )
 
         if not entry.sound:
             continue
@@ -507,6 +517,7 @@ def parse_questions(
             answer=answer,
             hints=hints,
             rationale=rationale,
+            figure=None if figure is None else str(figure),
         )
         if any(_gives_the_answer(hint, answer) for hint in hints):
             entry.problem("CS0319", f"a hint for {name} contains the answer", key="hints")

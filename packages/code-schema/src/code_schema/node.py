@@ -12,7 +12,7 @@ from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from code_schema.blocks import Block, Image, Try, parse_blocks
+from code_schema.blocks import Block, Figure, Image, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
@@ -23,6 +23,13 @@ from code_schema.fields import (
     one_sentence,
     slug,
     whole_number,
+)
+from code_schema.figures import (
+    FIGURE_FOLDER,
+    STEM,
+    FigureFile,
+    figure_problems,
+    parse_figures,
 )
 from code_schema.images import IMAGE_FIELD, IMAGE_FOLDER, ImageRecord, image_problems, parse_images
 
@@ -58,6 +65,7 @@ class Node:
     questions: tuple[TryQuestion, ...] = ()
     exam: tuple[ExamQuestion, ...] = ()  # from exam.yaml, beside node.yaml (spec M4E.1)
     images: tuple[ImageRecord, ...] = ()  # each file in images/ and its credit (M6IM.1)
+    figures: tuple[FigureFile, ...] = ()  # each file in figures/, read (M6FG.1)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -371,6 +379,16 @@ def read_node(
         if image_folder.is_dir()
         else {}
     )
+    figure_folder = folder / FIGURE_FOLDER
+    figures = (
+        {
+            path.name: path.read_text(encoding="utf-8")
+            for path in sorted(figure_folder.iterdir())
+            if path.is_file()
+        }
+        if figure_folder.is_dir()
+        else {}
+    )
     node, problems = parse_node_files(
         node_yaml,
         body,
@@ -380,6 +398,7 @@ def read_node(
         providers=providers,
         where=where,
         images=images,
+        figures=figures,
     )
     if not near_misses:
         return node, problems
@@ -399,13 +418,15 @@ def parse_node_files(
     providers: dict[str, Provider] | None,
     where: str,
     images: Mapping[str, bytes] | None = None,
+    figures: Mapping[str, str] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """A node from its three texts, as a folder holds them (M4.4 spec, M4W.3). Never raises.
 
     `read_node` reads a folder with it, and a draft is read with it, so both are checked by one
     path. `exam_yaml` is None when there is no exam.yaml; `where` is the folder's path, ending
     in a slash, that each problem's file is named under. `images` is the folder's images/ by
-    name; None skips the files' own checks, when only the texts are at hand (M6IM.1).
+    name; None skips the files' own checks, when only the texts are at hand (M6IM.1). `figures`
+    is the folder's figures/ by file name, as text; a figure is text, so it is always at hand.
     """
     node, problems = parse_node(
         node_yaml,
@@ -426,11 +447,23 @@ def parse_node_files(
         problems += image_problems(
             node.images, images, placed, file=f"{where}{NODE_FILE}", where=where
         )
+    texts = figures or {}
+    read, figure_found = parse_figures(texts, where=where)
+    problems += figure_found
+    if node is not None:
+        # Placed by the body, an exam stem or a try question's figure (M6FG.1).
+        stems = [block for question in exam for block in question.blocks]
+        shown = {block.file for block in (*node.blocks, *stems) if isinstance(block, Figure)}
+        shown |= {q.figure for q in node.questions if q.figure is not None}
+        # A file refused for its name is not also unplaced: CS1022 says enough.
+        names = {n.removesuffix(".yaml") for n in texts if STEM.match(n.removesuffix(".yaml"))}
+        names &= {n.removesuffix(".yaml") for n in texts if n.endswith(".yaml")}
+        problems += figure_problems(names, shown, file=f"{where}{NODE_FILE}", where=where)
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems
     # Only warnings, if anything: the node is kept, and its warnings go with it (spec M4E.4).
-    return replace(node, exam=exam), problems
+    return replace(node, exam=exam, figures=read), problems
 
 
 def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:

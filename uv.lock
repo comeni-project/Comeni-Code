@@ -420,11 +420,15 @@ name = "code-schema"
 version = "0.0.0"
 source = { editable = "packages/code-schema" }
 dependencies = [
+    { name = "code-figures" },
     { name = "pyyaml" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyyaml", specifier = ">=6.0,<7" }]
+requires-dist = [
+    { name = "code-figures", editable = "packages/code-figures" },
+    { name = "pyyaml", specifier = ">=6.0,<7" },
+]
 
 [[package]]
 name = "code-weaver"

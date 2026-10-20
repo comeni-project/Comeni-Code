@@ -368,7 +368,7 @@ def test_an_old_marker_is_refused_with_a_pointer() -> None:
 
 
 def test_a_block_problem_is_reported_by_the_node() -> None:
-    _, problems = parse(GOOD, "Prose.\n\n:::{figure} x\n:::\n")
+    _, problems = parse(GOOD, "Prose.\n\n:::{problem} x\n:::\n")
     assert [(problem.file, problem.code) for problem in problems] == [("salmon/body.md", "CS0413")]
 
 

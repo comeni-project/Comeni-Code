@@ -37,6 +37,8 @@ ALLOWED: Mapping[str, frozenset[str]] = {
         {
             "__future__",
             "argparse",
+            # M6.4: a figure's data is checked by its component (M6FG.2).
+            "code_figures",
             "collections.abc",
             "dataclasses",
             "difflib",
