@@ -1,11 +1,12 @@
 // A node's blocks, read for what the page draws around them (M3P5.5, M4.1.2).
 //
-// The API serves the body as blocks (text, try, callout, sequence, math, example) that the validator has already read, so
+// The API serves the body as blocks (text, try, callout, sequence, math, example, image, figure) that the validator has already read, so
 // the page never looks for directives in Markdown. It still scans text blocks for two things: the
 // second-level headings *On this page* lists, and First steps' reading list.
 import type {
   CalloutBlockOut,
   ExampleBlockOut,
+  FigureBlockOut,
   ImageBlockOut,
   MathBlockOut,
   SequenceBlockOut,
@@ -20,7 +21,8 @@ export type Block =
   | SequenceBlockOut
   | MathBlockOut
   | ExampleBlockOut
-  | ImageBlockOut;
+  | ImageBlockOut
+  | FigureBlockOut;
 
 const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const SECOND = /^##\s+(.+?)\s*#*\s*$/;

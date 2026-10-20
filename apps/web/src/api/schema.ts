@@ -25,6 +25,7 @@ export interface ApiSchemas {
   ExamQuestionIn: ExamQuestionIn;
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
+  FigureBlockOut: FigureBlockOut;
   FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
   GivenIn: GivenIn;
@@ -202,6 +203,7 @@ export interface DraftNodeOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
@@ -258,6 +260,15 @@ export interface ImageBlockOut {
   kind: "image";
 }
 /**
+ * A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);
+ * the page joins it to the node's figures by stem, as images are joined to their records.
+ */
+export interface FigureBlockOut {
+  caption: string;
+  file: string;
+  kind: "figure";
+}
+/**
  * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
  * file holds, and whether the live index holds it unchanged.
  */
@@ -280,6 +291,7 @@ export interface StudioExamQuestionOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   stem_text: string;
   steps: string[] | null;
@@ -591,6 +603,7 @@ export interface NodeOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   claim: string;
   folder: string;
@@ -761,6 +774,7 @@ export interface ReviewContentOut {
         | MathBlockOut
         | ExampleBlockOut
         | ImageBlockOut
+        | FigureBlockOut
       )
     | null;
   fields: ReviewFieldsOut | null;
@@ -805,6 +819,7 @@ export interface ReviewQuestionOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   steps: string[] | null;
   tolerance: number | null;
@@ -826,6 +841,7 @@ export interface ReviewItemOut {
         | MathBlockOut
         | ExampleBlockOut
         | ImageBlockOut
+        | FigureBlockOut
       )
     | null;
   change: string;

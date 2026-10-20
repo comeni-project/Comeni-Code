@@ -34,7 +34,7 @@ function empty(block: Block, question: TryQuestionIn | undefined): boolean {
   if (block.kind === "callout") return block.title.trim() === "" && block.markdown.trim() === "";
   if (block.kind === "sequence") return block.letters.trim() === "";
   if (block.kind === "math") return block.tex.trim() === "";
-  if (block.kind === "image") return block.caption.trim() === "";
+  if (block.kind === "image" || block.kind === "figure") return block.caption.trim() === "";
   if (block.kind === "example") return block.title.trim() === "" && block.markdown.trim() === "";
   return question === undefined || question.ask.trim() === "";
 }
@@ -48,7 +48,7 @@ function ended(block: Block): Block {
   if (block.kind === "math") {
     return block.tex.endsWith("\n") ? block : { ...block, tex: `${block.tex}\n` };
   }
-  if (block.kind === "image") {
+  if (block.kind === "image" || block.kind === "figure") {
     return block.caption.endsWith("\n") ? block : { ...block, caption: `${block.caption}\n` };
   }
   return block.markdown.endsWith("\n") ? block : { ...block, markdown: `${block.markdown}\n` };

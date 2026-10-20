@@ -298,6 +298,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -327,6 +328,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -923,6 +927,31 @@
           "revision"
         ],
         "title": "FieldsIn",
+        "type": "object"
+      },
+      "FigureBlockOut": {
+        "description": "A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);\nthe page joins it to the node's figures by stem, as images are joined to their records.",
+        "properties": {
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "kind": {
+            "const": "figure",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "file",
+          "caption"
+        ],
+        "title": "FigureBlockOut",
         "type": "object"
       },
       "FileChangeOut": {
@@ -1684,6 +1713,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -1713,6 +1743,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -2636,6 +2669,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
@@ -2665,6 +2699,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ImageBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FigureBlockOut"
                   }
                 ]
               },
@@ -2802,6 +2839,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
@@ -2831,6 +2869,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ImageBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FigureBlockOut"
                   }
                 ]
               },
@@ -3044,6 +3085,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -3073,6 +3115,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -3523,6 +3568,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -3552,6 +3598,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
