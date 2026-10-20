@@ -9,6 +9,7 @@ export type Level = "first-steps" | "foundations" | "introductory" | "intermedia
 export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  AddFigureIn: AddFigureIn;
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
@@ -26,6 +27,8 @@ export interface ApiSchemas {
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
   FigureBlockOut: FigureBlockOut;
+  FigureSourceOut: FigureSourceOut;
+  FigureTextIn: FigureTextIn;
   FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
   GivenIn: GivenIn;
@@ -91,6 +94,7 @@ export interface ApiSchemas {
   SpanOut: SpanOut;
   StopOut: StopOut;
   StudioExamQuestionOut: StudioExamQuestionOut;
+  StudioFigureOut: StudioFigureOut;
   StudioOptionOut: StudioOptionOut;
   StudioQuestionOut: StudioQuestionOut;
   StudioResourceOut: StudioResourceOut;
@@ -103,6 +107,13 @@ export interface ApiSchemas {
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+}
+export interface AddFigureIn {
+  alt: string;
+  at: number;
+  caption: string;
+  component: string;
+  revision: number;
 }
 export interface ApproveIn {
   reason?: string;
@@ -117,7 +128,7 @@ export interface BlockIn {
   callout?: string;
   caption?: string;
   file?: string;
-  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image";
+  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image" | "figure";
   letters?: string;
   markdown?: string;
   question?: string;
@@ -207,6 +218,7 @@ export interface DraftNodeOut {
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
+  figures?: StudioFigureOut[];
   goes_deeper: LinkOut[];
   images?: ImageRecordOut[];
   level: string;
@@ -305,6 +317,29 @@ export interface StudioOptionOut {
   right: boolean;
   text: string;
 }
+/**
+ * A figure as the workbench edits it: read, and its file's text as written (M6FG.5).
+ */
+export interface StudioFigureOut {
+  alt: string;
+  component: string;
+  data: {
+    [k: string]: unknown;
+  };
+  derived: {
+    [k: string]: unknown;
+  };
+  source: FigureSourceOut | null;
+  stem: string;
+  text: string;
+}
+/**
+ * Where a figure's data came from, when it came from elsewhere (M6FG.1).
+ */
+export interface FigureSourceOut {
+  title: string;
+  url: string | null;
+}
 export interface LinkOut {
   node: string;
   reason: string;
@@ -328,6 +363,7 @@ export interface StudioQuestionOut {
   answer: number | string | null;
   ask: string;
   exact: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: string;
@@ -449,6 +485,10 @@ export interface FieldsIn {
   revision: number;
   title?: string | null;
 }
+export interface FigureTextIn {
+  revision: number;
+  text: string;
+}
 export interface FileChangeOut {
   change: string;
   file: string;
@@ -504,6 +544,7 @@ export interface TryQuestionIn {
   answer?: number | string | null;
   ask: string;
   exact?: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: "choice" | "number" | "sequence" | "order";
@@ -778,6 +819,7 @@ export interface ReviewContentOut {
       )
     | null;
   fields: ReviewFieldsOut | null;
+  figures?: StudioFigureOut[];
   image?: ImageRecordOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
@@ -846,6 +888,7 @@ export interface ReviewItemOut {
     | null;
   change: string;
   fields: ReviewFieldsOut | null;
+  figures?: StudioFigureOut[];
   image?: ImageRecordOut | null;
   key: string;
   kind: string;

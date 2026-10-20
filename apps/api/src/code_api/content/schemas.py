@@ -4,7 +4,7 @@ The views import their schemas from here, never from one another. The names are 
 what openapi.json and the web app's generated types call them.
 """
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from ninja import Schema
 from pydantic import Field
@@ -133,6 +133,25 @@ class FigureBlockOut(Schema):
     kind: Literal["figure"]
     file: str
     caption: str
+
+
+class FigureSourceOut(Schema):
+    """Where a figure's data came from, when it came from elsewhere (M6FG.1)."""
+
+    title: str
+    url: str | None
+
+
+class FigureOut(Schema):
+    """A figure's file, read: its component, alt text and data, and what its component computes
+    from the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5)."""
+
+    stem: str
+    component: str
+    alt: str
+    data: dict[str, Any]
+    derived: dict[str, Any]
+    source: FigureSourceOut | None
 
 
 class ImageRecordOut(Schema):

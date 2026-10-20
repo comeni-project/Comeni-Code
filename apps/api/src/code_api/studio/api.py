@@ -49,6 +49,7 @@ from code_schema import (
     ChoiceAnswer,
     Example,
     ExamQuestion,
+    Figure,
     Image,
     ImageRecord,
     Level,
@@ -66,14 +67,18 @@ from code_schema import (
 )
 from code_schema.edits import (
     EditError,
+    FigureRefused,
     Unfaithful,
     add_exam_question,
+    add_figure,
     delete_block,
     delete_exam_question,
     insert_block,
     move_block,
+    remove_figure,
     remove_image,
     set_fields,
+    set_figure,
     set_image_record,
     set_links,
     set_resources,
@@ -350,7 +355,7 @@ class BlockIn(Schema):
     (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
     markdown)."""
 
-    kind: Literal["text", "try", "callout", "sequence", "math", "example", "image"]
+    kind: Literal["text", "try", "callout", "sequence", "math", "example", "image", "figure"]
     markdown: str = ""
     letters: str = ""
     tex: str = ""
@@ -381,6 +386,7 @@ class TryQuestionIn(AnswerIn):
     ask: str
     hints: list[str]
     rationale: str
+    figure: str | None = None  # a figure's stem, drawn above the ask (M6FG.1)
 
 
 class ExamQuestionIn(AnswerIn):
@@ -477,6 +483,7 @@ def _try_question(given: TryQuestionIn | None) -> TryQuestion | None:
         answer=_answer(given),
         hints=tuple(given.hints),
         rationale=given.rationale,
+        figure=given.figure or None,
     )
 
 
@@ -506,6 +513,8 @@ def _block(given: BlockIn) -> Block:
             return Example(title=given.title, markdown=given.markdown)
         case "image":
             return Image(file=given.file, caption=given.caption)
+        case "figure":
+            return Figure(file=given.file, caption=given.caption)
     return Text(markdown=given.markdown)
 
 
@@ -558,6 +567,11 @@ def _edit(
         )
         return Status(422, RefusedOut(detail=detail, code="CA0210", problems=[]))
     except EditError as wrong:
+        # A figure that would not validate says why, as a save's files do (M6FG.5).
+        if isinstance(wrong, FigureRefused) and wrong.problems:
+            return Status(
+                422, refused(list(wrong.problems), "The figure's file would not validate.")
+            )
         return Status(
             422,
             RefusedOut(
@@ -781,6 +795,56 @@ def delete_image(request: HttpRequest, public_id: UUID, file: str, revision: int
         lambda node: remove_image(node, file),
         f"removed the image {file}",
         images={file: None},
+    )
+
+
+class AddFigureIn(Schema):
+    revision: int
+    at: int
+    component: str
+    alt: str
+    caption: str
+
+
+class FigureTextIn(Schema):
+    revision: int
+    text: str  # the file as written, kept byte for byte (M6FG.5)
+
+
+@router.post("/{public_id}/figures", response=_EDIT_RESPONSES, summary="Add a figure")
+def add_a_figure(request: HttpRequest, public_id: UUID, body: AddFigureIn) -> SaveAnswer:
+    """A component's starter data under a free stem, and its block at `at`, as one save."""
+    return _edit(
+        request,
+        public_id,
+        body.revision,
+        lambda node: add_figure(node, body.at, body.component, alt=body.alt, caption=body.caption),
+        f"added a {body.component} figure",
+    )
+
+
+@router.put("/{public_id}/figures/{stem}", response=_EDIT_RESPONSES, summary="Set a figure's file")
+def set_a_figure(
+    request: HttpRequest, public_id: UUID, stem: str, body: FigureTextIn
+) -> SaveAnswer:
+    return _edit(
+        request,
+        public_id,
+        body.revision,
+        lambda node: set_figure(node, stem, body.text),
+        f"changed the figure {stem}",
+    )
+
+
+@router.delete("/{public_id}/figures/{stem}", response=_EDIT_RESPONSES, summary="Remove a figure")
+def remove_a_figure(request: HttpRequest, public_id: UUID, stem: str, revision: int) -> SaveAnswer:
+    """The figure whole: its file, its blocks, a try question's figure and each stem's."""
+    return _edit(
+        request,
+        public_id,
+        revision,
+        lambda node: remove_figure(node, stem),
+        f"removed the figure {stem}",
     )
 
 

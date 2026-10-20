@@ -381,6 +381,7 @@ version = "0.0.0"
 source = { editable = "apps/api" }
 dependencies = [
     { name = "celery", extra = ["redis"] },
+    { name = "code-figures" },
     { name = "code-schema" },
     { name = "code-weaver" },
     { name = "django" },
@@ -397,6 +398,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "celery", extras = ["redis"], specifier = ">=5.6,<5.7" },
+    { name = "code-figures", editable = "packages/code-figures" },
     { name = "code-schema", editable = "packages/code-schema" },
     { name = "code-weaver", editable = "packages/code-weaver" },
     { name = "django", specifier = ">=6.1,<6.2" },

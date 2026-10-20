@@ -15,6 +15,8 @@ from code_api.content.schemas import (
     CalloutBlockOut,
     ExampleBlockOut,
     FigureBlockOut,
+    FigureOut,
+    FigureSourceOut,
     ImageBlockOut,
     ImageRecordOut,
     MathBlockOut,
@@ -24,6 +26,7 @@ from code_api.content.schemas import (
 )
 from code_api.studio.keys import Key, Pictured
 from code_api.studio.review import Answered, Reviewed, SentBack, Sheet, question_of
+from code_figures import derived
 from code_schema import (
     Answer,
     Block,
@@ -32,6 +35,7 @@ from code_schema import (
     Example,
     ExamQuestion,
     Figure,
+    FigureFile,
     Image,
     Math,
     Node,
@@ -87,6 +91,13 @@ class StudioQuestionOut(Schema):
     steps: list[str] | None
     hints: list[str]
     rationale: str
+    figure: str | None = None  # a figure's stem, drawn above the ask (M6FG.1)
+
+
+class StudioFigureOut(FigureOut):
+    """A figure as the workbench edits it: read, and its file's text as written (M6FG.5)."""
+
+    text: str
 
 
 class StudioExamQuestionOut(Schema):
@@ -125,6 +136,7 @@ class DraftNodeOut(Schema):
     questions: list[StudioQuestionOut]
     exam: list[StudioExamQuestionOut]
     images: list[ImageRecordOut] = []  # each file's credit (M6.3 spec, M6IM.1)
+    figures: list[StudioFigureOut] = []  # each figure file, read, with its text (M6FG.5)
 
 
 class DraftSummaryOut(Schema):
@@ -292,7 +304,22 @@ def _question_out(question: TryQuestion) -> StudioQuestionOut:
         ask=question.ask,
         hints=list(question.hints),
         rationale=question.rationale,
+        figure=question.figure,
         **_answer_out(question.answer),  # type: ignore[arg-type]
+    )
+
+
+def figure_out(figure: FigureFile) -> StudioFigureOut:
+    return StudioFigureOut(
+        stem=figure.stem,
+        component=figure.component,
+        alt=figure.alt,
+        data=dict(figure.data),
+        derived=derived(figure.component, figure.data),
+        source=None
+        if figure.source is None
+        else FigureSourceOut(title=figure.source.title, url=figure.source.url),
+        text=figure.text,
     )
 
 
@@ -346,6 +373,7 @@ def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> Draf
             )
             for i in node.images
         ],
+        figures=[figure_out(figure) for figure in node.figures],
     )
 
 
@@ -465,6 +493,7 @@ class ReviewContentOut(Schema):
     resource: StudioResourceOut | None
     question: ReviewQuestionOut | None
     image: ImageRecordOut | None = None  # an image key's record, drawn as the page draws it
+    figures: list[StudioFigureOut] = []  # the figures a key shows, with their files (M6FG.5)
 
 
 class ReviewItemOut(ReviewContentOut):
@@ -524,7 +553,7 @@ def _content(key: Key, given: object | None) -> ReviewContentOut:
     content = key.content
     asked = question_of(key)
     block = None
-    if isinstance(content, Text | Callout | SequenceBlock | Math | Example):
+    if isinstance(content, Text | Callout | SequenceBlock | Math | Example | Figure):
         block = _block_out(content)
     elif isinstance(content, Pictured):
         block = _block_out(content.block)
@@ -543,6 +572,7 @@ def _content(key: Key, given: object | None) -> ReviewContentOut:
             source=record.source,
             licence=record.licence,
         ),
+        figures=[figure_out(figure) for figure in key.figures],
     )
 
 
@@ -554,6 +584,7 @@ def _review_item_out(item: Reviewed) -> ReviewItemOut:
         block=now.block,
         resource=now.resource,
         image=now.image,
+        figures=now.figures,
         # the current question keeps its graded answer
         question=None if item.answered is None else review_question_out(item.answered),
         key=item.key.key,

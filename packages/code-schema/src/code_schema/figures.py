@@ -10,7 +10,7 @@ refused, so a valid file holds nothing that was not parsed.
 """
 
 import re
-from collections.abc import Collection, Mapping
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 
 import yaml
@@ -86,6 +86,26 @@ def _source(value: object) -> tuple[FigureSource | None, str | None]:
     ):
         return None, "source's url is an https:// link"
     return FigureSource(title, url), None
+
+
+def figure_texts(figures: Sequence[FigureFile]) -> dict[str, str]:
+    """The figures as figures/ holds them: each file's text by its name."""
+    return {figure.name: figure.text for figure in figures}
+
+
+def starter_text(component: str, alt: str, data: Mapping[str, object]) -> str:
+    """A new figure's file: its component, alt text and a component's starter data (M6FG.5)."""
+    return yaml.safe_dump(
+        {"component": component, "alt": alt, "data": dict(data)},
+        sort_keys=False,
+        allow_unicode=True,
+        width=100,
+    )
+
+
+def read_figure(stem: str, text: str, *, file: str) -> tuple[FigureFile | None, list[Problem]]:
+    """One figure file read: the figure, or None and every problem. Never raises."""
+    return _figure(stem, text, file)
 
 
 def _figure(stem: str, text: str, file: str) -> tuple[FigureFile | None, list[Problem]]:
