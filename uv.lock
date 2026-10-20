@@ -9,6 +9,7 @@ resolution-markers = [
 [manifest]
 members = [
     "code-api",
+    "code-figures",
     "code-schema",
     "code-weaver",
 ]
@@ -408,6 +409,11 @@ requires-dist = [
     { name = "requests", specifier = ">=2.34,<3" },
     { name = "whitenoise", specifier = ">=6.12,<7" },
 ]
+
+[[package]]
+name = "code-figures"
+version = "0.0.0"
+source = { editable = "packages/code-figures" }
 
 [[package]]
 name = "code-schema"
