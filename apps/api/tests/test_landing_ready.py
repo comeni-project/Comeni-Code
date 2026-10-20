@@ -217,3 +217,22 @@ def test_a_ready_row_names_the_drafts_it_needs(otto: User) -> None:
     listed = Client()
     listed.force_login(otto)
     assert {row["node_id"]: row["needs"] for row in listed.get(READY).json()} == rows
+
+
+def test_an_image_only_change_is_listed(ada: User, otto: User) -> None:
+    # #358: replacing an image's file names it among the changed files.
+    rebuild_index(FIXTURES)
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    path = FIXTURES / "algorithms" / "de-bruijn-graphs" / "images" / "kmers-in-a-row.png"
+    redrawn = path.read_bytes() + b"\x00"
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda n: n,
+        by=ada,
+        change="redrawn",
+        images={"kmers-in-a-row.png": redrawn},
+    )
+    approve(draft, otto)
+    [row] = [r for r in landing.ready() if r.draft.node_id == "de-bruijn-graphs"]
+    assert row.files == [("images/kmers-in-a-row.png", "changed")]

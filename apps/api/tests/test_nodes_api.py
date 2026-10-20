@@ -102,6 +102,7 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         # Salmon cites neither; de Bruijn graphs is the node that does (M3P1.5).
         "resources": [],
         "questions": [],
+        "images": [],
     }
     assert [card["id"] for card in body["needs"]][0] == "rna-seq-libraries"
     assert len(body["goes_deeper"]) == 5
@@ -166,11 +167,12 @@ def test_refused_builds_are_no_index(client: Client, tmp_path: Path) -> None:
     assert get(client, "salmon").status_code == 503
 
 
-def test_a_node_costs_five_queries(
+def test_a_node_costs_six_queries(
     client: Client, django_assert_num_queries: DjangoAssertNumQueries
 ) -> None:
+    # The sixth reads the image records, never their bytes (M6.3 spec, M6IM.3).
     rebuild_index(FIXTURES)
-    with django_assert_num_queries(5):
+    with django_assert_num_queries(6):
         assert get(client, "salmon").status_code == 200
 
 
@@ -315,3 +317,29 @@ def test_a_node_serves_its_math_and_example_blocks(client: Client) -> None:
     assert math["tex"].startswith("G_k(R) = (V, E)")
     assert example["title"] == "Three reads into one sequence"
     assert "spells    ACGTTAG" in example["markdown"]
+
+
+def test_a_nodes_image_is_served_with_its_credit(client: Client) -> None:
+    # M6.3 (M6IM.3, M6IM.5): learners load the file from the index; the record comes with the node.
+    rebuild_index(FIXTURES)
+    body = get(client, "de-bruijn-graphs").json()
+    assert body["images"] == [
+        {
+            "file": "kmers-in-a-row.png",
+            "alt": (
+                "Three teal squares in a row, joined by a grey line, "
+                "standing for k-mers along a path."
+            ),
+            "author": "Comeni Code",
+            "source": "own work",
+            "licence": "CC BY 4.0",
+        }
+    ]
+    served = client.get("/api/nodes/de-bruijn-graphs/images/kmers-in-a-row.png")
+    assert served.status_code == 200
+    assert served["Content-Type"] == "image/png"
+    assert "max-age" in served["Cache-Control"]
+    path = FIXTURES / "algorithms" / "de-bruijn-graphs" / "images" / "kmers-in-a-row.png"
+    assert served.content == path.read_bytes()
+    missing = client.get("/api/nodes/de-bruijn-graphs/images/nope.png")
+    assert (missing.status_code, missing.json()["code"]) == (404, "CA0008")

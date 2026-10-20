@@ -10,12 +10,14 @@ from typing import Any
 
 from ninja import Status
 
-from code_api.content.models import IndexBuild, Link, Node, Question, Region, Resource
+from code_api.content.models import IndexBuild, Link, Node, NodeImage, Question, Region, Resource
 from code_api.content.numbers import number_from
 from code_api.content.schemas import (
     AnyBlockOut,
     CalloutBlockOut,
     ExampleBlockOut,
+    ImageBlockOut,
+    ImageRecordOut,
     MathBlockOut,
     Message,
     NeighbourOut,
@@ -38,6 +40,7 @@ from code_api.content.schemas import (
 from code_schema import (
     Callout,
     Example,
+    Image,
     Level,
     Math,
     SequenceBlock,
@@ -104,6 +107,8 @@ def _block(stored: dict[str, Any]) -> AnyBlockOut:
             return MathBlockOut(kind="math", tex=tex)
         case Example(title=title, markdown=markdown):
             return ExampleBlockOut(kind="example", title=title, markdown=markdown)
+        case Image(file=file, caption=caption):
+            return ImageBlockOut(kind="image", file=file, caption=caption)
 
 
 def _question(question: Question) -> QuestionOut:
@@ -132,7 +137,8 @@ def _question(question: Question) -> QuestionOut:
 
 
 def node(node_id: str) -> NodeOut | None:
-    """One node with its neighbours, resources and questions, in five queries; None on a miss."""
+    """One node with its neighbours, resources, questions and image records, in six queries; None
+    on a miss. The image files are served apart, by `image`."""
     found = Node.objects.select_related("region").filter(id=node_id).first()
     if found is None:
         return None
@@ -159,7 +165,23 @@ def node(node_id: str) -> NodeOut | None:
         needed_by=[_card(link.source, link.reason) for link in needed_by],
         resources=[_resource(resource) for resource in resources],
         questions=[_question(question) for question in questions],
+        images=[
+            ImageRecordOut(
+                file=image.file,
+                alt=image.alt,
+                author=image.author,
+                source=image.source,
+                licence=image.licence,
+            )
+            for image in found.images.defer("data").order_by("position")
+        ],
     )
+
+
+def image(node_id: str, file: str) -> tuple[bytes, str] | None:
+    """A landed node's image file and its media type (M6IM.3); None on a miss."""
+    found = NodeImage.objects.filter(node_id=node_id, file=file).first()
+    return None if found is None else (bytes(found.data), found.media_type)
 
 
 def _index() -> tuple[dict[str, Node], dict[str, Region], Graph]:

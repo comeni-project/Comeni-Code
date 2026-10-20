@@ -53,6 +53,10 @@ spells    ACGTTAG
 Each step along the path adds one letter, so five 3-mers spell $5 + 3 - 1 = 7$ letters.
 :::
 
+:::{image} kmers-in-a-row.png
+Three k-mers along one path: each shares all but one letter with the next.
+:::
+
 ## Further reading
 
 - [How to apply de Bruijn graphs to genome assembly](https://doi.org/10.1038/nbt.2023) — Compeau, Pevzner and Tesler, 2011

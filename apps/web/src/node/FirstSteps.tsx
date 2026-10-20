@@ -3,6 +3,7 @@
 // Same node, same data, another interface: one column, larger type, numbered sections, the video
 // offered rather than played, one question at a time, and what comes next. The level describes
 // the node, never the learner, so a node always reads the same way.
+
 import { useState } from "react";
 import { Link } from "react-router";
 import type { NodeOut, ResourceOut, StopOut } from "../api/schema";
@@ -10,6 +11,7 @@ import { withRoute } from "../url";
 import { Body } from "./Body";
 import { splitReading } from "./body";
 import { playerSrc } from "./embed";
+import { imageUrl } from "./Picture";
 import { LevelTag } from "./tags";
 
 /** The minutes a part covers, for the watch offer: "Watch · 13 min". */
@@ -135,7 +137,12 @@ export function FirstSteps({
 
         {video !== undefined && src !== null ? <Watch resource={video} src={src} /> : null}
 
-        <Body blocks={blocks} questions={node.questions} big />
+        <Body
+          blocks={blocks}
+          questions={node.questions}
+          big
+          pictures={{ records: node.images ?? [], url: (file) => imageUrl(node.id, file) }}
+        />
 
         {next !== undefined ? <Next stop={next} goals={goals} known={known} /> : null}
 

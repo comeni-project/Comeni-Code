@@ -7,7 +7,8 @@ import { useState } from "react";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { BlockEditor } from "./BlockEditor";
-import { deleteBlock, type Edit, moveBlock } from "./edits";
+import { deleteBlock, type Edit, moveBlock, removeImage } from "./edits";
+import { ImageAdder } from "./ImageAdder";
 import { firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
 import { RefusalNotice } from "./RefusalNotice";
@@ -35,6 +36,7 @@ const BLANK = {
   callout: { kind: "callout", callout: "misconception", title: "", markdown: "" },
   math: { kind: "math", tex: "" },
   example: { kind: "example", title: "", markdown: "" },
+  image: { kind: "image", file: "", caption: "" },
 } as const satisfies Record<string, Block>;
 const ADDS = [
   ["text", "Add a text block"],
@@ -42,6 +44,7 @@ const ADDS = [
   ["callout", "Add a callout"],
   ["math", "Add a math block"],
   ["example", "Add an example"],
+  ["image", "Add an image"],
 ] as const;
 const TOOL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40";
 
@@ -69,17 +72,20 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
   const last = node.blocks.length - 1;
   const refusal = refusalOf(edit.error);
 
-  const editor = (o: Opened, block: Block) => (
-    <BlockEditor
-      key={`${o.at}:${o.fresh === null ? "edit" : "new"}`}
-      draftId={draftId}
-      at={o.at}
-      insert={o.fresh !== null}
-      initial={block}
-      question={o.question}
-      onClose={() => close(o)}
-    />
-  );
+  const editor = (o: Opened, block: Block) =>
+    o.fresh?.kind === "image" ? (
+      <ImageAdder key={`${o.at}:image`} draftId={draftId} at={o.at} onClose={() => close(o)} />
+    ) : (
+      <BlockEditor
+        key={`${o.at}:${o.fresh === null ? "edit" : "new"}`}
+        draftId={draftId}
+        at={o.at}
+        insert={o.fresh !== null}
+        initial={block}
+        question={o.question}
+        onClose={() => close(o)}
+      />
+    );
   const adder = (at: number) =>
     editable && (
       <div className="group flex items-center gap-2 py-0.5">
@@ -165,14 +171,20 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                   <span className="text-open">
                     {block.kind === "try"
                       ? "Delete this block and its question?"
-                      : "Delete this block?"}
+                      : block.kind === "image"
+                        ? "Delete this image, its record and its file?"
+                        : "Delete this block?"}
                   </span>
                   <button
                     type="button"
                     className="font-semibold text-open"
                     onClick={() => {
                       setConfirming(null);
-                      act([at], deleteBlock);
+                      // An image goes whole: its block, its record and its file (M6IM.3).
+                      act(
+                        [at],
+                        block.kind === "image" ? () => removeImage(block.file) : deleteBlock,
+                      );
                     }}
                   >
                     Delete

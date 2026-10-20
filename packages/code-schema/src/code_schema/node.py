@@ -8,11 +8,11 @@ problem, not two.
 from __future__ import annotations
 
 import difflib
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from code_schema.blocks import Block, Try, parse_blocks
+from code_schema.blocks import Block, Image, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
@@ -24,6 +24,7 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+from code_schema.images import IMAGE_FIELD, IMAGE_FOLDER, ImageRecord, image_problems, parse_images
 
 # Re-exported: every earlier part imports Level from here (M1P1.3).
 from code_schema.levels import Level as Level
@@ -56,6 +57,7 @@ class Node:
     resources: tuple[Resource, ...] = ()
     questions: tuple[TryQuestion, ...] = ()
     exam: tuple[ExamQuestion, ...] = ()  # from exam.yaml, beside node.yaml (spec M4E.1)
+    images: tuple[ImageRecord, ...] = ()  # each file in images/ and its credit (M6IM.1)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -111,7 +113,7 @@ def parse_node(
         return None, sorted(problems, key=Problem.sort_key)
 
     specs = fields(regions)
-    names = [*(spec.name for spec in specs), *LINK_FIELDS, RESOURCE_FIELD, TRY_FIELD]
+    names = [*(spec.name for spec in specs), *LINK_FIELDS, RESOURCE_FIELD, IMAGE_FIELD, TRY_FIELD]
     required = {spec.name for spec in specs if spec.required}
     absent = [name for name in names if name not in data]
     missing = [name for name in absent if name in required]
@@ -152,6 +154,11 @@ def parse_node(
             data[RESOURCE_FIELD], providers=providers, lines=lines, file=file
         )
         problems += resource_problems
+
+    images: tuple[ImageRecord, ...] = ()
+    if IMAGE_FIELD in data:
+        images, image_record_problems = parse_images(data[IMAGE_FIELD], lines=lines, file=file)
+        problems += image_record_problems
 
     questions: tuple[TryQuestion, ...] = ()
     question_problems: list[Problem] = []
@@ -194,6 +201,7 @@ def parse_node(
             related=links["related"],
             resources=resources,
             questions=questions,
+            images=images,
         ),
         [],
     )
@@ -357,6 +365,12 @@ def read_node(
             near_misses.append(
                 Problem(file=f"{where}{EXAM_FILE}", code="CS0022", message=exam_error)
             )
+    image_folder = folder / IMAGE_FOLDER
+    images = (
+        {path.name: path.read_bytes() for path in sorted(image_folder.iterdir()) if path.is_file()}
+        if image_folder.is_dir()
+        else {}
+    )
     node, problems = parse_node_files(
         node_yaml,
         body,
@@ -365,6 +379,7 @@ def read_node(
         regions=regions,
         providers=providers,
         where=where,
+        images=images,
     )
     if not near_misses:
         return node, problems
@@ -383,12 +398,14 @@ def parse_node_files(
     regions: Collection[str],
     providers: dict[str, Provider] | None,
     where: str,
+    images: Mapping[str, bytes] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """A node from its three texts, as a folder holds them (M4.4 spec, M4W.3). Never raises.
 
     `read_node` reads a folder with it, and a draft is read with it, so both are checked by one
     path. `exam_yaml` is None when there is no exam.yaml; `where` is the folder's path, ending
-    in a slash, that each problem's file is named under.
+    in a slash, that each problem's file is named under. `images` is the folder's images/ by
+    name; None skips the files' own checks, when only the texts are at hand (M6IM.1).
     """
     node, problems = parse_node(
         node_yaml,
@@ -402,6 +419,13 @@ def parse_node_files(
     if exam_yaml is not None:
         exam, exam_problems = parse_exam(exam_yaml, file=f"{where}{EXAM_FILE}", node=node)
         problems = [*problems, *exam_problems]
+    if node is not None:
+        # Placed by the body or by an exam stem, as a stem's image is the node's (M6IM.1).
+        stems = [block for question in exam for block in question.blocks]
+        placed = {block.file for block in (*node.blocks, *stems) if isinstance(block, Image)}
+        problems += image_problems(
+            node.images, images, placed, file=f"{where}{NODE_FILE}", where=where
+        )
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems

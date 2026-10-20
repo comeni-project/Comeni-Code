@@ -118,8 +118,32 @@ class ExampleBlockOut(Schema):
     markdown: str
 
 
+class ImageBlockOut(Schema):
+    """An image from the node's images/ folder, and its caption (M6.3 spec, M6IM.1)."""
+
+    kind: Literal["image"]
+    file: str
+    caption: str
+
+
+class ImageRecordOut(Schema):
+    """An image's credit, as node.yaml records it (M6IM.1)."""
+
+    file: str
+    alt: str
+    author: str
+    source: str
+    licence: str
+
+
 AnyBlockOut = (
-    TextBlockOut | TryBlockOut | CalloutBlockOut | SequenceBlockOut | MathBlockOut | ExampleBlockOut
+    TextBlockOut
+    | TryBlockOut
+    | CalloutBlockOut
+    | SequenceBlockOut
+    | MathBlockOut
+    | ExampleBlockOut
+    | ImageBlockOut
 )
 BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
 
@@ -139,6 +163,7 @@ class NodeOut(Schema):
     needed_by: list[SideCardOut]
     resources: list[ResourceOut]
     questions: list[QuestionOut]
+    images: list[ImageRecordOut] = []  # each file's credit; the file at /images/{file} (M6IM.5)
 
 
 class Message(Schema):

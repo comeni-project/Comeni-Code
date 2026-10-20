@@ -17,6 +17,7 @@ from code_api.content.models import (
     IndexBuild,
     Link,
     Node,
+    NodeImage,
     Provider,
     Question,
     Region,
@@ -37,6 +38,7 @@ from code_schema import (
 from code_schema import (
     ExamQuestion as SchemaExamQuestion,
 )
+from code_schema.images import IMAGE_FOLDER, sniff
 from code_schema.providers import REGISTRY as PROVIDER_REGISTRY
 from code_schema.regions import REGISTRY
 
@@ -121,6 +123,30 @@ def _provider_rows(content: Content) -> list[Provider]:
         )
         for position, provider in enumerate(content.providers.values())
     ]
+
+
+def _image_rows(root: Path, content: Content) -> list[NodeImage]:
+    """Each node's images, their records with their files from the folder (M6IM.3)."""
+    rows: list[NodeImage] = []
+    for node in content.nodes.values():
+        folder = root / content.folders[node.id] / IMAGE_FOLDER
+        for position, image in enumerate(node.images):
+            data = (folder / image.file).read_bytes()
+            rows.append(
+                NodeImage(
+                    node_id=node.id,
+                    position=position,
+                    file=image.file,
+                    alt=image.alt,
+                    author=image.author,
+                    source=image.source,
+                    licence=image.licence,
+                    media_type=sniff(data) or "application/octet-stream",
+                    sha256=hashlib.sha256(data).hexdigest(),
+                    data=data,
+                )
+            )
+    return rows
 
 
 def _resource_rows(content: Content) -> list[Resource]:
@@ -234,6 +260,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         Question.objects.all().delete()
         ExamQuestion.objects.all().delete()
         Resource.objects.all().delete()
+        NodeImage.objects.all().delete()
         Node.objects.all().delete()
         Region.objects.all().delete()
         Provider.objects.all().delete()
@@ -242,6 +269,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         Node.objects.bulk_create(_node_rows(content))
         Link.objects.bulk_create(_link_rows(content))
         Resource.objects.bulk_create(_resource_rows(content))
+        NodeImage.objects.bulk_create(_image_rows(root, content))
         Question.objects.bulk_create(_question_rows(content))
         ExamQuestion.objects.bulk_create(_exam_rows(content))
         return IndexBuild.objects.create(

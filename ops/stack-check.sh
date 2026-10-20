@@ -34,3 +34,12 @@ asset=$(printf '%s' "$docs" | grep -o '/static/[^"]*' | head -n 1)
 [ -n "$asset" ] || fail "/api/docs names no /static/ file"
 curl -sf -o /dev/null "$BASE$asset" || fail "$asset did not load"
 echo "ok   /api/docs 200 and $asset loads"
+
+# An image upload of 2 MB passes nginx (#353): Django answers it (401 signed out), never nginx's 413.
+blob=$(mktemp)
+head -c 2200000 /dev/zero > "$blob"
+status=$(curl -s -o /dev/null -w '%{http_code}' -X POST -F "upload=@$blob" \
+  "$BASE/api/studio/drafts/00000000-0000-0000-0000-000000000000/images" || true)
+rm -f "$blob"
+[ "$status" != "413" ] || fail "a 2 MB upload was refused by nginx (413)"
+echo "ok   a 2 MB upload reaches the API ($status)"

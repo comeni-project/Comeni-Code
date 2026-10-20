@@ -156,6 +156,120 @@ describe("ContentTab", () => {
     expect(outline).toHaveTextContent("exampleThree reads");
   });
 
+  it("adds an image from Commons with the credit Commons gives it (M6IM.4)", async () => {
+    const link = "https://commons.wikimedia.org/wiki/File:Kmers.png";
+    const fake = bench({
+      [`GET /api/studio/drafts/commons?link=${encodeURIComponent(link)}`]: {
+        body: {
+          file: "kmers.png",
+          author: "Jane Doe",
+          source: "https://commons.wikimedia.org/wiki/File:Kmers.png",
+          licence: "CC BY-SA 4.0",
+          thumb_url: "https://upload.wikimedia.org/kmers.png",
+        },
+      },
+      "POST /api/studio/drafts/d-1/images/commons": saved(4),
+    });
+    await screen.findByRole("heading", { level: 1 });
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Add an image" })[1] as HTMLElement,
+    );
+    await userEvent.type(screen.getByLabelText("Commons file link"), link);
+    await userEvent.click(screen.getByRole("button", { name: "Look up" }));
+    expect(await screen.findByText(/Jane Doe/)).toBeInTheDocument();
+    expect(screen.getByText(/CC BY-SA 4.0/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Alt text"), "Reads cut into k-mers.");
+    await userEvent.type(screen.getByLabelText("Caption"), "Three reads.");
+    await userEvent.click(screen.getByRole("button", { name: "Add the image" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    expect(sent(fake)).toEqual({
+      at: 1,
+      link,
+      alt: "Reads cut into k-mers.",
+      caption: "Three reads.",
+      revision: 3,
+    });
+  });
+
+  it("uploads an image with the author's credit, as one multipart save (M6IM.4)", async () => {
+    const fake = bench({ "POST /api/studio/drafts/d-1/images": saved(4) });
+    await screen.findByRole("heading", { level: 1 });
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Add an image" })[1] as HTMLElement,
+    );
+    await userEvent.click(screen.getByRole("tab", { name: "Upload" }));
+    const png = new File([new Uint8Array([137, 80, 78, 71])], "My Graph.PNG", {
+      type: "image/png",
+    });
+    await userEvent.upload(screen.getByLabelText("Image file"), png);
+    await userEvent.type(screen.getByLabelText("Alt text"), "A graph.");
+    await userEvent.type(screen.getByLabelText("Caption"), "My drawing.");
+    await userEvent.type(screen.getByLabelText("Author"), "Ada");
+    await userEvent.selectOptions(screen.getByLabelText("Licence"), "CC BY 4.0");
+    await userEvent.click(screen.getByRole("button", { name: "Add the image" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    const form = writes(fake)[0]?.[1]?.body as FormData;
+    expect(form).toBeInstanceOf(FormData);
+    expect(Object.fromEntries([...form.entries()].filter(([k]) => k !== "upload"))).toEqual({
+      file: "my-graph.png",
+      at: "1",
+      alt: "A graph.",
+      caption: "My drawing.",
+      author: "Ada",
+      source: "own work",
+      licence: "CC BY 4.0",
+      revision: "3",
+    });
+    expect(form.get("upload")).toBeInstanceOf(File);
+  });
+
+  it("names an image by its file in the outline, and deletes it whole", async () => {
+    const image = { kind: "image", file: "kmers.png", caption: "Three reads.\n" } as const;
+    const fake = bench({ "DELETE /api/studio/drafts/d-1/images/kmers.png?revision=3": saved(4) }, [
+      image,
+    ]);
+    const outline = await screen.findByRole("navigation", { name: "Outline" });
+    expect(outline).toHaveTextContent("imagekmers.png");
+    await userEvent.click(screen.getByRole("button", { name: "Delete block 1" }));
+    expect(screen.getByText("Delete this image, its record and its file?")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+  });
+
+  it("edits an image's alt text as its record, its caption as its block (M6IM.4)", async () => {
+    const image = { kind: "image", file: "kmers.png", caption: "Three reads.\n" } as const;
+    const record = {
+      file: "kmers.png",
+      alt: "Reads.",
+      author: "Jane Doe",
+      source: "https://commons.wikimedia.org/wiki/File:Kmers.png",
+      licence: "CC BY-SA 4.0",
+    };
+    const fake = bench(
+      {
+        "GET /api/studio/drafts/d-1": {
+          body: { ...DRAFT, node: { ...NODE, blocks: [image], images: [record] } },
+        },
+        "PUT /api/studio/drafts/d-1/images/kmers.png": saved(4, [image]),
+      },
+      [image],
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 1" }));
+    const alt = screen.getByLabelText("Alt text");
+    await userEvent.clear(alt);
+    await userEvent.type(alt, "Three reads cut into k-mers.");
+    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
+    expect(writes(fake)[0]?.[0]).toBe("/api/studio/drafts/d-1/images/kmers.png");
+    expect(sent(fake)).toEqual({
+      alt: "Three reads cut into k-mers.",
+      author: "Jane Doe",
+      source: "https://commons.wikimedia.org/wiki/File:Kmers.png",
+      licence: "CC BY-SA 4.0",
+      revision: 3,
+    });
+  });
+
   it("opens the block you chose once an insert lands, and saves it in its new place (#255)", async () => {
     const alpha = { kind: "callout", callout: "caveat", title: "Alpha", markdown: "A.\n" } as const;
     const beta = { kind: "text", markdown: "Beta." } as const;

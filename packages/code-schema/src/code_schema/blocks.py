@@ -27,7 +27,6 @@ CalloutKind = Literal["misconception", "caveat", "convention"]
 CALLOUTS: tuple[CalloutKind, ...] = get_args(CalloutKind)
 _LATER = {
     "figure": "M6",
-    "image": "M6",
     "problem": "M6",
     "claim": "a later phase",
 }
@@ -78,7 +77,15 @@ class Example:
     markdown: str
 
 
-Block = Text | Try | Callout | SequenceBlock | Math | Example
+@dataclass(frozen=True)
+class Image:
+    """An image from the node's images/ folder, and its caption (M6.3 spec, M6IM.1)."""
+
+    file: str
+    caption: str
+
+
+Block = Text | Try | Callout | SequenceBlock | Math | Example | Image
 
 
 def block_text(block: Block) -> str:
@@ -86,6 +93,8 @@ def block_text(block: Block) -> str:
     match block:
         case Text(markdown=markdown) | Callout(markdown=markdown) | Example(markdown=markdown):
             return markdown
+        case Image(caption=caption):
+            return caption
         case SequenceBlock(letters=letters):
             return letters
         case Math(tex=tex):
@@ -221,6 +230,16 @@ def parse_blocks(
                 blocks.append(Math(tex))
                 starts.append(number)
             continue
+        if name == "image":
+            caption = "".join(inner)
+            if not argument:
+                problem("CS0426", ":::{image} names no file: `:::{image} graph.png`", number)
+            elif not caption.strip():
+                problem("CS0427", f"the image {argument} has no caption", number)
+            else:
+                blocks.append(Image(argument, caption))
+                starts.append(number)
+            continue
         if name == "example":
             markdown = "".join(inner)
             if not argument:
@@ -246,7 +265,7 @@ def parse_blocks(
             )
             continue
         message = f":::{{{name}}} is not a directive this format reads"
-        known = ["try", "sequence", "math", "example", *CALLOUTS]
+        known = ["try", "sequence", "math", "example", "image", *CALLOUTS]
         if close := difflib.get_close_matches(name, known, n=1):
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
@@ -269,6 +288,8 @@ def _formulas(block: Block, start: int) -> list[tuple[str, str, int]]:
         case Text(markdown=markdown):
             first = start
         case Callout(markdown=markdown) | Example(markdown=markdown):
+            first = start + 1
+        case Image(caption=markdown):
             first = start + 1
         case _:
             return []
@@ -299,6 +320,8 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             out.append(f":::{{math}}{newline}{block.tex}:::{newline}")
         elif isinstance(block, Example):
             out.append(f":::{{example}} {block.title}{newline}{block.markdown}:::{newline}")
+        elif isinstance(block, Image):
+            out.append(f":::{{image}} {block.file}{newline}{block.caption}:::{newline}")
         else:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
@@ -320,6 +343,8 @@ def block_json(block: Block) -> dict[str, str]:
             return {"kind": "math", "tex": tex}
         case Example(title=title, markdown=markdown):
             return {"kind": "example", "title": title, "markdown": markdown}
+        case Image(file=file, caption=caption):
+            return {"kind": "image", "file": file, "caption": caption}
 
 
 def block_from_json(stored: dict[str, str]) -> Block:
@@ -335,6 +360,8 @@ def block_from_json(stored: dict[str, str]) -> Block:
             return Math(stored["tex"])
         case "example":
             return Example(stored["title"], stored["markdown"])
+        case "image":
+            return Image(stored["file"], stored["caption"])
         case "callout" if (kind := stored.get("callout")) in CALLOUTS:
             return Callout(kind, stored["title"], stored["markdown"])
         case other:

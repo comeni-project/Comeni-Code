@@ -7,6 +7,7 @@ import type { Block } from "./body";
 import { Callout } from "./Callout";
 import { Example } from "./Example";
 import { Formula } from "./Formula";
+import { Picture, type Pictures } from "./Picture";
 import { componentsFor, Prose } from "./prose";
 import { SequenceBlock } from "./SequenceBlock";
 import { TryQuestion } from "./TryQuestion";
@@ -15,14 +16,18 @@ export function Body({
   blocks,
   questions,
   big = false,
+  pictures,
 }: {
   blocks: Block[];
   questions: QuestionOut[];
   big?: boolean;
+  /** The node's image records and where each file is served; numbered when on a page. */
+  pictures?: Pictures | undefined;
 }) {
   const byId = new Map(questions.map((question) => [question.id, question]));
   const components = componentsFor(big);
   let asked = 0;
+  let figured = 0;
   return (
     <>
       {blocks.map((block, index) => {
@@ -59,6 +64,22 @@ export function Body({
             >
               <Formula tex={block.tex} display />
             </div>
+          );
+        }
+        if (block.kind === "image") {
+          const record = pictures?.records.find((r) => r.file === block.file);
+          if (pictures === undefined || record === undefined) return null; // never without its credit
+          figured += 1;
+          return (
+            <Picture
+              // biome-ignore lint/suspicious/noArrayIndexKey: one file may be placed twice
+              key={`image:${block.file}:${index}`}
+              record={record}
+              src={pictures.url(block.file)}
+              caption={block.caption}
+              number={figured}
+              components={components}
+            />
           );
         }
         if (block.kind === "example") {

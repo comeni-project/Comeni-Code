@@ -1,0 +1,158 @@
+"""Images from Wikimedia Commons (M6.3 spec, M6IM.4), against a recorded answer: the suite never
+calls Commons."""
+
+from typing import Any
+
+import pytest
+import requests
+
+from code_api.studio import commons
+from code_api.studio.commons import CommonsError, fetch, look_up, title_of
+
+LINK = "https://commons.wikimedia.org/wiki/File:De_Bruijn_graph-for_binary_sequence_of_order_4.svg"
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+
+
+def info(
+    licence: str = "CC BY-SA 4.0", artist: str = '<a href="//x">Jane&nbsp;Doe</a>'
+) -> dict[str, Any]:
+    return {
+        "query": {
+            "pages": [
+                {
+                    "title": "File:De Bruijn graph-for binary sequence of order 4.svg",
+                    "imageinfo": [
+                        {
+                            "thumburl": "https://upload.wikimedia.org/thumb/1600px.png",
+                            "thumbmime": "image/png",
+                            "mime": "image/svg+xml",
+                            "url": "https://upload.wikimedia.org/original.svg",
+                            "extmetadata": {
+                                "Artist": {"value": artist},
+                                "LicenseShortName": {"value": licence},
+                            },
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+
+
+class Answer:
+    def __init__(self, *, json: Any = None, content: bytes = b"", status: int = 200) -> None:
+        self._json, self.content, self.status_code = json, content, status
+
+    def raise_for_status(self) -> None:
+        if self.status_code >= 400:
+            raise requests.HTTPError(f"{self.status_code}")
+
+    def json(self) -> Any:
+        return self._json
+
+    def iter_content(self, chunk_size: int = 1) -> Any:
+        for at in range(0, len(self.content), chunk_size):
+            yield self.content[at : at + chunk_size]
+
+    def close(self) -> None:
+        pass
+
+
+class Session:
+    def __init__(self, *answers: Answer) -> None:
+        self.answers = list(answers)
+        self.asked: list[tuple[str, Any]] = []
+        self.options: list[dict[str, Any]] = []
+
+    def get(self, url: str, params: Any = None, timeout: float = 0, **options: Any) -> Answer:
+        assert timeout > 0
+        self.asked.append((url, params))
+        self.options.append(options)
+        return self.answers.pop(0)
+
+
+def test_a_file_page_link_names_its_file() -> None:
+    assert title_of(LINK) == "File:De Bruijn graph-for binary sequence of order 4.svg"
+    with_media = "https://commons.wikimedia.org/wiki/Main_Page#/media/File:Kmers.png"
+    assert title_of(with_media) == "File:Kmers.png"
+    with pytest.raises(CommonsError, match="commons.wikimedia.org"):
+        title_of("https://example.org/File:x.png")
+
+
+def test_the_credit_comes_from_commons() -> None:
+    credit = look_up(LINK, session=Session(Answer(json=info())))  # type: ignore[arg-type]
+    assert credit.author == "Jane Doe"
+    assert credit.licence == "CC BY-SA 4.0"
+    assert credit.source == (
+        "https://commons.wikimedia.org/wiki/File:De_Bruijn_graph-for_binary_sequence_of_order_4.svg"
+    )
+
+
+def test_an_nc_file_is_refused_naming_its_licence() -> None:
+    with pytest.raises(CommonsError, match="CC BY-NC 2.0"):
+        look_up(LINK, session=Session(Answer(json=info("CC BY-NC 2.0"))))  # type: ignore[arg-type]
+
+
+def test_an_svg_original_arrives_as_its_png_rendering() -> None:
+    session = Session(Answer(json=info()), Answer(content=PNG))
+    fetched = fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert fetched.data == PNG
+    assert fetched.credit.file == "de-bruijn-graph-for-binary-sequence-of-order-4.png"
+    assert session.asked[0][1]["iiurlwidth"] == 1600
+
+
+def test_too_large_at_1600_is_fetched_again_at_1000(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(commons, "MAX_IMAGE_BYTES", 32)
+    small = b"\x89PNG\r\n\x1a\n" + b"\x00" * 8
+    session = Session(
+        Answer(json=info()), Answer(content=PNG), Answer(json=info()), Answer(content=small)
+    )
+    fetched = fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert fetched.data == small
+    assert session.asked[2][1]["iiurlwidth"] == 1000
+
+
+def test_a_failure_is_said_in_words() -> None:
+    session = Session(Answer(status=503))
+    with pytest.raises(CommonsError, match="Commons did not answer"):
+        look_up(LINK, session=session)  # type: ignore[arg-type]
+
+
+def test_a_file_without_an_artist_is_credited_to_its_uploader() -> None:
+    # #352: Commons gives no Artist; the uploader is named, and nothing repeats the credit's "via".
+    answer = info()
+    file = answer["query"]["pages"][0]["imageinfo"][0]
+    del file["extmetadata"]["Artist"]
+    file["user"] = "Maksim"
+    credit = look_up(LINK, session=Session(Answer(json=answer)))  # type: ignore[arg-type]
+    assert credit.author == "Maksim (Wikimedia Commons user)"
+
+
+def test_an_attribution_wins_over_the_artist() -> None:
+    answer = info()
+    meta = answer["query"]["pages"][0]["imageinfo"][0]["extmetadata"]
+    meta["Attribution"] = {"value": "Photo: J. Doe / Some Museum"}
+    credit = look_up(LINK, session=Session(Answer(json=answer)))  # type: ignore[arg-type]
+    assert credit.author == "Photo: J. Doe / Some Museum"
+
+
+def test_the_metadata_asks_for_the_uploader() -> None:
+    session = Session(Answer(json=info()))
+    look_up(LINK, session=session)  # type: ignore[arg-type]
+    assert "user" in session.asked[0][1]["iiprop"].split("|")
+
+
+def test_the_image_comes_only_from_wikimedias_upload_host() -> None:
+    # #357: an answer naming another host is never fetched.
+    answer = info()
+    answer["query"]["pages"][0]["imageinfo"][0]["thumburl"] = "https://example.org/x.png"
+    session = Session(Answer(json=answer))
+    with pytest.raises(CommonsError, match="upload.wikimedia.org"):
+        fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert len(session.asked) == 1
+
+
+def test_the_image_is_streamed_without_redirects() -> None:
+    session = Session(Answer(json=info()), Answer(content=PNG))
+    fetch(LINK, session=session)  # type: ignore[arg-type]
+    assert session.options[1] == {"stream": True, "allow_redirects": False}

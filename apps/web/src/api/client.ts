@@ -109,6 +109,22 @@ export async function sendJson<T>(
   return readAnswer<T>(response, accept);
 }
 
+/** A multipart write (an image's file, M6IM.4): the browser sets the boundary, so no
+ * Content-Type is named here; the CSRF header goes as on every write. */
+export async function sendForm<T>(url: string, form: FormData): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { Accept: "application/json", "X-CSRFToken": csrfToken() },
+      body: form,
+    });
+  } catch {
+    throw new ApiUnreachable("network error");
+  }
+  return readAnswer<T>(response, []);
+}
+
 /**
  * What a page prints when a question failed: the API's own sentence when it answered (a 404's
  * "No topic with id …"), else that the API could not be reached, and why.

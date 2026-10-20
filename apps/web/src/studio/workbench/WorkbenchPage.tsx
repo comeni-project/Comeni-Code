@@ -164,7 +164,11 @@ function SidePanel({ draftId, node }: { draftId: string; node: DraftNodeOut }) {
         })}
       </div>
       <div className="p-3.5">
-        {checks ? <ChecksPanel draftId={draftId} /> : <PreviewPanel node={node} />}
+        {checks ? (
+          <ChecksPanel draftId={draftId} />
+        ) : (
+          <PreviewPanel node={node} draftId={draftId} />
+        )}
       </div>
     </aside>
   );

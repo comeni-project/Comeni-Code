@@ -83,6 +83,21 @@ class Resource(models.Model):
     level = models.TextField(choices=[(level.value, level.value) for level in Level])
 
 
+class NodeImage(models.Model):
+    """One image of a node: its record and its file, served to learners (M6.3 spec, M6IM.3)."""
+
+    node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="images")
+    position = models.PositiveIntegerField()
+    file = models.TextField()
+    alt = models.TextField()
+    author = models.TextField()
+    source = models.TextField()
+    licence = models.TextField()
+    media_type = models.TextField()
+    sha256 = models.CharField(max_length=64, default="")  # as a draft names it (#354)
+    data = models.BinaryField()
+
+
 class Question(models.Model):
     """One try question (M3P1.3). Its options and hints are ordered lists inside the row."""
 
