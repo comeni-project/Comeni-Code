@@ -18,11 +18,14 @@ export const imageUrl = (node: string, file: string) =>
   `/api/nodes/${encodeURIComponent(node)}/images/${encodeURIComponent(file)}`;
 
 function Credit({ record }: { record: ImageRecordOut }) {
-  const own = record.source === "own work";
+  const { source } = record;
+  const own = source === "own work";
   const deed = deedOf(record.licence);
+  // A source is optional (#360): without one, the credit is the author and the licence.
+  const from = source === null ? "" : `, ${own ? "own work" : `via ${siteOf(source)}`}`;
   return (
     <span className="text-[12.5px] text-ink-3">
-      {`Image: ${record.author}, ${own ? "own work" : `via ${siteOf(record.source)}`} · `}
+      {`Image: ${record.author}${from} · `}
       {deed === null ? (
         record.licence
       ) : (
@@ -30,10 +33,10 @@ function Credit({ record }: { record: ImageRecordOut }) {
           {record.licence}
         </a>
       )}
-      {!own && (
+      {source !== null && !own && (
         <>
           {" · "}
-          <a href={record.source} target="_blank" rel="noopener noreferrer" className={LINK}>
+          <a href={source} target="_blank" rel="noopener noreferrer" className={LINK}>
             source
           </a>
         </>

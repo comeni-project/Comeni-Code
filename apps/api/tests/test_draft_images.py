@@ -1,6 +1,7 @@
 """A draft's images (M6.3 spec, M6IM.3–M6IM.4): added, replaced, removed and served, each one save.
 Needs Compose's Postgres."""
 
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -310,3 +311,34 @@ def test_a_landed_image_is_the_same_in_review(client: Client) -> None:
         k for k in review_keys(live, image_shas_from_index("de-bruijn-graphs")) if k.kind == "image"
     ]
     assert same(was, now)
+
+
+def test_an_upload_needs_no_source(client: Client) -> None:
+    """#360: author and licence are the credit; a source is optional."""
+    draft = opened(client)
+    form = {key: value for key, value in CREDIT.items() if key != "source"}
+    answer = client.post(
+        f"/api/studio/drafts/{draft}/images",
+        {
+            "revision": 1,
+            "file": "knots.png",
+            "at": 0,
+            "caption": "Where the paths meet.",
+            **form,
+            "upload": SimpleUploadedFile("knots.png", PNG),
+        },
+    )
+    assert answer.status_code == 200, answer.content
+    assert answer.json()["draft"]["node"]["images"] == [
+        {"file": "knots.png", **form, "source": None}
+    ]
+
+
+def test_an_indexed_image_without_a_source_reads_as_none(client: Client, tmp_path: Path) -> None:
+    root = tmp_path / "content"
+    shutil.copytree(FIXTURES, root)
+    record = root / "algorithms" / "de-bruijn-graphs" / "node.yaml"
+    record.write_text(record.read_text().replace("    source: own work\n", ""))
+    rebuild_index(root)
+    images = client.get("/api/nodes/de-bruijn-graphs").json()["images"]
+    assert images[0]["source"] is None

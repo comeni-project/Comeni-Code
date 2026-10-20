@@ -305,7 +305,7 @@ export interface ImageRecordOut {
   author: string;
   file: string;
   licence: string;
-  source: string;
+  source: string | null;
 }
 /**
  * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
@@ -466,7 +466,7 @@ export interface ImageRecordIn {
   author: string;
   licence: string;
   revision: number;
-  source: string;
+  source?: string | null;
 }
 export interface IndexOut {
   behind: boolean;

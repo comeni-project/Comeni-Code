@@ -1054,15 +1054,21 @@
             "type": "integer"
           },
           "source": {
-            "title": "Source",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           }
         },
         "required": [
           "revision",
           "alt",
           "author",
-          "source",
           "licence"
         ],
         "title": "ImageRecordIn",
@@ -1088,8 +1094,15 @@
             "type": "string"
           },
           "source": {
-            "title": "Source",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           }
         },
         "required": [
@@ -5724,8 +5737,15 @@
                     "type": "integer"
                   },
                   "source": {
-                    "title": "Source",
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Source"
                   },
                   "upload": {
                     "format": "binary",
@@ -5741,7 +5761,6 @@
                   "caption",
                   "alt",
                   "author",
-                  "source",
                   "licence"
                 ],
                 "title": "MultiPartBodyParams",

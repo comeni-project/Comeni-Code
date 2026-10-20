@@ -91,7 +91,7 @@ class NodeImage(models.Model):
     file = models.TextField()
     alt = models.TextField()
     author = models.TextField()
-    source = models.TextField()
+    source = models.TextField(null=True)  # optional (#360)
     licence = models.TextField()
     media_type = models.TextField()
     sha256 = models.CharField(max_length=64, default="")  # as a draft names it (#354)

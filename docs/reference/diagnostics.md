@@ -1346,9 +1346,9 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
-**Fix.** Give the https:// page the image came from, or `own work`.
+**Fix.** Give the https:// page the image came from, or `own work`; or leave the source out, since it is optional (#360).
 
-**Why.** A reader can follow the credit to where the image came from (M6IM.1).
+**Why.** A reader can follow the credit to where the image came from (M6IM.1). Author and licence are the credit invariant 6 asks for; a source, when given, must be one a reader can follow.
 
 #### CS0908 — an image is recorded twice
 

@@ -88,7 +88,8 @@ export const addImageFromCommons = (
 export const addImageUpload = (
   at: number,
   upload: Blob,
-  record: { file: string; alt: string; author: string; source: string; licence: string },
+  // A source is optional (#360): none is sent when there is none.
+  record: { file: string; alt: string; author: string; source?: string; licence: string },
   caption: string,
 ): Edit => ({
   method: "POST",
@@ -98,7 +99,7 @@ export const addImageUpload = (
 
 export const editImageRecord = (
   file: string,
-  record: { alt: string; author: string; source: string; licence: string },
+  record: { alt: string; author: string; source: string | null; licence: string },
 ): Edit => ({ method: "PUT", path: `images/${encodeURIComponent(file)}`, body: record });
 
 /** The image whole: its block, its record and its file (M6IM.3). */

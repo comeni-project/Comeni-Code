@@ -132,6 +132,24 @@ def test_own_work_is_a_source(tmp_path: Path) -> None:
     assert codes(tmp_path, record=record, graph_png=PNG) == []
 
 
+SOURCE_LINE = "    source: https://commons.wikimedia.org/wiki/File:Graph.png\n"
+
+
+def test_a_source_is_optional(tmp_path: Path) -> None:
+    """#360: an image needs its author and licence (invariant 6), not where it came from."""
+    node, problems = read_node(
+        folder(tmp_path, record=RECORD.replace(SOURCE_LINE, ""), graph_png=PNG), regions=REGIONS
+    )
+    assert problems == []
+    assert node is not None and node.images[0].source is None
+    assert "source" not in write_node_yaml(node)
+
+
+def test_a_wrong_source_is_still_refused(tmp_path: Path) -> None:
+    record = RECORD.replace(SOURCE_LINE, "    source: ftp://example.org/graph.png\n")
+    assert codes(tmp_path, record=record, graph_png=PNG) == ["CS0907"]
+
+
 def test_formats_are_read_by_their_first_bytes() -> None:
     assert (sniff(PNG), sniff(JPEG), sniff(WEBP), sniff(SVG)) == (
         "image/png",

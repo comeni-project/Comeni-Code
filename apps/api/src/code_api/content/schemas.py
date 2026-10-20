@@ -132,7 +132,7 @@ class ImageRecordOut(Schema):
     file: str
     alt: str
     author: str
-    source: str
+    source: str | None  # optional (#360)
     licence: str
 
 

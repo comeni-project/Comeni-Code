@@ -47,7 +47,7 @@ export function ImageAdder({
   const [alt, setAlt] = useState("");
   const [caption, setCaption] = useState("");
   const [author, setAuthor] = useState("");
-  const [source, setSource] = useState("own work");
+  const [source, setSource] = useState("");
   const [licence, setLicence] = useState<string>(LICENCES[0]);
   const licenceId = useId();
   const fileId = useId();
@@ -78,7 +78,7 @@ export function ImageAdder({
               file: nameFor((upload as File).name, (upload as File).type),
               alt: alt.trim(),
               author: author.trim(),
-              source: source.trim(),
+              ...(source.trim() === "" ? {} : { source: source.trim() }),
               licence,
             },
             caption.trim(),
@@ -158,7 +158,7 @@ export function ImageAdder({
           </div>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Author" value={author} onChange={setAuthor} />
-            <Field label="Source" value={source} onChange={setSource} />
+            <Field label="Source (optional)" value={source} onChange={setSource} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor={licenceId} className="text-[13px] font-medium">

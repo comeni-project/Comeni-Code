@@ -645,7 +645,7 @@ class ImageRecordIn(Schema):
     revision: int
     alt: str
     author: str
-    source: str
+    source: str | None = None  # optional (#360)
     licence: str
 
 
@@ -671,13 +671,14 @@ def add_image(
     caption: Form[str],
     alt: Form[str],
     author: Form[str],
-    source: Form[str],
     licence: Form[str],
+    source: Form[str | None] = None,
 ) -> SaveAnswer:
     """An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4); a
     name the draft already holds takes the next free one, so nothing is replaced (#355)."""
     file = free_name(file, _taken(public_id))
-    record = ImageRecord(file=file, alt=alt, author=author, source=source, licence=licence)
+    # A form sends a field left empty as "": no source (#360).
+    record = ImageRecord(file=file, alt=alt, author=author, source=source or None, licence=licence)
     block = Image(file=file, caption=caption if caption.endswith("\n") else f"{caption}\n")
     data = _uploaded(upload)
     return _edit(

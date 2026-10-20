@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
-from code_schema.images import IMAGE_FIELD
+from code_schema.images import IMAGE_FIELD, ImageRecord
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
 from code_schema.questions import (
@@ -51,6 +51,14 @@ def _literal(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
 
 
 _IndentedDumper.add_representer(str, _literal)
+
+
+def _image(image: ImageRecord) -> dict[str, object]:
+    written: dict[str, object] = {"file": image.file, "alt": image.alt, "author": image.author}
+    if image.source is not None:
+        written["source"] = image.source
+    written["licence"] = image.licence
+    return written
 
 
 def _resource(resource: Resource) -> dict[str, object]:
@@ -155,16 +163,7 @@ def write_node_yaml(node: Node) -> str:
     if node.resources:
         fields[RESOURCE_FIELD] = [_resource(resource) for resource in node.resources]
     if node.images:
-        fields[IMAGE_FIELD] = [
-            {
-                "file": i.file,
-                "alt": i.alt,
-                "author": i.author,
-                "source": i.source,
-                "licence": i.licence,
-            }
-            for i in node.images
-        ]
+        fields[IMAGE_FIELD] = [_image(image) for image in node.images]
     if node.questions:
         fields[TRY_FIELD] = [_question(question) for question in node.questions]
     return _dump(fields)
