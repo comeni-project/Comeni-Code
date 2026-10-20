@@ -13,6 +13,9 @@ from code_figures.findings import BOUND, WRONG, Finding
 NO_COLUMN = "CS1005"  # a field that is no column of the data
 NOT_ITS_TYPE = "CS1006"  # a field whose values are not of its type
 MAX_COLUMNS = 20
+# The series palette has three hues that pass every colour check on both surfaces; a fourth would
+# be cycled, which the colour rules forbid (M6FG.3). One series spends no colour.
+MAX_SERIES = 3
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?$")
 
 STARTER: Mapping[str, object] = {
@@ -73,6 +76,17 @@ def check(data: Mapping[str, object]) -> list[Finding]:
                 found.append(
                     Finding(NOT_ITS_TYPE, f"{at}.field", f"{field} is not {spec.get('type')}")
                 )
+            elif channel == "color":
+                series = {row.get(field) for row in rows} - {None}
+                if len(series) > MAX_SERIES:
+                    found.append(
+                        Finding(
+                            BOUND,
+                            f"{at}.field",
+                            f"{field} names {len(series)} series; a chart colours at most "
+                            f"{MAX_SERIES}",
+                        )
+                    )
     return found
 
 

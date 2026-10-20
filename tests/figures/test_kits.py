@@ -316,3 +316,13 @@ def test_a_track_gives_its_sequence_or_its_length() -> None:
     assert codes("sequence-track", {**TRACK, "sequence": "A" * 121}) == [
         ("CS1004", "data.sequence")
     ]
+
+
+def test_a_chart_colours_at_most_three_series() -> None:
+    """The series palette has three hues that pass every colour check against both surfaces;
+    a fourth would be cycled, which the colour rules forbid (M6FG.3)."""
+    four = [{"k": 3, "kmers": 1, "genome": g} for g in ("a", "b", "c", "d")]
+    assert codes("chart", {**CHART, "data": {"values": four}}) == [
+        ("CS1004", "data.encoding.color.field")
+    ]
+    assert codes("chart", {**CHART, "data": {"values": four[:3]}}) == []
