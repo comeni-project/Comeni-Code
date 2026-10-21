@@ -368,7 +368,7 @@ def test_an_old_marker_is_refused_with_a_pointer() -> None:
 
 
 def test_a_block_problem_is_reported_by_the_node() -> None:
-    _, problems = parse(GOOD, "Prose.\n\n:::{figure} x\n:::\n")
+    _, problems = parse(GOOD, "Prose.\n\n:::{problem} x\n:::\n")
     assert [(problem.file, problem.code) for problem in problems] == [("salmon/body.md", "CS0413")]
 
 
@@ -448,6 +448,7 @@ def test_parse_node_files_reads_a_node_as_its_folder_does() -> None:
         regions=set(content.regions),
         providers=content.providers,
         where=f"{content.folders['tpm']}/",
+        figures={path.name: path.read_text() for path in (folder / "figures").iterdir()},
     )
     assert problems == []
     assert node == content.nodes["tpm"]

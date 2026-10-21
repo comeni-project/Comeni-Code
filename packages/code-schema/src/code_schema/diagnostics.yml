@@ -27,6 +27,7 @@ bands:
   - {first: CS0700, last: CS0799, concern: discovery}
   - {first: CS0800, last: CS0899, concern: exam}
   - {first: CS0900, last: CS0999, concern: images}
+  - {first: CS1000, last: CS1099, concern: figures}
   - {first: CW0001, last: CW0099, concern: routes}
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
@@ -1237,6 +1238,27 @@ codes:
     explanation: |
       A math block holds TeX only; the prose around it says what the formula means (M6MX.1).
 
+  CS0428:
+    emitted_by: schema
+    concern: body
+    says: a figure block names no figure
+    refuses: true
+    fix: |
+      Name the figure's file by its stem: `:::{figure} kmer-counts` for figures/kmer-counts.yaml.
+    explanation: |
+      A figure block places one file of the node's figures/ folder; without its name there is nothing
+      to draw (M6FG.1).
+
+  CS0429:
+    emitted_by: schema
+    concern: body
+    says: a figure has no caption
+    refuses: true
+    fix: |
+      Write one paragraph between the fences saying what the figure shows and why it is here.
+    explanation: |
+      A figure on the page is read with its caption, as an image is (M6FG.1, M6IM.1).
+
   # ── CS0500–CS0599 · the graph ───────────────────────────────────────────────────────────────
 
   CS0501:
@@ -1877,9 +1899,11 @@ codes:
     says: an image's source is not a link or own work
     refuses: true
     fix: |
-      Give the https:// page the image came from, or `own work`.
+      Give the https:// page the image came from, or `own work`; or leave the source out, since it
+      is optional (#360).
     explanation: |
-      A reader can follow the credit to where the image came from (M6IM.1).
+      A reader can follow the credit to where the image came from (M6IM.1). Author and licence are
+      the credit invariant 6 asks for; a source, when given, must be one a reader can follow.
 
   CS0908:
     emitted_by: schema
@@ -1950,6 +1974,211 @@ codes:
       Save it smaller: at most 2 MB.
     explanation: |
       A page loads every image it shows, and the content repository checks sizes (M6IM.2).
+
+  # ── CS1000–CS1099 · figures ──────────────────────────────────────────────────────────────────
+
+  CS1001:
+    emitted_by: schema
+    concern: figures
+    says: a figure names a component nobody built
+    refuses: true
+    fix: |
+      Name one of the components: chart, flow, sequence-track or table. A diagram none of them draws
+      can be an image for now.
+    explanation: |
+      A figure is a library component filled with data (invariant 6); adding a component is
+      engineering work under review, not something a file can do (W5.3, M6FG.2).
+
+  CS1002:
+    emitted_by: schema
+    concern: figures
+    says: a key the component's schema does not allow
+    refuses: true
+    fix: |
+      Remove the key the path names. For a chart, only the allowlisted part of Vega-Lite is read:
+      no links, no loaded data, no expressions, no configuration.
+    explanation: |
+      Each component's schema is closed: anything not in it is refused by its path, so nothing
+      unread reaches the page and a chart can never load, link or run code (M6FG.4).
+
+  CS1003:
+    emitted_by: schema
+    concern: figures
+    says: a figure's value is of the wrong type or form, or missing
+    refuses: true
+    fix: |
+      Give the value the path names in the form the message says.
+    explanation: |
+      The page draws only data its component's schema accepts; the same schema is checked again in the
+      browser (M6FG.2).
+
+  CS1004:
+    emitted_by: schema
+    concern: figures
+    says: a figure's value is past a bound
+    refuses: true
+    fix: |
+      Shorten or trim what the path names to the bound the message gives.
+    explanation: |
+      The bounds keep a figure legible at phone width and quick to draw (W5.3's legibility check,
+      stated as caps; M6FG.3).
+
+  CS1005:
+    emitted_by: schema
+    concern: figures
+    says: a chart names a field that is no column of its data
+    refuses: true
+    fix: |
+      Name a column the rows hold, or add it to the rows.
+    explanation: |
+      A channel draws a column; a field that no row has would draw nothing (M6FG.4).
+
+  CS1006:
+    emitted_by: schema
+    concern: figures
+    says: a chart field's values are not of its type
+    refuses: true
+    fix: |
+      Make the column's values match the type: numbers for quantitative, ISO dates for temporal; or
+      change the type.
+    explanation: |
+      A quantitative axis of words or a time axis of free text draws wrong without saying so
+      (M6FG.4).
+
+  CS1007:
+    emitted_by: schema
+    concern: figures
+    says: a flow's edge or group names nothing
+    refuses: true
+    fix: |
+      Name a node, or a group, that the flow declares.
+    explanation: |
+      An arrow to nowhere cannot be laid out; every end is a box the figure draws (M6FG.3).
+
+  CS1008:
+    emitted_by: schema
+    concern: figures
+    says: a figure uses one id twice
+    refuses: true
+    fix: |
+      Give each node, or each group, its own id.
+    explanation: |
+      An edge names its ends by id; two boxes with one id make the arrow ambiguous (M6FG.3).
+
+  CS1009:
+    emitted_by: schema
+    concern: figures
+    says: a track's feature is outside its sequence
+    refuses: true
+    fix: |
+      Keep each feature within 1 and the sequence's length, and its start at or before its end.
+    explanation: |
+      Positions are 1-based and inclusive, as biologists count; a feature past the end would be
+      drawn off the ruler (M6FG.3).
+
+  CS1010:
+    emitted_by: schema
+    concern: figures
+    says: a track's sequence has letters outside its alphabet
+    refuses: true
+    fix: |
+      Use the alphabet's letters (DNA: ACGTN, RNA: ACGUN, protein: the twenty and X), or change the
+      alphabet.
+    explanation: |
+      A sequence drawn base by base must be one a reader can check (W5.3's biological validity).
+
+  CS1011:
+    emitted_by: schema
+    concern: figures
+    says: a table's row or cell does not match its columns
+    refuses: true
+    fix: |
+      Give each row one cell per column, each of its column's type (an empty cell is null).
+    explanation: |
+      A table is a checked figure: its cells are what its columns say (M6FG.3).
+
+  CS1020:
+    emitted_by: schema
+    concern: figures
+    says: a figure is placed but its file is missing
+    refuses: true
+    fix: |
+      Add figures/<stem>.yaml, or name a figure the folder holds.
+    explanation: |
+      Every placement draws one file of the node's folder (M6FG.1).
+
+  CS1021:
+    emitted_by: schema
+    concern: figures
+    says: a figure file nothing places
+    refuses: true
+    fix: |
+      Place it with `:::{figure} <stem>`, a try question's `figure:`, or an exam stem; or remove the
+      file.
+    explanation: |
+      A folder holds only what its pages use, so nothing lands unseen by a reviewer (M6FG.1).
+
+  CS1022:
+    emitted_by: schema
+    concern: figures
+    says: a figure file or a figure's name is not a stem
+    refuses: true
+    fix: |
+      Name it in lowercase words joined by hyphens: figures/kmer-counts.yaml, `figure: kmer-counts`.
+    explanation: |
+      One spelling for every name keeps placements and files matched (M6FG.1).
+
+  CS1023:
+    emitted_by: schema
+    concern: figures
+    says: a figure file is not a YAML mapping
+    refuses: true
+    fix: |
+      Write the file as a mapping: component, alt, data and, optionally, source.
+    explanation: |
+      A figure file holds one figure; anything else cannot be read (M6FG.1).
+
+  CS1024:
+    emitted_by: schema
+    concern: figures
+    says: a figure has no alt text, or too long a one
+    refuses: true
+    fix: |
+      Say the type of figure, what it shows and its takeaway, in at most 300 characters.
+    explanation: |
+      A reader who cannot see the figure reads its alt text instead; it also stands in when the
+      browser cannot draw it (W4.2, M6FG.4).
+
+  CS1025:
+    emitted_by: schema
+    concern: figures
+    says: a figure file has a key it does not take
+    refuses: true
+    fix: |
+      Keep component, alt, data and source; remove the rest.
+    explanation: |
+      A figure file is closed, as its data is: nothing unread is kept (M6FG.1).
+
+  CS1026:
+    emitted_by: schema
+    concern: figures
+    says: a figure's source is malformed
+    refuses: true
+    fix: |
+      Write source as a mapping with a title, and a url that is an https:// link if there is one.
+    explanation: |
+      A figure is ours by default; a source names where its data came from, and a reader can follow
+      it (M6FG.1).
+
+  CS1027:
+    emitted_by: schema
+    concern: figures
+    says: a figure file is over 64 KB
+    refuses: true
+    fix: |
+      Trim the data; a figure is a drawing, not a dataset.
+    explanation: |
+      A figure is data written by a person or a model, read on every page that shows it (M6FG.1).
 
   # ── CA0001–CA0099 · the index and the read API ──────────────────────────────────────────────
 

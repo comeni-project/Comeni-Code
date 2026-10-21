@@ -42,6 +42,7 @@ try:
   - id: kmers-per-read
     kind: number
     ask: How many 4-mers does an 8-letter transcript contain?
+    figure: kmer-counts
     answer: 5
     hints:
       - Slide a window of width k along the sequence and count the places where it still fits.

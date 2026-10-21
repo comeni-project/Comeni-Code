@@ -206,6 +206,8 @@ describe("ContentTab", () => {
     await userEvent.type(screen.getByLabelText("Caption"), "My drawing.");
     await userEvent.type(screen.getByLabelText("Author"), "Ada");
     await userEvent.selectOptions(screen.getByLabelText("Licence"), "CC BY 4.0");
+    // A source is optional (#360): left empty, it is not sent.
+    expect(screen.getByLabelText("Source (optional)")).toHaveValue("");
     await userEvent.click(screen.getByRole("button", { name: "Add the image" }));
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     const form = writes(fake)[0]?.[1]?.body as FormData;
@@ -216,7 +218,6 @@ describe("ContentTab", () => {
       alt: "A graph.",
       caption: "My drawing.",
       author: "Ada",
-      source: "own work",
       licence: "CC BY 4.0",
       revision: "3",
     });

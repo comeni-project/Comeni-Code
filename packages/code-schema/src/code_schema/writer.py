@@ -12,7 +12,8 @@ from pathlib import Path
 import yaml
 
 from code_schema.exam import EXAM_FIELD, EXAM_FILE, ExamQuestion
-from code_schema.images import IMAGE_FIELD
+from code_schema.figures import FIGURE_FOLDER, figure_texts
+from code_schema.images import IMAGE_FIELD, ImageRecord
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
 from code_schema.questions import (
@@ -51,6 +52,14 @@ def _literal(dumper: yaml.SafeDumper, value: str) -> yaml.ScalarNode:
 
 
 _IndentedDumper.add_representer(str, _literal)
+
+
+def _image(image: ImageRecord) -> dict[str, object]:
+    written: dict[str, object] = {"file": image.file, "alt": image.alt, "author": image.author}
+    if image.source is not None:
+        written["source"] = image.source
+    written["licence"] = image.licence
+    return written
 
 
 def _resource(resource: Resource) -> dict[str, object]:
@@ -105,6 +114,8 @@ def _answer(answer: Answer) -> dict[str, object]:
 def _question(question: TryQuestion) -> dict[str, object]:
     """The spec's field order (M3P1.3); nothing empty is invented."""
     written: dict[str, object] = {"id": question.id, "kind": question.kind, "ask": question.ask}
+    if question.figure is not None:
+        written["figure"] = question.figure
     written |= _answer(question.answer)
     written["hints"] = list(question.hints)
     written["rationale"] = question.rationale
@@ -155,16 +166,7 @@ def write_node_yaml(node: Node) -> str:
     if node.resources:
         fields[RESOURCE_FIELD] = [_resource(resource) for resource in node.resources]
     if node.images:
-        fields[IMAGE_FIELD] = [
-            {
-                "file": i.file,
-                "alt": i.alt,
-                "author": i.author,
-                "source": i.source,
-                "licence": i.licence,
-            }
-            for i in node.images
-        ]
+        fields[IMAGE_FIELD] = [_image(image) for image in node.images]
     if node.questions:
         fields[TRY_FIELD] = [_question(question) for question in node.questions]
     return _dump(fields)
@@ -176,7 +178,7 @@ def write_exam_yaml(node: Node) -> str:
 
 
 def write_node_folder(node: Node, folder: Path) -> None:
-    """Write node.yaml, body.md and, when the node has a pool, exam.yaml (spec M4E.8).
+    """Write node.yaml, body.md, exam.yaml when the node has a pool (spec M4E.8), and figures/.
 
     The body goes back byte for byte: M1 does not look inside it. A node with no pool removes
     exam.yaml, so write only a node read whole by `read_node`: one from `parse_node` never carries
@@ -190,3 +192,14 @@ def write_node_folder(node: Node, folder: Path) -> None:
         exam.write_text(write_exam_yaml(node), encoding="utf-8", newline="\n")
     else:
         exam.unlink(missing_ok=True)  # a pool removed from the node leaves no stale file
+    # Figures as they were written (M6FG.1); a file the node no longer has is removed.
+    figures = folder / FIGURE_FOLDER
+    texts = figure_texts(node.figures)
+    if texts:
+        figures.mkdir(exist_ok=True)
+    for name, text in texts.items():
+        (figures / name).write_text(text, encoding="utf-8", newline="")
+    if figures.is_dir():
+        for stale in figures.iterdir():
+            if stale.name not in texts:
+                stale.unlink()

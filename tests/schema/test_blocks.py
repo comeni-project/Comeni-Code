@@ -86,7 +86,7 @@ def test_a_body_that_starts_and_ends_with_a_directive_has_no_empty_text() -> Non
         (":::{try}\n:::\n", "CS0410", 1),
         (":::{caveat} A\n:::\n", "CS0411", 1),
         (":::{misconseption} A\nText.\n:::\n", "CS0412", 1),
-        (":::{figure} x\n:::\n", "CS0413", 1),
+        (":::{problem} x\n:::\n", "CS0413", 1),
         ("Prose.\n\n{% try base-pairing %}\n", "CS0414", 3),
     ],
 )
@@ -195,8 +195,8 @@ def test_a_callout_is_stored_with_its_kind_as_callout() -> None:
 
 
 def test_a_stored_kind_the_format_does_not_read_is_an_error() -> None:
-    with pytest.raises(ValueError, match="figure"):
-        block_from_json({"kind": "figure", "markdown": "x"})
+    with pytest.raises(ValueError, match="problem"):
+        block_from_json({"kind": "problem", "markdown": "x"})
 
 
 def test_a_stored_callout_of_a_kind_the_format_does_not_read_is_an_error() -> None:

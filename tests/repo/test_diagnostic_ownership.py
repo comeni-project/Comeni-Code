@@ -13,6 +13,8 @@ from code_schema.diagnostics import DIAGNOSTICS
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = {
     "CS": ROOT / "packages" / "code-schema" / "src",
+    # code-figures writes its findings' codes, declared in code-schema's registry (M6FG.2).
+    "CS ": ROOT / "packages" / "code-figures" / "src",
     "CW": ROOT / "packages" / "code-weaver" / "src",
     "CA": ROOT / "apps" / "api" / "src",
 }
@@ -35,7 +37,7 @@ def live() -> set[str]:
 
 def test_each_package_writes_only_its_own_prefix() -> None:
     for prefix, root in SOURCES.items():
-        foreign = sorted(code for code in written(root) if not code.startswith(prefix))
+        foreign = sorted(code for code in written(root) if not code.startswith(prefix.strip()))
         assert foreign == [], f"{root} writes {foreign}"
 
 
@@ -57,3 +59,10 @@ def test_every_declared_code_is_named_by_a_test() -> None:
         for code in MENTION.findall(path.read_text(encoding="utf-8"))
     }
     assert sorted(live() - named) == []
+
+
+def test_code_figures_writes_only_the_figures_band() -> None:
+    from code_figures import CODES
+
+    assert written(SOURCES["CS "]) == set(CODES)
+    assert all(DIAGNOSTICS[code].concern == "figures" for code in CODES)

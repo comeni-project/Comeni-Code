@@ -20,10 +20,25 @@ PACKAGES = ROOT / "packages"
 # Closed allowlists: a package may import exactly these modules, plus its own submodules.
 # Adding one is a reviewed change to this file.
 ALLOWED: Mapping[str, frozenset[str]] = {
+    # M6.4: figure components. `json` reads the schemas kept as data beside the code (M6FG.2).
+    "code-figures": frozenset(
+        {
+            "__future__",
+            "collections.abc",
+            "dataclasses",
+            "json",
+            "math",
+            "pathlib",
+            "re",
+            "typing",
+        }
+    ),
     "code-schema": frozenset(
         {
             "__future__",
             "argparse",
+            # M6.4: a figure's data is checked by its component (M6FG.2).
+            "code_figures",
             "collections.abc",
             "dataclasses",
             "difflib",

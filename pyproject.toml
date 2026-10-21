@@ -40,7 +40,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "apps/api/src/code_api/*/migrations/*.py" = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["code_api", "code_schema", "code_weaver", "guards"]
+known-first-party = ["code_api", "code_figures", "code_schema", "code_weaver", "guards"]
 
 [tool.mypy]
 strict = true

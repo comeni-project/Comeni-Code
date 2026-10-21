@@ -9,6 +9,7 @@ export type Level = "first-steps" | "foundations" | "introductory" | "intermedia
 export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  AddFigureIn: AddFigureIn;
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
@@ -25,6 +26,10 @@ export interface ApiSchemas {
   ExamQuestionIn: ExamQuestionIn;
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
+  FigureBlockOut: FigureBlockOut;
+  FigureOut: FigureOut;
+  FigureSourceOut: FigureSourceOut;
+  FigureTextIn: FigureTextIn;
   FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
   GivenIn: GivenIn;
@@ -90,6 +95,7 @@ export interface ApiSchemas {
   SpanOut: SpanOut;
   StopOut: StopOut;
   StudioExamQuestionOut: StudioExamQuestionOut;
+  StudioFigureOut: StudioFigureOut;
   StudioOptionOut: StudioOptionOut;
   StudioQuestionOut: StudioQuestionOut;
   StudioResourceOut: StudioResourceOut;
@@ -102,6 +108,13 @@ export interface ApiSchemas {
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+}
+export interface AddFigureIn {
+  alt: string;
+  at: number;
+  caption: string;
+  component: string;
+  revision: number;
 }
 export interface ApproveIn {
   reason?: string;
@@ -116,7 +129,7 @@ export interface BlockIn {
   callout?: string;
   caption?: string;
   file?: string;
-  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image";
+  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image" | "figure";
   letters?: string;
   markdown?: string;
   question?: string;
@@ -202,9 +215,11 @@ export interface DraftNodeOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
+  figures?: StudioFigureOut[];
   goes_deeper: LinkOut[];
   images?: ImageRecordOut[];
   level: string;
@@ -258,6 +273,15 @@ export interface ImageBlockOut {
   kind: "image";
 }
 /**
+ * A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);
+ * the page joins it to the node's figures by stem, as images are joined to their records.
+ */
+export interface FigureBlockOut {
+  caption: string;
+  file: string;
+  kind: "figure";
+}
+/**
  * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
  * file holds, and whether the live index holds it unchanged.
  */
@@ -280,6 +304,7 @@ export interface StudioExamQuestionOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   stem_text: string;
   steps: string[] | null;
@@ -293,6 +318,29 @@ export interface StudioOptionOut {
   right: boolean;
   text: string;
 }
+/**
+ * A figure as the workbench edits it: read, and its file's text as written (M6FG.5).
+ */
+export interface StudioFigureOut {
+  alt: string;
+  component: string;
+  data: {
+    [k: string]: unknown;
+  };
+  derived: {
+    [k: string]: unknown;
+  };
+  source: FigureSourceOut | null;
+  stem: string;
+  text: string;
+}
+/**
+ * Where a figure's data came from, when it came from elsewhere (M6FG.1).
+ */
+export interface FigureSourceOut {
+  title: string;
+  url: string | null;
+}
 export interface LinkOut {
   node: string;
   reason: string;
@@ -305,7 +353,7 @@ export interface ImageRecordOut {
   author: string;
   file: string;
   licence: string;
-  source: string;
+  source: string | null;
 }
 /**
  * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
@@ -316,6 +364,7 @@ export interface StudioQuestionOut {
   answer: number | string | null;
   ask: string;
   exact: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: string;
@@ -437,6 +486,26 @@ export interface FieldsIn {
   revision: number;
   title?: string | null;
 }
+/**
+ * A figure's file, read: its component, alt text and data, and what its component computes
+ * from the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5).
+ */
+export interface FigureOut {
+  alt: string;
+  component: string;
+  data: {
+    [k: string]: unknown;
+  };
+  derived: {
+    [k: string]: unknown;
+  };
+  source: FigureSourceOut | null;
+  stem: string;
+}
+export interface FigureTextIn {
+  revision: number;
+  text: string;
+}
 export interface FileChangeOut {
   change: string;
   file: string;
@@ -466,7 +535,7 @@ export interface ImageRecordIn {
   author: string;
   licence: string;
   revision: number;
-  source: string;
+  source?: string | null;
 }
 export interface IndexOut {
   behind: boolean;
@@ -492,6 +561,7 @@ export interface TryQuestionIn {
   answer?: number | string | null;
   ask: string;
   exact?: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: "choice" | "number" | "sequence" | "order";
@@ -591,8 +661,10 @@ export interface NodeOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   claim: string;
+  figures?: FigureOut[];
   folder: string;
   goes_deeper: SideCardOut[];
   id: string;
@@ -630,6 +702,7 @@ export interface QuestionOut {
   answer: number | string | null;
   ask: string;
   exact: boolean;
+  figure?: string | null;
   hints: string[];
   id: string;
   kind: string;
@@ -761,9 +834,11 @@ export interface ReviewContentOut {
         | MathBlockOut
         | ExampleBlockOut
         | ImageBlockOut
+        | FigureBlockOut
       )
     | null;
   fields: ReviewFieldsOut | null;
+  figures?: StudioFigureOut[];
   image?: ImageRecordOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
@@ -805,6 +880,7 @@ export interface ReviewQuestionOut {
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
   )[];
   steps: string[] | null;
   tolerance: number | null;
@@ -826,10 +902,12 @@ export interface ReviewItemOut {
         | MathBlockOut
         | ExampleBlockOut
         | ImageBlockOut
+        | FigureBlockOut
       )
     | null;
   change: string;
   fields: ReviewFieldsOut | null;
+  figures?: StudioFigureOut[];
   image?: ImageRecordOut | null;
   key: string;
   kind: string;

@@ -1,8 +1,10 @@
 // A node's blocks in the identity, each where the author put it (M3P5.5, M4.1.2): text as Markdown,
 // a try as its question, a callout as a boxed note, a sequence in groups of ten (M4Q.2), a formula by
-// KaTeX and a worked example as a titled panel (M6MX.4). A kind it
+// KaTeX, a worked example as a titled panel (M6MX.4), an image and a figure, numbered in one
+// sequence (M6IM.5, M6FG.6). A kind it
 // does not know yet draws nothing.
-import type { QuestionOut } from "../api/schema";
+import type { FigureOut, QuestionOut } from "../api/schema";
+import { Figure } from "../figures/Figure";
 import type { Block } from "./body";
 import { Callout } from "./Callout";
 import { Example } from "./Example";
@@ -17,13 +19,17 @@ export function Body({
   questions,
   big = false,
   pictures,
+  figures = [],
 }: {
   blocks: Block[];
   questions: QuestionOut[];
   big?: boolean;
   /** The node's image records and where each file is served; numbered when on a page. */
   pictures?: Pictures | undefined;
+  /** The node's figures, which figure blocks and try questions name by stem (M6FG.6). */
+  figures?: FigureOut[];
 }) {
+  const drawn = new Map(figures.map((figure) => [figure.stem, figure]));
   const byId = new Map(questions.map((question) => [question.id, question]));
   const components = componentsFor(big);
   let asked = 0;
@@ -82,6 +88,20 @@ export function Body({
             />
           );
         }
+        if (block.kind === "figure") {
+          figured += 1; // figures and images share one sequence (M6IM.5)
+          return (
+            <Figure
+              // biome-ignore lint/suspicious/noArrayIndexKey: one figure may be placed twice
+              key={`figure:${block.file}:${index}`}
+              record={drawn.get(block.file)}
+              stem={block.file}
+              caption={block.caption}
+              number={figured}
+              components={components}
+            />
+          );
+        }
         if (block.kind === "example") {
           return (
             <Example
@@ -98,7 +118,13 @@ export function Body({
         if (question === undefined) return null;
         asked += 1;
         return (
-          <TryQuestion key={`try:${question.id}`} question={question} number={asked} big={big} />
+          <TryQuestion
+            key={`try:${question.id}`}
+            question={question}
+            number={asked}
+            big={big}
+            figure={question.figure ? drawn.get(question.figure) : undefined}
+          />
         );
       })}
     </>

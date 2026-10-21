@@ -1,6 +1,39 @@
 {
   "components": {
     "schemas": {
+      "AddFigureIn": {
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "at": {
+            "title": "At",
+            "type": "integer"
+          },
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "revision",
+          "at",
+          "component",
+          "alt",
+          "caption"
+        ],
+        "title": "AddFigureIn",
+        "type": "object"
+      },
       "ApproveIn": {
         "properties": {
           "reason": {
@@ -45,7 +78,8 @@
               "sequence",
               "math",
               "example",
-              "image"
+              "image",
+              "figure"
             ],
             "title": "Kind",
             "type": "string"
@@ -298,6 +332,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -327,6 +362,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -342,6 +380,14 @@
               "$ref": "#/components/schemas/StudioExamQuestionOut"
             },
             "title": "Exam",
+            "type": "array"
+          },
+          "figures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/StudioFigureOut"
+            },
+            "title": "Figures",
             "type": "array"
           },
           "goes_deeper": {
@@ -925,6 +971,122 @@
         "title": "FieldsIn",
         "type": "object"
       },
+      "FigureBlockOut": {
+        "description": "A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);\nthe page joins it to the node's figures by stem, as images are joined to their records.",
+        "properties": {
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "kind": {
+            "const": "figure",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "file",
+          "caption"
+        ],
+        "title": "FigureBlockOut",
+        "type": "object"
+      },
+      "FigureOut": {
+        "description": "A figure's file, read: its component, alt text and data, and what its component computes\nfrom the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5).",
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "derived": {
+            "additionalProperties": true,
+            "title": "Derived",
+            "type": "object"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureSourceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stem",
+          "component",
+          "alt",
+          "data",
+          "derived",
+          "source"
+        ],
+        "title": "FigureOut",
+        "type": "object"
+      },
+      "FigureSourceOut": {
+        "description": "Where a figure's data came from, when it came from elsewhere (M6FG.1).",
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "title",
+          "url"
+        ],
+        "title": "FigureSourceOut",
+        "type": "object"
+      },
+      "FigureTextIn": {
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "text"
+        ],
+        "title": "FigureTextIn",
+        "type": "object"
+      },
       "FileChangeOut": {
         "properties": {
           "change": {
@@ -1054,15 +1216,21 @@
             "type": "integer"
           },
           "source": {
-            "title": "Source",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           }
         },
         "required": [
           "revision",
           "alt",
           "author",
-          "source",
           "licence"
         ],
         "title": "ImageRecordIn",
@@ -1088,8 +1256,15 @@
             "type": "string"
           },
           "source": {
-            "title": "Source",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
           }
         },
         "required": [
@@ -1671,6 +1846,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -1700,6 +1876,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -1709,6 +1888,14 @@
           "claim": {
             "title": "Claim",
             "type": "string"
+          },
+          "figures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/FigureOut"
+            },
+            "title": "Figures",
+            "type": "array"
           },
           "folder": {
             "title": "Folder",
@@ -2038,6 +2225,17 @@
           "exact": {
             "title": "Exact",
             "type": "boolean"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
           },
           "hints": {
             "items": {
@@ -2623,6 +2821,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
@@ -2652,6 +2851,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ImageBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FigureBlockOut"
                   }
                 ]
               },
@@ -2670,6 +2872,14 @@
                 "type": "null"
               }
             ]
+          },
+          "figures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/StudioFigureOut"
+            },
+            "title": "Figures",
+            "type": "array"
           },
           "image": {
             "anyOf": [
@@ -2789,6 +2999,7 @@
                   "mapping": {
                     "callout": "#/components/schemas/CalloutBlockOut",
                     "example": "#/components/schemas/ExampleBlockOut",
+                    "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
@@ -2818,6 +3029,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/ImageBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/FigureBlockOut"
                   }
                 ]
               },
@@ -2840,6 +3054,14 @@
                 "type": "null"
               }
             ]
+          },
+          "figures": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/StudioFigureOut"
+            },
+            "title": "Figures",
+            "type": "array"
           },
           "image": {
             "anyOf": [
@@ -3031,6 +3253,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -3060,6 +3283,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -3510,6 +3736,7 @@
                 "mapping": {
                   "callout": "#/components/schemas/CalloutBlockOut",
                   "example": "#/components/schemas/ExampleBlockOut",
+                  "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
@@ -3539,6 +3766,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/ImageBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/FigureBlockOut"
                 }
               ]
             },
@@ -3607,6 +3837,58 @@
         "title": "StudioExamQuestionOut",
         "type": "object"
       },
+      "StudioFigureOut": {
+        "description": "A figure as the workbench edits it: read, and its file's text as written (M6FG.5).",
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "derived": {
+            "additionalProperties": true,
+            "title": "Derived",
+            "type": "object"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureSourceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stem",
+          "component",
+          "alt",
+          "data",
+          "derived",
+          "source",
+          "text"
+        ],
+        "title": "StudioFigureOut",
+        "type": "object"
+      },
       "StudioOptionOut": {
         "properties": {
           "misconception": {
@@ -3669,6 +3951,17 @@
           "exact": {
             "title": "Exact",
             "type": "boolean"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
           },
           "hints": {
             "items": {
@@ -3927,6 +4220,17 @@
             "default": false,
             "title": "Exact",
             "type": "boolean"
+          },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
           },
           "hints": {
             "items": {
@@ -5674,6 +5978,257 @@
         ]
       }
     },
+    "/api/studio/drafts/{public_id}/figures": {
+      "post": {
+        "description": "A component's starter data under a free stem, and its block at `at`, as one save.",
+        "operationId": "code_api_studio_api_add_a_figure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFigureIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Add a figure",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/figures/{stem}": {
+      "delete": {
+        "description": "The figure whole: its file, its blocks, a try question's figure and each stem's.",
+        "operationId": "code_api_studio_api_remove_a_figure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stem",
+            "required": true,
+            "schema": {
+              "title": "Stem",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "title": "Revision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Remove a figure",
+        "tags": [
+          "studio"
+        ]
+      },
+      "put": {
+        "operationId": "code_api_studio_api_set_a_figure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "stem",
+            "required": true,
+            "schema": {
+              "title": "Stem",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FigureTextIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Set a figure's file",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
     "/api/studio/drafts/{public_id}/images": {
       "post": {
         "description": "An uploaded image: its file, its record and its block at `at`, as one save (M6IM.4); a\nname the draft already holds takes the next free one, so nothing is replaced (#355).",
@@ -5724,8 +6279,15 @@
                     "type": "integer"
                   },
                   "source": {
-                    "title": "Source",
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Source"
                   },
                   "upload": {
                     "format": "binary",
@@ -5741,7 +6303,6 @@
                   "caption",
                   "alt",
                   "author",
-                  "source",
                   "licence"
                 ],
                 "title": "MultiPartBodyParams",

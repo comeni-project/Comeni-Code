@@ -1,6 +1,8 @@
 # M6.3 — Images
 
 **Status: agreed 2026-10-16; built.** The third part of M6 (#325), issue #330.
+*2026-10-20: an image's `source` is optional (#360), decided in M6.4's spec
+(`2026-10-20-m6-figures-design.md`, M6FG.6a).*
 Designed with the operator on 2026-10-16: **images are stored in the node's folder**, and an author
 adds one **by upload or from Wikimedia Commons**. The rest is the agent's, each marked *my call*.
 From W5.1 (*an asset, alt text, caption, author, source, licence — refused without author and

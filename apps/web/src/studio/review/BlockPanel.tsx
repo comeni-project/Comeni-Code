@@ -6,6 +6,7 @@ import type {
   ReviewContentOut,
   ReviewItemOut,
   ReviewQuestionOut,
+  StudioFigureOut,
 } from "../../api/schema";
 import { Body } from "../../node/Body";
 import { imageUrl } from "../../node/Picture";
@@ -20,6 +21,18 @@ function Links({ name, list }: { name: string; list: { node: string; reason: str
       {list.map((link) => `${link.node} (${link.reason})`).join("; ")}
     </p>
   );
+}
+
+/** Each figure the key shows, by its file's text as written: what a reviewer approves (M6FG.5). */
+function FigureFiles({ figures }: { figures: StudioFigureOut[] }) {
+  return figures.map((figure) => (
+    <div key={figure.stem} className="flex flex-col gap-1">
+      <span className="font-mono text-[12px] text-ink-3">{`figures/${figure.stem}.yaml`}</span>
+      <pre className="overflow-x-auto rounded-[10px] bg-bg px-3.5 py-3 font-mono text-[12.5px] leading-[1.5]">
+        {figure.text}
+      </pre>
+    </div>
+  ));
 }
 
 function Content({ content, url }: { content: ReviewContentOut; url: (file: string) => string }) {
@@ -43,7 +56,9 @@ function Content({ content, url }: { content: ReviewContentOut; url: (file: stri
           blocks={[content.block]}
           questions={[]}
           pictures={content.image ? { records: [content.image], url } : undefined}
+          figures={content.figures ?? []}
         />
+        <FigureFiles figures={content.figures ?? []} />
       </div>
     );
   }
@@ -180,11 +195,15 @@ export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: Revie
       {changes ? (
         <Changes item={item} draft={draft} />
       ) : item.question !== null ? (
-        <ReviewQuestion
-          draftId={draft.public_id}
-          question={item.question}
-          changed={item.change === "changed"}
-        />
+        <>
+          <ReviewQuestion
+            draftId={draft.public_id}
+            question={item.question}
+            figures={item.figures ?? []}
+            changed={item.change === "changed"}
+          />
+          <FigureFiles figures={item.figures ?? []} />
+        </>
       ) : (
         <Content content={item} url={now} />
       )}

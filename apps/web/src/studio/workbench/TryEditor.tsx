@@ -1,6 +1,7 @@
 // A try block's question (M4K.3): the ask, its answer through the editor both pools share
 // (M4P.6; a try option has no misconception, #257), the hints and the rationale. It edits the
-// question BlockEditor holds, which sends it with the block.
+// question BlockEditor holds, which sends it with the block. It may show one of the node's figures
+// above its ask (M6FG.1).
 import { useId } from "react";
 import type { TryQuestionIn } from "../../api/schema";
 import { AnswerEditor, type AnswerFields } from "./AnswerEditor";
@@ -9,9 +10,12 @@ import { BOX, LABEL } from "./bench";
 export function TryEditor({
   question,
   onChange,
+  figures = [],
 }: {
   question: TryQuestionIn;
   onChange: (question: TryQuestionIn) => void;
+  /** The node's figures by stem, which the question may show. */
+  figures?: string[];
 }) {
   const id = useId();
   return (
@@ -24,6 +28,21 @@ export function TryEditor({
           onChange={(e) => onChange({ ...question, ask: e.target.value })}
           className={BOX}
         />
+      </label>
+      <label className={LABEL}>
+        Figure
+        <select
+          value={question.figure ?? ""}
+          onChange={(e) => onChange({ ...question, figure: e.target.value || null })}
+          className={`${BOX} h-10 font-mono text-[13px]`}
+        >
+          <option value="">No figure</option>
+          {figures.map((stem) => (
+            <option key={stem} value={stem}>
+              {stem}
+            </option>
+          ))}
+        </select>
       </label>
       <AnswerEditor
         value={question as TryQuestionIn & AnswerFields}

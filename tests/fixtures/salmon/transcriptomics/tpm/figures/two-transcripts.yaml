@@ -1,0 +1,10 @@
+component: table
+alt: A table of two transcripts, A and B, with their lengths and read counts.
+data:
+  columns:
+    - {name: transcript, type: text}
+    - {name: length, type: number, unit: bases}
+    - {name: reads, type: number}
+  rows:
+    - [A, 1000, 300]
+    - [B, 3000, 300]

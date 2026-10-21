@@ -1,5 +1,10 @@
 // One draft for the workbench's tests (M4.8b): open, revision 3, one text block.
-import type { DraftNodeOut, DraftOut, StudioExamQuestionOut } from "../../api/schema";
+import type {
+  DraftNodeOut,
+  DraftOut,
+  StudioExamQuestionOut,
+  StudioFigureOut,
+} from "../../api/schema";
 
 export const NODE: DraftNodeOut = {
   title: "k-mers",
@@ -65,3 +70,29 @@ export const examQuestion = (
   steps: null,
   rationale: "Because.",
 });
+
+/** A flow figure as Studio sends a draft's (M6FG.5): read, with its file's text as written. */
+export const FLOW_TEXT = `component: flow
+alt: A flow. Reads become k-mers.
+data:
+  nodes:
+    - {id: reads, label: reads}
+    - {id: kmers, label: k-mers}
+  edges:
+    - {from: reads, to: kmers}
+`;
+export const FLOW: StudioFigureOut = {
+  stem: "flow",
+  component: "flow",
+  alt: "A flow. Reads become k-mers.",
+  data: {
+    nodes: [
+      { id: "reads", label: "reads" },
+      { id: "kmers", label: "k-mers" },
+    ],
+    edges: [{ from: "reads", to: "kmers" }],
+  },
+  derived: {},
+  source: null,
+  text: FLOW_TEXT,
+};

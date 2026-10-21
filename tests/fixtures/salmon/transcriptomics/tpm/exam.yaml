@@ -40,6 +40,10 @@ exam:
     kind: number
     stem: |
       A is 1,000 bases long with 300 reads; B is 3,000 bases long with 300 reads; they are the only transcripts. What is A's TPM?
+
+      :::{figure} two-transcripts
+      The two transcripts.
+      :::
     answer: 750000
     unit: TPM
     tolerance: 1

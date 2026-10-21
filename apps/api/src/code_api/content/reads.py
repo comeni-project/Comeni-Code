@@ -16,6 +16,9 @@ from code_api.content.schemas import (
     AnyBlockOut,
     CalloutBlockOut,
     ExampleBlockOut,
+    FigureBlockOut,
+    FigureOut,
+    FigureSourceOut,
     ImageBlockOut,
     ImageRecordOut,
     MathBlockOut,
@@ -40,6 +43,7 @@ from code_api.content.schemas import (
 from code_schema import (
     Callout,
     Example,
+    Figure,
     Image,
     Level,
     Math,
@@ -109,6 +113,8 @@ def _block(stored: dict[str, Any]) -> AnyBlockOut:
             return ExampleBlockOut(kind="example", title=title, markdown=markdown)
         case Image(file=file, caption=caption):
             return ImageBlockOut(kind="image", file=file, caption=caption)
+        case Figure(file=file, caption=caption):
+            return FigureBlockOut(kind="figure", file=file, caption=caption)
 
 
 def _question(question: Question) -> QuestionOut:
@@ -133,12 +139,13 @@ def _question(question: Question) -> QuestionOut:
         steps=list(question.steps) if kind == "order" else None,
         hints=list(question.hints),
         rationale=question.rationale,
+        figure=question.figure,
     )
 
 
 def node(node_id: str) -> NodeOut | None:
-    """One node with its neighbours, resources, questions and image records, in six queries; None
-    on a miss. The image files are served apart, by `image`."""
+    """One node with its neighbours, resources, questions, image records and figures, in seven
+    queries; None on a miss. The image files are served apart, by `image`."""
     found = Node.objects.select_related("region").filter(id=node_id).first()
     if found is None:
         return None
@@ -174,6 +181,17 @@ def node(node_id: str) -> NodeOut | None:
                 licence=image.licence,
             )
             for image in found.images.defer("data").order_by("position")
+        ],
+        figures=[
+            FigureOut(
+                stem=figure.stem,
+                component=figure.component,
+                alt=figure.alt,
+                data=figure.data,
+                derived=figure.derived,
+                source=None if figure.source is None else FigureSourceOut(**figure.source),
+            )
+            for figure in found.figures.defer("text").order_by("position")
         ],
     )
 

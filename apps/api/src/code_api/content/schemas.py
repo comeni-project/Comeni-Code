@@ -4,7 +4,7 @@ The views import their schemas from here, never from one another. The names are 
 what openapi.json and the web app's generated types call them.
 """
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from ninja import Schema
 from pydantic import Field
@@ -75,6 +75,7 @@ class QuestionOut(Schema):
     steps: list[str] | None
     hints: list[str]
     rationale: str
+    figure: str | None = None  # a figure's stem, drawn above the ask (M6FG.1)
 
 
 class TextBlockOut(Schema):
@@ -126,13 +127,41 @@ class ImageBlockOut(Schema):
     caption: str
 
 
+class FigureBlockOut(Schema):
+    """A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);
+    the page joins it to the node's figures by stem, as images are joined to their records."""
+
+    kind: Literal["figure"]
+    file: str
+    caption: str
+
+
+class FigureSourceOut(Schema):
+    """Where a figure's data came from, when it came from elsewhere (M6FG.1)."""
+
+    title: str
+    url: str | None
+
+
+class FigureOut(Schema):
+    """A figure's file, read: its component, alt text and data, and what its component computes
+    from the data (`derived`, as a track's lanes); a figure block names it by stem (M6FG.5)."""
+
+    stem: str
+    component: str
+    alt: str
+    data: dict[str, Any]
+    derived: dict[str, Any]
+    source: FigureSourceOut | None
+
+
 class ImageRecordOut(Schema):
     """An image's credit, as node.yaml records it (M6IM.1)."""
 
     file: str
     alt: str
     author: str
-    source: str
+    source: str | None  # optional (#360)
     licence: str
 
 
@@ -144,6 +173,7 @@ AnyBlockOut = (
     | MathBlockOut
     | ExampleBlockOut
     | ImageBlockOut
+    | FigureBlockOut
 )
 BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
 
@@ -164,6 +194,7 @@ class NodeOut(Schema):
     resources: list[ResourceOut]
     questions: list[QuestionOut]
     images: list[ImageRecordOut] = []  # each file's credit; the file at /images/{file} (M6IM.5)
+    figures: list[FigureOut] = []  # each figure, read; a figure block names one by stem (M6FG.5)
 
 
 class Message(Schema):

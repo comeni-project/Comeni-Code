@@ -1,0 +1,20 @@
+component: flow
+alt: A flow. The transcriptome builds the index; reads are cut into k-mers; both meet at lookup, then equivalence classes, then EM.
+data:
+  nodes:
+    - {id: transcriptome, label: transcriptome}
+    - {id: reads, label: reads}
+    - {id: index, label: index}
+    - {id: kmers, label: k-mers}
+    - {id: lookup, label: lookup, group: quant}
+    - {id: classes, label: equivalence classes, group: quant}
+    - {id: em, label: EM, group: quant}
+  edges:
+    - {from: transcriptome, to: index}
+    - {from: reads, to: kmers}
+    - {from: index, to: lookup}
+    - {from: kmers, to: lookup}
+    - {from: lookup, to: classes}
+    - {from: classes, to: em}
+  groups:
+    - {id: quant, label: salmon quant}

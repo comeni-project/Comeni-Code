@@ -41,7 +41,29 @@ describe("question", () => {
       steps: null,
       hints: ["n − k + 1"],
       rationale: "Each start.",
+      figure: null,
       options: null,
     });
+  });
+});
+
+describe("questionIn keeps a question's figure (#368)", () => {
+  it("sends the figure it was given", () => {
+    const sent = questionIn({
+      id: "kmers-per-read",
+      kind: "number",
+      ask: "How many?",
+      options: null,
+      answer: 96,
+      unit: "",
+      tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
+      hints: [],
+      rationale: "",
+      figure: "kmer-counts",
+    });
+    expect(sent.figure).toBe("kmer-counts");
   });
 });

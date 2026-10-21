@@ -174,6 +174,29 @@ describe("ExamEditor", () => {
     expect(stem.at(-1)).toEqual({ kind: "math", tex: "x^2\n" });
   });
 
+  it("a stem's figure shows by its file, its caption edited, and is sent whole (#369)", async () => {
+    const figure = {
+      kind: "figure",
+      file: "two-transcripts",
+      caption: "Reads and lengths.\n",
+    } as const;
+    const a = { ...examQuestion("a", "draft"), stem: [examQuestion("a", "draft").stem[0], figure] };
+    const fake = renderPool([a as StudioExamQuestionOut], {
+      "PUT /api/studio/drafts/d-1/exam/a": savedWith([a as StudioExamQuestionOut]),
+    });
+    expect(
+      await screen.findByText("two-transcripts", { selector: ".font-mono" }),
+    ).toBeInTheDocument();
+    const caption = screen.getByLabelText("Stem block 2 caption");
+    await userEvent.clear(caption);
+    await userEvent.type(caption, "Two transcripts.");
+    await leave();
+    expect((await bodyOf(fake, "PUT")).question.stem).toEqual([
+      { kind: "text", markdown: "What is a?\n" },
+      { kind: "figure", file: "two-transcripts", caption: "Two transcripts.\n" },
+    ]);
+  });
+
   it("delete question asks first, sends DELETE and opens the first left", async () => {
     const b = examQuestion("b", "draft");
     const fake = renderPool([examQuestion("a", "draft"), b], {

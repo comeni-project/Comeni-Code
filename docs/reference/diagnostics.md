@@ -924,6 +924,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A figure on the page is read with its caption; the board draws every image with one (M6IM.1).
 
+#### CS0428 — a figure block names no figure
+
+*Refuses.*
+
+**Fix.** Name the figure's file by its stem: `:::{figure} kmer-counts` for figures/kmer-counts.yaml.
+
+**Why.** A figure block places one file of the node's figures/ folder; without its name there is nothing to draw (M6FG.1).
+
+#### CS0429 — a figure has no caption
+
+*Refuses.*
+
+**Fix.** Write one paragraph between the fences saying what the figure shows and why it is here.
+
+**Why.** A figure on the page is read with its caption, as an image is (M6FG.1, M6IM.1).
+
 ### CS0500–CS0599 · graph
 
 #### CS0501 — a link names a node the content does not have
@@ -1346,9 +1362,9 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
-**Fix.** Give the https:// page the image came from, or `own work`.
+**Fix.** Give the https:// page the image came from, or `own work`; or leave the source out, since it is optional (#360).
 
-**Why.** A reader can follow the credit to where the image came from (M6IM.1).
+**Why.** A reader can follow the credit to where the image came from (M6IM.1). Author and licence are the credit invariant 6 asks for; a source, when given, must be one a reader can follow.
 
 #### CS0908 — an image is recorded twice
 
@@ -1405,6 +1421,160 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Save it smaller: at most 2 MB.
 
 **Why.** A page loads every image it shows, and the content repository checks sizes (M6IM.2).
+
+### CS1000–CS1099 · figures
+
+#### CS1001 — a figure names a component nobody built
+
+*Refuses.*
+
+**Fix.** Name one of the components: chart, flow, sequence-track or table. A diagram none of them draws can be an image for now.
+
+**Why.** A figure is a library component filled with data (invariant 6); adding a component is engineering work under review, not something a file can do (W5.3, M6FG.2).
+
+#### CS1002 — a key the component's schema does not allow
+
+*Refuses.*
+
+**Fix.** Remove the key the path names. For a chart, only the allowlisted part of Vega-Lite is read: no links, no loaded data, no expressions, no configuration.
+
+**Why.** Each component's schema is closed: anything not in it is refused by its path, so nothing unread reaches the page and a chart can never load, link or run code (M6FG.4).
+
+#### CS1003 — a figure's value is of the wrong type or form, or missing
+
+*Refuses.*
+
+**Fix.** Give the value the path names in the form the message says.
+
+**Why.** The page draws only data its component's schema accepts; the same schema is checked again in the browser (M6FG.2).
+
+#### CS1004 — a figure's value is past a bound
+
+*Refuses.*
+
+**Fix.** Shorten or trim what the path names to the bound the message gives.
+
+**Why.** The bounds keep a figure legible at phone width and quick to draw (W5.3's legibility check, stated as caps; M6FG.3).
+
+#### CS1005 — a chart names a field that is no column of its data
+
+*Refuses.*
+
+**Fix.** Name a column the rows hold, or add it to the rows.
+
+**Why.** A channel draws a column; a field that no row has would draw nothing (M6FG.4).
+
+#### CS1006 — a chart field's values are not of its type
+
+*Refuses.*
+
+**Fix.** Make the column's values match the type: numbers for quantitative, ISO dates for temporal; or change the type.
+
+**Why.** A quantitative axis of words or a time axis of free text draws wrong without saying so (M6FG.4).
+
+#### CS1007 — a flow's edge or group names nothing
+
+*Refuses.*
+
+**Fix.** Name a node, or a group, that the flow declares.
+
+**Why.** An arrow to nowhere cannot be laid out; every end is a box the figure draws (M6FG.3).
+
+#### CS1008 — a figure uses one id twice
+
+*Refuses.*
+
+**Fix.** Give each node, or each group, its own id.
+
+**Why.** An edge names its ends by id; two boxes with one id make the arrow ambiguous (M6FG.3).
+
+#### CS1009 — a track's feature is outside its sequence
+
+*Refuses.*
+
+**Fix.** Keep each feature within 1 and the sequence's length, and its start at or before its end.
+
+**Why.** Positions are 1-based and inclusive, as biologists count; a feature past the end would be drawn off the ruler (M6FG.3).
+
+#### CS1010 — a track's sequence has letters outside its alphabet
+
+*Refuses.*
+
+**Fix.** Use the alphabet's letters (DNA: ACGTN, RNA: ACGUN, protein: the twenty and X), or change the alphabet.
+
+**Why.** A sequence drawn base by base must be one a reader can check (W5.3's biological validity).
+
+#### CS1011 — a table's row or cell does not match its columns
+
+*Refuses.*
+
+**Fix.** Give each row one cell per column, each of its column's type (an empty cell is null).
+
+**Why.** A table is a checked figure: its cells are what its columns say (M6FG.3).
+
+#### CS1020 — a figure is placed but its file is missing
+
+*Refuses.*
+
+**Fix.** Add figures/<stem>.yaml, or name a figure the folder holds.
+
+**Why.** Every placement draws one file of the node's folder (M6FG.1).
+
+#### CS1021 — a figure file nothing places
+
+*Refuses.*
+
+**Fix.** Place it with `:::{figure} <stem>`, a try question's `figure:`, or an exam stem; or remove the file.
+
+**Why.** A folder holds only what its pages use, so nothing lands unseen by a reviewer (M6FG.1).
+
+#### CS1022 — a figure file or a figure's name is not a stem
+
+*Refuses.*
+
+**Fix.** Name it in lowercase words joined by hyphens: figures/kmer-counts.yaml, `figure: kmer-counts`.
+
+**Why.** One spelling for every name keeps placements and files matched (M6FG.1).
+
+#### CS1023 — a figure file is not a YAML mapping
+
+*Refuses.*
+
+**Fix.** Write the file as a mapping: component, alt, data and, optionally, source.
+
+**Why.** A figure file holds one figure; anything else cannot be read (M6FG.1).
+
+#### CS1024 — a figure has no alt text, or too long a one
+
+*Refuses.*
+
+**Fix.** Say the type of figure, what it shows and its takeaway, in at most 300 characters.
+
+**Why.** A reader who cannot see the figure reads its alt text instead; it also stands in when the browser cannot draw it (W4.2, M6FG.4).
+
+#### CS1025 — a figure file has a key it does not take
+
+*Refuses.*
+
+**Fix.** Keep component, alt, data and source; remove the rest.
+
+**Why.** A figure file is closed, as its data is: nothing unread is kept (M6FG.1).
+
+#### CS1026 — a figure's source is malformed
+
+*Refuses.*
+
+**Fix.** Write source as a mapping with a title, and a url that is an https:// link if there is one.
+
+**Why.** A figure is ours by default; a source names where its data came from, and a reader can follow it (M6FG.1).
+
+#### CS1027 — a figure file is over 64 KB
+
+*Refuses.*
+
+**Fix.** Trim the data; a figure is a drawing, not a dataset.
+
+**Why.** A figure is data written by a person or a model, read on every page that shows it (M6FG.1).
 
 ## CW — code-weaver: routes and search
 

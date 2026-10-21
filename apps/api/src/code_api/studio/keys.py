@@ -13,6 +13,8 @@ from code_schema import (
     Callout,
     Example,
     ExamQuestion,
+    Figure,
+    FigureFile,
     Image,
     ImageRecord,
     Math,
@@ -45,6 +47,7 @@ Content = (
     | Math
     | Example
     | Pictured
+    | Figure
     | Resource
     | TryQuestion
     | ExamQuestion
@@ -54,19 +57,30 @@ Content = (
 @dataclass(frozen=True)
 class Key:
     key: str
-    kind: str  # node, text, callout, sequence, math, example, image, try, resource or exam
+    kind: str  # node, text, callout, sequence, math, example, image, figure, try, resource, exam
     content: Content
+    # The figures the key shows, by their files' text: a figure block's own, a try question's, an
+    # exam stem's. A changed file is a changed key, so a verdict does not carry over (M6FG.5).
+    figures: tuple[FigureFile, ...] = ()
 
 
 def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
     """`shas` names each image file's sha256, from the revision the node came from."""
     asked = {question.id: question for question in node.questions}
     records = {record.file: record for record in node.images}
+    drawn = {figure.stem: figure for figure in node.figures}
+
+    def shown(*stems: str | None) -> tuple[FigureFile, ...]:
+        return tuple(drawn[stem] for stem in stems if stem is not None and stem in drawn)
+
     keys = [Key("node", "node", node)]
     for at, block in enumerate(node.blocks):
         match block:
             case Try(question=question_id):
-                keys.append(Key(f"try/{question_id}", "try", asked[question_id]))
+                question = asked[question_id]
+                keys.append(Key(f"try/{question_id}", "try", question, shown(question.figure)))
+            case Figure(file=stem):
+                keys.append(Key(f"block/{at}", "figure", block, shown(stem)))
             case Text():
                 keys.append(Key(f"block/{at}", "text", block))
             case Callout():
@@ -81,11 +95,19 @@ def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
                 seen = Pictured(block, records.get(file), (shas or {}).get(file, ""))
                 keys.append(Key(f"block/{at}", "image", seen))
     keys += [Key(f"resource/{at}", "resource", r) for at, r in enumerate(node.resources)]
-    keys += [Key(f"exam/{question.id}", "exam", question) for question in node.exam]
+    keys += [
+        Key(
+            f"exam/{question.id}",
+            "exam",
+            question,
+            shown(*(b.file for b in question.blocks if isinstance(b, Figure))),
+        )
+        for question in node.exam
+    ]
     return keys
 
 
-BODY = ("text", "callout", "sequence", "math", "example", "image")
+BODY = ("text", "callout", "sequence", "math", "example", "image", "figure")
 LABEL_LENGTH = 60
 _FIELDS = ("title", "claim", "region", "level", "minutes", "needs", "goes_deeper", "related")
 
@@ -111,8 +133,8 @@ def label(key: Key) -> str:
         return _cut(content.tex)
     if isinstance(content, Example):
         return _cut(content.title)
-    if isinstance(content, Pictured):
-        return _cut(content.block.file)
+    if isinstance(content, Pictured | Figure):
+        return _cut(content.block.file if isinstance(content, Pictured) else content.file)
     if isinstance(content, TryQuestion):
         return _cut(content.ask)
     if isinstance(content, ExamQuestion):
@@ -124,7 +146,7 @@ def same(before: Key, after: Key) -> bool:
     """Whether a matched pair reads the same; `node` compares its fields, not its whole body."""
     if isinstance(before.content, Node) and isinstance(after.content, Node):
         return all(getattr(before.content, f) == getattr(after.content, f) for f in _FIELDS)
-    return before.content == after.content
+    return before.content == after.content and before.figures == after.figures
 
 
 def _signature(key: Key) -> str:
@@ -141,6 +163,9 @@ def _signature(key: Key) -> str:
         return f"{content.title}\n{content.markdown}"
     if isinstance(content, Pictured):
         return f"{content.block.file}\n{content.sha256}\n{content.block.caption}"
+    if isinstance(content, Figure):
+        texts = "\n".join(figure.text for figure in key.figures)
+        return f"{content.file}\n{content.caption}\n{texts}"
     return key.key
 
 

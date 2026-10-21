@@ -141,6 +141,15 @@
       "page": "learn"
     },
     {
+      "file": "FigureKits.dc.html",
+      "title": "L5 · Figures — the general kits (M6.4)",
+      "x": 3120,
+      "y": 10440,
+      "w": 1440,
+      "h": 3060,
+      "page": "learn"
+    },
+    {
       "file": "Requests.dc.html",
       "title": "S7 · Requests — a triage queue for dozens",
       "x": 0,
@@ -313,9 +322,18 @@
       "page": "studio"
     },
     {
+      "file": "WorkbenchFigure.dc.html",
+      "title": "S3 · Workbench — a figure block (M6.4)",
+      "x": 1800,
+      "y": 9020,
+      "w": 1680,
+      "h": 1060,
+      "page": "studio"
+    },
+    {
       "file": "Team.dc.html",
       "title": "S14 · Team — members, roles and invites",
-      "x": 1800,
+      "x": 3600,
       "y": 9020,
       "w": 1680,
       "h": 1060,
@@ -472,6 +490,14 @@
       "page": "learn"
     },
     {
+      "id": "note-figurekits",
+      "x": 3120,
+      "y": 10190,
+      "w": 620,
+      "text": "M6.4: the four general kits on a node page, each a library component drawn from a data file in the node’s folder (figures/<name>.yaml): table, chart (Vega-Lite, an allowlisted subset), flow (laid out from nodes and edges) and sequence-track. Figures and images share one Figure N. sequence. A try question may show a figure; answering by the figure is M6.6. A figure whose data fails the browser’s own check is never half-drawn: its alt text stands in.\nOne series spends no colour beyond the categorical palette S16 uses; settled spends none.",
+      "page": "learn"
+    },
+    {
       "id": "note-requests",
       "x": 0,
       "y": -250,
@@ -624,8 +650,16 @@
       "page": "studio"
     },
     {
-      "id": "note-team",
+      "id": "note-workbenchfigure",
       "x": 1800,
+      "y": 8770,
+      "w": 620,
+      "text": "M6.4: a figure block open in Content. Component and file, caption, and the figure’s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). The composer (S4, M6.5) replaces the file editor with a sheet.",
+      "page": "studio"
+    },
+    {
+      "id": "note-team",
+      "x": 3600,
       "y": 8770,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",

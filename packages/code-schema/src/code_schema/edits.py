@@ -13,13 +13,25 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import replace
 
-from code_schema.blocks import Block, Image, Text, Try, block_text, parse_blocks, write_blocks
+from code_figures import COMPONENTS
+from code_schema.blocks import (
+    Block,
+    Figure,
+    Image,
+    Text,
+    Try,
+    block_text,
+    parse_blocks,
+    write_blocks,
+)
 from code_schema.exam import ExamQuestion
-from code_schema.images import ImageRecord
+from code_schema.figures import FIGURE_FOLDER, file_name, read_figure, starter_text
+from code_schema.images import ImageRecord, free_name
 from code_schema.levels import Level
 from code_schema.links import Link
 from code_schema.math import FORMULA_CODES
 from code_schema.node import Node
+from code_schema.problems import Problem
 from code_schema.questions import TryQuestion
 from code_schema.resources import Resource
 
@@ -92,6 +104,78 @@ def remove_image(node: Node, file: str) -> Node:
     return replace(
         _with_blocks(node, kept(node.blocks), list(node.questions)), images=images, exam=exam
     )
+
+
+class FigureRefused(EditError):
+    """A figure's file that would not validate, and why (M6FG.5); nothing is saved."""
+
+    def __init__(self, message: str, problems: Sequence[Problem] = ()) -> None:
+        super().__init__(message)
+        self.problems = list(problems)
+
+
+def _figure_file(stem: str) -> str:
+    return f"{FIGURE_FOLDER}/{file_name(stem)}"
+
+
+def add_figure(node: Node, at: int, component: str, *, alt: str, caption: str) -> Node:
+    """A new figure of `component`: its starter data under a free stem, and its block at `at`."""
+    found = COMPONENTS.get(component)
+    if found is None:
+        raise EditError(f"{component} is not a component ({', '.join(sorted(COMPONENTS))})")
+    taken = {f"{figure.stem}.yaml" for figure in node.figures}
+    stem = free_name(f"{component}.yaml", taken).removesuffix(".yaml")
+    text = starter_text(component, alt, found.starter)
+    figure, problems = read_figure(stem, text, file=_figure_file(stem))
+    if figure is None:
+        raise FigureRefused("the new figure would not validate", problems)
+    block = Figure(stem, caption if caption.endswith("\n") else f"{caption}\n")
+    # In file-name order, as figures/ is read, so the edit reads back as itself.
+    figures = tuple(sorted((*node.figures, figure), key=lambda each: each.name))
+    return insert_block(replace(node, figures=figures), at, block)
+
+
+def set_figure(node: Node, stem: str, text: str) -> Node:
+    """A figure's file replaced by `text`, kept as written; refused unless it validates."""
+    if not any(figure.stem == stem for figure in node.figures):
+        raise FigureRefused(f"this draft has no figure {stem}")
+    figure, problems = read_figure(stem, text, file=_figure_file(stem))
+    if figure is None:
+        raise FigureRefused(f"the figure {stem} would not validate", problems)
+    figures = tuple(figure if each.stem == stem else each for each in node.figures)
+    return replace(node, figures=figures)
+
+
+def remove_figure(node: Node, stem: str) -> Node:
+    """A figure gone whole: its file, every block that places it on the page and in each exam
+    stem, and every try question's `figure` naming it (M6FG.5; #356's lesson)."""
+
+    def kept(blocks: Sequence[Block]) -> list[Block]:
+        return [b for b in blocks if not (isinstance(b, Figure) and b.file == stem)]
+
+    exam = tuple(
+        q if kept(q.blocks) == list(q.blocks) else replace(q, stem=write_faithfully(kept(q.blocks)))
+        for q in node.exam
+    )
+    questions = [replace(q, figure=None) if q.figure == stem else q for q in node.questions]
+    figures = tuple(each for each in node.figures if each.stem != stem)
+    return replace(_with_blocks(node, kept(node.blocks), questions), figures=figures, exam=exam)
+
+
+def placed_figures(node: Node) -> set[str]:
+    """The stems a node places: by its body, its try questions and its exam stems (M6FG.1)."""
+    stems = [block for question in node.exam for block in question.blocks]
+    placed = {b.file for b in (*node.blocks, *stems) if isinstance(b, Figure)}
+    return placed | {q.figure for q in node.questions if q.figure is not None}
+
+
+def without_unplaced_figures(node: Node) -> Node:
+    """A figure goes with its last placement: an edit that removes it, a block or an exam
+    question deleted, leaves no file nothing places (CS1021). A draft's save applies this after
+    every edit, so no edit has to remember it."""
+    placed = placed_figures(node)
+    kept = tuple(figure for figure in node.figures if figure.stem in placed)
+    return node if kept == node.figures else replace(node, figures=kept)
 
 
 def _merged(blocks: Sequence[Block]) -> list[Block]:

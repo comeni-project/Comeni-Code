@@ -22,6 +22,7 @@ IMAGE_FIELD = "images"
 IMAGE_FOLDER = "images"
 MAX_IMAGE_BYTES = 2 * 1024 * 1024
 _KEYS = ("file", "alt", "author", "source", "licence")
+_REQUIRED = ("file", "alt", "author", "licence")  # a source is optional (#360)
 NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\.(png|jpe?g|webp)$")
 _EXTENSION_TYPES = {
     "png": "image/png",
@@ -42,7 +43,7 @@ class ImageRecord:
     file: str
     alt: str
     author: str
-    source: str
+    source: str | None  # an https:// link or `own work`; None when not given (#360)
     licence: str
 
 
@@ -161,7 +162,7 @@ def parse_images(
         entry.unknown(
             _KEYS, "CS0903", lambda key: f"unknown key `{key}` in an image ({', '.join(_KEYS)})"
         )
-        for key in _KEYS:
+        for key in _REQUIRED:
             entry.require(key, "CS0904", f"an image has no {key}")
         name = written.get("file")
         if "file" in written and (not isinstance(name, str) or not NAME.match(name)):
@@ -186,7 +187,7 @@ def parse_images(
                 file=str(written["file"]),
                 alt=str(written["alt"]),
                 author=str(written["author"]),
-                source=str(written["source"]),
+                source=str(written["source"]) if "source" in written else None,
                 licence=str(written["licence"]),
             )
         )

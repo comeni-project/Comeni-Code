@@ -1,0 +1,74 @@
+{
+  "$comment": "A sequence, a ruler and features in lanes (M6.4 spec, M6FG.3). Positions are 1-based and inclusive.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "alphabet": {
+      "enum": [
+        "dna",
+        "rna",
+        "protein"
+      ]
+    },
+    "sequence": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+$",
+      "maxLength": 120
+    },
+    "length": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "features": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "start": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "kind": {
+            "enum": [
+              "exon",
+              "intron",
+              "cds",
+              "utr",
+              "primer",
+              "motif",
+              "region"
+            ]
+          },
+          "strand": {
+            "enum": [
+              "+",
+              "-"
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "label",
+          "kind"
+        ]
+      }
+    }
+  },
+  "required": [
+    "alphabet",
+    "features"
+  ]
+}

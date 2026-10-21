@@ -1,0 +1,24 @@
+component: chart
+alt: A line chart. Distinct k-mers rise with k for both genomes; the simple one levels off by k = 11.
+data:
+  mark: {type: line, point: true}
+  data:
+    values:
+      - {k: 3, genome: simple, kmers: 64}
+      - {k: 5, genome: simple, kmers: 812}
+      - {k: 7, genome: simple, kmers: 3904}
+      - {k: 9, genome: simple, kmers: 6120}
+      - {k: 11, genome: simple, kmers: 6388}
+      - {k: 13, genome: simple, kmers: 6402}
+      - {k: 15, genome: simple, kmers: 6410}
+      - {k: 3, genome: repeat-rich, kmers: 64}
+      - {k: 5, genome: repeat-rich, kmers: 702}
+      - {k: 7, genome: repeat-rich, kmers: 2310}
+      - {k: 9, genome: repeat-rich, kmers: 3120}
+      - {k: 11, genome: repeat-rich, kmers: 3460}
+      - {k: 13, genome: repeat-rich, kmers: 3910}
+      - {k: 15, genome: repeat-rich, kmers: 4380}
+  encoding:
+    x: {field: k, type: quantitative}
+    y: {field: kmers, type: quantitative, title: distinct k-mers}
+    color: {field: genome, type: nominal}

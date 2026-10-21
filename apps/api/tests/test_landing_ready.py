@@ -83,7 +83,11 @@ def test_an_exam_emptied_is_removed(ada: User, grace: User, otto: User) -> None:
         return reduce(lambda m, q: delete_exam_question(m, q.id), n.exam, n)
 
     approve(edited("tpm", empty, ada), grace)
-    assert listed(otto)["tpm"]["files"] == [{"file": "exam", "change": "removed"}]
+    # The stem that placed TPM's table went with its question, and so did the table (M6FG.5).
+    assert listed(otto)["tpm"]["files"] == [
+        {"file": "exam", "change": "removed"},
+        {"file": "figures/two-transcripts.yaml", "change": "removed"},
+    ]
 
 
 def test_a_new_node_is_new_throughout(otto: User) -> None:

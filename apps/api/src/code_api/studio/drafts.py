@@ -27,6 +27,8 @@ from code_api.content.snapshot import (
 from code_api.studio.log import record
 from code_api.studio.models import LIVE_STATES, Asset, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
+from code_schema.edits import without_unplaced_figures
+from code_schema.figures import figure_texts
 from code_schema.graph import graph_problems
 from code_schema.images import sniff
 from code_schema.links import locate_links
@@ -97,6 +99,7 @@ def _read(
     body: str,
     exam: str,
     images: Mapping[str, bytes] | None = None,
+    figures: Mapping[str, str] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """The draft's files read as CI reads a node folder, against the index's registries."""
     return parse_node_files(
@@ -108,6 +111,7 @@ def _read(
         providers=providers_from_index(),
         where=f"{folder}/",
         images={} if images is None else images,
+        figures=figures,
     )
 
 
@@ -157,6 +161,7 @@ def node_of(draft: Draft, revision: Revision | None = None) -> tuple[Node | None
         shown.body_md,
         shown.exam_yaml,
         images_of(shown),
+        shown.figures,
     )
 
 
@@ -178,7 +183,8 @@ def _start(
     images: Mapping[str, bytes] | None = None,
 ) -> Draft:
     node_yaml, body, exam = _files(node)
-    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {})
+    figures = figure_texts(node.figures)
+    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {}, figures)
     if any(problem.refuses for problem in problems):
         raise Refused(problems)
     try:
@@ -193,6 +199,7 @@ def _start(
                 body_md=body,
                 exam_yaml=exam,
                 images=_stored(images or {}),
+                figures=figures,
                 saved_by=by,
                 change=change,
             )
@@ -282,7 +289,7 @@ def save(
         node, problems = node_of(locked, current)
         if node is None:
             raise Refused(problems)  # it no longer reads against today's registries
-        edited = edit(node)
+        edited = without_unplaced_figures(edit(node))
         node_yaml, body, exam = _files(edited)
         files = images_of(current)
         for name, data in (images or {}).items():
@@ -290,7 +297,10 @@ def save(
                 files.pop(name, None)
             else:
                 files[name] = data
-        again, problems = _read(locked.node_id, locked.folder, node_yaml, body, exam, files)
+        figures = figure_texts(edited.figures)
+        again, problems = _read(
+            locked.node_id, locked.folder, node_yaml, body, exam, files, figures
+        )
         if any(problem.refuses for problem in problems):
             raise Refused(problems)
         if again != edited:
@@ -304,6 +314,7 @@ def save(
             body_md=body,
             exam_yaml=exam,
             images=_stored(files),
+            figures=figures,
             saved_by=by,
             change=change,
         )

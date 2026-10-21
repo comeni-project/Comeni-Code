@@ -70,6 +70,8 @@ class Revision(models.Model):
     exam_yaml = models.TextField(blank=True)  # empty: the node has no exam pool
     # Each image file in the node's images/ by name, as its Asset's sha256 (M6.3 spec, M6IM.3).
     images = models.JSONField(default=dict, blank=True)
+    # Each figure file in the node's figures/ by name, as its text: small, so kept here (M6FG.5).
+    figures = models.JSONField(default=dict, blank=True)
     saved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
     )

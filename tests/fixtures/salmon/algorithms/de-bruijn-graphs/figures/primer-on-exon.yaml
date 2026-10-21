@@ -1,0 +1,10 @@
+component: sequence-track
+alt: A sequence track. Two exons with an intron between them; a forward primer sits inside exon 1 and runs past its end.
+data:
+  alphabet: dna
+  sequence: ATGGCGTACGTTAGCCTAGGTAAGTCCATGTTTCAGGATCCAGTACGTTAGGCATCGATAAG
+  features:
+    - {start: 1, end: 20, label: exon 1, kind: exon}
+    - {start: 21, end: 38, label: intron, kind: intron}
+    - {start: 39, end: 62, label: exon 2, kind: exon}
+    - {start: 5, end: 24, label: forward primer, kind: primer, strand: +}

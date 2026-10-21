@@ -25,6 +25,7 @@ from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent, Landing, LandingDraft, Revision
 from code_schema import Problem
 from code_schema.exam import EXAM_FILE
+from code_schema.figures import FIGURE_FOLDER
 from code_schema.images import IMAGE_FOLDER
 from code_schema.node import BODY_FILE, NODE_FILE
 
@@ -231,6 +232,13 @@ def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | by
             files[f"{folder}/{IMAGE_FOLDER}/{name}"] = now[name]
     for name in set(started) - set(revision.images):
         files[f"{folder}/{IMAGE_FOLDER}/{name}"] = None
+    # Figures, as text, the same way (M6FG.5).
+    began = entry.draft.revisions.get(number=1).figures
+    for name, text in revision.figures.items():
+        if began.get(name) != text:
+            files[f"{folder}/{FIGURE_FOLDER}/{name}"] = text
+    for name in set(began) - set(revision.figures):
+        files[f"{folder}/{FIGURE_FOLDER}/{name}"] = None
     return files
 
 
@@ -260,6 +268,13 @@ def changes(first: Revision | None, last: Revision) -> list[tuple[str, str]]:
         if was != is_now:
             change = "new" if was is None else "removed" if is_now is None else "changed"
             found.append((f"{IMAGE_FOLDER}/{name}", change))
+    # Each figure by its text (M6FG.5).
+    began: dict[str, str] = {} if first is None else first.figures
+    for name in sorted(set(began) | set(last.figures)):
+        was, is_now = began.get(name), last.figures.get(name)
+        if was != is_now:
+            change = "new" if was is None else "removed" if is_now is None else "changed"
+            found.append((f"{FIGURE_FOLDER}/{name}", change))
     return found
 
 

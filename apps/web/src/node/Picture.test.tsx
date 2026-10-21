@@ -51,6 +51,19 @@ describe("Picture (M6IM.5)", () => {
     expect((figures[0] as HTMLElement).querySelector(".katex")).not.toBeNull();
   });
 
+  it("draws a credit without a source when none is recorded (#360)", () => {
+    const bare: ImageRecordOut = { ...COMMONS, file: "bare.png", source: null };
+    render(
+      <Body
+        blocks={[{ kind: "image", file: "bare.png", caption: "Bare.\n" }]}
+        questions={[]}
+        pictures={{ records: [bare], url: pictures.url }}
+      />,
+    );
+    expect(screen.getByRole("figure")).toHaveTextContent("Image: Jane Doe · CC BY-SA 3.0 de");
+    expect(screen.queryByRole("link", { name: "source" })).toBeNull();
+  });
+
   it("draws nothing for an image it has no record of", () => {
     const { container } = render(
       <Body blocks={[{ kind: "image", file: "gone.png", caption: "C.\n" }]} questions={[]} />,

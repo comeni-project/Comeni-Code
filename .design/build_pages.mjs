@@ -1278,7 +1278,7 @@ function weaveReview() {
 }
 
 // ── S3 Node workbench — CMS editing: outline · blocks · side panels ─
-// view: an M4.8b tab ({ tab, body }) drawn inside this board's header and preview, without what
+// view: an M4.8b tab ({ tab, body, preview? }) drawn inside this board's header and preview, without what
 // M4.8b leaves out (the writing guide, presence, the submit list open, Problem, Score and the rest).
 function workbench(view) {
   const m4 = view !== undefined;
@@ -1392,7 +1392,7 @@ function workbench(view) {
           ${seg(c, ['Desktop', 'Phone'], 0)}
           ${m4 ? '' : `<span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:${c.ink2}"><span style="width:30px;height:18px;border-radius:9px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF"></span></span>Click to edit</span>`}
         </div>
-        <div style="padding:0 14px 14px;overflow:hidden">${preview}</div>
+        <div style="padding:0 14px 14px;overflow:hidden">${view?.preview ?? preview}</div>
         <div style="margin-top:auto;padding:10px 14px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3};line-height:1.45">${m4 ? 'Drawn in your browser from the saved draft; it changes with each save.' : `Updates as you type. Clicking a block in the preview opens it in the editor. <b style="color:${c.ink2};font-weight:500">History</b> compares this draft with the live version; <b style="color:${c.ink2};font-weight:500">Sources</b> shows which links resolve.`}</div>
       </aside>
     </div>`;
@@ -2408,6 +2408,185 @@ function firstStepsNode() {
   </main>`);
 }
 
+// ── M6.4 general kits — table, chart, flow, sequence-track, each a component filled with data ──
+// The sample numbers are samples. One series spends no colour; two or three take the series
+// tokens (tokens.json: series1–series3), chosen to pass every colour check on both surfaces.
+const K = {
+  table() {
+    const cols = [['k', 'number'], ['distinct k-mers', 'number'], ['branching nodes', 'number'], ['k-mers per 100-base read', 'number']];
+    const rows = [[3, 64, 41, 98], [5, 812, 17, 96], [7, '3,904', 4, 94], [9, '6,120', 1, 92], [11, '6,388', 0, 90]];
+    return `<table style="width:100%;border-collapse:collapse;font-size:13.5px;background:${c.surface};border-radius:10px;overflow:hidden">
+      <thead><tr>${cols.map(([h], i) => `<th style="padding:9px 14px;text-align:${i ? 'right' : 'left'};font-weight:600;font-size:12.5px;color:${c.ink2};border-bottom:1.5px solid ${c.ink2}">${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map((r, j) => `<tr>${r.map((v, i) => `<td style="padding:8px 14px;text-align:${i ? 'right' : 'left'};font-family:${MONO};font-variant-numeric:tabular-nums;color:${c.ink};${j < rows.length - 1 ? `border-bottom:1px solid ${c.border}` : ''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  },
+  chart() {
+    const W = 740, H = 280, L = 56, R = 150, T = 16, B = 40;
+    const ks = [3, 5, 7, 9, 11, 13, 15];
+    const series = [['simple genome', c.series1, [64, 812, 3904, 6120, 6388, 6402, 6410]], ['repeat-rich genome', c.series2, [64, 702, 2310, 3120, 3460, 3910, 4380]]];
+    const x = (k) => L + ((k - 3) / 12) * (W - L - R), y = (v) => T + (1 - v / 7000) * (H - T - B);
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block" role="img">`;
+    [0, 2000, 4000, 6000].forEach((t) => { s += `<line x1="${L}" y1="${y(t)}" x2="${W - R}" y2="${y(t)}" style="stroke:${c.border};stroke-width:1"></line><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">${t.toLocaleString('en')}</text>`; });
+    ks.forEach((k) => { s += `<text x="${x(k)}" y="${H - B + 18}" text-anchor="middle" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">${k}</text>`; });
+    s += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle" style="font-family:${UI};font-size:12px;fill:${c.ink2}">k</text>`;
+    s += `<text x="12" y="${T + 4}" style="font-family:${UI};font-size:12px;fill:${c.ink2}">distinct k-mers</text>`;
+    series.forEach(([name, col, vs]) => {
+      s += `<path d="${vs.map((v, i) => `${i ? 'L' : 'M'}${x(ks[i])} ${y(v)}`).join(' ')}" style="fill:none;stroke:${col};stroke-width:2.2;stroke-linejoin:round"></path>`;
+      vs.forEach((v, i) => { s += `<circle cx="${x(ks[i])}" cy="${y(v)}" r="3.5" style="fill:${c.surface};stroke:${col};stroke-width:2"></circle>`; });
+      s += `<text x="${x(15) + 10}" y="${y(vs[vs.length - 1]) + 4}" style="font-family:${UI};font-size:12px;font-weight:500;fill:${c.ink}">${name}</text>`;
+    });
+    return s + '</svg>';
+  },
+  flow(nodes, edges, { w = 740, h = 200, group } = {}) {
+    // nodes: [id, label lines, x, y]; laid out by layer (dagre in the app), drawn here by hand.
+    const bw = 104, bh = 46, at = Object.fromEntries(nodes.map(([id, , x, y]) => [id, [x, y]]));
+    let s = `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block" role="img"><defs><marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:${c.ink3}"></path></marker></defs>`;
+    if (group) { const [gx, gy, gw, gh, gl] = group; s += `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="12" style="fill:none;stroke:${c.border2};stroke-width:1.5;stroke-dasharray:5 4"></rect><text x="${gx + 12}" y="${gy + gh - 9}" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">${gl}</text>`; }
+    edges.forEach(([a, b]) => {
+      const [x1, y1] = at[a], [x2, y2] = at[b], sx = x1 + bw, sy = y1 + bh / 2, ex = x2 - 2, ey = y2 + bh / 2, mx = (sx + ex) / 2;
+      s += `<path d="M${sx} ${sy} C${mx} ${sy} ${mx} ${ey} ${ex} ${ey}" style="fill:none;stroke:${c.ink3};stroke-width:1.6" marker-end="url(#fa)"></path>`;
+    });
+    nodes.forEach(([, lines, x, y]) => {
+      s += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="9" style="fill:${c.surface};stroke:${c.ink2};stroke-width:1.5"></rect>`;
+      lines.forEach((t, i) => { s += `<text x="${x + bw / 2}" y="${y + bh / 2 + 4 + (i - (lines.length - 1) / 2) * 15}" text-anchor="middle" style="font-family:${UI};font-size:12.5px;fill:${c.ink}">${t}</text>`; });
+    });
+    return s + '</svg>';
+  },
+  track() {
+    const seq = 'ATGGCGTACGTTAGCCTAGGTAAGTCCATGTTTCAGGATCCAGTACGTTAGGCATCGATAA', step = 10.6, X = 40;
+    const xs = (i) => X + i * step;
+    let s = `<svg viewBox="0 0 740 172" width="100%" style="display:block" role="img">`;
+    for (let i = 0; i <= seq.length; i += 10) s += `<line x1="${xs(i)}" y1="22" x2="${xs(i)}" y2="30" style="stroke:${c.ink3};stroke-width:1"></line><text x="${xs(i)}" y="16" text-anchor="middle" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">${i + 1}</text>`;
+    s += `<line x1="${xs(0)}" y1="30" x2="${xs(seq.length)}" y2="30" style="stroke:${c.ink3};stroke-width:1"></line>`;
+    [...seq].forEach((ch, i) => { s += `<text x="${xs(i) + step / 2}" y="50" text-anchor="middle" style="font-family:${MONO};font-size:11px;fill:${c.ink}">${ch}</text>`; });
+    // lane 0: the gene model (exons as boxes, the intron as a line); lane 1: a primer that overlaps exon 1
+    const lane = (n) => 76 + n * 44;
+    const feat = (a, b, n, kind, lab) => {
+      const x1 = xs(a), x2 = xs(b + 1), yy = lane(n);
+      const body = kind === 'exon' ? `<rect x="${x1}" y="${yy}" width="${x2 - x1}" height="16" rx="3" style="fill:${c.exon};stroke:${c.ink2};stroke-width:1.2"></rect>`
+        : kind === 'intron' ? `<path d="M${x1} ${yy + 8} L${(x1 + x2) / 2} ${yy} L${x2} ${yy + 8}" style="fill:none;stroke:${c.ink2};stroke-width:1.4"></path>`
+        : `<path d="M${x1} ${yy + 2} H${x2 - 8} L${x2} ${yy + 8} L${x2 - 8} ${yy + 14} H${x1} Z" style="fill:${c.surface};stroke:${c.ink2};stroke-width:1.4"></path>`;
+      return `${body}<text x="${x1}" y="${yy + 32}" style="font-family:${UI};font-size:11.5px;fill:${c.ink2}">${lab} <tspan style="font-family:${MONO};fill:${c.ink3}">${a + 1}–${b + 1}</tspan></text>`;
+    };
+    s += feat(0, 19, 0, 'exon', 'exon 1') + feat(20, 37, 0, 'intron', 'intron') + feat(38, 61, 0, 'exon', 'exon 2') + feat(4, 23, 1, 'primer', 'forward primer');
+    return s + '</svg>';
+  },
+};
+const SALMON_FLOW = [[['tx', ['transcriptome'], 0, 18], ['reads', ['reads'], 0, 120], ['index', ['index'], 150, 18], ['kmers', ['k-mers'], 150, 120], ['look', ['lookup'], 316, 70], ['eq', ['equivalence', 'classes'], 456, 70], ['em', ['EM'], 596, 70]],
+  [['tx', 'index'], ['reads', 'kmers'], ['index', 'look'], ['kmers', 'look'], ['look', 'eq'], ['eq', 'em']]];
+const kitTag = (s) => blockTag(s).replace('{{ tags }}', 'inline-flex');
+const kitFigure = (tag, n, body, caption, { plain = false } = {}) => figureBlock(tag, `Figure ${n}.`, body, caption)
+  .replace('{{ tags }}', 'inline-flex')
+  .replace(`${gridBg(c)};border:1px solid ${c.border};border-radius:12px;padding:14px 18px 10px`, plain ? `border:1px solid ${c.border};border-radius:12px;padding:0;overflow:hidden` : `${gridBg(c)};border:1px solid ${c.border};border-radius:12px;padding:14px 18px 10px`);
+
+function figureKits() {
+  const H2 = (s) => `<h2 style="margin:10px 0 0;font-size:23px;font-weight:600;letter-spacing:-.01em">${s}</h2>`;
+  const choice = (s) => `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14.5px">${s}</div>`;
+  const body = `${learnBar()}
+  <main style="flex:1;display:grid;grid-template-columns:200px minmax(0, 1fr) 290px;gap:40px;padding:30px 36px;min-height:0">
+    <nav style="display:flex;flex-direction:column;gap:1px;padding-top:4px">
+      <span style="${label(c)};padding-bottom:8px">On this page</span>
+      ${['Counting k-mers', 'As k grows', 'Where it fits', 'Try it', 'Reading a gene', 'When a figure fails'].map((t, i) => `<span style="padding:5px 10px;border-left:2px solid ${i === 1 ? c.line : c.border};font-size:13px;color:${i === 1 ? c.ink : c.ink2};font-weight:${i === 1 ? 600 : 400}">${t}</span>`).join('')}
+    </nav>
+    <article style="display:flex;flex-direction:column;gap:20px;min-width:0;max-width:800px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13px;color:${c.ink3}">Algorithms › Choosing k</span>
+        ${h1('Choosing k', 42)}
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">${levelTag('Intermediate')}<span style="font-size:13.5px;color:${c.ink2}">About 15 min with the questions</span></div>
+      </div>
+
+      ${H2('Counting k-mers')}
+      ${p('Small k makes every k-mer common, so the graph branches everywhere; large k makes k-mers unique, but each read yields fewer of them. The table counts both for one small genome.')}
+      ${kitFigure(':::{figure} kmer-counts', 1, K.table(), 'Distinct k-mers and branching nodes for one 6,400-base genome. Drawn by the <span style="font-family:' + MONO + ';font-size:12px">table</span> component; every number is in its data file.', { plain: true })}
+
+      ${H2('As k grows')}
+      ${p('In a genome without long repeats the count levels off once k-mers are unique. Repeats keep it climbing: a k-mer inside a repeat stays shared until k is longer than the repeat.')}
+      ${kitFigure(':::{figure} kmers-by-k', 2, K.chart(), 'Distinct k-mers as k grows, for two genomes of the same length. A <span style="font-family:' + MONO + ';font-size:12px">chart</span>: a Vega-Lite line chart from 14 rows of data.')}
+
+      ${H2('Where it fits')}
+      ${p('Salmon chooses k once, when it builds the index; every read is then cut into k-mers of the same length and looked up.')}
+      ${kitFigure(':::{figure} salmon-steps', 3, K.flow(...SALMON_FLOW, { h: 190, group: [300, 56, 420, 100, 'salmon quant'] }), 'Where k is used in Salmon. A <span style="font-family:' + MONO + ';font-size:12px">flow</span>: seven boxes and six arrows, laid out from the data.')}
+
+      ${H2('Try it')}
+      <div style="display:flex;flex-direction:column;gap:6px">${kitTag(':::{try} where-k-is-chosen')}
+        <div style="display:flex;flex-direction:column;gap:14px;padding:18px 20px;border-radius:12px;border:1px solid ${c.border2};background:${c.surface}">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:12px;border:1.5px solid ${c.sel};color:${c.sel}">2</span><span style="font-size:15.5px;font-weight:600">In the steps above, where is k fixed for good?</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px">${kitTag(':::{figure} salmon-steps')}<div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:10px 16px">${K.flow(...SALMON_FLOW, { h: 190 })}</div><span style="font-size:12.5px;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Figure 4.</b> The same steps, without the grouping.</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px">${choice('When reads are cut into k-mers')}${choice('When the index is built')}${choice('In the EM step')}</div>
+          <span style="font-size:12.5px;color:${c.ink3}">A figure in a question is drawn as it is on the page; answering by the figure itself comes later (M6.6).</span>
+        </div>
+      </div>
+
+      ${H2('Reading a gene')}
+      ${p('A primer is chosen inside an exon so the sequence it binds is in the transcript as well as the genome.')}
+      ${kitFigure(':::{figure} primer-on-exon', 5, K.track(), 'A 62-base stretch with two exons and a forward primer. A <span style="font-family:' + MONO + ';font-size:12px">sequence-track</span>: the sequence and four features; overlapping features take a second lane.')}
+
+      ${H2('When a figure fails')}
+      ${p('The browser checks a figure’s data again before drawing it. If the check fails, nothing is half-drawn: the alt text stands in, and the caption stays.')}
+      <figure style="margin:0;display:flex;flex-direction:column;gap:8px">${kitTag(':::{figure} kmers-by-k')}
+        <div style="display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-radius:12px;border:1.5px dashed ${c.border2};background:${c.surface}">
+          <span style="font-size:13.5px;font-weight:600">This figure could not be drawn.</span>
+          <span style="font-size:13.5px;line-height:1.55;color:${c.ink2}">A line chart: distinct k-mers rise with k for both genomes; the simple one levels off by k = 11, the repeat-rich one keeps climbing.</span>
+        </div>
+        <figcaption style="font-size:13px;color:${c.ink2};line-height:1.5"><b style="color:${c.ink};font-weight:600">Figure 6.</b> Distinct k-mers as k grows, for two genomes of the same length.</figcaption>
+      </figure>
+    </article>
+    <aside style="display:flex;flex-direction:column;gap:14px">
+      ${card(`<span style="font-size:14px;font-weight:600">About the figures</span><span style="font-size:13px;line-height:1.55;color:${c.ink2}">Every figure here is drawn by a library component from a data file in the page’s folder. Their numbers are in the data; nothing is a picture.</span>`)}
+    </aside>
+  </main>`;
+  return page(1440, 3060, body);
+}
+
+// The workbench with a figure block open: the M6.4 editor until the composer (M6.5) replaces it.
+function benchFigure() {
+  const yaml = `component: chart
+alt: A line chart. Distinct k-mers rise with k for
+  both genomes; the simple one levels off by k = 11.
+data:
+  mark: {type: line, point: true}
+  data:
+    values:
+      - {k: 3, genome: simple, kmers: 64}
+      - {k: 5, genome: simple, kmers: 812}
+      # … 12 more rows
+  encoding:
+    x: {field: k, type: quantitative}
+    y: {field: kmers, type: quantitative,
+        title: distinct k-mers}
+    color: {field: genome, type: nominal}
+<span style="background:${c.openSoft};border-bottom:2px dotted ${c.open}">    href: {field: source}</span>`;
+  const problem = (code, path, msg) => `<div style="display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:${c.openSoft}"><span style="margin-top:1px;color:${c.open}">${ic.close}</span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:600;color:${c.open}">${msg}</span><span style="font-family:${MONO};font-size:12px;color:${c.ink2}">${code} · ${path}</span></div></div>`;
+  const ok = (t) => `<div style="display:flex;gap:9px;align-items:center;padding:4px 10px;font-size:13px;color:${c.ink2}">${ic.check(c.ink2)}${t}</div>`;
+  return benchBody(`
+    <div style="${benchCard}">
+      <div style="display:flex;align-items:center;gap:10px"><span style="font-family:${MONO};font-size:11px;padding:1px 7px;border-radius:5px;background:${c.bg};border:1px solid ${c.border};color:${c.ink2}">figure</span><span style="font-size:14px;font-weight:600;flex:1">kmers-by-k · Figure 2</span>${redTag('1 problem')}</div>
+      <div style="display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:14px">
+        ${benchSelect('Component', ['chart — a Vega-Lite chart', 'table', 'flow', 'sequence-track'])}
+        ${benchField('File', 'kmers-by-k', { mono: true, hint: 'figures/kmers-by-k.yaml in the node’s folder' })}
+      </div>
+      ${benchArea('Caption', 'Distinct k-mers as k grows, for two genomes of the same length.')}
+      <label style="${benchLabel}">The figure’s file<pre style="margin:0;padding:12px 14px;border-radius:10px;border:1px solid ${c.open};background:${c.surface};font-family:${MONO};font-size:12.5px;font-weight:400;line-height:1.6;color:${c.ink};white-space:pre-wrap">${yaml}</pre>
+        <span style="${benchHint}">Saved when you leave it. The composer (M6.5) will edit this as a sheet; until then it is the file itself.</span></label>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:13px;font-weight:600">Checks</span>
+        ${problem('CS09xx', 'data.encoding.href', 'A chart cannot link out: href is not allowed')}
+        ${ok('The component exists, and its data has every field it needs')}
+        ${ok('Inline data only: 14 rows of at most 2,000')}
+        ${ok('Every field the encoding names is a column of the data')}
+        ${ok('Alt text written')}
+      </div>
+      <div style="display:flex;gap:8px">${benchBtn('Remove the figure', c.open)}</div>
+    </div>`);
+}
+const benchFigurePreview = () => `<div style="border-radius:10px;border:1px solid ${c.border};background:${c.bg};overflow:hidden">
+    <div style="height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-bottom:1px solid ${c.border};background:${c.surface}">${logo(c, '')}<span style="font-size:11px;color:${c.ink3}">de Bruijn graphs · preview of your draft</span></div>
+    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+      <span style="font-size:15px;font-weight:600">Cost and choosing k</span>
+      <span style="font-size:12.5px;line-height:1.6;color:${c.ink2}">In a genome without long repeats the count levels off once k-mers are unique…</span>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:10px;border:1.5px dashed ${c.border2};background:${c.surface}"><span style="font-size:12.5px;font-weight:600">This figure could not be drawn.</span><span style="font-size:12px;color:${c.ink2};line-height:1.5">Fix the problem in Checks; the last saved figure stays on the page until then.</span></div>
+      <span style="font-size:12px;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Figure 2.</b> Distinct k-mers as k grows, for two genomes of the same length.</span>
+    </div></div>`;
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -2424,6 +2603,7 @@ const LEARN = [
   ['AccountMenu', 'Account menu', account(), 320, 420, 'Opened from the avatar on every learner page: knowledge, solved problems, routes, theme, and Studio for the team.'],
   ['SignIn', 'L14 · Sign in — one button per configured provider', signIn(), 1440, 860, 'Reached from: Sign in in the top bar (signed out), Studio while signed out (with ?next=).\nLeads to: where you came from.\nM4.8a: the provider buttons come from allauth\u2019s config, one generic button each (GitHub today, ORCID when its keys are set); email and password below. Create an account leads to Join.'],
   ['Join', 'L15 · Join — with an invite, and without', join(), 1440, 860, 'Reached from: an invite email (/join/<token>), Create an account (/join), a GitHub sign-in Code doesn\u2019t know (/sign-in/error).\nM4.8a: sign-up is invite-only until learner accounts open; one component says so honestly for every way in. The invite fixes the address and the role.'],
+  ['FigureKits', 'L5 · Figures — the general kits (M6.4)', figureKits(), 1440, 3060, 'M6.4: the four general kits on a node page, each a library component drawn from a data file in the node\u2019s folder (figures/<name>.yaml): table, chart (Vega-Lite, an allowlisted subset), flow (laid out from nodes and edges) and sequence-track. Figures and images share one Figure N. sequence. A try question may show a figure; answering by the figure is M6.6. A figure whose data fails the browser\u2019s own check is never half-drawn: its alt text stands in.\nOne series spends no colour beyond the categorical palette S16 uses; settled spends none.'],
 ];
 const STUDIO = [
   ['Requests', 'S7 · Requests — a triage queue for dozens', requests(), 1680, 1000, 'Reached from: Inbox, the rail.\nLeads to: Implementing (accept), an existing node (merge), or a declined note the learner sees.\nSaved views, filters with counts, a dense table with duplicates collapsed, a detail pane, a bulk bar and one-key decisions (Linear’s triage pattern). The model proposes and groups; only a person moves a request, and each decision is logged.'],
@@ -2445,6 +2625,7 @@ const STUDIO = [
   ['WorkbenchSettings', 'S3 · Workbench — Settings', workbench({ tab: 'Settings', body: benchSettings() }), 1680, 1060, 'M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.'],
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
   ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
+  ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). The composer (S4, M6.5) replaces the file editor with a sheet.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [
