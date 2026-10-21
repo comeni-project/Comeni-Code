@@ -123,3 +123,14 @@ def test_a_figure_goes_with_its_last_placement() -> None:
     reread(gone)
     kept = without_unplaced_figures(added())
     assert sorted(figure.stem for figure in kept.figures) == ["flow", "two-transcripts"]
+
+
+def test_a_figure_that_is_a_stems_only_block_is_not_removed() -> None:
+    """#377, decided A: the stem would be empty (CS0816), so the removal is refused up front,
+    naming the question; the author edits or deletes it first."""
+    from code_schema.edits import EditError
+
+    alone = replace(TPM.exam[0], stem=":::{figure} flow\nThe flow alone.\n:::\n")
+    tpm = reread(replace(added(), exam=(alone, *TPM.exam[1:])))
+    with pytest.raises(EditError, match=f"the exam question {alone.id}"):
+        remove_figure(tpm, "flow")

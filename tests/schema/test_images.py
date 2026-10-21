@@ -220,6 +220,28 @@ def test_removing_an_image_takes_it_from_the_body_and_every_stem(tmp_path: Path)
     assert gone.exam[0].stem == "How many paths?\n\n"
 
 
+def test_an_image_that_is_a_stems_only_block_is_not_removed(tmp_path: Path) -> None:
+    """#377, decided A: the stem would be empty, so the removal is refused, naming the question."""
+    from dataclasses import replace
+
+    from code_schema import ExamQuestion, NumberAnswer
+    from code_schema.edits import EditError, remove_image
+
+    node, _ = read_node(folder(tmp_path, graph_png=PNG), regions=REGIONS)
+    assert node is not None
+    asked = ExamQuestion(
+        id="paths",
+        title="Paths",
+        claim="",
+        stem=":::{image} graph.png\nThe graph.\n:::\n",
+        answer=NumberAnswer(value=3, unit="", tolerance=None),
+        level=None,
+        rationale="Count them.",
+    )
+    with pytest.raises(EditError, match="the exam question paths"):
+        remove_image(replace(node, exam=(asked,)), "graph.png")
+
+
 def test_a_free_name_for_a_new_image() -> None:
     from code_schema.images import free_name
 
