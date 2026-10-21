@@ -184,7 +184,9 @@ describe("ExamEditor", () => {
     const fake = renderPool([a as StudioExamQuestionOut], {
       "PUT /api/studio/drafts/d-1/exam/a": savedWith([a as StudioExamQuestionOut]),
     });
-    expect(await screen.findByText("two-transcripts")).toBeInTheDocument();
+    expect(
+      await screen.findByText("two-transcripts", { selector: ".font-mono" }),
+    ).toBeInTheDocument();
     const caption = screen.getByLabelText("Stem block 2 caption");
     await userEvent.clear(caption);
     await userEvent.type(caption, "Two transcripts.");

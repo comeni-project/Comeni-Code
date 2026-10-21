@@ -104,7 +104,9 @@ export function testAskOf(question: ExamQuestionIn): TestAsk {
           ? { kind: "sequence", letters: block.letters ?? "" }
           : block.kind === "math"
             ? { kind: "math", tex: block.tex ?? "" }
-            : { kind: "text", markdown: block.markdown ?? "" },
+            : block.kind === "image" || block.kind === "figure"
+              ? { kind: block.kind, file: block.file ?? "", caption: block.caption ?? "" }
+              : { kind: "text", markdown: block.markdown ?? "" },
     ),
     options: (question.options ?? []).map((option) => option.text),
     unit: question.unit ?? "",
