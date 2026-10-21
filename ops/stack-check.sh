@@ -29,6 +29,17 @@ for path in / /health /identity "/route?goal=salmon" /node/dna-and-genes; do
   echo "ok   $path serves the app"
 done
 
+# The app's Content Security Policy (#365): on the app's paths, never on the API's.
+policy=$(curl -s -D - -o /dev/null "$BASE/" | tr -d '\r' | grep -i '^content-security-policy:' || true)
+case "$policy" in
+  *"script-src 'self';"*) echo "ok   / sends the Content Security Policy" ;;
+  *) fail "/ sends no Content Security Policy with script-src 'self': ${policy:-none}" ;;
+esac
+if curl -s -D - -o /dev/null "$BASE/api/health" | grep -qi '^content-security-policy:'; then
+  fail "/api/health sends the app's Content Security Policy"
+fi
+echo "ok   /api/health sends none"
+
 docs=$(curl -sf "$BASE/api/docs") || fail "/api/docs did not answer 200"
 asset=$(printf '%s' "$docs" | grep -o '/static/[^"]*' | head -n 1)
 [ -n "$asset" ] || fail "/api/docs names no /static/ file"
