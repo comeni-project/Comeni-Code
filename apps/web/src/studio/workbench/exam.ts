@@ -76,6 +76,10 @@ export function stemIn(stem: BlockIn[]): BlockIn[] {
       const tex = trimmed(block.tex ?? "");
       return tex.trim() === "" ? [] : [{ ...block, tex: ended(tex) }];
     }
+    // An image or figure is kept whole, whatever its caption: it holds no Markdown (#369).
+    if (block.kind === "image" || block.kind === "figure") {
+      return [{ ...block, caption: ended(trimmed(block.caption ?? "")) }];
+    }
     const markdown = trimmed(block.markdown ?? "");
     return markdown.trim() === "" ? [] : [{ ...block, markdown: ended(markdown) }];
   });

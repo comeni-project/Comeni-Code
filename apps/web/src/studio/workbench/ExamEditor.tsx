@@ -224,6 +224,16 @@ export function ExamEditor({
                       value={block.tex ?? ""}
                       onChange={(tex) => put({ ...block, tex })}
                     />
+                  ) : block.kind === "image" || block.kind === "figure" ? (
+                    // Placed by its file, which is edited where it lives; its caption here (#369).
+                    <>
+                      <span className="font-mono text-[12px] text-ink-2">{block.file}</span>
+                      <MarkdownField
+                        label={`${label} caption`}
+                        value={block.caption ?? ""}
+                        onChange={(caption) => put({ ...block, caption })}
+                      />
+                    </>
                   ) : (
                     <MarkdownField
                       label={label}

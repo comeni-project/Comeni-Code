@@ -80,3 +80,19 @@ describe("a question as a test asks it", () => {
     });
   });
 });
+
+describe("a stem's images and figures (#369)", () => {
+  it("keeps them, their caption's last line ended", () => {
+    expect(
+      stemIn([
+        { kind: "text", markdown: "Two transcripts:" },
+        { kind: "figure", file: "two-transcripts", caption: "Reads and lengths." },
+        { kind: "image", file: "kmers.png", caption: "Three reads.\n" },
+      ]),
+    ).toEqual([
+      { kind: "text", markdown: "Two transcripts:\n" },
+      { kind: "figure", file: "two-transcripts", caption: "Reads and lengths.\n" },
+      { kind: "image", file: "kmers.png", caption: "Three reads.\n" },
+    ]);
+  });
+});
