@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ChecklistOut } from "../../api/schema";
 import { renderPool } from "./examKit";
-import { examQuestion } from "./fixtures";
+import { DRAFT, examQuestion, FLOW, NODE } from "./fixtures";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -37,6 +37,25 @@ describe("ExamSidePanel", () => {
     expect(preview).toHaveTextContent("What is a? Say it.");
     expect(preview).toHaveTextContent("A tip");
     expect(preview).not.toHaveTextContent(/hint\b(?! in a test)/i);
+  });
+
+  it("draws a figure the stem places, from the draft's figures (M6FG.5)", async () => {
+    const a = {
+      ...examQuestion("a", "draft"),
+      stem: [
+        { kind: "text", markdown: "What is a?\n" },
+        { kind: "figure", file: "flow", caption: "Reads become k-mers.\n" },
+      ],
+    } as ReturnType<typeof examQuestion>;
+    renderPool([a], {
+      ...checked,
+      "GET /api/studio/drafts/d-1": {
+        body: { ...DRAFT, node: { ...NODE, exam: [a], figures: [FLOW] } },
+      },
+    });
+    const preview = await screen.findByRole("region", { name: "Preview as in a test" });
+    expect(preview).toHaveTextContent("Reads become k-mers.");
+    expect(preview).not.toHaveTextContent("This figure could not be drawn.");
   });
 
   it("an order's preview follows its steps as they are edited (#268)", async () => {

@@ -2,6 +2,7 @@
 // blocks, and the kind's control — no hints, no feedback, no rationale. The builder previews it;
 // the self-test (M8) asks it.
 import { useId, useMemo, useState } from "react";
+import type { FigureOut } from "../api/schema";
 import { Body } from "./Body";
 import type { Block } from "./body";
 import { OrderAnswer, shuffled } from "./OrderAnswer";
@@ -26,6 +27,7 @@ export function TestQuestion({
   shuffle = shuffled,
   onAnswer,
   busy = false,
+  figures = [],
 }: {
   ask: TestAsk;
   number: number;
@@ -36,6 +38,8 @@ export function TestQuestion({
   /** Review asks for an answer (M4.9b spec, M4RS.4); without it, nothing is sent (the builder). */
   onAnswer?: (given: number | string | string[]) => void;
   busy?: boolean;
+  /** The figures a stem places, by stem (M6FG.1). */
+  figures?: FigureOut[];
 }) {
   const field = useId();
   const [picked, setPicked] = useState<number | null>(null);
@@ -63,7 +67,7 @@ export function TestQuestion({
         {onAnswer === undefined ? "no hints in a test" : "answer before you see the key"}
       </span>
       <div className="flex flex-col gap-2 text-[15px] leading-[1.35] font-semibold">
-        <Body blocks={ask.stem} questions={[]} />
+        <Body blocks={ask.stem} questions={[]} figures={figures} />
       </div>
       {ask.kind === "choice" ? (
         <div className={`grid gap-1.5 ${phone ? "" : "grid-cols-2"}`}>

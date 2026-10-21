@@ -1,7 +1,7 @@
 // One block, open (M4K.3): edited here, saved when you leave it or press Done. Unchanged, or new
 // and left empty, it closes with no request; refused, it stays open with what you typed.
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Field } from "../../account/Field";
 import { useDraft } from "../../api/queries";
 import type { BlockIn, TryQuestionIn } from "../../api/schema";
@@ -9,7 +9,7 @@ import { SECONDARY } from "../../layout/buttons";
 import type { Block } from "../../node/body";
 import { BOX, LABEL } from "./bench";
 import { CalloutFields } from "./CalloutFields";
-import { editImageRecord, insertBlock, updateBlock } from "./edits";
+import { type Edit, editImageRecord, insertBlock, setFigure, updateBlock } from "./edits";
 import { LeaveToSave } from "./LeaveToSave";
 import { MarkdownField } from "./MarkdownField";
 import { MathField } from "./MathField";
@@ -65,6 +65,7 @@ const cleaned = (question: TryQuestionIn | undefined) =>
 export function BlockEditor({ draftId, at, insert, initial, question, onClose }: BlockEditorProps) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
+  const id = useId();
   const [block, setBlock] = useState<Block>(initial);
   const [asked, setAsked] = useState(question);
   // An image's alt text is its record's, not the block's (M6IM.1).
@@ -75,10 +76,18 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
       : undefined;
   const [alt, setAlt] = useState(record?.alt ?? "");
   const altChanged = record !== undefined && alt.trim() !== record.alt;
+  // A figure's file is its own, kept as written (M6FG.5); the block holds only its caption.
+  const figure =
+    initial.kind === "figure"
+      ? cached?.node?.figures?.find((f) => f.stem === initial.file)
+      : undefined;
+  const [text, setText] = useState(figure?.text ?? "");
+  const textChanged = figure !== undefined && text !== figure.text;
   const changed =
     JSON.stringify(block) !== JSON.stringify(initial) ||
     JSON.stringify(cleaned(asked)) !== JSON.stringify(question) ||
-    altChanged;
+    altChanged ||
+    textChanged;
   useLeaveWarning(changed);
 
   const commit = () => {
@@ -86,17 +95,19 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
     if (!changed || (insert && empty(block, asked))) return onClose();
     const sent = ended(block) as BlockIn;
     const q = cleaned(asked);
-    if (block.kind === "image" && record !== undefined) {
-      // Two saves in order through the draft's one queue: the caption, then the alt text.
-      const captionChanged = JSON.stringify(block) !== JSON.stringify(initial);
-      if (captionChanged)
-        edit.mutate(updateBlock(at, sent), altChanged ? {} : { onSuccess: onClose });
-      if (altChanged) {
+    if (record !== undefined || figure !== undefined) {
+      // Saves in order through the draft's one queue: the caption, then the image's record or
+      // the figure's file; the last one closes the editor.
+      const saves: Edit[] = [];
+      if (JSON.stringify(block) !== JSON.stringify(initial)) saves.push(updateBlock(at, sent));
+      if (record !== undefined && altChanged) {
         const { file: _file, ...credit } = record;
-        edit.mutate(editImageRecord(record.file, { ...credit, alt: alt.trim() }), {
-          onSuccess: onClose,
-        });
+        saves.push(editImageRecord(record.file, { ...credit, alt: alt.trim() }));
       }
+      if (figure !== undefined && textChanged) saves.push(setFigure(figure.stem, text));
+      saves.forEach((save, n) => {
+        edit.mutate(save, n === saves.length - 1 ? { onSuccess: onClose } : {});
+      });
       return;
     }
     edit.mutate(insert ? insertBlock(at, sent, q) : updateBlock(at, sent, q), {
@@ -129,6 +140,33 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
           />
         </>
       )}
+      {block.kind === "figure" && (
+        <>
+          <span className="font-mono text-[12px] text-ink-2">
+            {`${figure?.component ?? "figure"} · ${block.file}.yaml`}
+          </span>
+          <MarkdownField
+            label="Caption"
+            value={block.caption}
+            onChange={(caption) => setBlock({ ...block, caption })}
+          />
+          <div className={LABEL}>
+            <label htmlFor={`${id}-file`}>Figure file</label>
+            <textarea
+              id={`${id}-file`}
+              aria-describedby={`${id}-file-hint`}
+              value={text}
+              rows={14}
+              spellCheck={false}
+              onChange={(e) => setText(e.target.value)}
+              className={`${BOX} font-mono text-[12.5px]`}
+            />
+            <span id={`${id}-file-hint`} className="text-[12.5px] font-normal text-ink-3">
+              Its alt text, data and source, as YAML; checked when you leave it.
+            </span>
+          </div>
+        </>
+      )}
       {block.kind === "math" && (
         <MathField value={block.tex} onChange={(tex) => setBlock({ ...block, tex })} />
       )}
@@ -152,7 +190,11 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         />
       )}
       {block.kind === "try" && asked !== undefined && (
-        <TryEditor question={asked} onChange={setAsked} />
+        <TryEditor
+          question={asked}
+          onChange={setAsked}
+          figures={(cached?.node?.figures ?? []).map((f) => f.stem)}
+        />
       )}
       {refusal !== null && (
         <RefusalNotice

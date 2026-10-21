@@ -1,7 +1,8 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { REVIEW, renderReview } from "./reviewKit";
+import type { StudioFigureOut } from "../../api/schema";
+import { QUEUE, REVIEW, renderReview } from "./reviewKit";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -59,5 +60,100 @@ describe("ReviewPage — the open block", () => {
     expect(screen.getByText(/Your answer: B · wrong/)).toBeInTheDocument();
     const sent = fake.mock.calls.find(([, init]) => init?.method === "PUT");
     expect(JSON.parse(String(sent?.[1]?.body))).toEqual({ given: 1 });
+  });
+});
+
+const TABLE_TEXT = `component: table
+alt: Two transcripts, their lengths and reads.
+data:
+  columns:
+    - {name: transcript, type: text}
+    - {name: reads, type: number}
+  rows:
+    - [A, 300]
+    - [B, 300]
+`;
+const TABLE: StudioFigureOut = {
+  stem: "two-transcripts",
+  component: "table",
+  alt: "Two transcripts, their lengths and reads.",
+  data: {
+    columns: [
+      { name: "transcript", type: "text" },
+      { name: "reads", type: "number" },
+    ],
+    rows: [
+      ["A", 300],
+      ["B", 300],
+    ],
+  },
+  derived: {},
+  source: null,
+  text: TABLE_TEXT,
+};
+const withItem = (key: string, kind: string, label: string, item: object) => ({
+  "GET /api/studio/review": {
+    body: [
+      {
+        ...QUEUE[0],
+        keys: [...(QUEUE[0]?.keys ?? []), { key, kind, label, verdict: null, answered: null }],
+      },
+    ],
+  },
+  "GET /api/studio/drafts/d-1/review": {
+    body: {
+      ...REVIEW,
+      items: [
+        ...REVIEW.items,
+        {
+          fields: null,
+          block: null,
+          resource: null,
+          question: null,
+          key,
+          kind,
+          verdict: null,
+          note: "",
+          change: "new",
+          before: null,
+          ...item,
+        },
+      ],
+    },
+  },
+});
+
+describe("ReviewPage — figures (M6FG.5)", () => {
+  it("draws a figure block, with its file beneath", async () => {
+    renderReview(
+      withItem("block/2", "figure", "two-transcripts", {
+        block: { kind: "figure", file: "two-transcripts", caption: "Equal reads.\n" },
+        figures: [TABLE],
+      }),
+    );
+    await openBlock(/^two-transcripts/);
+    expect(await screen.findByRole("table")).toHaveTextContent("transcript");
+    expect(screen.getByText("Equal reads.")).toBeInTheDocument();
+    expect(screen.getByText("figures/two-transcripts.yaml")).toBeInTheDocument();
+    expect(screen.getByText(/component: table/)).toBeInTheDocument();
+  });
+
+  it("draws the figure an exam question's stem places", async () => {
+    renderReview(
+      withItem("exam/tpm-of-a", "exam", "TPM of A", {
+        figures: [TABLE],
+        question: {
+          ...REVIEW.items[3]?.question,
+          id: "tpm-of-a",
+          stem: [
+            { kind: "text", markdown: "Two transcripts:\n" },
+            { kind: "figure", file: "two-transcripts", caption: "Equal reads.\n" },
+          ],
+        },
+      }),
+    );
+    await openBlock(/^TPM of A/);
+    expect(await screen.findByRole("table")).toHaveTextContent("transcript");
+    expect(screen.queryByText("This figure could not be drawn.")).toBeNull();
   });
 });

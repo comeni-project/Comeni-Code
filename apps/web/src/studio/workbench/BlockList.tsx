@@ -7,7 +7,8 @@ import { useState } from "react";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { BlockEditor } from "./BlockEditor";
-import { deleteBlock, type Edit, moveBlock, removeImage } from "./edits";
+import { deleteBlock, type Edit, moveBlock, removeFigure, removeImage } from "./edits";
+import { FigureAdder } from "./FigureAdder";
 import { ImageAdder } from "./ImageAdder";
 import { firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
@@ -37,6 +38,7 @@ const BLANK = {
   math: { kind: "math", tex: "" },
   example: { kind: "example", title: "", markdown: "" },
   image: { kind: "image", file: "", caption: "" },
+  figure: { kind: "figure", file: "", caption: "" },
 } as const satisfies Record<string, Block>;
 const ADDS = [
   ["text", "Add a text block"],
@@ -45,6 +47,7 @@ const ADDS = [
   ["math", "Add a math block"],
   ["example", "Add an example"],
   ["image", "Add an image"],
+  ["figure", "Add a figure"],
 ] as const;
 const TOOL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-40";
 
@@ -75,6 +78,14 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
   const editor = (o: Opened, block: Block) =>
     o.fresh?.kind === "image" ? (
       <ImageAdder key={`${o.at}:image`} draftId={draftId} at={o.at} onClose={() => close(o)} />
+    ) : o.fresh?.kind === "figure" ? (
+      <FigureAdder
+        key={`${o.at}:figure`}
+        draftId={draftId}
+        at={o.at}
+        onClose={() => close(o)}
+        onAdded={() => open(o.at, existing)}
+      />
     ) : (
       <BlockEditor
         key={`${o.at}:${o.fresh === null ? "edit" : "new"}`}
@@ -173,17 +184,24 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                       ? "Delete this block and its question?"
                       : block.kind === "image"
                         ? "Delete this image, its record and its file?"
-                        : "Delete this block?"}
+                        : block.kind === "figure"
+                          ? "Delete this figure, its file and every place it is shown?"
+                          : "Delete this block?"}
                   </span>
                   <button
                     type="button"
                     className="font-semibold text-open"
                     onClick={() => {
                       setConfirming(null);
-                      // An image goes whole: its block, its record and its file (M6IM.3).
+                      // An image goes whole: its block, its record and its file (M6IM.3); a
+                      // figure too: its file and every block placing it (M6FG.5).
                       act(
                         [at],
-                        block.kind === "image" ? () => removeImage(block.file) : deleteBlock,
+                        block.kind === "image"
+                          ? () => removeImage(block.file)
+                          : block.kind === "figure"
+                            ? () => removeFigure(block.file)
+                            : deleteBlock,
                       );
                     }}
                   >

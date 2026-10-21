@@ -108,6 +108,28 @@ export const removeImage = (file: string): Edit => ({
   path: `images/${encodeURIComponent(file)}`,
 });
 
+/** A new figure of `component`: its starter file under a free stem, and its block at `at`
+ * (M6FG.5). Alt text and caption come first, as an image's do: a starter without alt would not
+ * validate. */
+export const addFigure = (at: number, component: string, alt: string, caption: string): Edit => ({
+  method: "POST",
+  path: "figures",
+  body: { at, component, alt, caption },
+});
+
+/** A figure's file replaced by `text`, kept as written; refused unless it validates. */
+export const setFigure = (stem: string, text: string): Edit => ({
+  method: "PUT",
+  path: `figures/${encodeURIComponent(stem)}`,
+  body: { text },
+});
+
+/** The figure whole: its file, its blocks, a try question's figure and each stem's (M6FG.5). */
+export const removeFigure = (stem: string): Edit => ({
+  method: "DELETE",
+  path: `figures/${encodeURIComponent(stem)}`,
+});
+
 export function sendEdit(id: string, revision: number, edit: Edit): Promise<SavedOut> {
   const url = `/api/studio/drafts/${id}/${edit.path}`;
   if (edit.method === "DELETE") return sendJson<SavedOut>("DELETE", `${url}?revision=${revision}`);

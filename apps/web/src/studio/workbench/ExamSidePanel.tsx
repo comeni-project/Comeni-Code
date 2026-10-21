@@ -2,7 +2,7 @@
 // the editor holds — Desktop, Phone or Dark — and its checks as last saved, from the one checklist
 // GET Checks already asks.
 import { useState } from "react";
-import { useDraftChecks } from "../../api/queries";
+import { useDraft, useDraftChecks } from "../../api/queries";
 import type { ExamQuestionIn } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { TestQuestion } from "../../node/TestQuestion";
@@ -31,6 +31,8 @@ export function ExamSidePanel({
   const [checks, setChecks] = useState(false);
   const [look, setLook] = useState<Look>("Desktop");
   const asked = useDraftChecks(draftId, true);
+  // The figures a stem places are the draft's own, from the GET the workbench already made.
+  const figures = useDraft(draftId).data?.node?.figures ?? [];
   const items = saved
     ? (asked.data?.questions?.find((q) => q.id === question.id)?.items ?? [])
     : [];
@@ -108,6 +110,7 @@ export function ExamSidePanel({
               number={number}
               of={of}
               phone={look === "Phone"}
+              figures={figures}
             />
           </div>
         </section>
