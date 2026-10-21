@@ -288,7 +288,9 @@ docs/notes/research/      studies decisions were built on (the Khan Academy repo
 docs/superpowers/specs/   design documents; archive/ holds finished part specs
 docs/superpowers/plans/   one plan per part; archive/ holds finished ones
 packages/code-schema/     pure: the node format (fields, links, resources, questions — answers of four kinds, choice, number, sequence, order, scored by grading.py —, blocks with the sequence block, the exam pool in exam.py, each question a title, a claim and a stem of blocks; records.py reads nested entries, each problem naming its question; question_rules.py, a question's checks), its validation messages and warnings, the canonical writer
+packages/code-figures/    pure: figure schemas as data, their validator and the four kits (M6.4)
 packages/code-weaver/     pure: Graph, weave, find, and the route and find commands (M2, M3 part 2)
+tests/figures/            code-figures' tests; tests/fixtures/figures/cases.json is shared with the web
 tests/guards/             purity guards, their helpers and planted fixtures
 tests/repo/               repository checks: links, doc sizes, doc paths, app dependencies
 tests/fixtures/salmon/    26 real nodes and providers.yaml, no background to Salmon; the weaver and the API load them
