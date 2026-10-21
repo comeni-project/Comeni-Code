@@ -37,6 +37,8 @@ export function questionIn(out: StudioQuestionOut): TryQuestionIn {
     steps: out.steps,
     hints: out.hints,
     rationale: out.rationale,
+    // A question's figure goes back with it, or an edit would drop it (#368).
+    figure: out.figure ?? null,
     options:
       out.options?.map(({ text, right, misconception }) => ({ text, right, misconception })) ??
       null,
