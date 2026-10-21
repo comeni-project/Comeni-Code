@@ -157,3 +157,19 @@ describe("ReviewPage — figures (M6FG.5)", () => {
     expect(screen.queryByText("This figure could not be drawn.")).toBeNull();
   });
 });
+
+describe("ReviewPage — one open block at a time (#373)", () => {
+  it("moving to another block shows it once, beside its verdict", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    renderReview();
+    await openBlock(/^TPM is not a count of reads/);
+    await screen.findByText("Equal reads, unequal TPM.");
+    await openBlock(/^A long transcript gives more fragments/);
+    await screen.findByText("A long transcript gives more fragments.");
+    expect(screen.getAllByRole("region", { name: "Open block" })).toHaveLength(1);
+    expect(screen.getAllByRole("complementary", { name: "Your verdict" })).toHaveLength(1);
+    expect(screen.queryByText("Equal reads, unequal TPM.")).toBeNull();
+    const duplicate = errors.mock.calls.some((call) => /same key/.test(String(call[0])));
+    expect(duplicate).toBe(false);
+  });
+});
