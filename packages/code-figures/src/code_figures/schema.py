@@ -127,14 +127,21 @@ def _one_of(branches: Sequence[object], value: object, path: str, root: Schema) 
     ]
 
 
+def _units(text: str) -> int:
+    """A string's length as the browser counts it, in UTF-16 units (#375)."""
+    return len(text.encode("utf-16-le")) // 2
+
+
 def _string(schema: Schema, value: str, path: str) -> list[Finding]:
+    # Every pattern is anchored, ^…$ (a test holds them to it), so a whole-string match is what
+    # JavaScript's test() does; re.search's $ would also match before a final newline (#375).
     pattern = schema.get("pattern")
-    if isinstance(pattern, str) and re.search(pattern, value) is None:
+    if isinstance(pattern, str) and re.fullmatch(pattern, value) is None:
         return [Finding(WRONG, path, f"{_shown(value)} is not of the form this field takes")]
     shortest, longest = schema.get("minLength"), schema.get("maxLength")
-    if isinstance(shortest, int) and len(value) < shortest:
+    if isinstance(shortest, int) and _units(value) < shortest:
         return [Finding(BOUND, path, f"is shorter than {shortest} characters")]
-    if isinstance(longest, int) and len(value) > longest:
+    if isinstance(longest, int) and _units(value) > longest:
         return [Finding(BOUND, path, f"is longer than {longest} characters")]
     return []
 

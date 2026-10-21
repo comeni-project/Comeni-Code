@@ -1,9 +1,12 @@
 """The validator for the subset of JSON Schema the components' schemas use (M6.4 spec, M6FG.2)."""
 
+import json
 import math
+from pathlib import Path
 
 import pytest
 
+import code_figures
 from code_figures.findings import Finding
 from code_figures.schema import validate
 
@@ -93,3 +96,25 @@ def test_numbers_must_be_finite_and_bounded() -> None:
 def test_findings_come_in_the_values_written_order() -> None:
     value = {"zeta": 1, "name": "ABC", "alpha": 2}
     assert [f.path for f in validate(OBJECT, value)] == ["data.zeta", "data.name", "data.alpha"]
+
+
+def test_every_schema_pattern_is_anchored() -> None:
+    """The validator matches a pattern whole, as the browser's test() does for an anchored one
+    (#375); a pattern left open at either end would make the two disagree."""
+    found: list[str] = []
+
+    def walk(value: object) -> None:
+        if isinstance(value, dict):
+            pattern = value.get("pattern")
+            if isinstance(pattern, str):
+                found.append(pattern)
+            for each in value.values():
+                walk(each)
+        elif isinstance(value, list):
+            for each in value:
+                walk(each)
+
+    for path in (Path(code_figures.__file__).parent / "schemas").glob("*.json"):
+        walk(json.loads(path.read_text()))
+    assert found, "no patterns read"
+    assert [p for p in found if not (p.startswith("^") and p.endswith("$"))] == []

@@ -8525,6 +8525,191 @@
    "codes": [
     "CS1003"
    ]
+  },
+  {
+   "name": "a field name ending in a newline (#375)",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "k\n": "a",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "k\n",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "n",
+      "type": "quantitative"
+     }
+    }
+   },
+   "codes": [
+    "CS1003"
+   ]
+  },
+  {
+   "name": "a flow id ending in a newline (#375)",
+   "component": "flow",
+   "data": {
+    "nodes": [
+     {
+      "id": "a\n",
+      "label": "a"
+     },
+     {
+      "id": "b",
+      "label": "b"
+     }
+    ],
+    "edges": [
+     {
+      "from": "a\n",
+      "to": "b"
+     }
+    ]
+   },
+   "codes": [
+    "CS1003"
+   ]
+  },
+  {
+   "name": "a column name of 25 astral letters, 50 UTF-16 units (#375)",
+   "component": "table",
+   "data": {
+    "columns": [
+     {
+      "name": "𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥𝑥",
+      "type": "text"
+     }
+    ],
+    "rows": [
+     [
+      "a"
+     ]
+    ]
+   },
+   "codes": [
+    "CS1004"
+   ]
+  },
+  {
+   "name": "a column name of 20 BMP letters and one astral, 22 units (#375)",
+   "component": "table",
+   "data": {
+    "columns": [
+     {
+      "name": "xxxxxxxxxxxxxxxxxxxx𝑥",
+      "type": "text"
+     }
+    ],
+    "rows": [
+     [
+      "a"
+     ]
+    ]
+   },
+   "codes": []
+  },
+  {
+   "name": "a chart's transform",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "g",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "n",
+      "type": "quantitative"
+     }
+    },
+    "transform": [
+     {
+      "calculate": "1",
+      "as": "c"
+     }
+    ]
+   },
+   "codes": [
+    "CS1002"
+   ]
+  },
+  {
+   "name": "a chart's tooltip channel",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "g",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "n",
+      "type": "quantitative"
+     },
+     "tooltip": {
+      "field": "g",
+      "type": "nominal"
+     }
+    }
+   },
+   "codes": [
+    "CS1002"
+   ]
+  },
+  {
+   "name": "a field name with a dot, which Vega reads as a path",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "a.b": "a",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "a.b",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "n",
+      "type": "quantitative"
+     }
+    }
+   },
+   "codes": [
+    "CS1003"
+   ]
   }
  ]
 }
