@@ -15,7 +15,7 @@ from code_api.content.snapshot import figures_from_index, node_from_index
 from code_api.studio import drafts, landing
 from code_api.studio.log import record
 from code_api.studio.models import Draft, DraftEvent
-from code_schema.edits import set_figure
+from code_schema.edits import add_figure, set_figure
 
 pytestmark = pytest.mark.django_db
 
@@ -121,3 +121,45 @@ def test_the_index_follows_a_folder_with_figures(tmp_path: Path) -> None:
     rebuild_index(root)
     row = NodeFigure.objects.get(node_id="de-bruijn-graphs", stem="kmer-counts")
     assert row.data["rows"][0] == [3, 65, 41, 98]
+
+
+def test_an_added_figure_lands_as_its_file_and_the_index_serves_it(
+    otto: User,
+    ada: User,
+    grace: User,
+    client: Client,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Done when 4 (M6FG.7): an author's new flow lands as figures/flow.yaml, placed in body.md,
+    and once the folder is indexed again the API serves it."""
+    monkeypatch.setattr("code_api.studio.tasks.land.delay", lambda public_id: None)
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda n: add_figure(n, len(n.blocks), "flow", alt="A flow.", caption="Steps."),
+        by=ada,
+        change="a flow",
+    )
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=grace, revision=2, answered=0, wrong=0)
+    fake = FakeGitHub()
+    landing.run(landing.start([draft.public_id], by=otto), fake)
+    _, files, _ = fake.commits["commit-1"]
+    written = files["algorithms/de-bruijn-graphs/figures/flow.yaml"]
+    assert written == drafts.latest(draft).figures["flow.yaml"]
+    body_md = files["algorithms/de-bruijn-graphs/body.md"]
+    assert isinstance(body_md, str) and ":::{figure} flow\nSteps.\n:::" in body_md
+
+    root = tmp_path / "content"
+    shutil.copytree(FIXTURES, root)
+    for path, content in files.items():
+        if isinstance(content, str):
+            (root / path).write_text(content)
+        elif content is not None:
+            (root / path).write_bytes(content)
+    rebuild_index(root)
+    body = client.get("/api/nodes/de-bruijn-graphs").json()
+    assert body["blocks"][-1] == {"kind": "figure", "file": "flow", "caption": "Steps.\n"}
+    assert {f["stem"]: f["component"] for f in body["figures"]}["flow"] == "flow"
