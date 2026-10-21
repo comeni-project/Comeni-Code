@@ -12,6 +12,7 @@ export function readTheme(): ChartTheme {
     ink2: read(styles, "--ink-2"),
     ink3: read(styles, "--ink-3"),
     border: read(styles, "--border"),
+    surface: read(styles, "--surface"),
     series: [read(styles, "--series-1"), read(styles, "--series-2"), read(styles, "--series-3")],
   };
 }
