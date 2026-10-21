@@ -1,8 +1,8 @@
 # M6.4 — Figures, the ground
 
-**Status: agreed 2026-10-20.** The fourth part of M6 (#325), issue
+**Status: agreed 2026-10-20; built.** The fourth part of M6 (#325), issue
 #331. Designed with the operator on 2026-10-20 from the boards on the M6 canvas
-(https://claude.ai/artifact/JL1PkAjBQKv6o493XDgCoR: *L5 · Figures — the general kits* and
+(https://claude.ai/artifact/4TEYrit2cBWGcJJmXrKAyw: *L5 · Figures — the general kits* and
 *S3 · Workbench — a figure block*), approved that day. The operator decided: **charts are
 Vega-Lite made safe** by an allowlist, a re-check in the browser, a locked-down renderer and a
 Content Security Policy (M6FG.4); **a diagram no kit draws is an image** (M6.3) until a better
