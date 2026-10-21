@@ -226,7 +226,7 @@ line is in [the archive](journal/archive/).
 - **After a reboot**, or when tests cannot connect (:5433, :6380): `docker compose up -d --wait
   postgres redis`. Two pytest runs on one Postgres break each other. Merged branches are kept:
   retarget a stacked pull request first. The canvas is the Design artifact in CLAUDE.md; M6's
-  boards: https://claude.ai/artifact/4TEYrit2cBWGcJJmXrKAyw. (to 10-21)
+  boards: https://claude.ai/artifact/JL1PkAjBQKv6o493XDgCoR. (to 10-21)
 - **Node 24 is `/usr/bin/node`** (v24.18). **Ports 8000, 5173 and others are other sessions'**:
   check with `ss -ltnp` before trusting one; a remote-debugging Chrome must take port 0 and read
   `DevToolsActivePort`, or it drives another session's browser. (2026-10-16, 10-21)
