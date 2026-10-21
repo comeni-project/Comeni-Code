@@ -24,6 +24,10 @@ export function firstWords(block: Block, node: DraftNodeOut): string {
   return words === undefined || words === "" ? "(empty)" : words;
 }
 
+/** A text block holding only blank lines: what the format keeps between two directives so the
+ * file round-trips (#372). The workbench lists it nowhere; the file still holds it. */
+export const blank = (block: Block) => block.kind === "text" && block.markdown.trim() === "";
+
 export function Outline({
   node,
   onOpen,
@@ -35,9 +39,12 @@ export function Outline({
     <nav aria-label="Outline" className="flex flex-col gap-0.5">
       <div className="flex items-center justify-between pb-1.5">
         <span className="text-[13px] font-semibold">Outline</span>
-        <span className="text-[11.5px] text-ink-3">{node.blocks.length} blocks</span>
+        <span className="text-[11.5px] text-ink-3">
+          {node.blocks.filter((block) => !blank(block)).length} blocks
+        </span>
       </div>
       {node.blocks.map((block, at) => {
+        if (blank(block)) return null;
         const inner = (
           <>
             <span className="w-[52px] flex-none font-mono text-[10.5px] text-ink-3">
