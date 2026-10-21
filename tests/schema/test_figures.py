@@ -1,5 +1,6 @@
 """Figures in the node folder (M6.4 spec, M6FG.1): the files, the block, a try's figure, stems."""
 
+import time
 from pathlib import Path
 
 import pytest
@@ -179,6 +180,45 @@ def test_a_date_in_data_stays_text(tmp_path: Path) -> None:
     node, problems = read_node(folder(tmp_path, kmer_counts_yaml=chart), regions=REGIONS)
     assert problems == [] and node is not None
     assert node.figures[0].data["data"] == {"values": [{"day": "2026-10-20", "n": 1}]}
+
+
+def test_a_figure_may_not_use_a_yaml_alias(tmp_path: Path) -> None:
+    """#374: an alias expands past the 64 KB cap, and checking what it expands to takes minutes."""
+    row = "{" + ", ".join(f"c{i}: 1" for i in range(3000)) + "}"
+    chart = (
+        "component: chart\nalt: A bar chart.\ndata:\n  mark: bar\n  data:\n    values:\n"
+        f"      - &row {row}\n"
+        + "      - *row\n" * 1999
+        + "  encoding:\n    x: {field: c1, type: nominal}\n"
+    )
+    started = time.monotonic()
+    _, problems = read_node(folder(tmp_path, kmer_counts_yaml=chart), regions=REGIONS)
+    assert time.monotonic() - started < 2
+    (problem,) = problems
+    assert problem.code == "CS1023" and "alias" in problem.message
+
+
+@pytest.mark.parametrize("written", ["1:30", "012", "1_000", "0x1f", "1:30.5", "+.inf", ".nan"])
+def test_a_number_is_read_only_from_its_plain_form(tmp_path: Path, written: str) -> None:
+    """#376: YAML 1.1 reads 1:30 as 90 and 012 as 10; the file would say one thing and the page
+    another. Such a value stays text, and a number column refuses it where the author sees why."""
+    table = (
+        "component: table\nalt: A table.\ndata:\n  columns: [{name: n, type: number}]\n"
+        f"  rows:\n    - [{written}]\n"
+    )
+    _, problems = read_node(folder(tmp_path, kmer_counts_yaml=table), regions=REGIONS)
+    assert [p.code for p in problems] == ["CS1011"]
+
+
+def test_plain_numbers_still_read_as_numbers(tmp_path: Path) -> None:
+    table = (
+        "component: table\nalt: A table.\ndata:\n  columns: [{name: n, type: number}]\n"
+        "  rows:\n    - [0]\n    - [-12]\n    - [3.5]\n    - [-0.25]\n"
+        "    - [1.0e+3]\n    - [6400]\n"
+    )
+    node, problems = read_node(folder(tmp_path, kmer_counts_yaml=table), regions=REGIONS)
+    assert problems == [] and node is not None
+    assert node.figures[0].data["rows"] == [[0], [-12], [3.5], [-0.25], [1000.0], [6400]]
 
 
 def test_one_file_may_be_placed_twice(tmp_path: Path) -> None:

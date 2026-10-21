@@ -54,14 +54,38 @@ def file_name(stem: str) -> str:
 
 
 class _Loader(yaml.SafeLoader):
-    """A safe loader that leaves dates as text: a chart's temporal field is an ISO string, and the
-    browser reads the same string the file holds."""
+    """A safe loader that reads the data as the page will: dates stay text (a chart's temporal
+    field is an ISO string, as the file holds it); a number is read only from its plain decimal
+    form, so YAML 1.1's 1:30 (90) or 012 (10) stays text and is refused where the author can see
+    why (#376); and no alias, which expands past the size cap and takes minutes to check (#374)."""
+
+    def compose_node(self, parent: yaml.Node | None, index: int) -> yaml.Node | None:
+        if self.check_event(yaml.AliasEvent):
+            event = self.peek_event()  # type: ignore[no-untyped-call]
+            raise yaml.composer.ComposerError(
+                None, None, "uses a YAML alias; write the data out in full", event.start_mark
+            )
+        return super().compose_node(parent, index)
+
+
+_INT = re.compile(r"[-+]?(0|[1-9][0-9]*)")
+_FLOAT = re.compile(r"[-+]?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-+]?[0-9]+)?")
+
+
+def _number(kind: type[int] | type[float], plain: re.Pattern[str]):  # type: ignore[no-untyped-def]
+    def construct(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> object:
+        text = loader.construct_scalar(node)
+        return kind(text) if isinstance(text, str) and plain.fullmatch(text) else text
+
+    return construct
 
 
 _Loader.add_constructor(
     "tag:yaml.org,2002:timestamp",
     lambda loader, node: loader.construct_scalar(node),  # type: ignore[arg-type]
 )
+_Loader.add_constructor("tag:yaml.org,2002:int", _number(int, _INT))
+_Loader.add_constructor("tag:yaml.org,2002:float", _number(float, _FLOAT))
 
 
 def _load(text: str) -> tuple[object, str | None]:
