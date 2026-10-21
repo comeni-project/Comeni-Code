@@ -434,4 +434,17 @@ describe("ContentTab", () => {
     for (const name of [/Edit block/, /Move block/, /Delete block/, /Add a/])
       expect(screen.queryByRole("button", { name })).toBeNull();
   });
+
+  it("hides the blank text block between two directives (#372, decided A)", async () => {
+    const one = { kind: "figure", file: "one", caption: "One.\n" } as const;
+    const two = { kind: "figure", file: "two", caption: "Two.\n" } as const;
+    bench({}, [one, { kind: "text", markdown: "\n" }, two]);
+    const outline = await screen.findByRole("navigation", { name: "Outline" });
+    expect(outline).not.toHaveTextContent("(empty)");
+    expect(outline).toHaveTextContent("2 blocks");
+    expect(screen.queryByText("(empty)")).toBeNull();
+    expect(screen.getByRole("button", { name: "Edit block 1" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit block 2" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Edit block 3" })).toBeInTheDocument();
+  });
 });

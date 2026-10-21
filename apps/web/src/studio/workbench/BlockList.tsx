@@ -10,7 +10,7 @@ import { BlockEditor } from "./BlockEditor";
 import { deleteBlock, type Edit, moveBlock, removeFigure, removeImage } from "./edits";
 import { FigureAdder } from "./FigureAdder";
 import { ImageAdder } from "./ImageAdder";
-import { firstWords } from "./Outline";
+import { blank, firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
 import { RefusalNotice } from "./RefusalNotice";
 import { RequestNote } from "./Requests";
@@ -147,6 +147,8 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
         />
       )}
       {node.blocks.map((block, at) => {
+        // A blank text block between two directives is the file's, not the author's (#372).
+        if (blank(block) && !(opened?.fresh === null && opened.at === at)) return null;
         const n = at + 1;
         const row =
           opened !== null && opened.fresh === null && opened.at === at ? (

@@ -10,7 +10,7 @@ an exam question that is not there — raises `EditError` with a sentence, since
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 
 from code_figures import COMPONENTS
@@ -89,6 +89,24 @@ def set_image_record(node: Node, record: ImageRecord) -> Node:
     return replace(node, images=tuple(kept))
 
 
+def _stems_without(
+    node: Node, kept: Callable[[Sequence[Block]], list[Block]], what: str
+) -> tuple[ExamQuestion, ...]:
+    """Each exam stem with `kept`'s blocks only. A stem it would leave empty is refused, naming its
+    question, since an empty stem does not read (CS0816): the author edits it first (#377)."""
+    emptied = [q.id for q in node.exam if q.blocks and not write_faithfully(kept(q.blocks)).strip()]
+    if emptied:
+        named = ", ".join(emptied)
+        whose = "question" if len(emptied) == 1 else "questions"
+        raise EditError(
+            f"{what} is the whole stem of the exam {whose} {named}: edit or delete it first"
+        )
+    return tuple(
+        q if kept(q.blocks) == list(q.blocks) else replace(q, stem=write_faithfully(kept(q.blocks)))
+        for q in node.exam
+    )
+
+
 def remove_image(node: Node, file: str) -> Node:
     """An image gone whole: its record and every block that places it, on the page and in each
     exam stem (M6IM.3, #356)."""
@@ -96,10 +114,7 @@ def remove_image(node: Node, file: str) -> Node:
     def kept(blocks: Sequence[Block]) -> list[Block]:
         return [b for b in blocks if not (isinstance(b, Image) and b.file == file)]
 
-    exam = tuple(
-        q if kept(q.blocks) == list(q.blocks) else replace(q, stem=write_faithfully(kept(q.blocks)))
-        for q in node.exam
-    )
+    exam = _stems_without(node, kept, f"the image {file}")
     images = tuple(each for each in node.images if each.file != file)
     return replace(
         _with_blocks(node, kept(node.blocks), list(node.questions)), images=images, exam=exam
@@ -153,10 +168,7 @@ def remove_figure(node: Node, stem: str) -> Node:
     def kept(blocks: Sequence[Block]) -> list[Block]:
         return [b for b in blocks if not (isinstance(b, Figure) and b.file == stem)]
 
-    exam = tuple(
-        q if kept(q.blocks) == list(q.blocks) else replace(q, stem=write_faithfully(kept(q.blocks)))
-        for q in node.exam
-    )
+    exam = _stems_without(node, kept, f"the figure {stem}")
     questions = [replace(q, figure=None) if q.figure == stem else q for q in node.questions]
     figures = tuple(each for each in node.figures if each.stem != stem)
     return replace(_with_blocks(node, kept(node.blocks), questions), figures=figures, exam=exam)
