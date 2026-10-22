@@ -8,6 +8,7 @@ import pytest
 
 from code_figures import COMPONENTS
 from code_figures.schema import validate
+from code_schema.figures import read_figure
 
 CASES: list[dict[str, Any]] = json.loads(
     (Path(__file__).resolve().parents[1] / "fixtures" / "figures" / "cases.json").read_text()
@@ -23,3 +24,14 @@ def test_each_case_finds_its_codes(case: dict[str, Any]) -> None:
 def test_the_cases_cover_every_kit_and_both_outcomes() -> None:
     assert {case["component"] for case in CASES} == set(COMPONENTS)
     assert any(case["codes"] for case in CASES) and any(not case["codes"] for case in CASES)
+
+
+FILES: list[dict[str, Any]] = json.loads(
+    (Path(__file__).resolve().parents[1] / "fixtures" / "figures" / "cases.json").read_text()
+)["files"]
+
+
+@pytest.mark.parametrize("case", FILES, ids=[case["name"] for case in FILES])
+def test_each_file_finds_its_codes(case: dict[str, Any]) -> None:
+    _, problems = read_figure("case", case["text"], file="figures/case.yaml")
+    assert list(dict.fromkeys(p.code for p in problems)) == case["codes"]

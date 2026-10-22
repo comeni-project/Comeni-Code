@@ -1,5 +1,5 @@
 {
- "about": "Figure data checked by code-figures' schemas (M6.4 spec, M6FG.2). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) both run every case: `codes` are the distinct codes the schema alone finds, in order of first appearance; a component's own checks are not run here.",
+ "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found.",
  "cases": [
   {
    "name": "a bar chart",
@@ -8709,6 +8709,65 @@
    },
    "codes": [
     "CS1003"
+   ]
+  }
+ ],
+ "files": [
+  {
+   "name": "a figure that reads one way",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": []
+  },
+  {
+   "name": "a YAML 1.1 boolean",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: on}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a number only YAML 1.2 reads",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: 1e3}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a leading zero",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: 012}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a fraction with no whole part",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: .5}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a key twice",
+   "text": "component: flow\nalt: First.\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "read alike: a time",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: 1:30}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": []
+  },
+  {
+   "name": "read alike: a quoted form",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: \"on\"}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": []
+  },
+  {
+   "name": "an alias",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: *a}\n    - {id: kmers, label: &a k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
    ]
   }
  ]

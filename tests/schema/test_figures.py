@@ -198,10 +198,11 @@ def test_a_figure_may_not_use_a_yaml_alias(tmp_path: Path) -> None:
     assert problem.code == "CS1023" and "alias" in problem.message
 
 
-@pytest.mark.parametrize("written", ["1:30", "012", "1_000", "0x1f", "1:30.5", "+.inf", ".nan"])
+@pytest.mark.parametrize("written", ["1:30", "1_000", "1:30.5"])
 def test_a_number_is_read_only_from_its_plain_form(tmp_path: Path, written: str) -> None:
-    """#376: YAML 1.1 reads 1:30 as 90 and 012 as 10; the file would say one thing and the page
-    another. Such a value stays text, and a number column refuses it where the author sees why."""
+    """#376: YAML 1.1 reads 1:30 as 90; the file would say one thing and the page another. Such a
+    value stays text, as YAML 1.2 reads it, and a number column refuses it where the author sees
+    why. (012, 0x1f, .inf and .nan read as numbers in YAML 1.2: they are two readings, below.)"""
     table = (
         "component: table\nalt: A table.\ndata:\n  columns: [{name: n, type: number}]\n"
         f"  rows:\n    - [{written}]\n"
@@ -219,6 +220,55 @@ def test_plain_numbers_still_read_as_numbers(tmp_path: Path) -> None:
     node, problems = read_node(folder(tmp_path, kmer_counts_yaml=table), regions=REGIONS)
     assert problems == [] and node is not None
     assert node.figures[0].data["rows"] == [[0], [-12], [3.5], [-0.25], [1000.0], [6400]]
+
+
+def figure_problems(tmp_path: Path, text: str) -> list[tuple[str, str]]:
+    _, problems = read_node(folder(tmp_path, kmer_counts_yaml=text), regions=REGIONS)
+    return [(p.code, p.message) for p in problems]
+
+
+FLOW = (
+    "component: flow\nalt: Reads become k-mers.\ndata:\n"
+    "  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: LABEL}\n"
+    "  edges:\n    - {from: reads, to: kmers}\n"
+)
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        (
+            FLOW.replace("LABEL", "on"),
+            "data.nodes[1].label: `on` reads two ways (a YAML 1.1 boolean); quote it",
+        ),
+        (
+            FLOW.replace("LABEL", "1e3"),
+            "data.nodes[1].label: `1e3` reads two ways (a number only YAML 1.2 reads); quote it",
+        ),
+        (
+            FLOW.replace("LABEL", "012"),
+            "data.nodes[1].label: `012` reads two ways (a number only YAML 1.2 reads); quote it",
+        ),
+        (
+            FLOW.replace("alt:", "yes: 1\nalt:"),
+            "yes: `yes` reads two ways (a YAML 1.1 boolean); quote it",
+        ),
+    ],
+)
+def test_two_readings_refused(tmp_path: Path, text: str, message: str) -> None:
+    """M6CO.3: a plain value the server and the browser read apart is refused, with its path."""
+    assert figure_problems(tmp_path, text) == [("CS1023", message)]
+
+
+def test_duplicate_key_is_refused(tmp_path: Path) -> None:
+    """PyYAML keeps the last of two keys; YAML 1.2 refuses the file. Both refuse it."""
+    text = FLOW.replace("LABEL", "k-mers").replace("alt:", "alt: First.\nalt:")
+    assert figure_problems(tmp_path, text) == [("CS1023", "alt: is written twice")]
+
+
+@pytest.mark.parametrize("label", ['"on"', "'1e3'", '"012"', "k-mers"])
+def test_quoted_forms_pass(tmp_path: Path, label: str) -> None:
+    assert figure_problems(tmp_path, FLOW.replace("LABEL", label)) == []
 
 
 def test_one_file_may_be_placed_twice(tmp_path: Path) -> None:

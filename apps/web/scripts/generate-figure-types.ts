@@ -8,6 +8,9 @@ import { compile, type JSONSchema } from "json-schema-to-typescript";
 export const SCHEMA_FOLDER = fileURLToPath(
   new URL("../../../packages/code-figures/src/code_figures/schemas/", import.meta.url),
 );
+export const READINGS = fileURLToPath(
+  new URL("../../../packages/code-figures/src/code_figures/readings.json", import.meta.url),
+);
 export const FIGURE_TYPES = fileURLToPath(new URL("../src/figures/schemas.ts", import.meta.url));
 
 const typeName = (component: string) =>
@@ -28,7 +31,15 @@ export function readSchemas(): Record<string, JSONSchema> {
   );
 }
 
-export async function renderFigureTypes(schemas: Record<string, JSONSchema>): Promise<string> {
+/** The plain YAML forms the server and the browser read apart (M6.5 spec, M6CO.3). */
+export function readReadings(): { name: string; pattern: string }[] {
+  return JSON.parse(readFileSync(READINGS, "utf8")).forms;
+}
+
+export async function renderFigureTypes(
+  schemas: Record<string, JSONSchema>,
+  readings = readReadings(),
+): Promise<string> {
   const types: string[] = [];
   for (const [component, schema] of Object.entries(schemas)) {
     const { $comment: _comment, ...plain } = schema as JSONSchema & { $comment?: string };
@@ -46,9 +57,12 @@ export async function renderFigureTypes(schemas: Record<string, JSONSchema>): Pr
     .map((component) => `  "${component}": ${typeName(component)};`)
     .join("\n");
   return [
-    "// Generated from packages/code-figures/src/code_figures/schemas/ by `npm run figure-types`.",
+    "// Generated from packages/code-figures/src/code_figures/schemas/ and readings.json by",
+    "// `npm run figure-types`.",
     "// Do not edit (M6.4 spec, M6FG.2).",
     `export const SCHEMAS = ${JSON.stringify(schemas, null, 2)} as const;`,
+    "",
+    `export const TWO_READINGS = ${JSON.stringify(readings, null, 2)} as const;`,
     "",
     "export type Component = keyof typeof SCHEMAS;",
     "",

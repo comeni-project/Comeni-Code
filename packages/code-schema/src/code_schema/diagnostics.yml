@@ -2131,12 +2131,16 @@ codes:
   CS1023:
     emitted_by: schema
     concern: figures
-    says: a figure file is not a YAML mapping
+    says: a figure file cannot be read, or reads two ways
     refuses: true
     fix: |
-      Write the file as a mapping: component, alt, data and, optionally, source.
+      Write the file as a mapping: component, alt, data and, optionally, source; each key once, and
+      no alias. Quote a value such as `on`, `012` or `1e3`: "on".
     explanation: |
-      A figure file holds one figure; anything else cannot be read (M6FG.1).
+      A figure file holds one figure; anything else cannot be read (M6FG.1). The server reads it as
+      YAML 1.1 and the browser as YAML 1.2, which read some plain values apart (`on` is true or the
+      word, `1e3` the word or 1000), so such a value is refused on both sides and a file that
+      passes has one reading (M6CO.3).
 
   CS1024:
     emitted_by: schema
