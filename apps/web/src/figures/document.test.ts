@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 import {
+  apply,
   insertAt,
   lineOf,
   moveAt,
@@ -104,6 +105,30 @@ describe("a figure's file as a document", () => {
     ]);
     const removed = removeAt(openFile(moved), ["data", "nodes", 0]);
     expect(removed).toBe(FLOW);
+  });
+
+  it("applies several edits in one write, in order", () => {
+    const after = apply(openFile(FLOW), [
+      { op: "insert", path: ["data", "nodes"], at: 2, item: { id: "graph", label: "" } },
+      { op: "set", path: ["data", "nodes", 2, "label"], value: "graph" },
+      { op: "remove", path: ["data", "edges", 0] },
+    ]);
+    expect(parse(after).data).toEqual({
+      nodes: [
+        { id: "reads", label: "reads" },
+        { id: "kmers", label: "k-mers" },
+        { id: "graph", label: "graph" },
+      ],
+      edges: [],
+    });
+  });
+
+  it("sets a record as a block under its key", () => {
+    const chart = "component: chart\nalt: A.\ndata:\n  encoding:\n    x: {field: k}\n";
+    const after = apply(openFile(chart), [
+      { op: "set", path: ["data", "encoding", "y"], value: { field: "n", type: "quantitative" } },
+    ]);
+    expect(after).toBe(`${chart}    y:\n      field: n\n      type: quantitative\n`);
   });
 
   it("finds a node's line", () => {

@@ -158,26 +158,6 @@ function scalarFor(value: Value, was?: Scalar): Scalar {
   return node;
 }
 
-function edited(fd: FigureDocument, change: (doc: Document) => void): string {
-  const doc = fd.doc.clone();
-  change(doc);
-  return doc.toString(WRITE);
-}
-
-/** One value set at `path`, made if it was not there; every other line as it was. */
-export function setAt(fd: FigureDocument, path: Path, value: Value): string {
-  return edited(fd, (doc) => {
-    const was = doc.getIn(path, true);
-    const node = scalarFor(value, isScalar(was) ? was : undefined);
-    if (isScalar(was)) {
-      if (was.comment != null) node.comment = was.comment;
-      if (was.commentBefore != null) node.commentBefore = was.commentBefore;
-      if (was.spaceBefore !== undefined) node.spaceBefore = was.spaceBefore;
-    }
-    doc.setIn(path, node);
-  });
-}
-
 /** A value made from plain data, numbers in plain decimal and strings quoted where they must be. */
 function nodeFor(doc: Document, value: unknown, flow: boolean): Node {
   if (value === null || typeof value !== "object") return scalarFor(value as Value);
@@ -199,29 +179,55 @@ function itemsAt(doc: Document, path: Path) {
   return list;
 }
 
-/** A new item at `at` in the list at `path`, written in its neighbours' style. */
-export function insertAt(fd: FigureDocument, path: Path, at: number, item: unknown): string {
-  return edited(fd, (doc) => {
-    const list = itemsAt(doc, path);
-    const neighbour = list.items[Math.max(0, Math.min(at, list.items.length - 1))];
+/** One change to a document: a value set (made if it was not there), an item inserted in a
+ * list in its neighbours' style, a key or item removed, or an item moved. */
+export type Op =
+  | { op: "set"; path: Path; value: Value | Record<string, unknown> }
+  | { op: "insert"; path: Path; at: number; item: unknown }
+  | { op: "remove"; path: Path }
+  | { op: "move"; path: Path; from: number; to: number };
+
+function run(doc: Document, change: Op): void {
+  if (change.op === "set" && change.value !== null && typeof change.value === "object") {
+    doc.setIn(change.path, nodeFor(doc, change.value, false));
+  } else if (change.op === "set") {
+    const was = doc.getIn(change.path, true);
+    const node = scalarFor(change.value as Value, isScalar(was) ? was : undefined);
+    if (isScalar(was)) {
+      if (was.comment != null) node.comment = was.comment;
+      if (was.commentBefore != null) node.commentBefore = was.commentBefore;
+      if (was.spaceBefore !== undefined) node.spaceBefore = was.spaceBefore;
+    }
+    doc.setIn(change.path, node);
+  } else if (change.op === "insert") {
+    const list = itemsAt(doc, change.path);
+    const neighbour = list.items[Math.max(0, Math.min(change.at, list.items.length - 1))];
     const flow = (isSeq(neighbour) || isMap(neighbour)) && neighbour.flow === true;
-    list.items.splice(at, 0, nodeFor(doc, item, flow));
-  });
+    list.items.splice(change.at, 0, nodeFor(doc, change.item, flow));
+  } else if (change.op === "remove") {
+    doc.deleteIn(change.path);
+  } else {
+    const list = itemsAt(doc, change.path);
+    const [item] = list.items.splice(change.from, 1);
+    list.items.splice(change.to, 0, item);
+  }
 }
 
-export function removeAt(fd: FigureDocument, path: Path): string {
-  return edited(fd, (doc) => {
-    doc.deleteIn(path);
-  });
+/** The changes made in order on a copy of the document, written back: every line they do not
+ * touch stays as it was. */
+export function apply(fd: FigureDocument, changes: Op[]): string {
+  const doc = fd.doc.clone();
+  for (const change of changes) run(doc, change);
+  return doc.toString(WRITE);
 }
 
-export function moveAt(fd: FigureDocument, path: Path, from: number, to: number): string {
-  return edited(fd, (doc) => {
-    const list = itemsAt(doc, path);
-    const [item] = list.items.splice(from, 1);
-    list.items.splice(to, 0, item);
-  });
-}
+export const setAt = (fd: FigureDocument, path: Path, value: Value) =>
+  apply(fd, [{ op: "set", path, value }]);
+export const insertAt = (fd: FigureDocument, path: Path, at: number, item: unknown) =>
+  apply(fd, [{ op: "insert", path, at, item }]);
+export const removeAt = (fd: FigureDocument, path: Path) => apply(fd, [{ op: "remove", path }]);
+export const moveAt = (fd: FigureDocument, path: Path, from: number, to: number) =>
+  apply(fd, [{ op: "move", path, from, to }]);
 
 /** The 1-based line a path's node starts on, or null when the file has no such node. */
 export function lineOf(fd: FigureDocument, path: Path): number | null {
