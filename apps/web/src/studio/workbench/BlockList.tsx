@@ -6,9 +6,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
+import { composerPath, useOpenComposer } from "../composer/open";
 import { BlockEditor } from "./BlockEditor";
 import { deleteBlock, type Edit, moveBlock, removeFigure, removeImage } from "./edits";
-import { FigureAdder } from "./FigureAdder";
 import { ImageAdder } from "./ImageAdder";
 import { blank, firstWords } from "./Outline";
 import { newQuestion, questionIn } from "./question";
@@ -38,7 +38,6 @@ const BLANK = {
   math: { kind: "math", tex: "" },
   example: { kind: "example", title: "", markdown: "" },
   image: { kind: "image", file: "", caption: "" },
-  figure: { kind: "figure", file: "", caption: "" },
 } as const satisfies Record<string, Block>;
 const ADDS = [
   ["text", "Add a text block"],
@@ -74,18 +73,12 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
   const [confirming, setConfirming] = useState<number | null>(null);
   const last = node.blocks.length - 1;
   const refusal = refusalOf(edit.error);
+  // A figure is edited and added in the composer, a page of its own (M6CO.1).
+  const compose = useOpenComposer(draftId);
 
   const editor = (o: Opened, block: Block) =>
     o.fresh?.kind === "image" ? (
       <ImageAdder key={`${o.at}:image`} draftId={draftId} at={o.at} onClose={() => close(o)} />
-    ) : o.fresh?.kind === "figure" ? (
-      <FigureAdder
-        key={`${o.at}:figure`}
-        draftId={draftId}
-        at={o.at}
-        onClose={() => close(o)}
-        onAdded={() => open(o.at, existing)}
-      />
     ) : (
       <BlockEditor
         key={`${o.at}:${o.fresh === null ? "edit" : "new"}`}
@@ -110,9 +103,11 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                 type="button"
                 aria-label={beside === undefined ? label : `Add text to block ${beside + 1}`}
                 onClick={() =>
-                  beside === undefined
-                    ? open(at, (now, place) => fresh(now, place, kind))
-                    : open(beside, existing)
+                  kind === "figure"
+                    ? compose(composerPath(draftId, null, { at }))
+                    : beside === undefined
+                      ? open(at, (now, place) => fresh(now, place, kind))
+                      : open(beside, existing)
                 }
                 className="rounded-[6px] border border-border-2 bg-surface px-2 py-0.5 font-mono text-[11.5px] text-sel"
               >
@@ -127,7 +122,11 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
   // Two texts side by side are one block (#258): + text beside a text block opens that block,
   // the one above first.
   const besideText = (at: number) => [at - 1, at].find((i) => node.blocks[i]?.kind === "text");
-  const fresh = (now: DraftNodeOut, at: number, kind: (typeof ADDS)[number][0]): Opened => {
+  const fresh = (
+    now: DraftNodeOut,
+    at: number,
+    kind: Exclude<(typeof ADDS)[number][0], "figure">,
+  ): Opened => {
     if (kind !== "try") return { at, fresh: BLANK[kind] };
     const question = newQuestion(nodeId, now.questions);
     return { at, fresh: { kind: "try", question: question.id }, question };
@@ -220,7 +219,11 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                     type="button"
                     aria-label={`Edit block ${n}`}
                     className={TOOL}
-                    onClick={() => open(at, existing)}
+                    onClick={() =>
+                      block.kind === "figure"
+                        ? compose(composerPath(draftId, block.file, { block: at }))
+                        : open(at, existing)
+                    }
                   >
                     Edit
                   </button>

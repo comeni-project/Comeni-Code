@@ -705,7 +705,7 @@
       "x": 1800,
       "y": 10190,
       "w": 620,
-      "text": "M6.4: a figure block open in Content. Component and file, caption, and the figure’s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). The composer (S4, M6.5) replaces the file editor with a sheet.",
+      "text": "M6.4: a figure block open in Content. Component and file, caption, and the figure’s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block’s Edit now opens the figure composer (S4), and this editor is gone.",
       "page": "studio"
     },
     {

@@ -108,15 +108,6 @@ export const removeImage = (file: string): Edit => ({
   path: `images/${encodeURIComponent(file)}`,
 });
 
-/** A new figure of `component`: its starter file under a free stem, and its block at `at`
- * (M6FG.5). Alt text and caption come first, as an image's do: a starter without alt would not
- * validate. */
-export const addFigure = (at: number, component: string, alt: string, caption: string): Edit => ({
-  method: "POST",
-  path: "figures",
-  body: { at, component, alt, caption },
-});
-
 /** A new figure from the composer (M6CO.2): its file as written, under a free stem after its
  * component, and its block at `at`, in one save. */
 export const addFigureFile = (at: number, text: string, caption: string): Edit => ({

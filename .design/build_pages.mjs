@@ -2676,7 +2676,7 @@ function figureKits() {
   return page(1440, 3060, body);
 }
 
-// The workbench with a figure block open: the M6.4 editor until the composer (M6.5) replaces it.
+// The workbench with a figure block open: the M6.4 editor, kept as a record; M6.5's composer replaced it.
 function benchFigure() {
   const yaml = `component: chart
 alt: A line chart. Distinct k-mers rise with k for
@@ -2767,7 +2767,7 @@ const STUDIO = [
   ['WorkbenchSettings', 'S3 · Workbench — Settings', workbench({ tab: 'Settings', body: benchSettings() }), 1680, 1060, 'M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.'],
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
   ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
-  ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). The composer (S4, M6.5) replaces the file editor with a sheet.'],
+  ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block\u2019s Edit now opens the figure composer (S4), and this editor is gone.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [

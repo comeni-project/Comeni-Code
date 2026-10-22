@@ -11,11 +11,14 @@ export function TryEditor({
   question,
   onChange,
   figures = [],
+  onCompose,
 }: {
   question: TryQuestionIn;
   onChange: (question: TryQuestionIn) => void;
   /** The node's figures by stem, which the question may show. */
   figures?: string[];
+  /** Opens the chosen figure in the composer (M6CO.1). */
+  onCompose?: (stem: string) => void;
 }) {
   const id = useId();
   return (
@@ -44,6 +47,15 @@ export function TryEditor({
           ))}
         </select>
       </label>
+      {question.figure && onCompose && (
+        <button
+          type="button"
+          className="self-start text-[12.5px] font-medium text-sel hover:text-ink"
+          onClick={() => onCompose(question.figure as string)}
+        >
+          Edit in the composer
+        </button>
+      )}
       <AnswerEditor
         value={question as TryQuestionIn & AnswerFields}
         onChange={(next) => onChange(next)}

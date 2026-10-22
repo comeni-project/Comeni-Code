@@ -197,6 +197,22 @@ describe("ExamEditor", () => {
     ]);
   });
 
+  it("a stem's figure opens in the composer, the question saved first (M6CO.1)", async () => {
+    const figure = { kind: "figure", file: "two-transcripts", caption: "Reads.\n" } as const;
+    const a = { ...examQuestion("a", "draft"), stem: [examQuestion("a", "draft").stem[0], figure] };
+    const fake = renderPool([a as StudioExamQuestionOut], {
+      "PUT /api/studio/drafts/d-1/exam/a": savedWith([a as StudioExamQuestionOut]),
+    });
+    const caption = await screen.findByLabelText("Stem block 2 caption");
+    await userEvent.clear(caption);
+    await userEvent.type(caption, "Reads. Again.");
+    await userEvent.click(screen.getByRole("button", { name: "Edit in the composer" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent(
+      "/studio/drafts/d-1/figures/two-transcripts",
+    );
+    expect((await bodyOf(fake, "PUT")).question.stem.at(-1).caption).toBe("Reads. Again.\n");
+  });
+
   it("delete question asks first, sends DELETE and opens the first left", async () => {
     const b = examQuestion("b", "draft");
     const fake = renderPool([examQuestion("a", "draft"), b], {
