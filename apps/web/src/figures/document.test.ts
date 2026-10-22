@@ -15,6 +15,7 @@ import {
   pathText,
   removeAt,
   setAt,
+  writeFile,
 } from "./document";
 import { TWO_READINGS } from "./schemas";
 
@@ -129,6 +130,19 @@ describe("a figure's file as a document", () => {
       { op: "set", path: ["data", "encoding", "y"], value: { field: "n", type: "quantitative" } },
     ]);
     expect(after).toBe(`${chart}    y:\n      field: n\n      type: quantitative\n`);
+  });
+
+  it("writes a new file in block style, numbers plain, and an empty value quoted", () => {
+    expect(writeFile({ component: "table", alt: "", data: { rows: [[3, 0.5]] } })).toBe(
+      'component: table\nalt: ""\ndata:\n  rows:\n    - [3, 0.5]\n',
+    );
+  });
+
+  it("quotes a value only while it must, in the old quote's style", () => {
+    expect(setAt(openFile('alt: ""\n'), ["alt"], "A table.")).toBe("alt: A table.\n");
+    expect(setAt(openFile("alt: 'x'\n"), ["alt"], "A table.")).toBe("alt: A table.\n");
+    expect(setAt(openFile("alt: 'x'\n"), ["alt"], "on")).toBe("alt: 'on'\n");
+    expect(setAt(openFile("alt: A\n"), ["alt"], "A ")).toBe('alt: "A "\n');
   });
 
   it("finds a node's line", () => {

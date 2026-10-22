@@ -117,6 +117,14 @@ export const addFigure = (at: number, component: string, alt: string, caption: s
   body: { at, component, alt, caption },
 });
 
+/** A new figure from the composer (M6CO.2): its file as written, under a free stem after its
+ * component, and its block at `at`, in one save. */
+export const addFigureFile = (at: number, text: string, caption: string): Edit => ({
+  method: "POST",
+  path: "figures",
+  body: { at, text, caption },
+});
+
 /** A figure's file replaced by `text`, kept as written; refused unless it validates. */
 export const setFigure = (stem: string, text: string): Edit => ({
   method: "PUT",

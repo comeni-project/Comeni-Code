@@ -16,6 +16,8 @@ import {
   Scalar,
   type ScalarTag,
   type Tags,
+  type YAMLMap,
+  type YAMLSeq,
 } from "yaml";
 import { TWO_READINGS } from "./schemas";
 
@@ -73,6 +75,13 @@ const PARSE = {
   uniqueKeys: false, // a key twice is found by the walk, with its path
   customTags: decimalTags,
 } as const;
+
+/** A new file from plain data, written as the composer writes every edit. */
+export function writeFile(value: unknown): string {
+  const doc = parseDocument("", PARSE);
+  doc.contents = nodeFor(doc, value, false) as never;
+  return doc.toString(WRITE);
+}
 
 export function pathText(path: Path): string {
   return path.reduce<string>(
@@ -151,25 +160,32 @@ function scalarFor(value: Value, was?: Scalar): Scalar {
   if (typeof value === "number") return new Decimal(value);
   const node = new Scalar(value);
   if (typeof value === "string") {
-    const quoted = was?.type === Scalar.QUOTE_DOUBLE || was?.type === Scalar.QUOTE_SINGLE;
-    if (quoted && was?.type !== undefined) node.type = was.type;
-    else if (!readsAsItself(value)) node.type = Scalar.QUOTE_DOUBLE;
+    // Quoted only when its plain form would read otherwise, in the old quote's style if it had one.
+    if (!readsAsItself(value)) {
+      node.type = was?.type === Scalar.QUOTE_SINGLE ? Scalar.QUOTE_SINGLE : Scalar.QUOTE_DOUBLE;
+    }
   }
   return node;
 }
 
-/** A value made from plain data, numbers in plain decimal and strings quoted where they must be. */
+/** A value made from plain data, numbers in plain decimal and strings quoted where they must be.
+ * Inside a flow collection everything is flow. Otherwise, as the fixtures are written: a map is a
+ * block, a list of plain values is one flow line, and a list of records is a block of flow
+ * records (`- {id: reads, label: reads}`). */
 function nodeFor(doc: Document, value: unknown, flow: boolean): Node {
   if (value === null || typeof value !== "object") return scalarFor(value as Value);
-  const node = doc.createNode(Array.isArray(value) ? [] : {}) as Node;
-  if (isSeq(node)) {
-    for (const item of value as unknown[]) node.items.push(nodeFor(doc, item, true));
-  } else if (isMap(node)) {
-    for (const [key, item] of Object.entries(value)) {
-      node.add(doc.createPair(scalarFor(key), nodeFor(doc, item, true)));
-    }
+  if (Array.isArray(value)) {
+    const node = doc.createNode([]) as YAMLSeq;
+    const plain = value.every((item) => item === null || typeof item !== "object");
+    node.flow = flow || plain;
+    for (const item of value) node.items.push(nodeFor(doc, item, true));
+    return node;
   }
-  if (isSeq(node) || isMap(node)) node.flow = flow;
+  const node = doc.createNode({}) as YAMLMap;
+  node.flow = flow;
+  for (const [key, item] of Object.entries(value)) {
+    node.add(doc.createPair(scalarFor(key), nodeFor(doc, item, flow)));
+  }
   return node;
 }
 

@@ -22,6 +22,9 @@ function Refused({ needs }: { needs: string | null }) {
   );
 }
 
+/** Pages of focused work, drawn with the rail collapsed (W-spec S-section; M6CO.1). */
+const FOCUSED = /^\/studio\/drafts\/[^/]+\/figures\//;
+
 export function StudioShell() {
   const me = useMe();
   const { pathname, search } = useLocation();
@@ -52,7 +55,7 @@ export function StudioShell() {
       <div className="flex min-h-screen flex-col">
         <StudioBar />
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-          {role !== null && <Rail role={role} />}
+          {role !== null && <Rail role={role} collapsed={FOCUSED.test(pathname)} />}
           <main className="flex min-w-0 flex-1 flex-col gap-4 px-[26px] py-[22px]">{inside}</main>
         </div>
       </div>
