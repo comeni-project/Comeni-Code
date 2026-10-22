@@ -125,7 +125,8 @@ describe("a figure's file as a document", () => {
   it("reports what does not parse with its line", () => {
     const fd = openFile("component: [\n");
     expect(fd.errors[0]?.line).toBe(2);
-    expect(openFile("a: 1\na: 2\n").errors).toHaveLength(1);
+    expect(openFile("a: 1\nb:\n  c: 1\n  c: 2\n").twice).toEqual([["b", "c"]]);
+    expect(openFile("a: &x 1\nb: *x\n").aliased).toBe(true);
   });
 
   it("turns a path into text and back", () => {

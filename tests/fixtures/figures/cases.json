@@ -1,5 +1,5 @@
 {
- "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found.",
+ "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found. A `files` case with `pad` has that many # characters appended, as one comment line, before it is read. `starters` are each component's starter data, as code-figures holds it.",
  "cases": [
   {
    "name": "a bar chart",
@@ -8710,6 +8710,224 @@
    "codes": [
     "CS1003"
    ]
+  },
+  {
+   "name": "a chart field that is no column",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "g",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "m",
+      "type": "quantitative"
+     }
+    }
+   },
+   "codes": [
+    "CS1005"
+   ]
+  },
+  {
+   "name": "a quantitative field holding words",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a",
+       "n": "many"
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "g",
+      "type": "nominal"
+     },
+     "y": {
+      "field": "n",
+      "type": "quantitative"
+     }
+    }
+   },
+   "codes": [
+    "CS1006"
+   ]
+  },
+  {
+   "name": "a chart with four series",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a",
+       "n": 1
+      },
+      {
+       "g": "b",
+       "n": 1
+      },
+      {
+       "g": "c",
+       "n": 1
+      },
+      {
+       "g": "d",
+       "n": 1
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "field": "n",
+      "type": "quantitative"
+     },
+     "color": {
+      "field": "g",
+      "type": "nominal"
+     }
+    }
+   },
+   "codes": [
+    "CS1004"
+   ]
+  },
+  {
+   "name": "a channel that names no field",
+   "component": "chart",
+   "data": {
+    "mark": "bar",
+    "data": {
+     "values": [
+      {
+       "g": "a"
+      }
+     ]
+    },
+    "encoding": {
+     "x": {
+      "type": "nominal"
+     }
+    }
+   },
+   "codes": [
+    "CS1003"
+   ]
+  },
+  {
+   "name": "a flow edge to no node",
+   "component": "flow",
+   "data": {
+    "nodes": [
+     {
+      "id": "reads",
+      "label": "reads"
+     },
+     {
+      "id": "kmers",
+      "label": "k-mers"
+     }
+    ],
+    "edges": [
+     {
+      "from": "reads",
+      "to": "kmrs"
+     }
+    ]
+   },
+   "codes": [
+    "CS1007"
+   ]
+  },
+  {
+   "name": "a flow node twice",
+   "component": "flow",
+   "data": {
+    "nodes": [
+     {
+      "id": "reads",
+      "label": "reads"
+     },
+     {
+      "id": "reads",
+      "label": "again"
+     }
+    ],
+    "edges": []
+   },
+   "codes": [
+    "CS1008"
+   ]
+  },
+  {
+   "name": "a feature past the sequence",
+   "component": "sequence-track",
+   "data": {
+    "alphabet": "dna",
+    "sequence": "ACGT",
+    "features": [
+     {
+      "start": 2,
+      "end": 9,
+      "label": "exon",
+      "kind": "exon"
+     }
+    ]
+   },
+   "codes": [
+    "CS1009"
+   ]
+  },
+  {
+   "name": "a letter outside the alphabet",
+   "component": "sequence-track",
+   "data": {
+    "alphabet": "dna",
+    "sequence": "ACGU",
+    "features": []
+   },
+   "codes": [
+    "CS1010"
+   ]
+  },
+  {
+   "name": "a table row one cell short",
+   "component": "table",
+   "data": {
+    "columns": [
+     {
+      "name": "k",
+      "type": "number"
+     },
+     {
+      "name": "n",
+      "type": "number"
+     }
+    ],
+    "rows": [
+     [
+      3
+     ]
+    ]
+   },
+   "codes": [
+    "CS1011"
+   ]
   }
  ],
  "files": [
@@ -8769,6 +8987,153 @@
    "codes": [
     "CS1023"
    ]
+  },
+  {
+   "name": "a component nobody built",
+   "text": "component: pie\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1001"
+   ]
+  },
+  {
+   "name": "no component",
+   "text": "alt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1001"
+   ]
+  },
+  {
+   "name": "no alt text",
+   "text": "component: flow\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1024"
+   ]
+  },
+  {
+   "name": "a key a figure does not take",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\nnotes: hi\n",
+   "codes": [
+    "CS1025"
+   ]
+  },
+  {
+   "name": "a source with no title",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\nsource:\n  url: https://example.org\n",
+   "codes": [
+    "CS1026"
+   ]
+  },
+  {
+   "name": "a file over 64 KB",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "pad": 66560,
+   "codes": [
+    "CS1027"
+   ]
+  },
+  {
+   "name": "not a mapping",
+   "text": "- a\n- b\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "does not parse",
+   "text": "component: [\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a flow edge to no node, in a file",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmrs}\n",
+   "codes": [
+    "CS1007"
+   ]
   }
- ]
+ ],
+ "starters": {
+  "chart": {
+   "mark": "bar",
+   "data": {
+    "values": [
+     {
+      "k": 3,
+      "n": 64
+     },
+     {
+      "k": 5,
+      "n": 812
+     },
+     {
+      "k": 7,
+      "n": 3904
+     }
+    ]
+   },
+   "encoding": {
+    "x": {
+     "field": "k",
+     "type": "ordinal"
+    },
+    "y": {
+     "field": "n",
+     "type": "quantitative"
+    }
+   }
+  },
+  "flow": {
+   "nodes": [
+    {
+     "id": "reads",
+     "label": "reads"
+    },
+    {
+     "id": "k-mers",
+     "label": "k-mers"
+    }
+   ],
+   "edges": [
+    {
+     "from": "reads",
+     "to": "k-mers"
+    }
+   ]
+  },
+  "sequence-track": {
+   "alphabet": "dna",
+   "sequence": "ATGGCGTACGTTAGCCTAGG",
+   "features": [
+    {
+     "start": 1,
+     "end": 12,
+     "label": "exon 1",
+     "kind": "exon"
+    }
+   ]
+  },
+  "table": {
+   "columns": [
+    {
+     "name": "k",
+     "type": "number"
+    },
+    {
+     "name": "k-mers",
+     "type": "number"
+    }
+   ],
+   "rows": [
+    [
+     3,
+     64
+    ],
+    [
+     5,
+     812
+    ]
+   ]
+  }
+ }
 }

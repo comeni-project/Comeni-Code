@@ -30,6 +30,9 @@ export interface FigureDocument {
   errors: { message: string; line: number }[];
   /** Every plain (unquoted) key and value, for the one-reading check. */
   plain: { path: Path; text: string; key: boolean }[];
+  /** Keys written twice in one map, by path. */
+  twice: Path[];
+  aliased: boolean;
 }
 
 const WRITE = { flowCollectionPadding: false, lineWidth: 0 } as const;
@@ -67,7 +70,7 @@ const PARSE = {
   version: "1.2",
   schema: "core",
   merge: false,
-  uniqueKeys: true,
+  uniqueKeys: false, // a key twice is found by the walk, with its path
   customTags: decimalTags,
 } as const;
 
@@ -85,19 +88,28 @@ export function pathParts(text: string): Path {
   );
 }
 
-function plainOf(doc: Document, text: string): FigureDocument["plain"] {
-  const found: FigureDocument["plain"] = [];
+/** One walk over the document, in its order: plain keys and values, keys written twice in one
+ * map (YAML 1.2 would refuse them, PyYAML keeps the last), and whether an alias is used. */
+function walkOf(doc: Document, text: string): Pick<FigureDocument, "plain" | "twice" | "aliased"> {
+  const plain: FigureDocument["plain"] = [];
+  const twice: Path[] = [];
+  let aliased = false;
   const source = (node: Scalar) =>
     node.range ? text.slice(node.range[0], node.range[1]) : String(node.value);
   const walk = (node: unknown, path: Path) => {
-    if (isScalar(node)) {
-      if (node.type === Scalar.PLAIN) found.push({ path, text: source(node), key: false });
+    if (isAlias(node)) aliased = true;
+    else if (isScalar(node)) {
+      if (node.type === Scalar.PLAIN) plain.push({ path, text: source(node), key: false });
     } else if (isMap(node)) {
+      const seen = new Set<string>();
       for (const pair of node.items) {
         const name = isScalar(pair.key) ? String(pair.key.value) : "?";
+        if (isAlias(pair.key)) aliased = true;
         if (isScalar(pair.key) && pair.key.type === Scalar.PLAIN) {
-          found.push({ path: [...path, name], text: source(pair.key), key: true });
+          plain.push({ path: [...path, name], text: source(pair.key), key: true });
         }
+        if (seen.has(name)) twice.push([...path, name]);
+        seen.add(name);
         walk(pair.value, [...path, name]);
       }
     } else if (isSeq(node)) {
@@ -107,7 +119,7 @@ function plainOf(doc: Document, text: string): FigureDocument["plain"] {
     }
   };
   walk(doc.contents, []);
-  return found;
+  return { plain, twice, aliased };
 }
 
 export function openFile(text: string): FigureDocument {
@@ -116,15 +128,16 @@ export function openFile(text: string): FigureDocument {
     message: error.message.split("\n")[0] ?? error.message,
     line: error.linePos?.[0]?.line ?? 1,
   }));
+  if (errors.length > 0)
+    return { doc, text, written: text, errors, plain: [], twice: [], aliased: false };
+  const walked = walkOf(doc, text);
   let written = text;
-  if (errors.length === 0) {
-    try {
-      written = doc.toString(WRITE);
-    } catch {
-      written = ""; // an alias with no anchor: it cannot be written back
-    }
+  try {
+    written = doc.toString(WRITE);
+  } catch {
+    written = ""; // an alias with no anchor: it cannot be written back
   }
-  return { doc, text, written, errors, plain: errors.length ? [] : plainOf(doc, text) };
+  return { doc, text, written, errors, ...walked };
 }
 
 /** Whether a string written plain would read back as itself, on both sides. */
