@@ -1,0 +1,36 @@
+{
+  "$comment": "One set of reads under both conventions (M6.6a spec, M6DC.1): k-mers as nodes, and (k-1)-mers as nodes with each k-mer an edge. Both computed.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "reads": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sequence": {
+            "type": "string",
+            "pattern": "^[A-Za-z]+$",
+            "maxLength": 20,
+            "format": "dna"
+          }
+        },
+        "required": [
+          "sequence"
+        ]
+      }
+    },
+    "k": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 8
+    }
+  },
+  "required": [
+    "reads",
+    "k"
+  ]
+}

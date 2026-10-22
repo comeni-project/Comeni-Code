@@ -1512,6 +1512,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A table is a checked figure: its cells are what its columns say (M6FG.3).
 
+#### CS1012 — a read is not in the genome, or is in it twice
+
+*Refuses.*
+
+**Fix.** Write each read as a stretch of the genome that occurs once; lengthen a read that matches in two places until it matches in one.
+
+**Why.** read-tiling places each read where it matches (M6DC.1); a read with no place, or two, could only be drawn by guessing.
+
 #### CS1013 — k is not shorter than every read
 
 *Refuses.*
@@ -1527,6 +1535,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Highlight reads that overlap in order, each starting where the one before ends but one letter, or name reads that exist.
 
 **Why.** A kmer-graph spells the sequence a path walks (M6DC.1); reads that do not chain spell nothing.
+
+#### CS1015 — no k-mer is in two reads
+
+*Refuses.*
+
+**Fix.** Add reads that agree with each other: a path stands where reads share k-mers, and an error shows only against it.
+
+**Why.** graph-artifacts tells a tip or a bubble from the path by how many reads hold each k-mer (M6DC.1); with no k-mer in two reads there is no path to tell them from.
 
 #### CS1016 — more k-mers than a page can draw
 

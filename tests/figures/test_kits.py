@@ -16,7 +16,17 @@ def test_an_unknown_component_is_cs1001() -> None:
 
 
 def test_the_registry_names_the_kits() -> None:
-    assert sorted(COMPONENTS) == ["chart", "flow", "kmer-graph", "sequence-track", "table"]
+    assert sorted(COMPONENTS) == [
+        "chart",
+        "compare-graphs",
+        "flow",
+        "graph-artifacts",
+        "kmer-graph",
+        "kmer-window",
+        "read-tiling",
+        "sequence-track",
+        "table",
+    ]
 
 
 @pytest.mark.parametrize("name", ["chart", "flow", "sequence-track", "table"])
@@ -25,7 +35,7 @@ def test_each_starter_is_valid(name: str) -> None:
 
 
 def test_codes_lists_every_code_the_package_writes() -> None:
-    assert sorted(CODES) == [f"CS10{n:02}" for n in [*range(1, 12), 13, 14, 16]]
+    assert sorted(CODES) == [f"CS10{n:02}" for n in range(1, 17)]
 
 
 # ── table ─────────────────────────────────────────────────────────────────────────────────────
