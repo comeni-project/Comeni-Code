@@ -1,6 +1,7 @@
 // Describe (M6.5 spec, M6CO.4): the caption (the block's, when the figure was opened from one, or
 // the new block's), and the file's alt text and optional source, which edit the working copy.
 import { useId } from "react";
+import { linesKept } from "../../figures/document";
 import { HINT, INPUT, LABEL } from "../workbench/bench";
 import { MarkdownField } from "../workbench/MarkdownField";
 import type { WorkingCopy } from "./useWorkingCopy";
@@ -49,7 +50,10 @@ export function Describe({
   caption: string | null;
   onCaption: (caption: string) => void;
 }) {
-  const file = (copy.fd.errors.length === 0 ? copy.fd.doc.toJS() : null) as {
+  // The alt text and source are the file's: edited through its document only when that keeps
+  // every other line as written (#393); otherwise they are edited as YAML.
+  const kept = copy.fd.errors.length === 0 && linesKept(copy.fd);
+  const file = (kept ? copy.fd.doc.toJS() : null) as {
     alt?: unknown;
     source?: { title?: unknown; url?: unknown } | null;
   } | null;
@@ -75,6 +79,11 @@ export function Describe({
           />
         )}
       </div>
+      {file === null && copy.fd.errors.length === 0 && (
+        <p className="text-[12px] text-ink-3">
+          Edit the alt text and the source in Edit as YAML: the form would lay this file out anew.
+        </p>
+      )}
       {file !== null &&
         (source === undefined ? (
           <p className="text-[12px] text-ink-3">

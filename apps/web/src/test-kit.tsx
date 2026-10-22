@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { createMemoryRouter, Route, RouterProvider, Routes, useLocation } from "react-router";
 import { vi } from "vitest";
 import { QUERIES } from "./api/queries";
 import type { MeOut } from "./api/schema";
@@ -45,19 +45,31 @@ export function Where() {
   return <span data-testid="where">{`${pathname}${search}`}</span>;
 }
 
-export const renderAt = (path: string, routes: ReactNode) =>
-  render(
+/** As the app is mounted (main.tsx): one data router around the page's own routes, so a page may
+ * block leaving (useBlocker). */
+export const renderAt = (path: string, routes: ReactNode) => {
+  const router = createMemoryRouter(
+    [
+      {
+        path: "*",
+        element: (
+          <Routes>
+            {routes}
+            <Route path="*" element={<Where />} />
+          </Routes>
+        ),
+      },
+    ],
+    { initialEntries: [path] },
+  );
+  return render(
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { ...QUERIES, retry: false } } })}
     >
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          {routes}
-          <Route path="*" element={<Where />} />
-        </Routes>
-      </MemoryRouter>
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   );
+};
 
 export const SIGNED_OUT: Answer = { body: { user: null } satisfies MeOut };
 

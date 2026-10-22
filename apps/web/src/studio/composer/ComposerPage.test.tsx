@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Route } from "react-router";
+import { Link, Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftNodeOut, StudioFigureOut } from "../../api/schema";
 import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
@@ -146,6 +146,28 @@ describe("the figure composer (M6.5)", () => {
     expect(screen.queryByTestId("where")).not.toBeInTheDocument();
   });
 
+  it("sends the caption only once the file is saved, and stays when the file is refused (#390)", async () => {
+    const fake = composer(`/studio/drafts/d-1/figures/flow?block=${AT}`, {
+      "PUT /api/studio/drafts/d-1/figures/flow": {
+        status: 422,
+        body: {
+          detail: "No.",
+          code: "CA0208",
+          problems: [{ file: "f", code: "CS1007", message: "x" }],
+        },
+      },
+      [`PUT /api/studio/drafts/d-1/blocks/${AT}`]: saved(),
+    });
+    await userEvent.type(await screen.findByRole("textbox", { name: "Nodes row 2 label" }), "s");
+    await userEvent.type(screen.getByLabelText("Caption"), " Again.");
+    await userEvent.click(screen.getByRole("button", { name: "Save to the page" }));
+    expect(
+      await within(screen.getByRole("region", { name: "Checks" })).findByText("x"),
+    ).toBeInTheDocument();
+    expect(writes(fake).map(([call]) => call)).toEqual(["PUT /api/studio/drafts/d-1/figures/flow"]);
+    expect(screen.queryByTestId("where")).not.toBeInTheDocument();
+  });
+
   it("sends a changed caption alone as its block", async () => {
     const fake = composer(`/studio/drafts/d-1/figures/flow?block=${AT}`, {
       [`PUT /api/studio/drafts/d-1/blocks/${AT}`]: saved(),
@@ -163,10 +185,66 @@ describe("the figure composer (M6.5)", () => {
     ]);
   });
 
+  it("sends Describe's alt text to Edit as YAML when the form would lay the file out anew (#393)", async () => {
+    const four = FLOW_TEXT.replace(/^ {2}/gm, "    ").replace(/^ {4}- /gm, "        - ");
+    composer(
+      `/studio/drafts/d-1/figures/flow?block=${AT}`,
+      {},
+      {
+        ...WITH_FLOW,
+        figures: [edited(four)],
+      },
+    );
+    expect(
+      await screen.findByText(
+        "Edit the alt text and the source in Edit as YAML: the form would lay this file out anew.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Alt text")).toBeNull();
+    expect(screen.getByLabelText("Caption")).toBeInTheDocument();
+  });
+
   it("names every place the figure shows", async () => {
     composer(`/studio/drafts/d-1/figures/flow?block=${AT}`);
     const here = await screen.findByRole("region", { name: "This figure" });
     expect(here).toHaveTextContent("figures/flow.yaml is placed once in this node: block");
+  });
+
+  it("asks before an in-app link leaves unsaved work, and stays when told to (#391)", async () => {
+    const ask = vi.fn(() => false);
+    vi.stubGlobal("confirm", ask);
+    answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts/d-1": { body: { ...DRAFT, node: WITH_FLOW } },
+    });
+    renderAt(
+      `/studio/drafts/d-1/figures/flow?block=${AT}`,
+      <Route
+        path="/studio/drafts/:id/figures/:stem"
+        element={
+          <>
+            <Link to="/studio/drafts">Drafts</Link>
+            <ComposerPage />
+          </>
+        }
+      />,
+    );
+    await userEvent.type(await screen.findByRole("textbox", { name: "Nodes row 2 label" }), "s");
+    await userEvent.click(screen.getByRole("link", { name: "Drafts" }));
+    expect(ask).toHaveBeenCalledWith("Leave the composer? What you changed here is not saved.");
+    expect(screen.queryByTestId("where")).not.toBeInTheDocument();
+    ask.mockReturnValue(true);
+    await userEvent.click(screen.getByRole("link", { name: "Drafts" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio/drafts");
+  });
+
+  it("leaves without asking when nothing changed", async () => {
+    const ask = vi.fn(() => false);
+    vi.stubGlobal("confirm", ask);
+    composer(`/studio/drafts/d-1/figures/flow?block=${AT}`);
+    await userEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio/drafts/d-1");
+    expect(ask).not.toHaveBeenCalled();
   });
 
   it("says when the draft has no such figure", async () => {

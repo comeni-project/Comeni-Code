@@ -15,7 +15,6 @@ import { ErrorNotice } from "../../layout/ErrorNotice";
 import { addFigureFile, type Edit, setFigure, updateBlock } from "../workbench/edits";
 import { refusalOf } from "../workbench/refusal";
 import { useDraftEdit } from "../workbench/useDraftEdit";
-import { useLeaveWarning } from "../workbench/useLeaveWarning";
 import { ChecksList } from "./ChecksList";
 import { Choose } from "./Choose";
 import { ComposerPreview } from "./ComposerPreview";
@@ -23,6 +22,7 @@ import { DataPanel } from "./DataPanel";
 import { Describe } from "./Describe";
 import { focusPath, serverPath } from "./goTo";
 import { ThisFigure } from "./ThisFigure";
+import { useLeaveGuard } from "./useLeaveGuard";
 import { useWorkingCopy } from "./useWorkingCopy";
 
 const ended = (text: string) => (text.endsWith("\n") ? text : `${text}\n`);
@@ -123,7 +123,7 @@ function Composer({
 
   const captionChanged = caption !== null && caption !== (initialCaption ?? "");
   const changed = copy.changed || (stem !== null && captionChanged);
-  useLeaveWarning(changed || edit.isPending);
+  const allow = useLeaveGuard(changed || edit.isPending);
   const component = (copy.figure?.component ?? record?.component ?? chosen) as Component | null;
 
   const refusal = refusalOf(edit.error);
@@ -134,7 +134,10 @@ function Composer({
   const problems = [...copy.problems, ...server];
   const needsCaption = caption !== null && caption.trim() === "";
   const ready = !choosing && copy.problems.length === 0 && changed && !needsCaption;
-  const back = () => navigate(`/studio/drafts/${draft.public_id}`);
+  const back = () => {
+    allow();
+    navigate(`/studio/drafts/${draft.public_id}`);
+  };
 
   const save = () => {
     if (!ready || edit.isPending) return;
@@ -143,14 +146,19 @@ function Composer({
       edit.mutate(addFigureFile(at, copy.text, ended(caption ?? "")), { onSuccess: back });
       return;
     }
+    // One after another, each sent only once the one before it is saved: a refused file keeps
+    // the composer open, its caption unsent (#390).
     const saves: Edit[] = [];
     if (copy.changed) saves.push(setFigure(stem, copy.text));
     if (block !== null && captionChanged) {
       saves.push(updateBlock(block, { kind: "figure", file: stem, caption: ended(caption ?? "") }));
     }
-    saves.forEach((one, n) => {
-      edit.mutate(one, n === saves.length - 1 ? { onSuccess: back } : {});
-    });
+    const send = (n: number) => {
+      const one = saves[n];
+      if (one === undefined) return back();
+      edit.mutate(one, { onSuccess: () => send(n + 1) });
+    };
+    send(0);
   };
   const go = (path: string) =>
     focusPath(path, () => {
