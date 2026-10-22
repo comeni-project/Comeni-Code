@@ -109,6 +109,13 @@ describe("whether the form can hold a file", () => {
     }
   });
 
+  it("holds a hand-written file whose comments are spaced its own way", () => {
+    const text = FLOW.replace("label: reads}", "label: reads}  # the input");
+    expect(formable(openFile(text))).toBeNull();
+    // yaml writes a blank line before a comment that ends the file: such a file opens as YAML.
+    expect(formable(openFile(`${text}# end\n`))).toMatch(/lay this file out anew/);
+  });
+
   it("names why it cannot", () => {
     expect(formable(openFile("component: [\n"))).toMatch(/^It does not parse/);
     const layered =

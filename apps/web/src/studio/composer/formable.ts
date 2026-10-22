@@ -1,7 +1,7 @@
 // Whether the sheets and the form can hold a figure's file, and why not (M6.5 spec, M6CO.3): one
 // that does not parse, reads two ways, would be laid out anew, is a layered chart, or holds a key
 // or a list the form does not show opens in Edit as YAML with this line.
-import { type FigureDocument, type Path, pathText } from "../../figures/document";
+import { type FigureDocument, linesKept, type Path, pathText } from "../../figures/document";
 import { type Component, SCHEMAS, TWO_READINGS } from "../../figures/schemas";
 import { resolve, sheetPaths } from "./sheets";
 
@@ -75,7 +75,7 @@ export function formable(fd: FigureDocument): string | null {
   if (fd.twice.length > 0 || fd.plain.some((p) => FORMS.some((form) => form.test(p.text)))) {
     return "It reads two ways: quote the values Checks names.";
   }
-  if (fd.written !== fd.text) return `The form would lay this file out anew: ${AS_YAML}`;
+  if (!linesKept(fd)) return `The form would lay this file out anew: ${AS_YAML}`;
   const file: unknown = fd.doc.toJS();
   if (!isMapping(file) || !isMapping(file.data)) {
     return `It is not a figure the form can hold: ${AS_YAML}`;

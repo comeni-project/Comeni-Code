@@ -234,7 +234,47 @@ function run(doc: Document, change: Op): void {
 export function apply(fd: FigureDocument, changes: Op[]): string {
   const doc = fd.doc.clone();
   for (const change of changes) run(doc, change);
-  return doc.toString(WRITE);
+  return kept(fd, doc.toString(WRITE));
+}
+
+/** Whether the document writes the file back line for line, differing at most in the spaces
+ * around a comment (`}  # note` is written `} # note`): then an edit can keep every line it does
+ * not touch as the file has it. */
+export function linesKept(fd: FigureDocument): boolean {
+  const text = fd.text.split("\n");
+  const written = fd.written.split("\n");
+  const plain = (line: string) => line.replace(/\s+/g, " ").trimEnd();
+  return (
+    text.length === written.length &&
+    text.every((line, n) => plain(line) === plain(written[n] ?? ""))
+  );
+}
+
+/** The edited document's text, with each line it did not change taken from the file as written:
+ * the changed lines are those between the common head and tail of the old and new writings. */
+function kept(fd: FigureDocument, next: string): string {
+  if (!linesKept(fd)) return next;
+  const text = fd.text.split("\n");
+  const old = fd.written.split("\n");
+  const now = next.split("\n");
+  let head = 0;
+  while (head < old.length && head < now.length && old[head] === now[head]) head++;
+  let tail = 0;
+  while (
+    tail < old.length - head &&
+    tail < now.length - head &&
+    old[old.length - 1 - tail] === now[now.length - 1 - tail]
+  ) {
+    tail++;
+  }
+  const was = old.slice(head, old.length - tail);
+  const middle = now.slice(head, now.length - tail);
+  const own = text.slice(head, text.length - tail);
+  const lines =
+    was.length === middle.length
+      ? middle.map((line, n) => (line === was[n] ? (own[n] ?? line) : line))
+      : middle;
+  return [...text.slice(0, head), ...lines, ...text.slice(text.length - tail)].join("\n");
 }
 
 export const setAt = (fd: FigureDocument, path: Path, value: Value) =>

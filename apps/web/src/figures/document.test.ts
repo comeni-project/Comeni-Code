@@ -108,6 +108,17 @@ describe("a figure's file as a document", () => {
     expect(removed).toBe(FLOW);
   });
 
+  it("keeps a comment's own spacing on every line an edit does not touch", () => {
+    const text =
+      "# by hand\ncomponent: table\nalt: A table.\ndata:\n  columns:\n" +
+      "    - {name: k, type: number}  # the k\n    - {name: n, type: number}\n" +
+      "  rows:\n    - [3, 64]   # first\n    - [5, 96]\n";
+    const after = setAt(openFile(text), ["data", "rows", 1, 1], 97);
+    expect(after).toBe(text.replace("[5, 96]", "[5, 97]"));
+    const added = insertAt(openFile(text), ["data", "rows"], 2, [7, 98]);
+    expect(added).toBe(`${text}    - [7, 98]\n`);
+  });
+
   it("applies several edits in one write, in order", () => {
     const after = apply(openFile(FLOW), [
       { op: "insert", path: ["data", "nodes"], at: 2, item: { id: "graph", label: "" } },
