@@ -46,20 +46,52 @@ function Steps({ choosing, described }: { choosing: boolean; described: boolean 
           {n > 0 && <span className="h-px w-7 bg-border-2" />}
           <span
             aria-current={state === "on" ? "step" : undefined}
-            className={`rounded-pill border px-3 py-1.5 text-[13px] ${
+            className={`flex items-center gap-2 rounded-pill px-3 py-1.5 text-[13px] ${
               state === "on"
-                ? "border-sel bg-sel-soft font-semibold text-sel"
+                ? "bg-ink font-semibold text-bg"
                 : state === "done"
-                  ? "border-border bg-surface text-ink"
-                  : "border-border text-ink-3"
+                  ? "bg-line-soft font-medium text-btn"
+                  : "border border-border-2 text-ink-2"
             }`}
           >
-            {state === "done" ? `✓ ${name}` : name}
+            <span aria-hidden="true" className="text-[11.5px]">
+              {state === "done" ? "✓" : n + 1}
+            </span>
+            {name}
           </span>
         </li>
       ))}
     </ol>
   );
+}
+
+/** What Checks says passes, beside what fails: the file, its data, and its description. */
+function checkLines(
+  problems: Finding[],
+  component: string | null,
+  captionMissing: boolean,
+): { ok: boolean; title: string; detail: string }[] {
+  const has = (codes: string[]) => problems.some((p) => codes.includes(p.code));
+  const FILE = ["CS1023", "CS1025", "CS1027"];
+  const DESCRIBED = ["CS1024", "CS1026"];
+  const data = problems.some((p) => ![...FILE, ...DESCRIBED].includes(p.code));
+  return [
+    {
+      ok: !has(FILE),
+      title: "The file reads one way",
+      detail: "YAML a person and the server read alike",
+    },
+    {
+      ok: !data,
+      title: `The data fits ${component === null ? "its component" : `a ${component}`}`,
+      detail: "every key allowed, every check passed",
+    },
+    {
+      ok: !has(DESCRIBED) && !captionMissing,
+      title: "Described",
+      detail: captionMissing ? "it needs a caption" : "a caption and alt text",
+    },
+  ];
 }
 
 function Composer({
@@ -238,7 +270,11 @@ function Composer({
             />
           </div>
           <aside className="flex flex-col gap-3.5">
-            <ChecksList problems={problems} onGo={go} />
+            <ChecksList
+              problems={problems}
+              lines={checkLines(problems, component, needsCaption)}
+              onGo={go}
+            />
             <ThisFigure node={node} stem={stem} />
           </aside>
         </div>

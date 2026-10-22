@@ -167,6 +167,15 @@ function Scalar({
   );
 }
 
+/** Whether a schema is a group of groups, every key a group (a chart's encoding: a channel per
+ * key). */
+function holdsGroups(schema: Schema, root: Schema): boolean {
+  const owns = Object.values((schema.properties ?? {}) as Record<string, Schema>);
+  return owns.length > 0 && owns.every((own) => resolve(own, root).type === "object");
+}
+
+/** One value's control(s), inline: a scalar, a oneOf's branch choice and its value, or a small
+ * object's keys side by side (a channel's field and type), with what it can add. */
 function Field({
   given,
   value,
@@ -184,11 +193,12 @@ function Field({
     const options = branches(schema, context.root);
     const chosen = branchFor(schema, value, context.root) ?? options[0] ?? {};
     return (
-      <div className="flex flex-col gap-1.5">
+      <>
         {options.length > 1 && (
           <select
             aria-label={`${name} as`}
-            className={`${CONTROL} self-start font-sans`}
+            title="What this value is"
+            className={`${CONTROL} font-sans`}
             value={String(chosen.type)}
             onChange={(e) => {
               const next = options.find((b) => String(b.type) === e.target.value) ?? {};
@@ -203,18 +213,115 @@ function Field({
           </select>
         )}
         <Field given={chosen} value={value} path={path} context={context} />
-      </div>
+      </>
     );
   }
   if (schema.type === "object") {
     return (
-      <Group schema={schema} value={isRecord(value) ? value : {}} path={path} context={context} />
+      <Inline schema={schema} value={isRecord(value) ? value : {}} path={path} context={context} />
     );
   }
   return <Scalar schema={schema} value={value} path={path} name={name} context={context} />;
 }
 
-/** An object's keys: those it has and those it needs, each a row; the rest offered to add. */
+interface Shown {
+  properties: Record<string, Schema>;
+  required: string[];
+  keys: string[];
+  present: string[];
+  absent: string[];
+}
+
+function shownKeys(schema: Schema, value: Record_, path: Path, context: Context): Shown {
+  const properties = (schema.properties ?? {}) as Record<string, Schema>;
+  const required = (schema.required ?? []) as string[];
+  const keys = Object.keys(properties).filter((key: string): boolean => {
+    const own = resolve(properties[key] ?? {}, context.root);
+    if (context.sheets.includes(pathText([...path, key])) || own.type === "array") return false;
+    // A group that holds only sheets (a chart's `data`) shows nothing.
+    if (own.type === "object") return shownKeys(own, {}, [...path, key], context).keys.length > 0;
+    return true;
+  });
+  const present = keys.filter((key) => Object.hasOwn(value, key) || required.includes(key));
+  return { properties, required, keys, present, absent: keys.filter((k) => !present.includes(k)) };
+}
+
+function AddSelect({
+  name,
+  absent,
+  properties,
+  path,
+  context,
+}: {
+  name: string;
+  absent: string[];
+  properties: Record<string, Schema>;
+  path: Path;
+  context: Context;
+}) {
+  if (absent.length === 0) return null;
+  return (
+    <select
+      aria-label={name === "" ? "Add a setting" : `Add to ${name}`}
+      data-add=""
+      className={`${CONTROL} w-14 font-sans text-ink-3`}
+      value=""
+      onChange={(e) => {
+        const key = e.target.value;
+        context.onOps([setOp([...path, key], startOf(properties[key] ?? {}, context.root))]);
+      }}
+    >
+      <option value="">{name === "" ? "+ a setting" : "+"}</option>
+      {absent.map((key) => (
+        <option key={key} value={key}>
+          {key}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** A small object's keys side by side: each control named by its path, a switch with its key
+ * beside it, and the keys it may add. */
+function Inline({
+  schema,
+  value,
+  path,
+  context,
+}: {
+  schema: Schema;
+  value: Record_;
+  path: Path;
+  context: Context;
+}) {
+  const { properties, present, absent } = shownKeys(schema, value, path, context);
+  return (
+    <>
+      {present.map((key) => {
+        const own = resolve(properties[key] ?? {}, context.root);
+        const at = [...path, key];
+        return [
+          <Field key={key} given={own} value={value[key]} path={at} context={context} />,
+          own.type === "boolean" && (
+            <span key={`${key}:name`} className="text-[12.5px]">
+              {key}
+            </span>
+          ),
+        ];
+      })}
+      <AddSelect
+        name={path.slice(1).join(" ")}
+        absent={absent}
+        properties={properties}
+        path={path}
+        context={context}
+      />
+    </>
+  );
+}
+
+/** An object's keys as the board's rows: a label, then its controls on one line; a group of
+ * groups (a chart's encoding) gives each of its groups a row of its own. */
 function Group({
   schema,
   value,
@@ -226,78 +333,39 @@ function Group({
   path: Path;
   context: Context;
 }) {
-  const properties = (schema.properties ?? {}) as Record<string, Schema>;
-  const required = (schema.required ?? []) as string[];
-  const shown = (key: string) => {
-    const own = resolve(properties[key] ?? {}, context.root);
-    return !context.sheets.includes(pathText([...path, key])) && own.type !== "array";
-  };
-  const keys = Object.keys(properties).filter(shown);
-  const present = keys.filter((key) => Object.hasOwn(value, key) || required.includes(key));
-  const absent = keys.filter((key) => !present.includes(key));
+  const { properties, required, present, absent } = shownKeys(schema, value, path, context);
   const name = path.slice(1).join(" ");
-  const nested = (key: string) => {
-    const own = resolve(properties[key] ?? {}, context.root);
-    return own.type === "object" && Object.values(own.properties ?? {}).some(Boolean);
-  };
-  // A group that holds only sheets (a chart's `data`) shows nothing.
-  if (present.length === 0 && absent.length === 0) return null;
   return (
-    <div className="flex flex-col gap-2">
-      {present.map((key) => (
-        <div
-          key={key}
-          className={
-            nested(key)
-              ? "flex flex-col gap-2 rounded-[9px] border border-border p-2.5"
-              : "grid grid-cols-[62px_minmax(0,1fr)_20px] items-center gap-2"
-          }
-        >
-          <div className="flex items-center justify-between gap-2">
+    <div className="flex flex-col gap-[7px]">
+      {present.map((key) => {
+        const own = resolve(properties[key] ?? {}, context.root);
+        const at = [...path, key];
+        const held = isRecord(value[key]) ? (value[key] as Record_) : {};
+        if (own.type === "object" && holdsGroups(own, context.root)) {
+          return <Group key={key} schema={own} value={held} path={at} context={context} />;
+        }
+        return (
+          <div key={key} className="grid grid-cols-[62px_minmax(0,1fr)] items-center gap-2">
             <span className="text-[12.5px] text-ink-2">{key}</span>
-            {nested(key) && !required.includes(key) && (
-              <RemoveButton
-                name={`${name} ${key}`.trim()}
-                path={[...path, key]}
-                context={context}
-              />
-            )}
+            <div className="flex flex-wrap items-center gap-1.5 [&>select:not([data-add])]:min-w-[120px]">
+              <Field given={own} value={value[key]} path={at} context={context} />
+              {!required.includes(key) && (
+                <RemoveButton name={at.slice(1).join(" ")} path={at} context={context} />
+              )}
+            </div>
           </div>
-          <Field
-            given={properties[key] ?? {}}
-            value={value[key]}
-            path={[...path, key]}
+        );
+      })}
+      {absent.length > 0 && (
+        <div className="flex">
+          <AddSelect
+            name={name}
+            absent={absent}
+            properties={properties}
+            path={path}
             context={context}
           />
-          {!nested(key) &&
-            (required.includes(key) ? (
-              <span />
-            ) : (
-              <RemoveButton
-                name={`${name} ${key}`.trim()}
-                path={[...path, key]}
-                context={context}
-              />
-            ))}
         </div>
-      ))}
-      {absent.length > 0 && (
-        <select
-          aria-label={name === "" ? "Add a setting" : `Add to ${name}`}
-          className={`${CONTROL} self-start font-sans text-ink-3`}
-          value=""
-          onChange={(e) => {
-            const key = e.target.value;
-            context.onOps([setOp([...path, key], startOf(properties[key] ?? {}, context.root))]);
-          }}
-        >
-          <option value="">{name === "" ? "+ a setting" : `+ to ${name}`}</option>
-          {absent.map((key) => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))}
-        </select>
       )}
     </div>
   );
@@ -316,6 +384,32 @@ function RemoveButton({ name, path, context }: { name: string; path: Path; conte
   );
 }
 
+function contextOf(
+  component: Component,
+  data: Record_,
+  problems: Finding[],
+  onOps: (ops: Op[]) => void,
+): Context {
+  const root = SCHEMAS[component] as Schema;
+  const values = component === "chart" ? (data.data as Record_ | undefined)?.values : undefined;
+  const columns = Array.isArray(values)
+    ? [...new Set(values.flatMap((row) => (isRecord(row) ? Object.keys(row) : [])))]
+    : [];
+  return {
+    root,
+    sheets: sheetPaths(component),
+    columns,
+    bad: new Set(problems.map((p) => p.path)),
+    onOps,
+  };
+}
+
+/** Whether a kit has anything besides its sheets for the form to show (a table has not). */
+export function hasSettings(component: Component, data: Record_): boolean {
+  const context = contextOf(component, data, [], () => {});
+  return shownKeys(context.root, data, ["data"], context).keys.length > 0;
+}
+
 export function SchemaForm({
   component,
   data,
@@ -327,17 +421,6 @@ export function SchemaForm({
   problems: Finding[];
   onOps: (ops: Op[]) => void;
 }) {
-  const root = SCHEMAS[component] as Schema;
-  const values = component === "chart" ? (data.data as Record_ | undefined)?.values : undefined;
-  const columns = Array.isArray(values)
-    ? [...new Set(values.flatMap((row) => (isRecord(row) ? Object.keys(row) : [])))]
-    : [];
-  const context: Context = {
-    root,
-    sheets: sheetPaths(component),
-    columns,
-    bad: new Set(problems.map((p) => p.path)),
-    onOps,
-  };
-  return <Group schema={root} value={data} path={["data"]} context={context} />;
+  const context = contextOf(component, data, problems, onOps);
+  return <Group schema={context.root} value={data} path={["data"]} context={context} />;
 }

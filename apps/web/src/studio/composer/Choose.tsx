@@ -1,7 +1,8 @@
 // Choose (M6.5 spec, M6CO.4; the Choose board): the four general kits, each drawn by its own
 // renderer from its starter data, with a line on what it is for.
-import { Figure } from "../../figures/Figure";
+import type { ComponentType } from "react";
 import { derive, STARTERS } from "../../figures/kits";
+import { type KitProps, RENDERERS } from "../../figures/registry";
 import type { Component } from "../../figures/schemas";
 
 export const KITS: { component: Component; what: string }[] = [
@@ -10,6 +11,20 @@ export const KITS: { component: Component; what: string }[] = [
   { component: "flow", what: "Boxes joined by arrows, laid out from the data" },
   { component: "sequence-track", what: "A sequence and its features, in lanes" },
 ];
+
+/** A kit drawn small from its starter data, as the board's tiles are: no frame of its own. */
+function Thumb({ component, what }: { component: Component; what: string }) {
+  const Kit = RENDERERS[component] as ComponentType<KitProps<Component>>;
+  return (
+    <span className="pointer-events-none flex h-[170px] items-center justify-center overflow-hidden rounded-[9px] border border-border bg-canvas p-2.5 [&_svg]:max-h-[148px] [&_svg]:max-w-full [&_table]:text-[12px]">
+      <Kit
+        data={STARTERS[component] as never}
+        derived={derive(component, STARTERS[component])}
+        alt={what}
+      />
+    </span>
+  );
+}
 
 export function Choose({
   chosen,
@@ -38,20 +53,7 @@ export function Choose({
                 : "border border-border"
             }`}
           >
-            <span className="pointer-events-none h-[170px] overflow-hidden rounded-[9px] border border-border bg-canvas p-2.5">
-              <Figure
-                record={{
-                  stem: component,
-                  component,
-                  alt: what,
-                  data: STARTERS[component] as never,
-                  derived: derive(component, STARTERS[component]),
-                  source: null,
-                }}
-                caption=""
-                number={null}
-              />
-            </span>
+            <Thumb component={component} what={what} />
             <span className="font-mono text-[14px] font-semibold">{component}</span>
             <span className="text-[12.5px] text-ink-2">{what}</span>
           </button>
