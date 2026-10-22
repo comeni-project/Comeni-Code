@@ -133,14 +133,33 @@ def _figure_file(stem: str) -> str:
     return f"{FIGURE_FOLDER}/{file_name(stem)}"
 
 
-def add_figure(node: Node, at: int, component: str, *, alt: str, caption: str) -> Node:
-    """A new figure of `component`: its starter data under a free stem, and its block at `at`."""
-    found = COMPONENTS.get(component)
-    if found is None:
-        raise EditError(f"{component} is not a component ({', '.join(sorted(COMPONENTS))})")
+def add_figure(
+    node: Node,
+    at: int,
+    component: str | None = None,
+    *,
+    caption: str,
+    alt: str | None = None,
+    text: str | None = None,
+) -> Node:
+    """A new figure and its block at `at`: the file's whole text (the composer, M6CO.2), or a
+    component's starter data with its alt text. Its stem is free, after its component."""
+    by_text = text is not None and component is None and alt is None
+    if not by_text and (text is not None or component is None or alt is None):
+        raise EditError("give the file's text, or a component and alt text")
+    if text is None:
+        assert component is not None and alt is not None
+        found = COMPONENTS.get(component)
+        if found is None:
+            raise EditError(f"{component} is not a component ({', '.join(sorted(COMPONENTS))})")
+        text = starter_text(component, alt, found.starter)
+    else:
+        read, problems = read_figure("figure", text, file=_figure_file("figure"))
+        if read is None:
+            raise FigureRefused("the new figure would not validate", problems)
+        component = read.component
     taken = {f"{figure.stem}.yaml" for figure in node.figures}
     stem = free_name(f"{component}.yaml", taken).removesuffix(".yaml")
-    text = starter_text(component, alt, found.starter)
     figure, problems = read_figure(stem, text, file=_figure_file(stem))
     if figure is None:
         raise FigureRefused("the new figure would not validate", problems)

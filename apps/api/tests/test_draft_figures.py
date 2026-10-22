@@ -119,6 +119,34 @@ def test_an_unknown_component_is_refused_in_words(client: Client) -> None:
     assert answer.json()["detail"].startswith("Pie is not a component (chart, flow,")
 
 
+def test_a_figure_is_added_from_its_whole_file(client: Client) -> None:
+    """M6CO.2: the composer's one save, the file as written and its block."""
+    draft = opened(client)
+    answer = add(client, draft, component=None, alt=None, text=TEXT)
+    assert answer.status_code == 200, answer.content
+    node = answer.json()["draft"]["node"]
+    assert node["blocks"][0] == {
+        "kind": "figure",
+        "file": "flow",
+        "caption": "Reads, then k-mers.\n",
+    }
+    assert node["figures"][0]["text"] == TEXT
+    assert drafts.latest(Draft.objects.get(public_id=draft)).figures == {"flow.yaml": TEXT}
+
+
+def test_a_figure_is_added_by_its_text_or_its_component_never_both(client: Client) -> None:
+    answer = add(client, opened(client), text=TEXT)
+    assert (answer.status_code, answer.json()["code"]) == (422, "CA0205")
+    assert answer.json()["detail"] == "Give the file's text, or a component and alt text."
+
+
+def test_an_added_file_that_reads_two_ways_is_refused(client: Client) -> None:
+    text = TEXT.replace("label: k-mers", "label: on")
+    answer = add(client, opened(client), component=None, alt=None, text=text)
+    assert answer.status_code == 422, answer.content
+    assert [p["code"] for p in answer.json()["problems"]] == ["CS1023"]
+
+
 def test_removing_a_figure_takes_its_file_and_block(client: Client) -> None:
     draft = opened(client)
     add(client, draft)

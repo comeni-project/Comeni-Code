@@ -799,11 +799,15 @@ def delete_image(request: HttpRequest, public_id: UUID, file: str, revision: int
 
 
 class AddFigureIn(Schema):
+    """A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
+    `alt` for its starter; never both. Its block's caption either way."""
+
     revision: int
     at: int
-    component: str
-    alt: str
     caption: str
+    component: str | None = None
+    alt: str | None = None
+    text: str | None = None
 
 
 class FigureTextIn(Schema):
@@ -813,13 +817,15 @@ class FigureTextIn(Schema):
 
 @router.post("/{public_id}/figures", response=_EDIT_RESPONSES, summary="Add a figure")
 def add_a_figure(request: HttpRequest, public_id: UUID, body: AddFigureIn) -> SaveAnswer:
-    """A component's starter data under a free stem, and its block at `at`, as one save."""
+    """The figure's file under a free stem, and its block at `at`, as one save."""
     return _edit(
         request,
         public_id,
         body.revision,
-        lambda node: add_figure(node, body.at, body.component, alt=body.alt, caption=body.caption),
-        f"added a {body.component} figure",
+        lambda node: add_figure(
+            node, body.at, body.component, alt=body.alt, text=body.text, caption=body.caption
+        ),
+        f"added a {body.component} figure" if body.component else "added a figure",
     )
 
 

@@ -109,12 +109,17 @@ export interface ApiSchemas {
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
 }
+/**
+ * A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
+ * `alt` for its starter; never both. Its block's caption either way.
+ */
 export interface AddFigureIn {
-  alt: string;
+  alt?: string | null;
   at: number;
   caption: string;
-  component: string;
+  component?: string | null;
   revision: number;
+  text?: string | null;
 }
 export interface ApproveIn {
   reason?: string;

@@ -11,7 +11,7 @@ import pytest
 
 from code_schema import Node, parse_node_files, read_content
 from code_schema.blocks import Figure, Text, Try
-from code_schema.edits import FigureRefused, add_figure, remove_figure, set_figure
+from code_schema.edits import EditError, FigureRefused, add_figure, remove_figure, set_figure
 from code_schema.figures import figure_texts
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
@@ -67,6 +67,34 @@ def test_a_second_figure_of_a_component_gets_a_free_stem() -> None:
     # In file-name order, as figures/ is read: flow-2.yaml sorts before flow.yaml.
     assert [figure.stem for figure in twice.figures] == ["flow-2", "flow", "two-transcripts"]
     assert reread(twice).figures == twice.figures
+
+
+def test_adding_a_figure_from_its_text_keeps_it_as_written() -> None:
+    """M6CO.2: the composer sends the whole file; its stem comes from the file's component."""
+    node = reread(add_figure(TPM, 0, text=TEXT, caption="Reads, then k-mers."))
+    assert node.blocks[0] == Figure("flow", "Reads, then k-mers.\n")
+    (figure,) = [f for f in node.figures if f.stem == "flow"]
+    assert figure.text == TEXT
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        {},
+        {"component": "flow"},
+        {"text": TEXT, "component": "flow", "alt": "Both."},
+        {"text": TEXT, "alt": "Both."},
+    ],
+)
+def test_adding_takes_the_text_or_a_component_and_alt(given: dict[str, str]) -> None:
+    with pytest.raises(EditError, match="give the file's text, or a component and alt text"):
+        add_figure(TPM, 0, caption="A caption.", **given)
+
+
+def test_adding_a_text_that_would_not_validate_says_why() -> None:
+    with pytest.raises(FigureRefused) as refused:
+        add_figure(TPM, 0, text=TEXT.replace("label: k-mers", "label: on"), caption="A caption.")
+    assert [p.code for p in refused.value.problems] == ["CS1023"]
 
 
 def test_setting_a_figure_keeps_its_text_as_written() -> None:
