@@ -171,7 +171,7 @@ function start() {
 }
 
 // ── figure: k-mer / de Bruijn graph ─────────────────────────────
-function kmerFigure(scale = 1) {
+function kmerFigure(scale = 1, { spells = null } = {}) {
   const k = ['ACG', 'CGT', 'GTT', 'TTA', 'TAG'];
   const box = (x, y, s, o = {}) => `<rect x="${x}" y="${y}" width="76" height="34" rx="7" style="fill:${o.fill || c.surface};stroke:${o.stroke || c.ink2};stroke-width:${o.sw || 1.5}"></rect><text x="${x + 38}" y="${y + 22}" text-anchor="middle" style="font-family:${MONO};font-size:15px;font-weight:500;fill:${c.ink}">${s}</text>`;
   const arr = (x1, y1, x2, y2, col) => `<path d="M${x1} ${y1} H${x2 - 6}" style="stroke:${col};stroke-width:2"></path><path d="M${x2 - 8} ${y1 - 5} L${x2} ${y1} L${x2 - 8} ${y1 + 5}" style="fill:none;stroke:${col};stroke-width:2;stroke-linejoin:round"></path>`;
@@ -189,7 +189,7 @@ function kmerFigure(scale = 1) {
   s += `<text x="336" y="146" style="font-family:${UI};font-size:12px;fill:${c.ink3}">from another read · a branch</text>`;
   s += `<line x1="20" y1="186" x2="680" y2="186" style="stroke:${c.border};stroke-width:1"></line>`;
   s += `<text x="0" y="214" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">path spells</text>`;
-  s += `<text x="110" y="216" style="font-family:${MONO};font-size:19px;font-weight:500;letter-spacing:6px;fill:${c.ink}">?  ?  ?  ?  ?  ?  ?</text>`;
+  s += `<text x="110" y="216" style="font-family:${MONO};font-size:19px;font-weight:500;letter-spacing:6px;fill:${spells ? c.line : c.ink}">${spells ? [...spells].join('  ') : '?  ?  ?  ?  ?  ?  ?'}</text>`;
   return s + '</svg>';
 }
 
@@ -2482,7 +2482,7 @@ const kitFigure = (tag, n, body, caption, { plain = false } = {}) => figureBlock
 // board above stays the whole composer; its Interaction step (M6.6, #333), Ask box (M5, #383) and
 // pinned version (dropped: a schema only widens) are not drawn here.
 function figureComposer(view) {
-  const steps = view === 'choose'
+  const steps = view.startsWith('choose')
     ? [['Choose', 'on'], ['Data', ''], ['Describe', '']]
     : [['Choose', 'done'], ['Data', 'on'], ['Describe', view === 'flow' ? '' : 'done']];
   const stepper = `<div style="display:flex;align-items:center;gap:6px">${steps.map(([n, st], i) => `${i ? `<span style="width:28px;height:1px;background:${c.border2}"></span>` : ''}<span style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:13px;${st === 'on' ? `background:${c.ink};color:${c.bg};font-weight:600` : st === 'done' ? `background:${c.lineSoft};color:${c.btn}` : `border:1px solid ${c.border2};color:${c.ink2}`}"><span style="font-family:${MONO};font-size:11px">${st === 'done' ? '✓' : i + 1}</span>${n}</span>`).join('')}</div>`;
@@ -2504,7 +2504,7 @@ function figureComposer(view) {
         <span style="font-size:22px;font-weight:600">Figure composer</span>
       </div>
       ${stepper}
-      <div style="display:flex;gap:8px">${secondary(c, 'Cancel')}${primary(c, view === 'choose' ? 'Next' : 'Save to the page')}</div>
+      <div style="display:flex;gap:8px">${secondary(c, 'Cancel')}${primary(c, view.startsWith('choose') ? 'Next' : 'Save to the page')}</div>
     </div>`;
   const describe = (caption, alt, warn) => `<div style="${panel(c)};padding:12px 16px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13.5px;font-weight:600">Describe</span>${warn ? amberTag(warn) : ''}</div>
@@ -2542,6 +2542,85 @@ function figureComposer(view) {
       <aside style="display:flex;flex-direction:column;gap:14px">
         ${card(`<span style="font-size:14px;font-weight:600">Where it goes</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">After block 11, <i>As k grows</i>. Saved as ${mono('figures/chart.yaml')} and placed there, in one save.</span>`)}
         ${card(`<span style="font-size:14px;font-weight:600">Domain components</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">${mono('kmer-graph')}, ${mono('read-tiling')} and the rest arrive with M6.6, with what a learner can do with them.</span>`)}
+      </aside>
+    </div>`;
+    return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+  }
+
+  // M6.6a: the five de Bruijn components join the gallery, each drawn from its sample data.
+  if (view === 'choose-domain') {
+    const general = [
+      ['table', 'Rows of numbers or words', K.table()],
+      ['chart', 'A Vega-Lite chart', K.chart()],
+      ['flow', 'Boxes joined by arrows', K.flow(SALMON_FLOW[0], SALMON_FLOW[1], { group: [300, 4, 290, 136, 'salmon quant'] })],
+      ['sequence-track', 'A sequence and its features', K.track()],
+    ];
+    const domain = [
+      ['read-tiling', 'Reads placed on the genome they came from', F.tiling()],
+      ['kmer-window', 'A read cut into k-mers; the learner drags k', F.slider()],
+      ['kmer-graph', 'Reads joined by their k-mers; paths and branches computed', kmerFigure(1, { spells: 'ACGTTAG' })],
+      ['compare-graphs', 'One set of reads under both conventions', F.conventions()],
+      ['graph-artifacts', 'Tips and bubbles found from the reads', F.bubble()],
+    ];
+    const tile = ([name, what, svg], on) => `<div style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:${c.surface};${on ? `border:2px solid ${c.sel};box-shadow:0 0 0 4px ${c.selSoft}` : `border:1px solid ${c.border}`}">
+      <div style="height:118px;border-radius:9px;${gridBg(c)};border:1px solid ${c.border};padding:8px;overflow:hidden;display:flex;align-items:center">${svg}</div>
+      <span style="font-family:${MONO};font-size:13.5px;font-weight:600">${name}</span><span style="font-size:12px;color:${c.ink2}">${what}</span></div>`;
+    const group = (title, note, tiles, cols, sel) => `<div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:600">${title}</span><span style="font-size:12px;color:${c.ink3}">${note}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:12px">${tiles.map((t) => tile(t, t[0] === sel)).join('')}</div></div>`;
+    const inner = `${header('de Bruijn graphs › new figure')}
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:18px;display:flex;flex-direction:column;gap:18px">
+        <span style="font-size:14px;font-weight:600">Choose a component</span>
+        ${group('de Bruijn graphs', 'drawn from reads you write; what follows from them is computed', domain, 3, 'kmer-graph')}
+        ${group('General', 'for the long tail', general, 4, null)}
+        <span style="font-size:12.5px;color:${c.ink3}">Each starts from sample data, which you replace in the next step. The component is fixed once the figure is saved.</span>
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        ${card(`<span style="font-size:14px;font-weight:600">Where it goes</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">After block 9, <i>Building the graph</i>. Saved as ${mono('figures/kmer-graph.yaml')} and placed there, in one save.</span>`)}
+        ${card(`<span style="font-size:14px;font-weight:600">Computed, never typed</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">A domain component works out the k-mers, edges, paths, counts, tips and bubbles from the reads, so a drawing cannot disagree with its data.</span>`)}
+        ${card(`<span style="font-size:14px;font-weight:600">Answering by the figure</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">Tracing a path or picking a bubble as a question’s answer comes next (M6.6b). Until then a figure sits above a choice, as it does today.</span>`)}
+      </aside>
+    </div>`;
+    return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+  }
+
+  // M6.6a: a domain component's data: the reads as a sheet, k and the highlight as settings,
+  // and what is computed from them named, never typed.
+  if (view === 'kmer-graph') {
+    const reads = [['ACGTT', ''], ['CGTTA', ''], ['GTTAG', ''], ['CGTC', 'another read — a branch']];
+    const inner = `${header('de Bruijn graphs › figure kmer-path')}
+    <div style="flex:1;display:grid;grid-template-columns:420px minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+        ${kitStrip('kmer-graph', 'kmer-path · reads joined by their k-mers')}
+        ${field('Reads', sheet(['#', 'sequence', 'note'], [...reads.map(([r, n], i) => [cell(String(i + 1), { muted: 1 }), cell(r), cell(n, { ui: 1 })]), add(1)], '34px 1fr 1.3fr'), 'Paste from a FASTA or a spreadsheet. Only A, C, G, T are accepted.')}
+        ${field('Settings', `<div style="display:flex;flex-direction:column;gap:7px">
+          ${row('k', select('3'))}
+          ${row('highlight', select('path of read'), select('1–3'))}
+          ${row('spell', `<span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span style="width:28px;height:16px;border-radius:999px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:${c.surface}"></span></span>show what the path spells</span>`)}
+        </div>`, 'Made from the component’s schema: k must be shorter than the shortest read.')}
+        <div style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12.5px;font-weight:600">Computed</span>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;border-radius:9px;background:${c.bg};font-size:12.5px">
+            <span style="color:${c.ink3}">k-mers</span><span style="font-family:${MONO}">ACG CGT GTT TTA TAG GTC</span>
+            <span style="color:${c.ink3}">edges</span><span style="font-family:${MONO}">5 · one branch at CGT</span>
+            <span style="color:${c.ink3}">path of 1–3</span><span style="font-family:${MONO}">spells ACGTTAG</span>
+          </div>
+          <span style="font-size:11.5px;color:${c.ink3}">Worked out from the reads and k; shown, never written.</span></div>
+        ${yamlFoot('4 reads · k = 3')}
+      </section>
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0">
+        ${preview(kmerFigure(1, { spells: 'ACGTTAG' }))}
+        ${describe('Overlapping reads chain their k-mers; the branch comes from another read.', 'A de Bruijn graph. Three overlapping reads make one path that spells ACGTTAG; a fourth read branches off at CGT.')}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        <div style="${panel(c)};padding:14px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px"><span style="font-size:14px;font-weight:600">Checks</span>${greenTag('all pass')}</div>
+          ${check(1, 'The data fits a kmer-graph', 'every read A, C, G, T; k shorter than each read')}
+          ${check(1, 'Computed from the reads', '6 k-mers, 5 edges; the path of 1–3 spells ACGTTAG')}
+          ${check(1, 'Fits the page', 'at most 12 k-mers drawn, readable at 390 px')}
+          ${check(1, 'Described', 'a caption and alt text')}
+        </div>
+        ${placed(`${mono('figures/kmer-path.yaml')} is placed once in this node: block 9 on the page.`)}
       </aside>
     </div>`;
     return studio('Drafts', inner, 1680, 1060, { collapsed: true });
@@ -2753,6 +2832,8 @@ const STUDIO = [
   ['FigureComposer', 'S4 · Figure composer — choose · data · interaction · describe', composer(), 1680, 1060, 'Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.'],
   ['ComposerChoose', 'S4 · Figure composer, M6.5 — Choose', figureComposer('choose'), 1680, 1060, 'M6.5, as built: a new figure starts here, from + figure in the workbench. Four general kits, each drawn from its sample data; the component is fixed once saved. Interaction (M6.6, #333), Ask (M5, #383) and the pinned version (dropped) are the S4 board’s, not this one’s.'],
   ['ComposerChart', 'S4 · Figure composer, M6.5 — Data: a chart', figureComposer('chart'), 1680, 1060, 'M6.5: the data as a sheet (values, pasteable from a spreadsheet), the settings made from the chart’s schema, Edit as YAML underneath. The preview draws in the browser as you edit; Save writes the file once, comments and order kept. Describe holds caption, alt text and an optional source.'],
+  ['ComposerDomain', 'S4 · Figure composer, M6.6a — Choose, with the de Bruijn components', figureComposer('choose-domain'), 1680, 1060, 'M6.6a: five domain components join the gallery above the general kits, each drawn from its sample data. What follows from the reads (k-mers, edges, paths, counts, tips, bubbles) is computed by the component. Answering by the figure is M6.6b.'],
+  ['ComposerKmerGraph', 'S4 · Figure composer, M6.6a — Data: a kmer-graph', figureComposer('kmer-graph'), 1680, 1060, 'M6.6a: the reads as a sheet (FASTA or a spreadsheet), k and the highlight as settings from the schema, and what is computed from them named beneath, never typed. No Interaction step yet (M6.6b).'],
   ['ComposerFlow', 'S4 · Figure composer, M6.5 — Data: a flow with a problem', figureComposer('flow'), 1680, 1060, 'M6.5: a kit with several sheets (nodes, edges, groups). A check names its code and path and goes to the cell; the preview keeps the last drawing that checks until the problem is fixed; Save waits for every check.'],
   ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
   ['ReviewM4', 'S6 · Review — as M4 builds it: a verdict per block', reviewM4(), 1680, 1000, 'M4.9b, built before the judge exists: every block of a submitted draft (its fields, text, try, callouts, resources, exam questions) gets a reviewer\'s verdict, one at a time or ticked and approved together (a question only once answered); Approve the draft opens once every block is approved. Questions are answered before the right answer shows; a wrong answer counts, never blocks. The score column, the judge\'s panel and “Was the score right?” are placeholders until M5 fills them; the S6 board beside it is the target.'],
