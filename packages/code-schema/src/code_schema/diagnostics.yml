@@ -2097,6 +2097,41 @@ codes:
     explanation: |
       A table is a checked figure: its cells are what its columns say (M6FG.3).
 
+  CS1013:
+    emitted_by: schema
+    concern: figures
+    says: k is not shorter than every read
+    refuses: true
+    fix: |
+      Lower k, or lengthen the read the message names: a read of length L has L - k + 1 k-mers, and
+      a read no longer than k has none to draw.
+    explanation: |
+      A domain component computes its k-mers from the reads (M6DC.1); a read with none would vanish
+      from the drawing without a word.
+
+  CS1014:
+    emitted_by: schema
+    concern: figures
+    says: the highlighted reads do not make one path
+    refuses: true
+    fix: |
+      Highlight reads that overlap in order, each starting where the one before ends but one
+      letter, or name reads that exist.
+    explanation: |
+      A kmer-graph spells the sequence a path walks (M6DC.1); reads that do not chain spell nothing.
+
+  CS1016:
+    emitted_by: schema
+    concern: figures
+    says: more k-mers than a page can draw
+    refuses: true
+    fix: |
+      Use fewer or shorter reads, or a larger k: a graph draws at most 12 k-mers (16 for
+      compare-graphs's two halves together).
+    explanation: |
+      A figure is read at 390 px on a phone; a larger graph is refused, not shrunk (M6DC.2, W5.3's
+      legibility check).
+
   CS1020:
     emitted_by: schema
     concern: figures

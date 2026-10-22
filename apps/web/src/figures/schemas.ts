@@ -463,6 +463,70 @@ export const SCHEMAS = {
       "edges"
     ]
   },
+  "kmer-graph": {
+    "$comment": "Reads joined by their k-mers (M6.6a spec, M6DC.1). The author writes the reads, k and the highlight; the k-mers, edges, branches, a path and what it spells are computed.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "reads": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z]+$",
+              "maxLength": 20,
+              "format": "dna"
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          },
+          "required": [
+            "sequence"
+          ]
+        }
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      },
+      "highlight": {
+        "enum": [
+          "none",
+          "branches",
+          "path"
+        ]
+      },
+      "path": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "spell": {
+        "enum": [
+          "shown",
+          "hidden"
+        ]
+      }
+    },
+    "required": [
+      "reads",
+      "k",
+      "highlight"
+    ]
+  },
   "sequence-track": {
     "$comment": "A sequence, a ruler and features in lanes (M6.4 spec, M6FG.3). Positions are 1-based and inclusive.",
     "type": "object",
@@ -637,6 +701,7 @@ export type Component = keyof typeof SCHEMAS;
 export interface FigureData {
   "chart": ChartData;
   "flow": FlowData;
+  "kmer-graph": KmerGraphData;
   "sequence-track": SequenceTrackData;
   "table": TableData;
 }
@@ -758,6 +823,31 @@ export interface FlowData {
     id: string;
     label: string;
   }[];
+}
+
+export interface KmerGraphData {
+  /**
+   * @minItems 1
+   * @maxItems 8
+   */
+  reads: [
+    {
+      sequence: string;
+      note?: string;
+    },
+    ...{
+      sequence: string;
+      note?: string;
+    }[],
+  ];
+  k: number;
+  highlight: "none" | "branches" | "path";
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  path?: [number, number, ...number[]];
+  spell?: "shown" | "hidden";
 }
 
 export interface SequenceTrackData {

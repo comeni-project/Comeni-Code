@@ -10,7 +10,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from code_figures import chart, flow, table, track
+from code_figures import chart, flow, kmer_graph, kmers, table, track
 from code_figures.findings import BOUND, NOT_ALLOWED, WRONG, Finding
 from code_figures.schema import Schema, validate
 
@@ -45,6 +45,7 @@ COMPONENTS: Mapping[str, Component] = {
     for name, module in (
         ("chart", chart),
         ("flow", flow),
+        ("kmer-graph", kmer_graph),
         ("sequence-track", track),
         ("table", table),
     )
@@ -63,6 +64,9 @@ CODES: frozenset[str] = frozenset(
         track.OUT,
         track.LETTER,
         table.ROW,
+        kmers.SHORT,
+        kmer_graph.NOT_A_WALK,
+        kmers.TOO_MANY,
     }
 )
 

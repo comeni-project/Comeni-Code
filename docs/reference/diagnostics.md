@@ -1512,6 +1512,30 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A table is a checked figure: its cells are what its columns say (M6FG.3).
 
+#### CS1013 — k is not shorter than every read
+
+*Refuses.*
+
+**Fix.** Lower k, or lengthen the read the message names: a read of length L has L - k + 1 k-mers, and a read no longer than k has none to draw.
+
+**Why.** A domain component computes its k-mers from the reads (M6DC.1); a read with none would vanish from the drawing without a word.
+
+#### CS1014 — the highlighted reads do not make one path
+
+*Refuses.*
+
+**Fix.** Highlight reads that overlap in order, each starting where the one before ends but one letter, or name reads that exist.
+
+**Why.** A kmer-graph spells the sequence a path walks (M6DC.1); reads that do not chain spell nothing.
+
+#### CS1016 — more k-mers than a page can draw
+
+*Refuses.*
+
+**Fix.** Use fewer or shorter reads, or a larger k: a graph draws at most 12 k-mers (16 for compare-graphs's two halves together).
+
+**Why.** A figure is read at 390 px on a phone; a larger graph is refused, not shrunk (M6DC.2, W5.3's legibility check).
+
 #### CS1020 — a figure is placed but its file is missing
 
 *Refuses.*
