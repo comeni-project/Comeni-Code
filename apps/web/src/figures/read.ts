@@ -4,7 +4,7 @@
 // change, so Save waits until the server would take the file.
 import { openFile, type Path, pathText } from "./document";
 import { figureFindings } from "./kits";
-import { type Component, TWO_READINGS } from "./schemas";
+import { CHARACTERS, type Component, TWO_READINGS } from "./schemas";
 import type { Finding } from "./validate";
 
 export interface FigureFile {
@@ -19,6 +19,7 @@ const MAX_ALT = 300;
 const MAX_TITLE = 160;
 const KEYS = ["component", "alt", "data", "source"];
 const SOURCE_KEYS = ["title", "url"];
+const ODD = new RegExp(CHARACTERS.pattern);
 const FORMS = TWO_READINGS.map((form) => ({ name: form.name, pattern: new RegExp(form.pattern) }));
 
 const characters = (text: string) => [...text].length;
@@ -72,6 +73,12 @@ export function readFigure(text: string): { figure: FigureFile | null; problems:
       { code: "CS1027", path: "", message: `is ${size} KB; a figure is at most 64 KB` },
     ]);
   }
+  const odd = ODD.exec(text);
+  if (odd !== null) {
+    const line = text.slice(0, odd.index).split("\n").length;
+    const message = `line ${line}: holds ${CHARACTERS.name}; write it as an escape in double quotes`;
+    return refused([{ code: "CS1023", path: "", message }]);
+  }
   const fd = openFile(text);
   if (fd.errors.length > 0) {
     return refused(
@@ -84,6 +91,10 @@ export function readFigure(text: string): { figure: FigureFile | null; problems:
   }
   if (fd.aliased) {
     const message = "is not valid YAML (uses a YAML alias; write the data out in full)";
+    return refused([{ code: "CS1023", path: "", message }]);
+  }
+  if (fd.tagged !== null) {
+    const message = `is not valid YAML (uses an explicit YAML tag (${fd.tagged}); write the value plainly)`;
     return refused([{ code: "CS1023", path: "", message }]);
   }
   const readings = twoReadings(fd.plain, fd.twice);

@@ -18,14 +18,19 @@ class Form:
     pattern: re.Pattern[str]
 
 
+_DATA = json.loads((Path(__file__).resolve().parent / "readings.json").read_text(encoding="utf-8"))
 TWO_READINGS: tuple[Form, ...] = tuple(
-    Form(form["name"], re.compile(form["pattern"]))
-    for form in json.loads(
-        (Path(__file__).resolve().parent / "readings.json").read_text(encoding="utf-8")
-    )["forms"]
+    Form(form["name"], re.compile(form["pattern"])) for form in _DATA["forms"]
 )
+CHARACTERS = Form(_DATA["characters"]["name"], re.compile(_DATA["characters"]["pattern"]))
 
 
 def two_readings(plain: str) -> str | None:
     """The form a plain YAML value is in, when the server and the browser would read it apart."""
     return next((form.name for form in TWO_READINGS if form.pattern.match(plain)), None)
+
+
+def odd_character_line(text: str) -> int | None:
+    """The 1-based line of the first raw character the two readers read apart, if any."""
+    found = CHARACTERS.pattern.search(text)
+    return None if found is None else text.count("\n", 0, found.start()) + 1

@@ -9,6 +9,7 @@ import {
   apply,
   insertAt,
   lineOf,
+  linesKept,
   moveAt,
   openFile,
   pathParts,
@@ -73,6 +74,20 @@ describe("a figure's file as a document", () => {
     },
   );
 
+  it.each(["**", "*E. coli*", "*a", "&x", "!x"])(
+    "writes %s, which YAML would read as an alias, anchor or tag, quoted (#389)",
+    (label) => {
+      const after = setAt(openFile(FLOW), ["data", "nodes", 1, "label"], label);
+      expect(parse(after).data.nodes[1].label).toBe(label);
+    },
+  );
+
+  it("writes a typed tab as an escape, never raw (#392)", () => {
+    const after = setAt(openFile(FLOW), ["alt"], "Reads\tbecome k-mers.");
+    expect(after).toContain('alt: "Reads\\tbecome k-mers."');
+    expect(after).not.toContain("\t");
+  });
+
   it("writes a plain word plain", () => {
     expect(setAt(openFile(FLOW), ["data", "nodes", 1, "label"], "k-mer")).toContain(
       "label: k-mer}",
@@ -117,6 +132,15 @@ describe("a figure's file as a document", () => {
     expect(after).toBe(text.replace("[5, 96]", "[5, 97]"));
     const added = insertAt(openFile(text), ["data", "rows"], 2, [7, 98]);
     expect(added).toBe(`${text}    - [7, 98]\n`);
+  });
+
+  it("does not take a file indented its own way as kept line for line (#387)", () => {
+    const four =
+      "component: table\nalt: A table.\ndata:\n    columns:\n        - {name: k, type: number}\n" +
+      "    rows:\n        - [3]\n";
+    expect(linesKept(openFile(four))).toBe(false);
+    expect(linesKept(openFile(four.replace("[3]", "[3]   # three")))).toBe(false);
+    expect(linesKept(openFile(FLOW.replace("reads}", "reads}   # in")))).toBe(true);
   });
 
   it("applies several edits in one write, in order", () => {

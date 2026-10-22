@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from code_figures import figure_findings, two_readings
+from code_figures import CHARACTERS, figure_findings, odd_character_line, two_readings
 from code_schema.problems import Problem
 
 FIGURE_FOLDER = "figures"
@@ -64,6 +64,14 @@ class _Loader(yaml.SafeLoader):
             event = self.peek_event()  # type: ignore[no-untyped-call]
             raise yaml.composer.ComposerError(
                 None, None, "uses a YAML alias; write the data out in full", event.start_mark
+            )
+        event = self.peek_event()  # type: ignore[no-untyped-call]
+        if getattr(event, "tag", None) is not None:
+            raise yaml.composer.ComposerError(
+                None,
+                None,
+                f"uses an explicit YAML tag ({event.tag}); write the value plainly",
+                event.start_mark,
             )
         return super().compose_node(parent, index)
 
@@ -120,8 +128,14 @@ def _one_reading(node: yaml.Node, path: str = "") -> list[str]:
 
 
 def _load(text: str) -> tuple[object, list[str]]:
-    loader = _Loader(text)
+    line = odd_character_line(text)
+    if line is not None:
+        return None, [
+            f"line {line}: holds {CHARACTERS.name}; write it as an escape in double quotes"
+        ]
+    loader: _Loader | None = None
     try:
+        loader = _Loader(text)
         node = loader.get_single_node()
         if node is None:
             return None, []
@@ -133,7 +147,8 @@ def _load(text: str) -> tuple[object, list[str]]:
         detail = getattr(error, "problem", None) or "could not be parsed"
         return None, [f"is not valid YAML ({detail})"]
     finally:
-        loader.dispose()
+        if loader is not None:
+            loader.dispose()
 
 
 def _source(value: object) -> tuple[FigureSource | None, str | None]:

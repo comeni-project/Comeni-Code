@@ -36,9 +36,15 @@ export function readReadings(): { name: string; pattern: string }[] {
   return JSON.parse(readFileSync(READINGS, "utf8")).forms;
 }
 
+/** The raw characters the two readers read apart, refused anywhere in a file (#392). */
+export function readCharacters(): { name: string; pattern: string } {
+  return JSON.parse(readFileSync(READINGS, "utf8")).characters;
+}
+
 export async function renderFigureTypes(
   schemas: Record<string, JSONSchema>,
   readings = readReadings(),
+  characters = readCharacters(),
 ): Promise<string> {
   const types: string[] = [];
   for (const [component, schema] of Object.entries(schemas)) {
@@ -63,6 +69,8 @@ export async function renderFigureTypes(
     `export const SCHEMAS = ${JSON.stringify(schemas, null, 2)} as const;`,
     "",
     `export const TWO_READINGS = ${JSON.stringify(readings, null, 2)} as const;`,
+    "",
+    `export const CHARACTERS = ${JSON.stringify(characters, null, 2)} as const;`,
     "",
     "export type Component = keyof typeof SCHEMAS;",
     "",

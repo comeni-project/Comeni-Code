@@ -8,7 +8,7 @@ import {
   readSchemas,
   renderFigureTypes,
 } from "../../scripts/generate-figure-types.ts";
-import { TWO_READINGS } from "./schemas";
+import { CHARACTERS, TWO_READINGS } from "./schemas";
 
 describe("src/figures/schemas.ts", () => {
   it("matches packages/code-figures' schemas", async () => {
@@ -29,5 +29,6 @@ describe("src/figures/schemas.ts", () => {
       ),
     );
     expect(TWO_READINGS).toEqual(readings.forms);
+    expect(CHARACTERS).toEqual(readings.characters);
   });
 });

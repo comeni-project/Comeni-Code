@@ -19,7 +19,7 @@ import {
   type YAMLMap,
   type YAMLSeq,
 } from "yaml";
-import { TWO_READINGS } from "./schemas";
+import { CHARACTERS, TWO_READINGS } from "./schemas";
 
 export type Path = (string | number)[];
 export type Value = string | number | boolean | null;
@@ -35,10 +35,13 @@ export interface FigureDocument {
   /** Keys written twice in one map, by path. */
   twice: Path[];
   aliased: boolean;
+  /** An explicit tag (`!!int "012"`), which the two readers read apart (#392). */
+  tagged: string | null;
 }
 
 const WRITE = { flowCollectionPadding: false, lineWidth: 0 } as const;
 const READINGS = TWO_READINGS.map((form) => new RegExp(form.pattern));
+const ODD = new RegExp(CHARACTERS.pattern);
 const NUMBER_TAGS = new Set(["tag:yaml.org,2002:int", "tag:yaml.org,2002:float"]);
 
 /** A number the composer writes, marked so it is written in plain decimal. */
@@ -99,13 +102,22 @@ export function pathParts(text: string): Path {
 
 /** One walk over the document, in its order: plain keys and values, keys written twice in one
  * map (YAML 1.2 would refuse them, PyYAML keeps the last), and whether an alias is used. */
-function walkOf(doc: Document, text: string): Pick<FigureDocument, "plain" | "twice" | "aliased"> {
+function walkOf(
+  doc: Document,
+  text: string,
+): Pick<FigureDocument, "plain" | "twice" | "aliased" | "tagged"> {
   const plain: FigureDocument["plain"] = [];
   const twice: Path[] = [];
   let aliased = false;
+  let tagged: string | null = null;
+  const tag = (node: unknown) => {
+    const own = (node as { tag?: string } | null)?.tag;
+    if (tagged === null && typeof own === "string") tagged = own;
+  };
   const source = (node: Scalar) =>
     node.range ? text.slice(node.range[0], node.range[1]) : String(node.value);
   const walk = (node: unknown, path: Path) => {
+    tag(node);
     if (isAlias(node)) aliased = true;
     else if (isScalar(node)) {
       if (node.type === Scalar.PLAIN) plain.push({ path, text: source(node), key: false });
@@ -114,6 +126,7 @@ function walkOf(doc: Document, text: string): Pick<FigureDocument, "plain" | "tw
       for (const pair of node.items) {
         const name = isScalar(pair.key) ? String(pair.key.value) : "?";
         if (isAlias(pair.key)) aliased = true;
+        tag(pair.key);
         if (isScalar(pair.key) && pair.key.type === Scalar.PLAIN) {
           plain.push({ path: [...path, name], text: source(pair.key), key: true });
         }
@@ -128,7 +141,7 @@ function walkOf(doc: Document, text: string): Pick<FigureDocument, "plain" | "tw
     }
   };
   walk(doc.contents, []);
-  return { plain, twice, aliased };
+  return { plain, twice, aliased, tagged };
 }
 
 export function openFile(text: string): FigureDocument {
@@ -138,7 +151,7 @@ export function openFile(text: string): FigureDocument {
     line: error.linePos?.[0]?.line ?? 1,
   }));
   if (errors.length > 0)
-    return { doc, text, written: text, errors, plain: [], twice: [], aliased: false };
+    return { doc, text, written: text, errors, plain: [], twice: [], aliased: false, tagged: null };
   const walked = walkOf(doc, text);
   let written = text;
   try {
@@ -151,9 +164,14 @@ export function openFile(text: string): FigureDocument {
 
 /** Whether a string written plain would read back as itself, on both sides. */
 function readsAsItself(value: string): boolean {
-  if (READINGS.some((form) => form.test(value))) return false;
-  const doc = parseDocument(value, PARSE);
-  return doc.errors.length === 0 && doc.contents !== null && doc.toJS() === value;
+  // A character the readers read apart goes in double quotes, where yaml writes it as an escape.
+  if (ODD.test(value) || READINGS.some((form) => form.test(value))) return false;
+  try {
+    const doc = parseDocument(value, PARSE);
+    return doc.errors.length === 0 && doc.contents !== null && doc.toJS() === value;
+  } catch {
+    return false; // `**` reads as an alias, which cannot be resolved (#389)
+  }
 }
 
 function scalarFor(value: Value, was?: Scalar): Scalar {
@@ -238,12 +256,13 @@ export function apply(fd: FigureDocument, changes: Op[]): string {
 }
 
 /** Whether the document writes the file back line for line, differing at most in the spaces
- * around a comment (`}  # note` is written `} # note`): then an edit can keep every line it does
+ * between tokens, as before a comment (`}  # note` is written `} # note`): then an edit can keep every line it does
  * not touch as the file has it. */
 export function linesKept(fd: FigureDocument): boolean {
   const text = fd.text.split("\n");
   const written = fd.written.split("\n");
-  const plain = (line: string) => line.replace(/\s+/g, " ").trimEnd();
+  // Indentation is meaning in YAML: only the spaces after a line's first character may differ.
+  const plain = (line: string) => line.replace(/(\S)\s+/g, "$1 ").trimEnd();
   return (
     text.length === written.length &&
     text.every((line, n) => plain(line) === plain(written[n] ?? ""))

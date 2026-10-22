@@ -260,6 +260,27 @@ def test_two_readings_refused(tmp_path: Path, text: str, message: str) -> None:
     assert figure_problems(tmp_path, text) == [("CS1023", message)]
 
 
+@pytest.mark.parametrize("odd", ["\t", "\x7f", "\x01", "\x85", "\u2028", "\ufffe"])
+def test_a_character_read_apart_is_refused_not_raised(tmp_path: Path, odd: str) -> None:
+    """#388, #392: a tab, NEL, LS/PS or a non-printable is CS1023 at its line, on both sides,
+    never an exception (PyYAML's reader raises in its constructor)."""
+    text = FLOW.replace("LABEL", "k-mers").replace("Reads become", f"Reads{odd}become")
+    found = figure_problems(tmp_path, text)
+    assert [code for code, _ in found] == ["CS1023"]
+    assert found[0][1].startswith("line 2: holds ")
+
+
+@pytest.mark.parametrize(
+    "tagged", ['label: !!str "yes"', 'label: !!int "012"', "label: !local x", "!!str k: 1"]
+)
+def test_an_explicit_tag_is_refused(tmp_path: Path, tagged: str) -> None:
+    """#392: a tag makes the two readers read one value apart; a figure writes values plainly."""
+    text = FLOW.replace("label: LABEL", tagged.replace("k: 1", "label: x"))
+    found = figure_problems(tmp_path, text)
+    assert [code for code, _ in found] == ["CS1023"], found
+    assert "tag" in found[0][1]
+
+
 def test_duplicate_key_is_refused(tmp_path: Path) -> None:
     """PyYAML keeps the last of two keys; YAML 1.2 refuses the file. Both refuse it."""
     text = FLOW.replace("LABEL", "k-mers").replace("alt:", "alt: First.\nalt:")

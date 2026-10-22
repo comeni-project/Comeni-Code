@@ -627,6 +627,11 @@ export const TWO_READINGS = [
   }
 ] as const;
 
+export const CHARACTERS = {
+  "name": "a tab, a line separator or a control character",
+  "pattern": "[\\u0000-\\u0009\\u000b\\u000c\\u000e-\\u001f\\u007f-\\u009f\\u2028\\u2029\\ufffe\\uffff]"
+} as const;
+
 export type Component = keyof typeof SCHEMAS;
 
 export interface FigureData {

@@ -9051,6 +9051,46 @@
    "codes": [
     "CS1007"
    ]
+  },
+  {
+   "name": "a raw tab",
+   "text": "component: flow\nalt: Reads\tbecome k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a control character",
+   "text": "component: flow\nalt: Readsbecome k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "a line separator",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: k-mers}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "an escaped tab in double quotes",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: \"k\\tmers\"}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": []
+  },
+  {
+   "name": "an explicit tag on a value",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, label: !!str \"yes\"}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
+  },
+  {
+   "name": "an explicit tag on a key",
+   "text": "component: flow\nalt: Reads become k-mers.\ndata:\n  nodes:\n    - {id: reads, label: reads}\n    - {id: kmers, !!str label: x}\n  edges:\n    - {from: reads, to: kmers}\n",
+   "codes": [
+    "CS1023"
+   ]
   }
  ],
  "starters": {
