@@ -21,10 +21,31 @@ const studio = (path: string) =>
     <Route path="/studio" element={<StudioShell />}>
       <Route index element={<StudioHome />} />
       <Route path="team" element={<h1>Team page</h1>} />
+      <Route path="drafts/:id" element={<h1>Workbench</h1>} />
+      <Route path="drafts/:id/figures/:stem" element={<h1>Composer</h1>} />
     </Route>,
   );
 
 describe("StudioShell", () => {
+  it("collapses the rail on the figure composer, a page for focused work (M6CO.1)", async () => {
+    answering({ "GET /api/me": signedInAs("author") });
+    studio("/studio/drafts/d-1/figures/flow");
+    await screen.findByRole("heading", { name: "Composer" });
+    const rail = screen.getByRole("navigation", { name: "Studio" });
+    expect(rail).toHaveAttribute("data-collapsed", "true");
+    expect(screen.getByRole("link", { name: "Drafts" })).toBeInTheDocument();
+  });
+
+  it("keeps the rail open on the workbench", async () => {
+    answering({ "GET /api/me": signedInAs("author") });
+    studio("/studio/drafts/d-1");
+    await screen.findByRole("heading", { name: "Workbench" });
+    expect(screen.getByRole("navigation", { name: "Studio" })).toHaveAttribute(
+      "data-collapsed",
+      "false",
+    );
+  });
+
   it("sends the signed-out to Sign in, coming back here", async () => {
     answering({ "GET /api/me": SIGNED_OUT });
     studio("/studio/team");

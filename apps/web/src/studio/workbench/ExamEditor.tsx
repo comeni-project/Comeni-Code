@@ -1,9 +1,11 @@
 // One exam question, open (M4.8d spec, M4P.5): its title, claim and level, the stem as blocks, the
 // answer and the rationale, held here and saved when you leave the editor — POST when new, PUT
 // otherwise, nothing when unchanged. Refused, it stays with what you typed and why.
+
 import { useQueryClient } from "@tanstack/react-query";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import type { BlockIn, ExamQuestionIn, Level } from "../../api/schema";
+import { composerPath, useOpenComposer } from "../composer/open";
 import { LEVELS } from "../drafts/NewNodeForm";
 import { AnswerEditor, type AnswerFields, KindSwitch } from "./AnswerEditor";
 import { LettersField } from "./BlockEditor";
@@ -49,6 +51,7 @@ export function ExamEditor({
 }) {
   const client = useQueryClient();
   const edit = useDraftEdit(draftId);
+  const compose = useOpenComposer(draftId);
   const [question, setQuestion] = useState(initial);
   // What the draft holds of this question; null until a new one is first saved.
   const [base, setBase] = useState<ExamQuestionIn | null>(fresh ? null : initial);
@@ -226,8 +229,20 @@ export function ExamEditor({
                     />
                   ) : block.kind === "image" || block.kind === "figure" ? (
                     // Placed by its file, which is edited where it lives; its caption here (#369).
+                    // A figure's file opens in the composer, the question saved first (M6CO.1).
                     <>
-                      <span className="font-mono text-[12px] text-ink-2">{block.file}</span>
+                      <span className="flex items-center gap-3">
+                        <span className="font-mono text-[12px] text-ink-2">{block.file}</span>
+                        {block.kind === "figure" && (
+                          <button
+                            type="button"
+                            className="text-[12.5px] font-medium text-sel hover:text-ink"
+                            onClick={() => compose(composerPath(draftId, block.file ?? ""), commit)}
+                          >
+                            Edit in the composer
+                          </button>
+                        )}
+                      </span>
                       <MarkdownField
                         label={`${label} caption`}
                         value={block.caption ?? ""}

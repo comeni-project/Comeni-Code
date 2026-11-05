@@ -1536,13 +1536,13 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** One spelling for every name keeps placements and files matched (M6FG.1).
 
-#### CS1023 — a figure file is not a YAML mapping
+#### CS1023 — a figure file cannot be read, or reads two ways
 
 *Refuses.*
 
-**Fix.** Write the file as a mapping: component, alt, data and, optionally, source.
+**Fix.** Write the file as a mapping: component, alt, data and, optionally, source; each key once, with no alias and no explicit tag (`!!int`). Quote a value such as `on`, `012` or `1e3`: "on". Write a tab or a control character as an escape inside double quotes: "a\tb".
 
-**Why.** A figure file holds one figure; anything else cannot be read (M6FG.1).
+**Why.** A figure file holds one figure; anything else cannot be read (M6FG.1). The server reads it as YAML 1.1 and the browser as YAML 1.2, which read some plain values apart (`on` is true or the word, `1e3` the word or 1000), so such a value is refused on both sides and a file that passes has one reading (M6CO.3).
 
 #### CS1024 — a figure has no alt text, or too long a one
 

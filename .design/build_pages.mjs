@@ -2478,6 +2478,145 @@ const kitFigure = (tag, n, body, caption, { plain = false } = {}) => figureBlock
   .replace('{{ tags }}', 'inline-flex')
   .replace(`${gridBg(c)};border:1px solid ${c.border};border-radius:12px;padding:14px 18px 10px`, plain ? `border:1px solid ${c.border};border-radius:12px;padding:0;overflow:hidden` : `${gridBg(c)};border:1px solid ${c.border};border-radius:12px;padding:14px 18px 10px`);
 
+// ── M6.5 the figure composer, as built: Choose · Data · Describe on the four general kits. The S4
+// board above stays the whole composer; its Interaction step (M6.6, #333), Ask box (M5, #383) and
+// pinned version (dropped: a schema only widens) are not drawn here.
+function figureComposer(view) {
+  const steps = view === 'choose'
+    ? [['Choose', 'on'], ['Data', ''], ['Describe', '']]
+    : [['Choose', 'done'], ['Data', 'on'], ['Describe', view === 'flow' ? '' : 'done']];
+  const stepper = `<div style="display:flex;align-items:center;gap:6px">${steps.map(([n, st], i) => `${i ? `<span style="width:28px;height:1px;background:${c.border2}"></span>` : ''}<span style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:13px;${st === 'on' ? `background:${c.ink};color:${c.bg};font-weight:600` : st === 'done' ? `background:${c.lineSoft};color:${c.btn}` : `border:1px solid ${c.border2};color:${c.ink2}`}"><span style="font-family:${MONO};font-size:11px">${st === 'done' ? '✓' : i + 1}</span>${n}</span>`).join('')}</div>`;
+  const cell = (v, o = {}) => `<div style="padding:6px 9px;border-right:1px solid ${c.border};font-family:${o.ui ? UI : MONO};font-size:12.5px;white-space:nowrap;overflow:hidden;${o.bad ? `outline:2px solid ${c.open};outline-offset:-2px;background:${c.openSoft};color:${c.open}` : ''}${o.muted ? `color:${c.ink3}` : ''}">${v}</div>`;
+  const sheet = (head, rows, widths) => `<div style="border:1px solid ${c.border2};border-radius:9px;overflow:hidden;background:${c.surface}">
+    <div style="display:grid;grid-template-columns:${widths};background:${c.bg};font-size:11.5px;color:${c.ink3};border-bottom:1px solid ${c.border2}">${head.map(h => `<div style="padding:5px 9px;border-right:1px solid ${c.border};font-family:${MONO}">${h}</div>`).join('')}</div>
+    ${rows.map(r => `<div style="display:grid;grid-template-columns:${widths};border-bottom:1px solid ${c.border}">${r.join('')}</div>`).join('')}</div>`;
+  const add = (n) => [cell('+', { muted: 1 }), cell('paste', { muted: 1 }), ...Array.from({ length: n }, () => cell(''))];
+  const field = (lab, ctl, hint = '') => `<div style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12.5px;font-weight:600">${lab}</span>${ctl}${hint ? `<span style="font-size:11.5px;color:${c.ink3}">${hint}</span>` : ''}</div>`;
+  const select = (v) => `<span style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-width:120px;padding:5px 9px;border-radius:8px;border:1px solid ${c.border2};background:${c.surface};font-family:${MONO};font-size:12.5px">${v}${ic.chevron}</span>`;
+  const row = (lab, ...ctls) => `<div style="display:grid;grid-template-columns:62px repeat(${ctls.length}, minmax(0, 1fr));gap:8px;align-items:center"><span style="font-size:12.5px;color:${c.ink2}">${lab}</span>${ctls.join('')}</div>`;
+  const check = (ok, n, d, fix) => `<div style="display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:8px;${ok ? '' : `background:${c.openSoft}`}"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:13px;font-weight:600;color:${ok ? c.ink : c.open}">${n}</span><span style="font-size:12px;color:${c.ink2}">${d}</span>${fix ? `<a style="font-size:12px;font-weight:500">${fix}</a>` : ''}</div></div>`;
+  const yamlFoot = (n) => `<div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid ${c.border};font-size:12.5px;color:${c.ink2}"><span>Edit as YAML ${ic.chevron}</span><span style="color:${c.ink3}">${n}</span></div>`;
+  const kitStrip = (name, what) => `<div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;background:${c.bg}"><div style="display:flex;flex-direction:column;flex:1"><span style="font-family:${MONO};font-size:13px;font-weight:500">${name}</span><span style="font-size:12px;color:${c.ink2}">${what}</span></div><span style="font-size:12px;color:${c.ink3}">fixed once added</span></div>`;
+  const header = (crumb) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <span style="font-size:12.5px;color:${c.ink3}">${crumb}</span>
+        <span style="font-size:22px;font-weight:600">Figure composer</span>
+      </div>
+      ${stepper}
+      <div style="display:flex;gap:8px">${secondary(c, 'Cancel')}${primary(c, view === 'choose' ? 'Next' : 'Save to the page')}</div>
+    </div>`;
+  const describe = (caption, alt, warn) => `<div style="${panel(c)};padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13.5px;font-weight:600">Describe</span>${warn ? amberTag(warn) : ''}</div>
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">
+        <div style="padding:8px 10px;border-radius:8px;border:1px solid ${c.border2};font-size:12.5px;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Caption</b> · ${caption}</div>
+        <div style="padding:8px 10px;border-radius:8px;border:1px solid ${c.border2};font-size:12.5px;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Alt text</b> · ${alt}</div>
+      </div>
+      <span style="font-size:12px;color:${c.ink3}">Source (optional) · none: a figure we made · <a style="font-weight:500">Add a source</a></span>
+    </div>`;
+  const preview = (body, note = '') => `<div style="${panel(c)};padding:12px 16px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Preview</span>${seg(c, ['Desktop', 'Phone', 'Dark'], 0)}</div>
+      ${note}
+      <div style="flex:1;${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:18px 24px;display:flex;align-items:center">${body}</div>
+      <span style="font-size:12px;color:${c.ink3}">Drawn in your browser by the page's own component, from the data as you edit it.</span>
+    </div>`;
+  const placed = (lines) => card(`<span style="font-size:14px;font-weight:600">This figure</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">${lines}</span>`);
+
+  if (view === 'choose') {
+    const thumbs = [
+      ['table', 'Rows of numbers or words, a unit per column', K.table()],
+      ['chart', 'A Vega-Lite chart: bars, lines, points, areas', K.chart()],
+      ['flow', 'Boxes joined by arrows, laid out from the data', K.flow(SALMON_FLOW[0], SALMON_FLOW[1], { group: [300, 4, 290, 136, 'salmon quant'] })],
+      ['sequence-track', 'A sequence and its features, in lanes', K.track()],
+    ];
+    const tile = ([name, what, svg], on) => `<div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;background:${c.surface};${on ? `border:2px solid ${c.sel};box-shadow:0 0 0 4px ${c.selSoft}` : `border:1px solid ${c.border}`}">
+      <div style="height:170px;border-radius:9px;${gridBg(c)};border:1px solid ${c.border};padding:10px;overflow:hidden;display:flex;align-items:center">${svg}</div>
+      <span style="font-family:${MONO};font-size:14px;font-weight:600">${name}</span><span style="font-size:12.5px;color:${c.ink2}">${what}</span></div>`;
+    const inner = `${header('de Bruijn graphs › new figure')}
+    <div style="flex:1;display:grid;grid-template-columns:minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:14px;font-weight:600">Choose a component</span>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px">${thumbs.map((t, i) => tile(t, i === 1)).join('')}</div>
+        <span style="font-size:12.5px;color:${c.ink3}">Each starts from sample data, which you replace in the next step. The component is fixed once the figure is saved.</span>
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        ${card(`<span style="font-size:14px;font-weight:600">Where it goes</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">After block 11, <i>As k grows</i>. Saved as ${mono('figures/chart.yaml')} and placed there, in one save.</span>`)}
+        ${card(`<span style="font-size:14px;font-weight:600">Domain components</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">${mono('kmer-graph')}, ${mono('read-tiling')} and the rest arrive with M6.6, with what a learner can do with them.</span>`)}
+      </aside>
+    </div>`;
+    return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+  }
+
+  if (view === 'chart') {
+    const vals = [[3, 'simple', 64], [5, 'simple', 812], [7, 'simple', 3904], [9, 'simple', 6120], [11, 'simple', 6388], [13, 'simple', 6402], [15, 'simple', 6410], [3, 'repeat-rich', 64], [5, 'repeat-rich', 702]];
+    const inner = `${header('de Bruijn graphs › figure kmers-by-k')}
+    <div style="flex:1;display:grid;grid-template-columns:420px minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+        ${kitStrip('chart', 'kmers-by-k · a Vega-Lite chart, allowlisted')}
+        ${field('Values', sheet(['#', 'k', 'genome', 'kmers'], [...vals.map((r, i) => [cell(String(i + 1), { muted: 1 }), cell(r[0]), cell(r[1]), cell(r[2])]), [cell('…', { muted: 1 }), cell('5 more rows', { muted: 1, ui: 1 }), cell(''), cell('')], add(2)], '34px 1fr 1.4fr 1fr'), 'Paste from a spreadsheet: tab- or comma-separated, the first row names the columns.')}
+        ${field('Settings', `<div style="display:flex;flex-direction:column;gap:7px">
+          ${row('mark', select('line'), `<span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span style="width:28px;height:16px;border-radius:999px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:${c.surface}"></span></span>points</span>`)}
+          ${row('x', select('k'), select('quantitative'))}
+          ${row('y', select('kmers'), select('quantitative'))}
+          ${row('y title', `<span style="padding:5px 9px;border-radius:8px;border:1px solid ${c.border2};font-size:12.5px">distinct k-mers</span>`)}
+          ${row('colour', select('genome'), select('nominal'))}
+        </div>`, 'Made from the chart’s schema: only what the allowlist takes is offered.')}
+        ${yamlFoot('14 rows · 2 series')}
+      </section>
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0">
+        ${preview(K.chart())}
+        ${describe('Distinct k-mers as k grows, for two genomes of the same length.', 'A line chart. Distinct k-mers rise with k for both genomes; the simple one levels off by k = 11.')}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        <div style="${panel(c)};padding:14px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px"><span style="font-size:14px;font-weight:600">Checks</span>${greenTag('all pass')}</div>
+          ${check(1, 'The data fits a chart', 'every key allowed, every field a column')}
+          ${check(1, 'At most three series', '2 series: simple, repeat-rich')}
+          ${check(1, 'Described', 'a caption and alt text')}
+        </div>
+        ${placed(`${mono('figures/kmers-by-k.yaml')} is placed twice in this node: block 12 on the page, and in <i>Try it 2</i>. A change here changes both.`)}
+      </aside>
+    </div>`;
+    return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+  }
+
+  // flow: a dangling edge, its cell marked, the preview holding the last drawing that checks
+  const inner = `${header('de Bruijn graphs › figure salmon-steps')}
+    <div style="flex:1;display:grid;grid-template-columns:420px minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+        ${kitStrip('flow', 'salmon-steps · boxes and arrows, laid out from the data')}
+        ${field('Nodes', sheet(['#', 'id', 'label', 'group'], [
+          [cell('1', { muted: 1 }), cell('tx'), cell('transcriptome', { ui: 1 }), cell('')],
+          [cell('2', { muted: 1 }), cell('reads'), cell('reads', { ui: 1 }), cell('')],
+          [cell('3', { muted: 1 }), cell('index'), cell('index', { ui: 1 }), cell('')],
+          [cell('4', { muted: 1 }), cell('kmers'), cell('k-mers', { ui: 1 }), cell('')],
+          [cell('5', { muted: 1 }), cell('look'), cell('lookup', { ui: 1 }), cell('quant')],
+          add(2)], '34px 0.9fr 1.4fr 0.8fr'))}
+        ${field('Edges', sheet(['#', 'from', 'to', 'label'], [
+          [cell('1', { muted: 1 }), cell('tx'), cell('index'), cell('')],
+          [cell('2', { muted: 1 }), cell('reads'), cell('kmrs', { bad: 1 }), cell('')],
+          [cell('3', { muted: 1 }), cell('index'), cell('look'), cell('')],
+          add(2)], '34px 1fr 1fr 1fr'))}
+        ${field('Groups', sheet(['#', 'id', 'label'], [[cell('1', { muted: 1 }), cell('quant'), cell('salmon quant', { ui: 1 })]], '34px 1fr 1.6fr'))}
+        ${yamlFoot('5 nodes · 3 edges · 1 group')}
+      </section>
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0">
+        ${preview(K.flow(SALMON_FLOW[0], SALMON_FLOW[1], { group: [300, 4, 290, 136, 'salmon quant'] }), `<div style="padding:7px 10px;border-radius:8px;background:${c.openSoft};color:${c.open};font-size:12.5px">The last drawing that checks; fix 1 problem to see your change.</div>`)}
+        ${describe('Where k is used in Salmon: once, when the index is built.', 'A flow. The transcriptome builds the index; reads are cut into k-mers; both meet at lookup.', '')}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        <div style="${panel(c)};padding:14px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px"><span style="font-size:14px;font-weight:600">Checks</span>${redTag('1 to fix')}</div>
+          ${check(0, 'An edge names no node', `${mono('CS1007')} ${mono('data.edges[1].to')}: no node is kmrs`, 'Go to edges, row 2')}
+          ${check(1, 'Every id is unique', '5 nodes, 1 group')}
+          ${check(1, 'Described', 'a caption and alt text')}
+        </div>
+        ${placed(`${mono('figures/salmon-steps.yaml')} is placed once in this node: block 14 on the page.`)}
+      </aside>
+    </div>`;
+  return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+}
+
 function figureKits() {
   const H2 = (s) => `<h2 style="margin:10px 0 0;font-size:23px;font-weight:600;letter-spacing:-.01em">${s}</h2>`;
   const choice = (s) => `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid ${c.border2};background:${c.surface};font-size:14.5px">${s}</div>`;
@@ -2537,7 +2676,7 @@ function figureKits() {
   return page(1440, 3060, body);
 }
 
-// The workbench with a figure block open: the M6.4 editor until the composer (M6.5) replaces it.
+// The workbench with a figure block open: the M6.4 editor, kept as a record; M6.5's composer replaced it.
 function benchFigure() {
   const yaml = `component: chart
 alt: A line chart. Distinct k-mers rise with k for
@@ -2612,6 +2751,9 @@ const STUDIO = [
   ['Workbench', 'S3 · Node workbench — outline · blocks · live preview', workbench(), 1680, 1060, 'Reached from: a node in Graph, Implementing, Inbox.\nLeads to: the figure composer, problem builder, review.\nTutor spec additions: a Resources tab (outside videos and readings with provider, part and licence); every drafted block carries a judge score with named parts and reasons, a redraft count, and the judge model (never the drafter’s family); a block that fails a check is not scored.\nCMS patterns: tabs (Content, Links, Problem, Settings); an outline of blocks (Gutenberg list view); the block editor with add-block points; side panels (Preview, Checks, Sources, History, Comments) with a live, click-to-edit preview (Wagtail, Sanity, Storyblok); a pre-submit checklist.'],
   ['QuestionBuilder', 'S3 · Exam pool — a question built from blocks', questionBuilder(), 1680, 1380, 'Reached from: the Exam pool tab of a node’s workbench.\nTutor spec T7.1, authoring questions: a question is a small block document built with the same editor as a page. The stem holds text, figures (library components filled with data), images with licence, math, tables, code or sequences; the answer is choice (options that hold figures or images), number, sequence, figure interaction or order. Seeded variants are checked across 20 seeds; each distractor names a misconception; the rationale shows only in results; no hints. Preview shows it exactly as in a test.'],
   ['FigureComposer', 'S4 · Figure composer — choose · data · interaction · describe', composer(), 1680, 1060, 'Reached from: the Figure hole in the workbench.\nData first, as a sheet (Datawrapper, Flourish); settings generated from the component’s schema (Storybook controls); the assistant can make described changes; preview with every interaction state; a Describe step for caption, alt text and data source; checks that point at the field to fix; the component version pinned, with where else it’s used.'],
+  ['ComposerChoose', 'S4 · Figure composer, M6.5 — Choose', figureComposer('choose'), 1680, 1060, 'M6.5, as built: a new figure starts here, from + figure in the workbench. Four general kits, each drawn from its sample data; the component is fixed once saved. Interaction (M6.6, #333), Ask (M5, #383) and the pinned version (dropped) are the S4 board’s, not this one’s.'],
+  ['ComposerChart', 'S4 · Figure composer, M6.5 — Data: a chart', figureComposer('chart'), 1680, 1060, 'M6.5: the data as a sheet (values, pasteable from a spreadsheet), the settings made from the chart’s schema, Edit as YAML underneath. The preview draws in the browser as you edit; Save writes the file once, comments and order kept. Describe holds caption, alt text and an optional source.'],
+  ['ComposerFlow', 'S4 · Figure composer, M6.5 — Data: a flow with a problem', figureComposer('flow'), 1680, 1060, 'M6.5: a kit with several sheets (nodes, edges, groups). A check names its code and path and goes to the cell; the preview keeps the last drawing that checks until the problem is fixed; Save waits for every check.'],
   ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
   ['ReviewM4', 'S6 · Review — as M4 builds it: a verdict per block', reviewM4(), 1680, 1000, 'M4.9b, built before the judge exists: every block of a submitted draft (its fields, text, try, callouts, resources, exam questions) gets a reviewer\'s verdict, one at a time or ticked and approved together (a question only once answered); Approve the draft opens once every block is approved. Questions are answered before the right answer shows; a wrong answer counts, never blocks. The score column, the judge\'s panel and “Was the score right?” are placeholders until M5 fills them; the S6 board beside it is the target.'],
   ['Land', 'S10 · Land — approved drafts as one pull request', land(), 1680, 1060, 'M4.9c, operators only. Reached from: Land in the rail.\nPick approved drafts; they are checked in place and sent as one commit and pull request by the GitHub App, which merges itself when green. Each landing shows its steps, its pull request and any dropped draft with its reason; a failed one holds its drafts until closed. Main and the index show whether learners see it yet.'],
@@ -2625,7 +2767,7 @@ const STUDIO = [
   ['WorkbenchSettings', 'S3 · Workbench — Settings', workbench({ tab: 'Settings', body: benchSettings() }), 1680, 1060, 'M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.'],
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
   ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
-  ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). The composer (S4, M6.5) replaces the file editor with a sheet.'],
+  ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block\u2019s Edit now opens the figure composer (S4), and this editor is gone.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [

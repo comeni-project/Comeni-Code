@@ -3,6 +3,18 @@ model library. A figure is a component filled with data; this package says what 
 data may hold, checks it, and computes what the page draws but nobody writes."""
 
 from code_figures.findings import Finding
+from code_figures.readings import CHARACTERS, TWO_READINGS, odd_character_line, two_readings
 from code_figures.registry import CODES, COMPONENTS, Component, derived, figure_findings
 
-__all__ = ["CODES", "COMPONENTS", "Component", "Finding", "derived", "figure_findings"]
+__all__ = [
+    "CHARACTERS",
+    "CODES",
+    "COMPONENTS",
+    "TWO_READINGS",
+    "Component",
+    "Finding",
+    "derived",
+    "figure_findings",
+    "odd_character_line",
+    "two_readings",
+]

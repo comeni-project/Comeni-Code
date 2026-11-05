@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import { App } from "./App";
 import { QUERIES } from "./api/queries";
 import "./styles/app.css";
@@ -18,13 +18,13 @@ for (const family of ['"Lexend Variable"', '"Geist Mono Variable"']) {
 }
 
 const queryClient = new QueryClient({ defaultOptions: { queries: QUERIES } });
+// A data router around the app's own routes, so a page may block leaving (useBlocker, #391).
+const router = createBrowserRouter([{ path: "*", element: <App /> }]);
 
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </StrictMode>,
 );

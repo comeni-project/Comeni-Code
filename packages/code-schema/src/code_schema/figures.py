@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 import yaml
 
-from code_figures import figure_findings
+from code_figures import CHARACTERS, figure_findings, odd_character_line, two_readings
 from code_schema.problems import Problem
 
 FIGURE_FOLDER = "figures"
@@ -65,6 +65,14 @@ class _Loader(yaml.SafeLoader):
             raise yaml.composer.ComposerError(
                 None, None, "uses a YAML alias; write the data out in full", event.start_mark
             )
+        event = self.peek_event()  # type: ignore[no-untyped-call]
+        if getattr(event, "tag", None) is not None:
+            raise yaml.composer.ComposerError(
+                None,
+                None,
+                f"uses an explicit YAML tag ({event.tag}); write the value plainly",
+                event.start_mark,
+            )
         return super().compose_node(parent, index)
 
 
@@ -88,12 +96,59 @@ _Loader.add_constructor("tag:yaml.org,2002:int", _number(int, _INT))
 _Loader.add_constructor("tag:yaml.org,2002:float", _number(float, _FLOAT))
 
 
-def _load(text: str) -> tuple[object, str | None]:
+def _at(path: str, key: str | int) -> str:
+    if isinstance(key, int):
+        return f"{path}[{key}]"
+    return f"{path}.{key}" if path else key
+
+
+def _one_reading(node: yaml.Node, path: str = "") -> list[str]:
+    """Where the file reads two ways (M6.5 spec, M6CO.3): a plain key or value the browser's YAML
+    1.2 reads apart from ours, or a key written twice, which PyYAML keeps the last of and YAML 1.2
+    refuses. Each is a message with its path."""
+    if isinstance(node, yaml.ScalarNode):
+        form = two_readings(node.value) if node.style is None else None
+        return [] if form is None else [f"{path}: `{node.value}` reads two ways ({form}); quote it"]
+    if isinstance(node, yaml.SequenceNode):
+        return [
+            found
+            for at, item in enumerate(node.value)
+            for found in _one_reading(item, _at(path, at))
+        ]
+    found: list[str] = []
+    seen: set[str] = set()
+    for key, value in node.value:
+        name = str(key.value) if isinstance(key, yaml.ScalarNode) else "?"
+        found += _one_reading(key, _at(path, name)) if isinstance(key, yaml.ScalarNode) else []
+        if name in seen:
+            found.append(f"{_at(path, name)}: is written twice")
+        seen.add(name)
+        found += _one_reading(value, _at(path, name))
+    return found
+
+
+def _load(text: str) -> tuple[object, list[str]]:
+    line = odd_character_line(text)
+    if line is not None:
+        return None, [
+            f"line {line}: holds {CHARACTERS.name}; write it as an escape in double quotes"
+        ]
+    loader: _Loader | None = None
     try:
-        return yaml.load(text, Loader=_Loader), None  # noqa: S506 — a SafeLoader
+        loader = _Loader(text)
+        node = loader.get_single_node()
+        if node is None:
+            return None, []
+        twice = _one_reading(node)
+        if twice:
+            return None, twice
+        return loader.construct_document(node), []
     except yaml.YAMLError as error:
         detail = getattr(error, "problem", None) or "could not be parsed"
-        return None, f"is not valid YAML ({detail})"
+        return None, [f"is not valid YAML ({detail})"]
+    finally:
+        if loader is not None:
+            loader.dispose()
 
 
 def _source(value: object) -> tuple[FigureSource | None, str | None]:
@@ -139,9 +194,9 @@ def _figure(stem: str, text: str, file: str) -> tuple[FigureFile | None, list[Pr
     if len(text.encode("utf-8")) > MAX_FIGURE_BYTES:
         size = len(text.encode("utf-8")) // 1024
         return None, [problem("CS1027", f"is {size} KB; a figure is at most 64 KB")]
-    written, error = _load(text)
-    if error is not None:
-        return None, [problem("CS1023", error)]
+    written, errors = _load(text)
+    if errors:
+        return None, [problem("CS1023", error) for error in errors]
     if not isinstance(written, Mapping):
         return None, [problem("CS1023", "must be a mapping: component, alt, data")]
     problems = [

@@ -2,10 +2,18 @@
   "components": {
     "schemas": {
       "AddFigureIn": {
+        "description": "A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and\n`alt` for its starter; never both. Its block's caption either way.",
         "properties": {
           "alt": {
-            "title": "Alt",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alt"
           },
           "at": {
             "title": "At",
@@ -16,19 +24,35 @@
             "type": "string"
           },
           "component": {
-            "title": "Component",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Component"
           },
           "revision": {
             "title": "Revision",
             "type": "integer"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
           }
         },
         "required": [
           "revision",
           "at",
-          "component",
-          "alt",
           "caption"
         ],
         "title": "AddFigureIn",
@@ -5980,7 +6004,7 @@
     },
     "/api/studio/drafts/{public_id}/figures": {
       "post": {
-        "description": "A component's starter data under a free stem, and its block at `at`, as one save.",
+        "description": "The figure's file under a free stem, and its block at `at`, as one save.",
         "operationId": "code_api_studio_api_add_a_figure",
         "parameters": [
           {

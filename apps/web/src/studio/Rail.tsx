@@ -15,12 +15,15 @@ function ToReview() {
   );
 }
 
-function Item({ page }: { page: StudioPage }) {
+function Item({ page, collapsed }: { page: StudioPage; collapsed: boolean }) {
   return (
     <NavLink
       to={page.path}
+      title={collapsed ? page.label : undefined}
       className={({ isActive }) =>
-        `flex items-center gap-2.5 rounded-[8px] border px-2.5 py-[7px] text-[14px] ${
+        `flex items-center gap-2.5 rounded-[8px] border text-[14px] ${
+          collapsed ? "size-10 justify-center" : "px-2.5 py-[7px]"
+        } ${
           isActive
             ? "border-border bg-surface font-semibold text-ink"
             : "border-transparent text-ink-2"
@@ -36,27 +39,31 @@ function Item({ page }: { page: StudioPage }) {
           strokeLinejoin="round"
         />
       </svg>
-      {page.label}
-      {page.count === "review" && <ToReview />}
+      <span className={collapsed ? "sr-only" : undefined}>{page.label}</span>
+      {page.count === "review" && !collapsed && <ToReview />}
     </NavLink>
   );
 }
 
-export function Rail({ role }: { role: string }) {
+/** `collapsed` for a page of focused work, as the boards draw it: icons only, 64 px. */
+export function Rail({ role, collapsed = false }: { role: string; collapsed?: boolean }) {
   const pages = pagesFor(role);
   const top = pages.filter((page) => page.place === "top");
   const foot = pages.filter((page) => page.place === "foot");
   return (
     <nav
       aria-label="Studio"
-      className="flex shrink-0 flex-row flex-wrap gap-0.5 border-border p-3.5 md:w-[210px] md:flex-col md:border-r"
+      data-collapsed={collapsed}
+      className={`flex shrink-0 flex-row flex-wrap gap-0.5 border-border md:flex-col md:border-r ${
+        collapsed ? "p-3 md:w-16 md:items-center" : "p-3.5 md:w-[210px]"
+      }`}
     >
       {top.map((page) => (
-        <Item key={page.path} page={page} />
+        <Item key={page.path} page={page} collapsed={collapsed} />
       ))}
       <div className="flex flex-row gap-0.5 md:mt-auto md:flex-col">
         {foot.map((page) => (
-          <Item key={page.path} page={page} />
+          <Item key={page.path} page={page} collapsed={collapsed} />
         ))}
       </div>
     </nav>

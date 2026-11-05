@@ -4,7 +4,7 @@ import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DraftNodeOut } from "../../api/schema";
 import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
-import { addFigure, removeFigure, setFigure } from "./edits";
+import { addFigureFile, removeFigure, setFigure } from "./edits";
 import { DRAFT, FLOW, FLOW_TEXT, NODE } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
 
@@ -22,6 +22,7 @@ const bench = (extra: Record<string, Answer> = {}, node: DraftNodeOut = WITH_FLO
     ...extra,
   });
   renderAt("/studio/drafts/d-1", <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />);
+  // The composer is its own page: the test kit's Where shows where a click went.
   return fake;
 };
 const writes = (fake: ReturnType<typeof answering>) =>
@@ -30,11 +31,11 @@ const sent = (fake: ReturnType<typeof answering>, n = 0) =>
   JSON.parse(String(writes(fake)[n]?.[1]?.body));
 
 describe("figure edits", () => {
-  it("name a figure by its stem in the path (M6FG.5)", () => {
-    expect(addFigure(2, "flow", "A flow.", "Steps.")).toEqual({
+  it("name a figure by its stem in the path (M6FG.5, M6CO.2)", () => {
+    expect(addFigureFile(2, FLOW_TEXT, "Steps.\n")).toEqual({
       method: "POST",
       path: "figures",
-      body: { at: 2, component: "flow", alt: "A flow.", caption: "Steps." },
+      body: { at: 2, text: FLOW_TEXT, caption: "Steps.\n" },
     });
     expect(setFigure("salmon-steps", FLOW_TEXT)).toEqual({
       method: "PUT",
@@ -48,81 +49,30 @@ describe("figure edits", () => {
   });
 });
 
-describe("the workbench's figures (S3)", () => {
-  it("adds a flow with its alt and caption, then opens its editor", async () => {
-    const fake = bench({ "POST /api/studio/drafts/d-1/figures": saved(4) }, NODE);
+describe("the workbench's figures open the composer (M6CO.1)", () => {
+  it("edits a figure block in the composer, with its place", async () => {
+    bench();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent(
+      "/studio/drafts/d-1/figures/flow?block=1",
+    );
+  });
+
+  it("adds a figure in the composer, at the place chosen", async () => {
+    bench({}, NODE);
     await screen.findByRole("heading", { level: 1 });
     await userEvent.click(
       screen.getAllByRole("button", { name: "Add a figure" })[1] as HTMLElement,
     );
-    await userEvent.selectOptions(screen.getByLabelText("Component"), "flow");
-    await userEvent.type(screen.getByLabelText("Alt text"), "A flow. Reads become k-mers.");
-    await userEvent.type(screen.getByLabelText("Caption"), "Reads become k-mers.");
-    await userEvent.click(screen.getByRole("button", { name: "Add the figure" }));
-    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
-    expect(sent(fake)).toEqual({
-      at: 1,
-      component: "flow",
-      alt: "A flow. Reads become k-mers.",
-      caption: "Reads become k-mers.",
-      revision: 3,
-    });
-    expect(await screen.findByLabelText("Figure file")).toHaveValue(FLOW_TEXT);
+    expect(await screen.findByTestId("where")).toHaveTextContent(
+      "/studio/drafts/d-1/figures/new?at=1",
+    );
   });
 
-  it("shows the component and stem, and sends nothing when left unchanged", async () => {
-    const fake = bench();
-    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
-    expect(screen.getByText("flow · flow.yaml")).toBeInTheDocument();
-    await userEvent.click(screen.getByLabelText("Figure file"));
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
+  it("has no YAML box in the workbench", async () => {
+    bench();
+    await screen.findByRole("button", { name: "Edit block 2" });
     expect(screen.queryByLabelText("Figure file")).toBeNull();
-    expect(writes(fake)).toHaveLength(0);
-  });
-
-  it("saves a changed file once, as written", async () => {
-    const text = FLOW_TEXT.replace("label: k-mers", "label: k-mers of the read");
-    const fake = bench({ "PUT /api/studio/drafts/d-1/figures/flow": saved(4) });
-    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
-    const box = screen.getByLabelText("Figure file");
-    await userEvent.clear(box);
-    await userEvent.click(box);
-    await userEvent.paste(text);
-    await userEvent.click(screen.getByRole("heading", { level: 1 })); // focus leaves the block
-    await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
-    expect(writes(fake)[0]?.[0]).toBe("/api/studio/drafts/d-1/figures/flow");
-    expect(sent(fake)).toEqual({ text, revision: 3 });
-  });
-
-  it("shows a refused file's problems by code and path, and keeps what was typed", async () => {
-    const text = FLOW_TEXT.replace("to: kmers", "to: kmer");
-    bench({
-      "PUT /api/studio/drafts/d-1/figures/flow": {
-        status: 422,
-        body: {
-          detail: "The figure's file would not validate.",
-          code: "CA0208",
-          problems: [
-            {
-              code: "CS1007",
-              field: null,
-              file: "figures/flow.yaml",
-              line: null,
-              message: "data.edges[0].to: names no node (kmer)",
-              text: "figures/flow.yaml: CS1007 data.edges[0].to: names no node (kmer)",
-            },
-          ],
-        },
-      },
-    });
-    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
-    const box = screen.getByLabelText("Figure file");
-    await userEvent.clear(box);
-    await userEvent.click(box);
-    await userEvent.paste(text);
-    await userEvent.click(screen.getByRole("button", { name: "Done" }));
-    expect(await screen.findByText(/CS1007 data\.edges\[0\]\.to/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Figure file")).toHaveValue(text);
   });
 
   it("deletes a figure whole: its file and every place it is shown", async () => {
@@ -137,34 +87,48 @@ describe("the workbench's figures (S3)", () => {
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
   });
 
+  const question = {
+    id: "k-mers-q1",
+    kind: "number",
+    ask: "How many k-mers?",
+    options: null,
+    answer: 2,
+    unit: "",
+    tolerance: null,
+    accept: [],
+    exact: false,
+    steps: null,
+    hints: [],
+    rationale: "",
+    figure: null as string | null,
+  };
+  const asking = (figure: string | null): DraftNodeOut => ({
+    ...WITH_FLOW,
+    blocks: [...WITH_FLOW.blocks, { kind: "try", question: "k-mers-q1" }],
+    questions: [{ ...question, figure }],
+  });
+
   it("a try question picks one of the node's figures", async () => {
-    const question = {
-      id: "k-mers-q1",
-      kind: "number",
-      ask: "How many k-mers?",
-      options: null,
-      answer: 2,
-      unit: "",
-      tolerance: null,
-      accept: [],
-      exact: false,
-      steps: null,
-      hints: [],
-      rationale: "",
-      figure: null,
-    };
-    const node: DraftNodeOut = {
-      ...WITH_FLOW,
-      blocks: [...WITH_FLOW.blocks, { kind: "try", question: "k-mers-q1" }],
-      questions: [question],
-    };
+    const node = asking(null);
     const fake = bench({ "PUT /api/studio/drafts/d-1/blocks/2": saved(4, node) }, node);
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 3" }));
     const picker = screen.getByLabelText("Figure");
     expect(picker).toHaveValue("");
+    expect(screen.queryByRole("button", { name: "Edit in the composer" })).toBeNull();
     await userEvent.selectOptions(picker, "flow");
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     await vi.waitFor(() => expect(writes(fake)).toHaveLength(1));
     expect(sent(fake).question.figure).toBe("flow");
+  });
+
+  it("a try question's figure opens in the composer, its edit saved first", async () => {
+    const node = asking("flow");
+    const fake = bench({ "PUT /api/studio/drafts/d-1/blocks/2": saved(4, node) }, node);
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 3" }));
+    await userEvent.type(screen.getByLabelText("Question"), " Count them.");
+    await userEvent.click(screen.getByRole("button", { name: "Edit in the composer" }));
+    expect(await screen.findByTestId("where")).toHaveTextContent("/studio/drafts/d-1/figures/flow");
+    expect(screen.getByTestId("where")).not.toHaveTextContent("block=");
+    expect(sent(fake).question.ask).toBe("How many k-mers? Count them.");
   });
 });

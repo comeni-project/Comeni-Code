@@ -1,4 +1,5 @@
-// Generated from packages/code-figures/src/code_figures/schemas/ by `npm run figure-types`.
+// Generated from packages/code-figures/src/code_figures/schemas/ and readings.json by
+// `npm run figure-types`.
 // Do not edit (M6.4 spec, M6FG.2).
 export const SCHEMAS = {
   "chart": {
@@ -605,6 +606,30 @@ export const SCHEMAS = {
       "rows"
     ]
   }
+} as const;
+
+export const TWO_READINGS = [
+  {
+    "name": "a YAML 1.1 boolean",
+    "pattern": "^(yes|Yes|YES|no|No|NO|on|On|ON|off|Off|OFF)$"
+  },
+  {
+    "name": "a number only YAML 1.2 reads",
+    "pattern": "^(?![-+]?(0|[1-9][0-9]*)(\\.[0-9]*([eE][-+][0-9]+)?)?$)([-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+|[-+]?(\\.[0-9]+|[0-9]+(\\.[0-9]*)?)([eE][-+]?[0-9]+)?|[-+]?\\.(inf|Inf|INF)|\\.(nan|NaN|NAN))$"
+  },
+  {
+    "name": "a merge key",
+    "pattern": "^<<$"
+  },
+  {
+    "name": "a value key",
+    "pattern": "^=$"
+  }
+] as const;
+
+export const CHARACTERS = {
+  "name": "a tab, a line separator or a control character",
+  "pattern": "[\\u0000-\\u0009\\u000b\\u000c\\u000e-\\u001f\\u007f-\\u009f\\u2028\\u2029\\ufffe\\uffff]"
 } as const;
 
 export type Component = keyof typeof SCHEMAS;
