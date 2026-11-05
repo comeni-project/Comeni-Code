@@ -38,6 +38,18 @@ describe("the working copy (M6CO.2)", () => {
     expect(result.current.problems[0]?.code).toBe("CS1023");
   });
 
+  it("keeps the drawing's data while only the alt text changes, so nothing is redrawn (#399)", () => {
+    const { result } = renderHook(() => useWorkingCopy("flow", FLOW));
+    const data = result.current.lastGood?.data;
+    act(() => result.current.edit([{ op: "set", path: ["alt"], value: "Reads, then k-mers." }]));
+    expect(result.current.lastGood?.alt).toBe("Reads, then k-mers.");
+    expect(result.current.lastGood?.data).toBe(data);
+    act(() =>
+      result.current.edit([{ op: "set", path: ["data", "nodes", 1, "label"], value: "kmer" }]),
+    );
+    expect(result.current.lastGood?.data).not.toBe(data);
+  });
+
   it("starts empty for a new figure until a component is chosen", () => {
     const { result } = renderHook(() => useWorkingCopy("new", null));
     expect(result.current.text).toBe("");

@@ -15,8 +15,17 @@ export function useWorkingCopy(stem: string, initial: string | null) {
   const read = useMemo(() => readFigure(text), [text]);
   const good = useRef<FigureOut | null>(null);
   if (read.figure !== null) {
-    const { component, alt, data, source } = read.figure;
-    good.current = { stem, component, alt, data, source, derived: derive(component, data) };
+    const { component, alt, source } = read.figure;
+    // While the data reads the same (only the alt text or source changed), the last good data and
+    // what was derived from it are kept as they were, so the preview has nothing to redraw (#399).
+    const last = good.current;
+    const same =
+      last !== null &&
+      last.component === component &&
+      JSON.stringify(last.data) === JSON.stringify(read.figure.data);
+    const data = same ? last.data : read.figure.data;
+    const derived = same ? last.derived : derive(component, data);
+    good.current = { stem, component, alt, data, source, derived };
   }
   return {
     text,
