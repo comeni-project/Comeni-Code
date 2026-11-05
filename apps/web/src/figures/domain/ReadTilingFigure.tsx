@@ -2,7 +2,7 @@
 // ruler, each read a bar where code-figures found it, in the lane it computed (first fit). Bars
 // are neutral: teal is a route's, and no read here is one (W10).
 import type { KitProps } from "../registry";
-import { MONO, Undrawn } from "./parts";
+import { legible, MONO, Undrawn } from "./parts";
 
 const LEFT = 70;
 const STEP = 16;
@@ -20,7 +20,7 @@ export function ReadTilingFigure({ data, derived, alt }: KitProps<"read-tiling">
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
-      style={{ maxWidth: width * 1.2 }}
+      style={legible(width, 1.2)}
       role="img"
       aria-label={alt}
       className="block"

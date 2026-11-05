@@ -158,3 +158,25 @@ describe("graph-artifacts", () => {
     expect(within(svg).getByText("tip: an error near a read’s end dead-ends")).toBeInTheDocument();
   });
 });
+
+describe("legible at phone width (#402)", () => {
+  it("keeps each drawing at least three quarters of its size, scrolling in its frame instead", () => {
+    const drawn = [
+      ["kmer-graph", KmerGraphFigure],
+      ["read-tiling", ReadTilingFigure],
+      ["kmer-window", KmerWindowFigure],
+      ["compare-graphs", CompareGraphsFigure],
+      ["graph-artifacts", GraphArtifactsFigure],
+    ] as const;
+    for (const [component, Kit] of drawn) {
+      const data = STARTERS[component];
+      const { unmount } = render(
+        <Kit data={data as never} derived={derive(component, data)} alt={ALT} />,
+      );
+      const svg = screen.getByRole("img", { name: ALT });
+      const width = Number(svg.getAttribute("viewBox")?.split(" ")[2]);
+      expect(Number.parseFloat(svg.style.minWidth), component).toBeCloseTo(width * 0.75, 0);
+      unmount();
+    }
+  });
+});

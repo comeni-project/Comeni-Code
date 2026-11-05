@@ -6,7 +6,7 @@ import type { Laid } from "../flow/layout";
 import type { KitProps } from "../registry";
 import { layoutKmers } from "./graphLayout";
 import { kmersOf } from "./kmers";
-import { Arrowheads, Edge, KmerBox, Undrawn } from "./parts";
+import { Arrowheads, Edge, KmerBox, legible, Undrawn } from "./parts";
 
 const HEAD = 52;
 const GAP = 48;
@@ -71,7 +71,7 @@ export function CompareGraphsFigure({ data, derived, alt }: KitProps<"compare-gr
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
-      style={{ maxWidth: width * 1.3 }}
+      style={legible(width, 1.3)}
       role="img"
       aria-label={alt}
       className="mx-auto block"

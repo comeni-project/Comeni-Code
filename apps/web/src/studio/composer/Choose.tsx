@@ -46,7 +46,7 @@ export const KITS: Kit[] = GROUPS.flatMap((group) => group.kits);
 function Thumb({ component, what }: { component: Component; what: string }) {
   const Kit = RENDERERS[component] as ComponentType<KitProps<Component>>;
   return (
-    <span className="pointer-events-none flex h-[140px] items-center justify-center overflow-hidden rounded-[9px] border border-border bg-canvas p-2 [&_svg]:max-h-[122px] [&_svg]:max-w-full [&_table]:text-[12px] [&_input]:hidden [&_p]:hidden">
+    <span className="pointer-events-none flex h-[140px] items-center justify-center overflow-hidden rounded-[9px] border border-border bg-canvas p-2 [&_svg]:max-h-[122px] [&_svg]:max-w-full [&_svg]:min-w-0! [&_table]:text-[12px] [&_input]:hidden [&_p]:hidden">
       <Kit
         data={STARTERS[component] as never}
         derived={derive(component, STARTERS[component])}

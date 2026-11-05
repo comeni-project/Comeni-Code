@@ -4,7 +4,7 @@
 // window is blue (selected, W10); nothing here is teal, which is a route's.
 import { useId, useState } from "react";
 import type { KitProps } from "../registry";
-import { MONO, Undrawn } from "./parts";
+import { legible, MONO, Undrawn } from "./parts";
 
 const CELL = 34;
 const LEFT = 10;
@@ -34,7 +34,7 @@ export function KmerWindowFigure({ data, derived, alt }: KitProps<"kmer-window">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         width="100%"
-        style={{ maxWidth: width * 1.2, flex: "1 1 320px" }}
+        style={{ ...legible(width, 1.2), flex: "1 1 320px" }}
         role="img"
         aria-label={alt}
         className="block"

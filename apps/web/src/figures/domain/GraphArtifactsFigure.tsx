@@ -4,7 +4,17 @@
 import { useId } from "react";
 import type { KitProps } from "../registry";
 import { layoutKmers } from "./graphLayout";
-import { Arrowheads, BUBBLE, Edge, KmerBox, NEUTRAL, TIP, type Tone, Undrawn } from "./parts";
+import {
+  Arrowheads,
+  BUBBLE,
+  Edge,
+  KmerBox,
+  legible,
+  NEUTRAL,
+  TIP,
+  type Tone,
+  Undrawn,
+} from "./parts";
 
 const LINE = 22;
 const SAYS = {
@@ -39,7 +49,7 @@ export function GraphArtifactsFigure({ derived, alt }: KitProps<"graph-artifacts
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
-      style={{ maxWidth: width * 1.4 }}
+      style={legible(width, 1.4)}
       role="img"
       aria-label={alt}
       className="mx-auto block"

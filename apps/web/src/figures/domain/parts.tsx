@@ -6,6 +6,13 @@ import type { Box, Path } from "../flow/layout";
 
 export const MONO = { fontFamily: "var(--font-mono)" } as const;
 
+/** A drawing's width bounds: never under three quarters of its own, so 15 px letters stay at 11 px
+ * or more at phone width, scrolling in the figure's frame instead (#402); up to `grow` times it. */
+export const legible = (width: number, grow: number) => ({
+  minWidth: width * 0.75,
+  maxWidth: width * grow,
+});
+
 export interface Tone {
   fill: string;
   stroke: string;

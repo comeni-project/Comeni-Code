@@ -5,7 +5,7 @@ import { useId } from "react";
 import type { KitProps } from "../registry";
 import { layoutKmers } from "./graphLayout";
 import { kmersOf } from "./kmers";
-import { Arrowheads, Edge, KmerBox, MONO, NEUTRAL, ON_PATH, Undrawn } from "./parts";
+import { Arrowheads, Edge, KmerBox, legible, MONO, NEUTRAL, ON_PATH, Undrawn } from "./parts";
 
 const TOP = 40; // the reads line
 const SPELLS = 56; // the path spells line
@@ -40,7 +40,7 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
-      style={{ maxWidth: width * 1.4 }}
+      style={legible(width, 1.4)}
       role="img"
       aria-label={alt}
       className="mx-auto block"
