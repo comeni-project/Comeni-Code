@@ -33,9 +33,14 @@ def _indexed(settings: Any) -> None:
 def test_the_index_keeps_each_figure_with_its_text() -> None:
     rows = NodeFigure.objects.filter(node_id="de-bruijn-graphs").order_by("position")
     assert [row.stem for row in rows] == [
+        "compare-graphs",
+        "graph-artifacts",
         "kmer-counts",
+        "kmer-path",  # M6.6a's domain figures, kept in file order
+        "kmer-window",
         "kmers-by-k",
         "primer-on-exon",
+        "read-tiling",
         "salmon-steps",
     ]
     track = rows.get(stem="primer-on-exon")
@@ -47,7 +52,16 @@ def test_the_index_keeps_each_figure_with_its_text() -> None:
 def test_the_api_sends_a_nodes_figures_beside_its_blocks(client: Client) -> None:
     body = client.get("/api/nodes/de-bruijn-graphs").json()
     placed = [block["file"] for block in body["blocks"] if block["kind"] == "figure"]
-    assert placed == ["kmer-counts", "kmers-by-k", "salmon-steps", "primer-on-exon"]
+    assert placed == [
+        "read-tiling",
+        "kmer-window",
+        "compare-graphs",
+        "graph-artifacts",
+        "kmer-counts",
+        "kmers-by-k",
+        "salmon-steps",
+        "primer-on-exon",
+    ]
     figures = {figure["stem"]: figure for figure in body["figures"]}
     assert figures["primer-on-exon"]["derived"] == {"lanes": [0, 0, 0, 1]}
     assert figures["kmers-by-k"]["component"] == "chart"

@@ -1,3 +1,9 @@
+A sequencer returns a genome as short reads that overlap, in no order:
+
+:::{figure} read-tiling
+Reads tile a genome with overlaps. Drawn by the read-tiling component from a 40-base example.
+:::
+
 Take two transcripts and cut them into 4-mers:
 
 ```text
@@ -7,6 +13,10 @@ B  ACGTTGAA   ACGT CGTT GTTG TTGA TGAA
 
 :::{sequence}
 ACGTTGCA
+:::
+
+:::{figure} kmer-window
+Interactive: change k and the windows update. The count is computed, not written.
 :::
 
 :::{try} kmers-per-read
@@ -22,12 +32,25 @@ makes it **coloured**. Genome assemblers use these graphs to rebuild a genome fr
 textbook form for assembly puts (k − 1)-mers on the nodes and k-mers on the edges, which is the
 same idea.
 
+:::{figure} compare-graphs
+The same three k-mers under both conventions.
+:::
+
 :::{try} shared-unitig
 :::
 
 Reading a path back is how an assembler spells a sequence: each edge adds one letter.
 
 :::{try} spell-the-path
+:::
+
+:::{try} green-path
+:::
+
+Real reads carry errors, and an error leaves k-mers that only one read holds:
+
+:::{figure} graph-artifacts
+Coloured dashed nodes appear in only one read.
 :::
 
 :::{try} assembly-order

@@ -42,8 +42,8 @@ function changed(before: string, after: string): number[] {
 }
 
 describe("a figure's file as a document", () => {
-  it("has five fixture figures to read", () => {
-    expect(FIXTURES).toHaveLength(5);
+  it("has ten fixture figures to read", () => {
+    expect(FIXTURES).toHaveLength(10); // de Bruijn's nine (five domain since M6.6a) and TPM's one
   });
 
   it.each([

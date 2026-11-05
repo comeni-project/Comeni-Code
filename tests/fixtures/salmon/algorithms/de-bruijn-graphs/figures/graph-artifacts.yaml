@@ -1,0 +1,9 @@
+component: graph-artifacts
+alt: Graph artifacts. Four reads give one path from ACG to AGC; a wrong base makes a bubble through GTC, TCA and CAG, and a wrong last base a tip at AGG.
+data:
+  reads:
+    - {sequence: ACGTTAGC}
+    - {sequence: ACGTTAGC}
+    - {sequence: ACGTCAGC}
+    - {sequence: ACGTTAGG}
+  k: 3

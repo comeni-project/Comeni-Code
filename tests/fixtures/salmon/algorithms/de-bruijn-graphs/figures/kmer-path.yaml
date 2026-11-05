@@ -1,0 +1,12 @@
+component: kmer-graph
+alt: A de Bruijn graph. Three overlapping reads make one path of 3-mers from ACG to TAG; a fourth read branches off at CGT to GTC.
+data:
+  reads:
+    - {sequence: ACGTT}
+    - {sequence: CGTTA}
+    - {sequence: GTTAG}
+    - {sequence: CGTC, note: another read — a branch}
+  k: 3
+  highlight: path
+  path: [1, 3]
+  spell: hidden

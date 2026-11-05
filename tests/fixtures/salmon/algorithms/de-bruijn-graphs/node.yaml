@@ -68,6 +68,18 @@ try:
       - Start with the first 4-mer whole.
       - Each edge after it adds the last letter of the next 4-mer.
     rationale: ACGT, then T from CGTT, then G from GTTG, spells ACGTTG.
+  - id: green-path
+    kind: choice
+    ask: Follow the green path. What does it spell?
+    figure: kmer-path
+    options:
+      - text: ACGTTAG
+        right: true
+      - text: ACGTCAG
+      - text: ACGGTTAG
+    hints:
+      - Each step to the next k-mer adds exactly one letter.
+    rationale: 'Start with the first k-mer, then add the last letter of each next one: ACG + T + T + A + G. The branch to GTC belongs to another read.'
   - id: assembly-order
     kind: order
     ask: Put the steps of de Bruijn assembly in order.

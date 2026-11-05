@@ -1,0 +1,6 @@
+component: compare-graphs
+alt: Two conventions. ACG, CGT and GTT as three nodes in a row, and the same 3-mers as edges between AC, CG, GT and TT.
+data:
+  reads:
+    - {sequence: ACGTT}
+  k: 3

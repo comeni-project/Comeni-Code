@@ -42,6 +42,10 @@ from code_schema.writer import write_exam_yaml, write_node_yaml
 ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
 CONTENT = read_content(ROOT)
 DBG = CONTENT.nodes["de-bruijn-graphs"]
+# Where kmers-per-read is asked: found, not counted, so a block added to the fixture moves nothing
+# here (M6.6a added the domain figures and the green-path try).
+ASKED = DBG.blocks.index(Try(question="kmers-per-read"))
+SHARED = DBG.blocks.index(Try(question="shared-unitig"))
 TPM = CONTENT.nodes["tpm"]
 
 QUESTION = TryQuestion(
@@ -117,13 +121,13 @@ def test_a_callout_is_inserted_between_blocks() -> None:
 
 
 def test_a_try_block_carries_its_question_in() -> None:
-    # Block 3 is kmers-per-read since the fixture's sequence block (M4.8c).
-    edited = reread(insert_block(DBG, 4, Try(question="edge-count"), question=QUESTION))
+    edited = reread(insert_block(DBG, ASKED + 1, Try(question="edge-count"), question=QUESTION))
     assert [question.id for question in edited.questions] == [
         "kmers-per-read",
         "edge-count",
         "shared-unitig",
         "spell-the-path",
+        "green-path",
         "assembly-order",
     ]
 
@@ -141,10 +145,11 @@ def test_a_question_id_already_asked_is_an_edit_error() -> None:
 
 
 def test_deleting_a_try_block_deletes_its_question() -> None:
-    edited = reread(delete_block(DBG, 3))
+    edited = reread(delete_block(DBG, ASKED))
     assert [question.id for question in edited.questions] == [
         "shared-unitig",
         "spell-the-path",
+        "green-path",
         "assembly-order",
     ]
     assert Try(question="kmers-per-read") not in edited.blocks
@@ -152,7 +157,7 @@ def test_deleting_a_try_block_deletes_its_question() -> None:
 
 def test_texts_brought_together_merge() -> None:
     # Deleting the try between two texts leaves one text block, as the body reads back.
-    edited = reread(delete_block(DBG, 3))
+    edited = reread(delete_block(DBG, ASKED))
     assert not any(
         isinstance(a, Text) and isinstance(b, Text)
         for a, b in zip(edited.blocks, edited.blocks[1:], strict=False)
@@ -176,16 +181,17 @@ def test_texts_already_apart_gain_no_second_blank_line() -> None:
 
 def test_a_try_question_is_updated_through_its_block() -> None:
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(DBG, 3, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(DBG, ASKED, Try(question="kmers-per-read"), question=changed))
     assert edited.questions[0].ask == "How many 4-mers does a 10-base read contain?"
 
 
 def test_a_block_moves() -> None:
-    edited = reread(move_block(DBG, 3, 5))
+    edited = reread(move_block(DBG, ASKED, SHARED))
     assert [block for block in edited.blocks if isinstance(block, Try)] == [
         Try(question="shared-unitig"),
         Try(question="kmers-per-read"),
         Try(question="spell-the-path"),
+        Try(question="green-path"),
         Try(question="assembly-order"),
     ]
 
@@ -237,7 +243,7 @@ def _swapped() -> Node:
 def test_updating_a_try_block_finds_its_question_by_id() -> None:
     node = reread(_swapped())
     changed = replace(DBG.questions[0], ask="How many 4-mers does a 10-base read contain?")
-    edited = reread(update_block(node, 3, Try(question="kmers-per-read"), question=changed))
+    edited = reread(update_block(node, ASKED, Try(question="kmers-per-read"), question=changed))
     by_id = {question.id: question for question in edited.questions}
     assert by_id["kmers-per-read"].ask == changed.ask
     assert by_id["shared-unitig"] == DBG.questions[1]
@@ -262,7 +268,7 @@ def test_a_block_uses_the_bodys_line_endings() -> None:
     with pytest.raises(EditError, match="line endings"):
         insert_block(crlf, 0, Text(markdown="Lead.\n\n"))
     edited = reread(insert_block(crlf, 0, Text(markdown="Lead.\r\n\r\n")))
-    assert edited.body.startswith("Lead.\r\n\r\nTake two transcripts")
+    assert edited.body.startswith("Lead.\r\n\r\nA sequencer returns")
     assert "\n" not in edited.body.replace("\r\n", "")
 
 

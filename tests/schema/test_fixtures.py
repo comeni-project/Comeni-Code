@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from code_schema.blocks import Callout, Try, write_blocks
+from code_schema.blocks import Callout, Figure, Try, write_blocks
 from code_schema.cli import main
 from code_schema.content import Content, read_content
 from code_schema.node import Level
-from code_schema.questions import ChoiceAnswer, NumberAnswer
+from code_schema.questions import ChoiceAnswer, NumberAnswer, Option
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
 ROOT = Path(__file__).resolve().parents[1] / "fixtures" / "salmon"
@@ -168,12 +168,50 @@ def test_another_node_has_a_linked_resource_alone(content: Content) -> None:
     assert [resource.display for resource in node.resources] == ["link"]
 
 
+DOMAIN = {
+    "read-tiling": "read-tiling",
+    "kmer-window": "kmer-window",
+    "compare-graphs": "compare-graphs",
+    "graph-artifacts": "graph-artifacts",
+    "kmer-path": "kmer-graph",
+}
+
+
+def test_de_bruijn_graphs_holds_the_five_domain_figures(content: Content) -> None:
+    """The L5 board's Figures 1-4 and its kmer-graph try, from the same reads (M6.6a, M6DC.6)."""
+    node = content.nodes["de-bruijn-graphs"]
+    components = {figure.stem: figure.component for figure in node.figures}
+    assert {stem: components.get(stem) for stem in DOMAIN} == DOMAIN
+    placed = [block.file for block in node.blocks if isinstance(block, Figure)]
+    for stem in ("read-tiling", "kmer-window", "compare-graphs", "graph-artifacts"):
+        assert placed.count(stem) == 1, stem
+    assert "kmer-path" not in placed  # it is the try's figure, not a block
+    path = next(figure for figure in node.figures if figure.stem == "kmer-path")
+    assert path.data["spell"] == "hidden"
+
+
+def test_the_green_path_try_shows_the_kmer_graph(content: Content) -> None:
+    node = content.nodes["de-bruijn-graphs"]
+    green = next(question for question in node.questions if question.id == "green-path")
+    assert green.figure == "kmer-path"
+    assert green.ask == "Follow the green path. What does it spell?"
+    assert green.answer == ChoiceAnswer(
+        options=(
+            Option(text="ACGTTAG", right=True),
+            Option(text="ACGTCAG"),
+            Option(text="ACGGTTAG"),
+        )
+    )
+    assert green.hints == ("Each step to the next k-mer adds exactly one letter.",)
+
+
 def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> None:
     node = content.nodes["de-bruijn-graphs"]
     assert [question.kind for question in node.questions] == [
         "number",
         "choice",
         "sequence",
+        "choice",  # green-path, a choice until M6.6b answers by the figure
         "order",
     ]
     assert all(question.hints and question.rationale for question in node.questions)
