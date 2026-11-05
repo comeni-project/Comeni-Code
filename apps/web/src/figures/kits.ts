@@ -1,7 +1,13 @@
 // Each kit's own checks, its starter data and what it derives: the twins of code_figures/table.py,
-// chart.py, flow.py and track.py (M6.4 spec, M6FG.3; M6.5 spec, M6CO.5). Same codes, paths and
+// chart.py, flow.py and track.py (M6.4 spec, M6FG.3; M6.5 spec, M6CO.5), and of the de Bruijn
+// kits in domain/ (M6.6a spec, M6DC.1–M6DC.3). Same codes, paths and
 // messages; tests/fixtures/figures/cases.json holds both to them, so the composer refuses exactly
 // what the server would.
+import * as compareGraphs from "./domain/compareGraphs";
+import * as graphArtifacts from "./domain/graphArtifacts";
+import * as kmerGraph from "./domain/kmerGraph";
+import * as kmerWindow from "./domain/kmerWindow";
+import * as readTiling from "./domain/readTiling";
 import { type Component, type FigureData, SCHEMAS } from "./schemas";
 import { type Finding, validate } from "./validate";
 
@@ -32,6 +38,11 @@ export const CODES: ReadonlySet<string> = new Set([
   OUT,
   LETTER,
   ROW,
+  "CS1012",
+  "CS1013",
+  "CS1014",
+  "CS1015",
+  "CS1016",
   "CS1023",
   "CS1024",
   "CS1025",
@@ -53,6 +64,41 @@ export const STARTERS: { [C in Component]: FigureData[C] } = {
       x: { field: "k", type: "ordinal" },
       y: { field: "n", type: "quantitative" },
     },
+  },
+  "compare-graphs": { reads: [{ sequence: "ACGTT" }], k: 3 },
+  "graph-artifacts": {
+    reads: [
+      { sequence: "ACGTTAGC" },
+      { sequence: "ACGTTAGC" },
+      { sequence: "ACGTCAGC" },
+      { sequence: "ACGTTAGG" },
+    ],
+    k: 3,
+  },
+  "kmer-graph": {
+    reads: [
+      { sequence: "ACGTT" },
+      { sequence: "CGTTA" },
+      { sequence: "GTTAG" },
+      { sequence: "CGTC", note: "another read — a branch" },
+    ],
+    k: 3,
+    highlight: "path",
+    path: [1, 3],
+    spell: "shown",
+  },
+  "kmer-window": { read: "ACGTTAGCAT", k: 4, range: [3, 7] },
+  "read-tiling": {
+    genome: "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+    reads: [
+      { sequence: "ATGCGTACG" },
+      { sequence: "TACGTTAGC" },
+      { sequence: "AGCCTAGGA" },
+      { sequence: "AGGATCCAG" },
+      { sequence: "CCAGTACGT" },
+      { sequence: "CGTTAGGCA" },
+      { sequence: "AGGCATCGA" },
+    ],
   },
   flow: {
     nodes: [
@@ -298,7 +344,12 @@ function track(data: Data): Finding[] {
 
 const CHECKS: { [C in Component]: (data: Data) => Finding[] } = {
   chart,
+  "compare-graphs": compareGraphs.check,
   flow,
+  "graph-artifacts": graphArtifacts.check,
+  "kmer-graph": kmerGraph.check,
+  "kmer-window": kmerWindow.check,
+  "read-tiling": readTiling.check,
   "sequence-track": track,
   table,
 };
@@ -320,10 +371,23 @@ export function figureFindings(component: string, data: unknown): Finding[] {
   return CHECKS[component](data as Data);
 }
 
-/** What the page draws and nobody writes: a track's lanes, first fit by start (track.py). */
+const DERIVES: Partial<{ [C in Component]: (data: Data) => Record<string, unknown> }> = {
+  "compare-graphs": compareGraphs.derive,
+  "graph-artifacts": graphArtifacts.derive,
+  "kmer-graph": kmerGraph.derive,
+  "kmer-window": kmerWindow.derive,
+  "read-tiling": readTiling.derive,
+  "sequence-track": lanes,
+};
+
+/** What the page draws and nobody writes; only for data with no findings (registry.py). */
 export function derive(component: Component, data: unknown): Record<string, unknown> {
-  if (component !== "sequence-track") return {};
-  const features = (data as Data).features as Item[];
+  return DERIVES[component]?.(data as Data) ?? {};
+}
+
+/** A track's lanes, first fit by start (track.py). */
+function lanes(data: Data): Record<string, unknown> {
+  const features = data.features as Item[];
   const order = features.map((_, at) => at);
   order.sort((a, b) => (features[a]?.start as number) - (features[b]?.start as number) || a - b);
   const ends: number[] = [];

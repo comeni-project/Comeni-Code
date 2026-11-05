@@ -47,7 +47,7 @@ describe("the shared cases", () => {
     const found = new Set([...SHARED.cases, ...SHARED.files].flatMap((c) => c.codes));
     expect([...CODES].filter((code) => !found.has(code))).toEqual([]);
     expect([...CODES].sort()).toEqual(
-      [...Array.from({ length: 11 }, (_, n) => `CS10${String(n + 1).padStart(2, "0")}`)]
+      [...Array.from({ length: 16 }, (_, n) => `CS10${String(n + 1).padStart(2, "0")}`)]
         .concat(["CS1023", "CS1024", "CS1025", "CS1026", "CS1027"])
         .sort(),
     );
