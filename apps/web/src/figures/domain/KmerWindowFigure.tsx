@@ -18,13 +18,15 @@ interface ForK {
 export function KmerWindowFigure({ data, derived, alt }: KitProps<"kmer-window">) {
   // The learner's k, until the author's changes (in the composer): then the author's again.
   const [moved, setMoved] = useState({ from: data.k, k: data.k });
-  const k = moved.from === data.k ? moved.k : data.k;
+  const [min, max] = data.range;
+  // …and only while it is inside the range, which the author may narrow under it (#405).
+  const kept = moved.from === data.k && moved.k >= min && moved.k <= max;
+  const k = kept ? moved.k : data.k;
   const setK = (next: number) => setMoved({ from: data.k, k: next });
   const label = useId();
   const byK = (derived.by_k ?? {}) as Record<string, ForK | undefined>;
   const now = byK[String(k)];
   if (now === undefined) return <Undrawn alt={alt} />;
-  const [min, max] = data.range;
   const read = data.read;
   const width = LEFT * 2 + read.length * CELL + 12 + max * 8.5;
   const height = 62 + now.windows.length * ROW;

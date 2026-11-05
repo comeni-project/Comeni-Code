@@ -115,6 +115,15 @@ describe("kmer-window", () => {
     expect(screen.getByText("10 − 5 + 1 = 6 k-mers")).toBeInTheDocument();
   });
 
+  it("goes back to the author's k when the range narrows past the learner's (#405)", () => {
+    const { rerender } = render(<KmerWindowFigure data={data} derived={derived} alt={ALT} />);
+    fireEvent.change(screen.getByRole("slider", { name: "k" }), { target: { value: "7" } });
+    const narrow = { ...data, range: [3, 5] as [number, number] };
+    rerender(<KmerWindowFigure data={narrow} derived={derive("kmer-window", narrow)} alt={ALT} />);
+    expect(screen.queryByText("This figure could not be drawn.")).toBeNull();
+    expect(screen.getByText("10 − 4 + 1 = 7 k-mers")).toBeInTheDocument();
+  });
+
   it("a k outside its range is not drawn", () => {
     render(<KmerWindowFigure data={{ ...data, k: 8 }} derived={derived} alt={ALT} />);
     expect(screen.getByText("This figure could not be drawn.")).toBeInTheDocument();
