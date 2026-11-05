@@ -21,6 +21,7 @@ import { ComposerPreview } from "./ComposerPreview";
 import { DataPanel } from "./DataPanel";
 import { Describe } from "./Describe";
 import { focusPath, serverPath } from "./goTo";
+import { headline } from "./summary";
 import { ThisFigure } from "./ThisFigure";
 import { useLeaveGuard } from "./useLeaveGuard";
 import { useWorkingCopy } from "./useWorkingCopy";
@@ -70,6 +71,7 @@ function checkLines(
   problems: Finding[],
   component: string | null,
   captionMissing: boolean,
+  computed: string | null,
 ): { ok: boolean; title: string; detail: string }[] {
   const has = (codes: string[]) => problems.some((p) => codes.includes(p.code));
   const FILE = ["CS1023", "CS1025", "CS1027"];
@@ -86,6 +88,9 @@ function checkLines(
       title: `The data fits ${component === null ? "its component" : `a ${component}`}`,
       detail: "every key allowed, every check passed",
     },
+    ...(computed === null
+      ? []
+      : [{ ok: !data, title: "Computed from the reads", detail: computed }]),
     {
       ok: !has(DESCRIBED) && !captionMissing,
       title: "Described",
@@ -244,10 +249,17 @@ function Composer({
               </p>
             </section>
             <section className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-3.5">
-              <h2 className="text-[14px] font-semibold">Domain components</h2>
+              <h2 className="text-[14px] font-semibold">Computed, never typed</h2>
               <p className="text-[12.5px] leading-[1.5] text-ink-2">
-                kmer-graph, read-tiling and the rest arrive with M6.6, with what a learner can do
-                with them.
+                A domain component works out the k-mers, edges, paths, counts, tips and bubbles from
+                the reads, so a drawing cannot disagree with its data.
+              </p>
+            </section>
+            <section className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-3.5">
+              <h2 className="text-[14px] font-semibold">Answering by the figure</h2>
+              <p className="text-[12.5px] leading-[1.5] text-ink-2">
+                Tracing a path or picking a bubble as a question’s answer comes next (M6.6b). Until
+                then a figure sits above a choice, as it does today.
               </p>
             </section>
           </aside>
@@ -280,7 +292,14 @@ function Composer({
           <aside className="flex flex-col gap-3.5">
             <ChecksList
               problems={problems}
-              lines={checkLines(problems, component, needsCaption)}
+              lines={checkLines(
+                problems,
+                component,
+                needsCaption,
+                component === null || copy.fd.errors.length > 0
+                  ? null
+                  : headline(component, (copy.fd.doc.toJS() as { data?: unknown } | null)?.data),
+              )}
               onGo={go}
             />
             <ThisFigure node={node} stem={stem} />

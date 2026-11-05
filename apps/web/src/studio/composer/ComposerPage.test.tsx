@@ -53,6 +53,21 @@ describe("the figure composer (M6.5)", () => {
     expect(String(body.text)).toMatch(/^component: chart\nalt: Bars by k\.\ndata:\n/);
   });
 
+  it("names what a domain component computed, in Data and in Checks (M6DC.5)", async () => {
+    composer("/studio/drafts/d-1/figures/new?at=2");
+    await userEvent.click(await screen.findByRole("button", { name: /^kmer-graph/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    const computed = screen.getByRole("region", { name: "Computed" });
+    expect(within(computed).getByText("ACG CGT GTT TTA TAG GTC")).toBeInTheDocument();
+    expect(within(computed).getByText("spells ACGTTAG")).toBeInTheDocument();
+    const checks = screen.getByRole("region", { name: "Checks" });
+    expect(within(checks).getByText("Computed from the reads")).toBeInTheDocument();
+    expect(
+      within(checks).getByText("6 k-mers, 5 edges; the path of 1–3 spells ACGTTAG"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("4 reads · k = 3")).toBeInTheDocument();
+  });
+
   it("sends a changed cell as its one line", async () => {
     const fake = composer(`/studio/drafts/d-1/figures/flow?block=${AT}`, {
       "PUT /api/studio/drafts/d-1/figures/flow": saved(),

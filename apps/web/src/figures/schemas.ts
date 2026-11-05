@@ -684,7 +684,8 @@ export const SCHEMAS = {
       "sequence": {
         "type": "string",
         "pattern": "^[A-Za-z]+$",
-        "maxLength": 120
+        "maxLength": 120,
+        "format": "dna"
       },
       "length": {
         "type": "integer",

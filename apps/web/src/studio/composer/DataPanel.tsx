@@ -8,6 +8,7 @@ import { formable } from "./formable";
 import { hasSettings, SchemaForm } from "./SchemaForm";
 import { Sheet } from "./Sheet";
 import { sheetsOf } from "./sheets";
+import { summary } from "./summary";
 import type { WorkingCopy } from "./useWorkingCopy";
 
 export function DataPanel({
@@ -34,7 +35,11 @@ export function DataPanel({
       const noun = sheet.title === "Values" ? "rows" : sheet.title.toLowerCase();
       return `${sheet.rows.length} ${sheet.rows.length === 1 ? noun.replace(/s$/, "") : noun}`;
     })
+    .concat(typeof file?.data.k === "number" ? [`k = ${file.data.k}`] : [])
     .join(" · ");
+  // What a domain component worked out from the data, while the data checks (M6DC.5).
+  const said = file !== null && component !== null ? summary(component, file.data) : [];
+  const fasta = sheets.some((sheet) => sheet.columns.some((column) => column.dna));
   const form = file !== null && component !== null && hasSettings(component, file.data);
   return (
     <section
@@ -61,9 +66,13 @@ export function DataPanel({
               <Sheet sheet={sheet} problems={copy.problems} onOps={copy.edit} />
             </div>
           ))}
-          <span className="-mt-2 text-[11.5px] text-ink-3">
-            Paste from a spreadsheet: tab- or comma-separated, the first row names the columns.
-          </span>
+          {sheets.length > 0 && (
+            <span className="-mt-2 text-[11.5px] text-ink-3">
+              {fasta
+                ? "Paste from a FASTA or a spreadsheet. Only A, C, G, T are accepted."
+                : "Paste from a spreadsheet: tab- or comma-separated, the first row names the columns."}
+            </span>
+          )}
           {form && (
             <div className="flex flex-col gap-1.5">
               <span className="text-[12.5px] font-semibold">Settings</span>
@@ -77,6 +86,22 @@ export function DataPanel({
                 Made from the {component}'s schema: only what it takes is offered.
               </span>
             </div>
+          )}
+          {said.length > 0 && (
+            <section aria-label="Computed" className="flex flex-col gap-1.5">
+              <h3 className="text-[12.5px] font-semibold">Computed</h3>
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-[9px] bg-bg px-3 py-2.5 text-[12.5px]">
+                {said.map((line) => (
+                  <div key={line.label} className="contents">
+                    <dt className="text-ink-3">{line.label}</dt>
+                    <dd className="font-mono">{line.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <span className="text-[11.5px] text-ink-3">
+                Worked out from the reads and k; shown, never written.
+              </span>
+            </section>
           )}
         </>
       )}
