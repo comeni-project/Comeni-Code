@@ -28,7 +28,7 @@ x-after-migrate: &after-migrate
 
 services:
   postgres:
-    image: postgres:18@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280
+    image: postgres:18@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db58d63bccdb6144b81
     environment:
       POSTGRES_USER: code
       POSTGRES_PASSWORD: code
@@ -46,7 +46,7 @@ services:
       retries: 30
 
   redis:
-    image: redis:8@sha256:298e5b3bc566bade82f46ad5511777a4a07a294097ce16ada2f6a42be5239df5
+    image: redis:8@sha256:de1068af6f552240dfab67bcc9bfef99bfc60f776bb4580ef077ea4c8c97e848
     ports:
       # 6380 on the host: 6379 is often taken by another project's Redis.
       - "127.0.0.1:6380:6379"
