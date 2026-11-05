@@ -64,6 +64,24 @@ describe("kmer-graph", () => {
     expect(screen.queryByTestId("spells")).toBeNull();
   });
 
+  it("puts a note beneath its k-mer when another box follows it in the row (#403)", () => {
+    const d: FigureData["kmer-graph"] = {
+      ...data,
+      reads: [{ sequence: "ACGTT", note: "first read" }, ...data.reads.slice(1)],
+    } as FigureData["kmer-graph"];
+    draw(d);
+    const svg = screen.getByRole("img", { name: ALT });
+    const box = (kmer: string) =>
+      svg.querySelector(`[data-kmer="${kmer}"] rect:last-of-type`) as SVGRectElement;
+    const at = (el: Element, name: string) => Number(el.getAttribute(name));
+    const first = within(svg).getByText("first read");
+    const acg = box("ACG");
+    expect(at(first, "y")).toBeGreaterThan(at(acg, "y") + at(acg, "height"));
+    const branch = within(svg).getByText("another read — a branch");
+    const gtc = box("GTC");
+    expect(at(branch, "x")).toBeGreaterThan(at(gtc, "x") + at(gtc, "width"));
+  });
+
   it("lays out a read that repeats a k-mer, a cycle, once (Review Focus 1)", () => {
     const d: FigureData["kmer-graph"] = {
       reads: [{ sequence: "ACGACGA" }],

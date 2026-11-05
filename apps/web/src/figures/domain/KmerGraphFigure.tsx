@@ -31,10 +31,19 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
   // The path in one row when there is one; else the first read's k-mers, as the board draws.
   const line = highlight === "path" ? path : kmersOf(data.reads[0]?.sequence ?? "", data.k);
   const laid = layoutKmers(kmers, edges, line);
+  // A note sits right of its k-mer, as the board's does at a row's end; beneath it when another box
+  // follows in the row, where right of it is an edge (#403).
+  const beneath = new Set(
+    laid.boxes
+      .filter((box) => notes[box.id] !== undefined)
+      .filter((box) => laid.boxes.some((o) => o.y === box.y && o.x > box.x))
+      .map((box) => box.id),
+  );
   const noteW = Math.max(0, ...Object.values(notes).map((n) => n.length * 6.6 + 12));
   const readsW = 60 + data.reads.reduce((w, r) => w + r.sequence.length * 8.5 + 14, 0) + 60;
   const width = Math.max(laid.width + noteW, readsW, 320);
-  const height = TOP + laid.height + (highlight === "path" ? SPELLS : 0);
+  const height =
+    TOP + laid.height + (beneath.size > 0 ? 16 : 0) + (highlight === "path" ? SPELLS : 0);
   const letters = [...spells].map((ch) => (data.spell === "hidden" ? "?" : ch)).join(" ");
   return (
     <svg
@@ -80,20 +89,30 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
               data-on-path={onPath.has(box.id) ? "" : undefined}
               data-branch={highlight === "branches" && branches.includes(box.id) ? "" : undefined}
             />
-            {notes[box.id] !== undefined && (
-              <text
-                x={box.x + box.w + 10}
-                y={box.y + box.h / 2 + 4}
-                style={{ fontSize: 12, fill: "var(--ink-3)" }}
-              >
-                {notes[box.id]}
-              </text>
-            )}
+            {notes[box.id] !== undefined &&
+              (beneath.has(box.id) ? (
+                <text
+                  x={box.x + box.w / 2}
+                  y={box.y + box.h + 15}
+                  textAnchor="middle"
+                  style={{ fontSize: 12, fill: "var(--ink-3)" }}
+                >
+                  {notes[box.id]}
+                </text>
+              ) : (
+                <text
+                  x={box.x + box.w + 10}
+                  y={box.y + box.h / 2 + 4}
+                  style={{ fontSize: 12, fill: "var(--ink-3)" }}
+                >
+                  {notes[box.id]}
+                </text>
+              ))}
           </g>
         ))}
       </g>
       {highlight === "path" && (
-        <g transform={`translate(0 ${TOP + laid.height})`}>
+        <g transform={`translate(0 ${TOP + laid.height + (beneath.size > 0 ? 16 : 0)})`}>
           <line x1={10} y1={10} x2={width - 10} y2={10} style={{ stroke: "var(--border)" }} />
           <text x={10} y={40} style={{ ...MONO, fontSize: 11, fill: "var(--ink-3)" }}>
             path spells
