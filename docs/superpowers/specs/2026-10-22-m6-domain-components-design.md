@@ -48,8 +48,11 @@ other in some read** (they overlap by k − 1, and a read shows the step), *my c
 overlap rule draws edges no read supports, which clutters a teaching figure and is not how an
 assembler builds one. The page's prose may still state the overlap rule; every edge drawn obeys it.
 
-**`path`**: the k-mers of reads `first`…`last` in order, each k-mer once; it must be a walk (each
-k-mer overlaps the next by k − 1), else CS1014. `spells` is the first k-mer then the last letter of
+**`path`**: the k-mers of reads `first`…`last` in order, each k-mer once; each step must be an
+edge, two k-mers that follow each other in some read, else CS1014 naming the step (#408, decided A
+on 2026-11-05: overlap by k − 1 alone is not a step, so a drawn path is always connected; rejected:
+drawing a missing step dashed, *by overlap* (an edge no read holds), and a path that draws in
+pieces). `spells` is the first k-mer then the last letter of
 each next one (ACG, CGT, GTT, TTA, TAG spells ACGTTAG).
 
 **Highlight** (*my call*, from the boards, which draw both at once): `path` draws the path's k-mers

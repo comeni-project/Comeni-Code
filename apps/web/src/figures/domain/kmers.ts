@@ -51,9 +51,12 @@ export function spells(path: string[]): string {
   );
 }
 
-export function isWalk(path: string[]): number | null {
+/** The first step of a path that is not an edge, a step no read takes (#408), or null. */
+export function missingStep(path: string[], edges: [string, string][]): [string, string] | null {
+  const held = new Set(edges.map(([a, b]) => `${a} ${b}`));
   for (let at = 1; at < path.length; at++) {
-    if ((path[at - 1] as string).slice(1) !== (path[at] as string).slice(0, -1)) return at;
+    const step: [string, string] = [path[at - 1] as string, path[at] as string];
+    if (!held.has(`${step[0]} ${step[1]}`)) return step;
   }
   return null;
 }

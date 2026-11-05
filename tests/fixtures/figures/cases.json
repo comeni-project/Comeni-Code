@@ -9014,6 +9014,30 @@
    ]
   },
   {
+   "name": "a path joined only by overlap",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGT"
+     },
+     {
+      "sequence": "GTAA"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     2
+    ],
+    "spell": "shown"
+   },
+   "codes": [
+    "CS1014"
+   ]
+  },
+  {
    "name": "more k-mers than a page draws",
    "component": "kmer-graph",
    "data": {

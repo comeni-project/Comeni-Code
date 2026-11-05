@@ -40,3 +40,22 @@ describe("the domain components' computed values", () => {
     }
   });
 });
+
+describe("a highlighted path (#408, decided A)", () => {
+  it("is refused where no read takes a step, naming the step", () => {
+    const data = {
+      reads: [{ sequence: "ACGT" }, { sequence: "GTAA" }],
+      k: 3,
+      highlight: "path",
+      path: [1, 2],
+      spell: "shown",
+    };
+    expect(figureFindings("kmer-graph", data)).toEqual([
+      {
+        code: "CS1014",
+        path: "data.path",
+        message: "reads 1–2 do not make one path: no read goes from CGT to GTA",
+      },
+    ]);
+  });
+});

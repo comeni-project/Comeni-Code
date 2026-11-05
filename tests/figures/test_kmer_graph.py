@@ -3,7 +3,7 @@
 from typing import Any
 
 from code_figures import derived, figure_findings
-from code_figures.kmers import graph, is_walk, kmers_of, spells, support
+from code_figures.kmers import graph, kmers_of, missing_step, spells, support
 
 STARTER: dict[str, Any] = {
     "reads": [
@@ -47,8 +47,9 @@ def test_support_counts_reads_not_occurrences() -> None:
 
 def test_spells_and_walks() -> None:
     assert spells(["ACG", "CGT", "GTT", "TTA", "TAG"]) == "ACGTTAG"
-    assert is_walk(["ACG", "CGT", "GTT"]) is None
-    assert is_walk(["ACG", "CGT", "GTC", "TTA"]) == 3
+    edges = graph(["ACGTT", "CGTC"], 3)[1]
+    assert missing_step(["ACG", "CGT", "GTT"], edges) is None
+    assert missing_step(["ACG", "CGT", "GTC", "TTA"], edges) == ("GTC", "TTA")
 
 
 # ── the kit ──────────────────────────────────────────────────────────────────────────────────
@@ -97,6 +98,16 @@ def test_a_read_shorter_than_k_is_cs1013() -> None:
 def test_a_path_that_is_not_a_walk_is_cs1014() -> None:
     data = with_reads("ACGTT", "CCCCC", path=[1, 2])
     assert codes(data) == [("CS1014", "data.path")]
+
+
+def test_a_path_joined_only_by_overlap_is_cs1014() -> None:
+    """#408, decided A: every step of a path is an edge a read holds; CGT overlaps GTA, but no
+    read goes from one to the other."""
+    data = with_reads("ACGT", "GTAA", path=[1, 2])
+    found = [(f.code, f.path, f.message) for f in figure_findings("kmer-graph", data)]
+    assert found == [
+        ("CS1014", "data.path", "reads 1–2 do not make one path: no read goes from CGT to GTA")
+    ]
 
 
 def test_a_path_past_the_reads_is_cs1014() -> None:

@@ -1,6 +1,6 @@
 // `kmer-graph`: the twin of code_figures/kmer_graph.py (M6.6a spec, M6DC.1).
 import type { Finding } from "../validate";
-import { type Data, graph, isWalk, kmersOf, readsFindings, sequences, spells } from "./kmers";
+import { type Data, graph, kmersOf, missingStep, readsFindings, sequences, spells } from "./kmers";
 
 const NOT_A_WALK = "CS1014";
 
@@ -24,12 +24,14 @@ export function check(data: Data): Finding[] {
       { code: NOT_A_WALK, path: "data.path", message: `names reads past the ${count} there are` },
     ];
   }
-  if (isWalk(pathOf(data)) !== null) {
+  // Every step is an edge a read holds (#408): overlap alone is not a step.
+  const step = missingStep(pathOf(data), graph(sequences(data), data.k as number)[1]);
+  if (step !== null) {
     return [
       {
         code: NOT_A_WALK,
         path: "data.path",
-        message: `reads ${first}–${last} do not make one path`,
+        message: `reads ${first}–${last} do not make one path: no read goes from ${step[0]} to ${step[1]}`,
       },
     ];
   }

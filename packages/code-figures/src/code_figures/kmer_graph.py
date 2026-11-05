@@ -7,7 +7,7 @@ path and what it spells are computed. A read's note sits beside the first k-mer 
 from collections.abc import Mapping
 
 from code_figures.findings import WRONG, Finding
-from code_figures.kmers import graph, is_walk, kmers_of, reads_findings, sequences, spells
+from code_figures.kmers import graph, kmers_of, missing_step, reads_findings, sequences, spells
 
 NOT_A_WALK = "CS1014"  # the highlighted reads do not make one path
 
@@ -51,9 +51,15 @@ def check(data: Mapping[str, object]) -> list[Finding]:
     count = len(sequences(data))
     if not 1 <= first <= last <= count:
         return [Finding(NOT_A_WALK, "data.path", f"names reads past the {count} there are")]
-    broken = is_walk(_path(data))
-    if broken is not None:
-        return [Finding(NOT_A_WALK, "data.path", f"reads {first}–{last} do not make one path")]
+    k = data["k"]
+    assert isinstance(k, int)
+    # Every step is an edge a read holds (#408): overlap alone is not a step.
+    step = missing_step(_path(data), graph(sequences(data), k)[1])
+    if step is not None:
+        said = (
+            f"reads {first}–{last} do not make one path: no read goes from {step[0]} to {step[1]}"
+        )
+        return [Finding(NOT_A_WALK, "data.path", said)]
     return []
 
 

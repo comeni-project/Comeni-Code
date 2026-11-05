@@ -1532,9 +1532,9 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
-**Fix.** Highlight reads that overlap in order, each starting where the one before ends but one letter, or name reads that exist.
+**Fix.** Highlight reads that a read carries from each k-mer to the next: each step of the path must be an edge, two k-mers that follow each other in some read. Add the read that bridges the gap the message names, or name reads that exist.
 
-**Why.** A kmer-graph spells the sequence a path walks (M6DC.1); reads that do not chain spell nothing.
+**Why.** A kmer-graph spells the sequence a path walks (M6DC.1), and every edge it draws is a step some read takes, so a path is too (#408): k-mers that only overlap, with no read between them, would spell a sequence the figure cannot draw as one path.
 
 #### CS1015 — no k-mer is in two reads
 

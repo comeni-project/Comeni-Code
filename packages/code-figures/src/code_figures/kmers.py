@@ -49,12 +49,10 @@ def spells(path: Sequence[str]) -> str:
     return path[0] + "".join(kmer[-1] for kmer in path[1:]) if path else ""
 
 
-def is_walk(path: Sequence[str]) -> int | None:
-    """Where a path stops being a walk: the first k-mer that does not overlap the one before."""
-    return next(
-        (at for at in range(1, len(path)) if path[at - 1][1:] != path[at][:-1]),
-        None,
-    )
+def missing_step(path: Sequence[str], edges: Sequence[tuple[str, str]]) -> tuple[str, str] | None:
+    """The first step of a path that is not an edge, a step no read takes (#408), or None."""
+    held = set(edges)
+    return next((step for step in zip(path, path[1:], strict=False) if step not in held), None)
 
 
 def sequences(data: Mapping[str, object]) -> list[str]:
