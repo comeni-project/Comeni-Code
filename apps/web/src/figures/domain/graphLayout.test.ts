@@ -53,3 +53,51 @@ describe("a k-mer graph's layout", () => {
     expect(top).toBeGreaterThanOrEqual(26);
   });
 });
+
+describe("no two k-mers overlap (#404)", () => {
+  const overlaps = (laid: ReturnType<typeof layoutKmers>) =>
+    laid.boxes.flatMap((a, i) =>
+      laid.boxes
+        .slice(i + 1)
+        .filter((b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h)
+        .map((b) => `${a.id}/${b.id}`),
+    );
+  const graph = (component: "kmer-graph" | "graph-artifacts", data: unknown) =>
+    derive(component, data) as { kmers: string[]; edges: [string, string][]; path?: string[] };
+  const reads = (...sequences: string[]) => sequences.map((sequence) => ({ sequence }));
+
+  it.each([
+    ["a solid fork", "graph-artifacts", { reads: reads("ACGTT", "ACGTT", "ACGAA", "ACGAA"), k: 3 }],
+    [
+      "a fork off the line",
+      "kmer-graph",
+      { reads: reads("AAAC", "ACGT", "ACGA"), k: 3, highlight: "branches" },
+    ],
+    [
+      "a path by overlap",
+      "kmer-graph",
+      { reads: reads("ACGT", "GTAA"), k: 3, highlight: "path", path: [1, 2] },
+    ],
+    ["the starter", "kmer-graph", STARTERS["kmer-graph"]],
+    ["the artifacts' starter", "graph-artifacts", STARTERS["graph-artifacts"]],
+  ] as const)("%s", (_, component, data) => {
+    const got = graph(component, data);
+    const line = got.path ?? got.kmers.slice(0, 1);
+    expect(overlaps(layoutKmers(got.kmers, got.edges, line))).toEqual([]);
+  });
+});
+
+describe("a k-mer's edge to itself (#406)", () => {
+  it("is a loop above its box, its label above the loop", () => {
+    const laid = layoutKmers(["AA"], [["AA", "AA", "AAA"]], ["AA"]);
+    const [box] = laid.boxes;
+    const [loop] = laid.paths;
+    const numbers = [...(loop?.d ?? "").matchAll(/-?\d+(\.\d+)?/g)].map((m) => Number(m[0]));
+    const ys = numbers.filter((_, i) => i % 2 === 1);
+    expect(Math.min(...ys)).toBeLessThan((box?.y ?? 0) - 15);
+    const xs = numbers.filter((_, i) => i % 2 === 0);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(10);
+    expect(loop?.labelAt?.y).toBeLessThan(Math.min(...ys));
+    expect(Math.min(...laid.boxes.map((b) => b.y))).toBeGreaterThan(40);
+  });
+});

@@ -14,6 +14,7 @@ const ROW = 60; // a row's height, box and gap
 const COLUMN_GAP = 44;
 const MARGIN = 10;
 const LABEL = 18; // room above a row for its edges' labels
+const LOOP = 34; // how far a k-mer's loop to itself rises above its box
 
 const widthOf = (id: string) => Math.max(MIN_W, Math.ceil(id.length * LETTER) + 2 * PAD);
 
@@ -48,6 +49,11 @@ function runs(nodes: string[], edges: readonly (readonly string[])[], line: Set<
 }
 
 function curve(from: Box, to: Box): string {
+  if (from === to) {
+    // A k-mer followed by itself (a homopolymer read): a loop over its box, back down into it.
+    const [out, back, y] = [from.x + from.w * 0.7, from.x + from.w * 0.3, from.y];
+    return `M${out} ${y} C${out + 18} ${y - LOOP} ${back - 18} ${y - LOOP} ${back} ${y}`;
+  }
   const [x1, y1] = [from.x + from.w, from.y + from.h / 2];
   const [x2, y2] = [to.x, to.y + to.h / 2];
   if (x2 > x1) {
@@ -87,10 +93,20 @@ export function layoutKmers(
   const row = new Map<string, number>();
   const onLine = new Set(line.filter((id) => nodes.includes(id)));
   for (const id of onLine) row.set(id, 0);
+  const outward = (n: number) => (n % 2 === 0 ? n / 2 + 1 : -(n + 1) / 2); // 1, -1, 2, -2…
   runs(nodes, edges, onLine).forEach((run, n) => {
-    const r = n % 2 === 0 ? n / 2 + 1 : -(n + 1) / 2;
-    for (const id of run) row.set(id, r);
+    for (const id of run) row.set(id, outward(n));
   });
+  // Two k-mers in one row and one column would overlap (a fork within the line or a run, #404):
+  // the later one moves to the nearest row outward that is free at its column.
+  const taken = new Set<string>();
+  for (const id of nodes) {
+    const c = column.get(id) ?? 0;
+    let r = row.get(id) ?? 0;
+    for (let n = 0; taken.has(`${r}:${c}`); n++) r = outward(n);
+    row.set(id, r);
+    taken.add(`${r}:${c}`);
+  }
   const rows = [...new Set(row.values())];
   const top = Math.min(0, ...rows);
   const rowH = ROW + (labelled ? LABEL : 0);
@@ -113,7 +129,10 @@ export function layoutKmers(
     const path: Path = { from, to, d: curve(a, b) };
     if (label !== undefined) {
       path.label = label;
-      path.labelAt = { x: (a.x + a.w + b.x) / 2, y: (a.y + b.y) / 2 + BOX_H / 2 };
+      path.labelAt =
+        a === b
+          ? { x: a.x + a.w / 2, y: a.y - LOOP - 6 }
+          : { x: (a.x + a.w + b.x) / 2, y: (a.y + b.y) / 2 + BOX_H / 2 };
     }
     return path;
   });
