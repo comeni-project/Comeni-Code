@@ -386,15 +386,15 @@ function route() {
 // ── node-page figures (each is a library component filled with data) ──
 const F = {
   tiling() {
+    // as read-tiling computes it (M6DC.6): each read where it matches, lanes by first fit; neutral bars
     const g = 'ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA';
-    let s = `<svg viewBox="0 0 740 150" width="100%" style="display:block">`;
+    let s = `<svg viewBox="0 0 740 112" width="100%" style="display:block">`;
     s += `<text x="0" y="24" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">genome</text>`;
     [...g].forEach((ch, i) => { s += `<text x="${90 + i * 16}" y="24" text-anchor="middle" style="font-family:${MONO};font-size:13px;fill:${c.ink}">${ch}</text>`; });
     s += `<line x1="82" y1="34" x2="${98 + (g.length - 1) * 16}" y2="34" style="stroke:${c.ink};stroke-width:2"></line>`;
-    const reads = [[0, 9, 0], [5, 9, 1], [11, 9, 0], [16, 9, 1], [21, 9, 0], [27, 9, 1], [31, 9, 2]];
-    reads.forEach(([st, len, row]) => { s += `<rect x="${84 + st * 16}" y="${48 + row * 20}" width="${len * 16 - 4}" height="12" rx="4" style="fill:${c.lineSoft};stroke:${c.line};stroke-width:1.2"></rect>`; });
-    s += `<text x="0" y="68" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">reads</text>`;
-    s += `<text x="90" y="134" style="font-family:${UI};font-size:12.5px;fill:${c.ink2}">Short, overlapping pieces in no order. The genome above is what you want back.</text>`;
+    const reads = [[0, 9, 0], [5, 9, 1], [11, 9, 0], [16, 9, 1], [21, 9, 0], [27, 9, 1], [31, 9, 0]];
+    reads.forEach(([st, len, row]) => { s += `<rect x="${84 + st * 16}" y="${48 + row * 20}" width="${len * 16 - 4}" height="12" rx="4" style="fill:${c.exon};stroke:${c.ink2};stroke-width:1.2"></rect>`; });
+    s += `<text x="0" y="62" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">reads</text>`;
     return s + '</svg>';
   },
   slider() {
@@ -403,7 +403,7 @@ const F = {
     [...r].forEach((ch, i) => { s += `<rect x="${60 + i * 34}" y="14" width="30" height="34" rx="6" style="fill:${i < k ? c.selSoft : c.surface};stroke:${i < k ? c.sel : c.border2};stroke-width:1.5"></rect><text x="${75 + i * 34}" y="37" text-anchor="middle" style="font-family:${MONO};font-size:16px;font-weight:500;fill:${c.ink}">${ch}</text>`; });
     for (let j = 0; j <= r.length - k; j++) {
       const y = 62 + j * 20;
-      s += `<rect x="${60 + j * 34}" y="${y}" width="${k * 34 - 4}" height="14" rx="4" style="fill:${j === 0 ? c.sel : c.lineSoft};stroke:${j === 0 ? c.sel : c.line};stroke-width:1"></rect>`;
+      s += `<rect x="${60 + j * 34}" y="${y}" width="${k * 34 - 4}" height="14" rx="4" style="fill:${j === 0 ? c.sel : c.exon};stroke:${j === 0 ? c.sel : c.ink3};stroke-width:1"></rect>`;
       s += `<text x="${60 + (j + k) * 34 + 6}" y="${y + 11}" style="font-family:${MONO};font-size:11.5px;fill:${c.ink2}">${r.slice(j, j + k)}</text>`;
     }
     s += `<text x="480" y="30" style="font-family:${UI};font-size:13px;font-weight:600;fill:${c.ink}">k</text>`;
@@ -417,29 +417,34 @@ const F = {
   },
   conventions() {
     const nd = (x, y, t, w = 58) => `<rect x="${x}" y="${y}" width="${w}" height="30" rx="7" style="fill:${c.surface};stroke:${c.ink2};stroke-width:1.5"></rect><text x="${x + w / 2}" y="${y + 20}" text-anchor="middle" style="font-family:${MONO};font-size:13.5px;fill:${c.ink}">${t}</text>`;
-    const ar = (x1, x2, y, lab) => `<path d="M${x1} ${y} H${x2 - 6}" style="stroke:${c.line};stroke-width:2"></path><path d="M${x2 - 8} ${y - 5} L${x2} ${y} L${x2 - 8} ${y + 5}" style="fill:none;stroke:${c.line};stroke-width:2"></path>${lab ? `<text x="${(x1 + x2) / 2}" y="${y - 8}" text-anchor="middle" style="font-family:${MONO};font-size:11.5px;font-weight:600;fill:${c.btn}">${lab}</text>` : ''}`;
-    let s = `<svg viewBox="0 0 740 160" width="100%" style="display:block">`;
+    const ar = (x1, x2, y, lab) => `<path d="M${x1} ${y} H${x2 - 6}" style="stroke:${c.ink3};stroke-width:2"></path><path d="M${x2 - 8} ${y - 5} L${x2} ${y} L${x2 - 8} ${y + 5}" style="fill:none;stroke:${c.ink3};stroke-width:2"></path>${lab ? `<text x="${(x1 + x2) / 2}" y="${y - 8}" text-anchor="middle" style="font-family:${MONO};font-size:11.5px;font-weight:600;fill:${c.ink2}">${lab}</text>` : ''}`;
+    let s = `<svg viewBox="0 0 740 120" width="100%" style="display:block">`;
     s += `<text x="0" y="20" style="font-family:${UI};font-size:13px;font-weight:600;fill:${c.ink}">k-mers as nodes</text><text x="0" y="38" style="font-family:${UI};font-size:12px;fill:${c.ink3}">common in tools and teaching</text>`;
     ['ACG', 'CGT', 'GTT'].forEach((t, i) => { s += nd(10 + i * 110, 70, t); if (i < 2) s += ar(68 + i * 110, 120 + i * 110, 85); });
-    s += `<line x1="370" y1="10" x2="370" y2="150" style="stroke:${c.border};stroke-width:1"></line>`;
+    s += `<line x1="370" y1="10" x2="370" y2="110" style="stroke:${c.border};stroke-width:1"></line>`;
     s += `<text x="395" y="20" style="font-family:${UI};font-size:13px;font-weight:600;fill:${c.ink}">k-mers as edges</text><text x="395" y="38" style="font-family:${UI};font-size:12px;fill:${c.ink3}">the formal definition · nodes are (k−1)-mers</text>`;
     ['AC', 'CG', 'GT', 'TT'].forEach((t, i) => { s += nd(400 + i * 88, 70, t, 46); if (i < 3) s += ar(446 + i * 88, 488 + i * 88, 85, ['ACG', 'CGT', 'GTT'][i]); });
-    s += `<text x="0" y="140" style="font-family:${UI};font-size:12.5px;fill:${c.ink2}">Same reads, same information.</text><text x="395" y="140" style="font-family:${UI};font-size:12.5px;fill:${c.ink2}">A spelled sequence is a path through the edges.</text>`;
     return s + '</svg>';
   },
   bubble(labels = true) {
-    const errA = labels ? c.open : c.ink2, errASoft = labels ? c.openSoft : c.surface, errB = labels ? c.measBar : c.ink2, errBSoft = labels ? c.measSoft : c.surface;
-    const n = (x, y, t, o = {}) => `<rect x="${x}" y="${y}" width="56" height="28" rx="7" style="fill:${o.f || c.surface};stroke:${o.s || c.ink2};stroke-width:1.5;${o.d ? 'stroke-dasharray:4 3' : ''}"></rect><text x="${x + 28}" y="${y + 19}" text-anchor="middle" style="font-family:${MONO};font-size:13px;fill:${c.ink}">${t}</text>`;
+    // as graph-artifacts computes it from its reads (M6DC.6): ACGTTAGC twice, ACGTCAGC (one wrong
+    // base: the bubble GTC, TCA, CAG from CGT back to AGC) and ACGTTAGG (a wrong last base: the tip AGG)
+    const bub = labels ? c.open : c.ink2, bubSoft = labels ? c.openSoft : c.surface, tip = labels ? c.measBar : c.ink2, tipSoft = labels ? c.measSoft : c.surface;
+    const n = (x, y, t, o = {}) => `<rect x="${x}" y="${y}" width="58" height="34" rx="7" style="fill:${o.f || c.surface};stroke:${o.s || c.ink2};stroke-width:${o.d ? 2 : 1.5};${o.d ? 'stroke-dasharray:4 3' : ''}"></rect><text x="${x + 29}" y="${y + 22}" text-anchor="middle" style="font-family:${MONO};font-size:15px;font-weight:500;fill:${c.ink}">${t}</text>`;
     const l = (d, col, dash) => `<path d="${d}" style="fill:none;stroke:${col};stroke-width:2;${dash ? 'stroke-dasharray:5 4;' : ''}stroke-linejoin:round"></path>`;
-    let s = `<svg viewBox="0 0 740 200" width="100%" style="display:block">`;
-    s += l('M66 84 H110', c.line) + l('M166 84 H210', c.line) + l('M266 84 H330', c.line) + l('M386 84 H450', c.line) + l('M506 84 H550', c.line);
-    s += l('M266 84 H290 V140 H330', errA, 1) + l('M386 140 H410 V84 H450', errA, 1);
-    s += l('M166 84 H180 V30 H210', errB, 1);
-    ['ACG', 'CGT', 'GTT', 'TTA', 'TAG', 'AGC'].forEach((t, i) => { s += n(10 + i * 110 + (i > 2 ? 10 : 0) + (i > 3 ? 10 : 0), 70, t); });
-    s += n(330, 126, 'TCA', { s: errA, f: errASoft, d: 1 }) + n(210, 16, 'GTA', { s: errB, f: errBSoft, d: 1 });
+    const X = (i) => 10 + i * 102, row = 70, below = 130, above = 10;
+    let s = `<svg viewBox="0 0 740 ${labels ? 222 : 180}" width="100%" style="display:block">`;
+    for (let i = 0; i < 5; i++) s += l(`M${X(i) + 58} ${row + 17} H${X(i + 1)}`, c.ink3);
+    s += l(`M${X(1) + 58} ${row + 17} C${X(2) - 22} ${row + 17} ${X(2) - 22} ${below + 17} ${X(2)} ${below + 17}`, bub, 1);
+    s += l(`M${X(2) + 58} ${below + 17} H${X(3)}`, bub, 1) + l(`M${X(3) + 58} ${below + 17} H${X(4)}`, bub, 1);
+    s += l(`M${X(4) + 58} ${below + 17} C${X(5) - 22} ${below + 17} ${X(5) - 22} ${row + 17} ${X(5)} ${row + 17}`, bub, 1);
+    s += l(`M${X(4) + 58} ${row + 17} C${X(5) - 22} ${row + 17} ${X(5) - 22} ${above + 17} ${X(5)} ${above + 17}`, tip, 1);
+    ['ACG', 'CGT', 'GTT', 'TTA', 'TAG', 'AGC'].forEach((t, i) => { s += n(X(i), row, t); });
+    ['GTC', 'TCA', 'CAG'].forEach((t, i) => { s += n(X(i + 2), below, t, { s: bub, f: bubSoft, d: 1 }); });
+    s += n(X(5), above, 'AGG', { s: tip, f: tipSoft, d: 1 });
     if (labels) {
-      s += `<text x="400" y="178" text-anchor="middle" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.open}">bubble: a read with one wrong base rejoins the path</text>`;
-      s += `<text x="270" y="22" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.meas}">tip: an error near a read’s end dead-ends</text>`;
+      s += `<text x="10" y="192" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.open}">bubble: a read with one wrong base rejoins the path</text>`;
+      s += `<text x="10" y="214" style="font-family:${UI};font-size:12.5px;font-weight:600;fill:${c.meas}">tip: an error near a read’s end dead-ends</text>`;
     }
     return s + '</svg>';
   },
