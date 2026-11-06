@@ -4,11 +4,25 @@
 // says it is plain on purpose; a try option has neither (#257).
 import { useId, useRef, useState } from "react";
 import { Field } from "../../account/Field";
-import type { OptionIn } from "../../api/schema";
+import type { FigureOut, OptionIn } from "../../api/schema";
+import { accepted } from "../../node/grading";
 import { BOX, LABEL } from "./bench";
 import { blankOptions } from "./question";
 
-export type AnswerKind = "choice" | "number" | "sequence" | "order";
+export type AnswerKind = "choice" | "number" | "sequence" | "order" | "figure";
+
+/** The node's figures as a question may use them (M6FA.7): those with a task answer a figure
+ * question, those without may be options. Each pool says how a chosen figure is written. */
+export interface FigureChoices {
+  tasked: FigureOut[];
+  plain: string[];
+  chosen: string | null;
+  onChoose: (stem: string) => void;
+  /** Make a figure for this question in the composer, at Choose; absent until it is saved. */
+  onNew?: () => void;
+  /** Open the chosen figure in the composer. */
+  onOpen?: (stem: string) => void;
+}
 
 /** The answer fields both pools' inputs share (AnswerIn in the API). */
 export interface AnswerFields {
@@ -27,6 +41,7 @@ const KINDS: readonly [AnswerKind, string][] = [
   ["number", "Number"],
   ["sequence", "Sequence"],
   ["order", "Order"],
+  ["figure", "Figure"],
 ];
 const LETTERS = "ABCDE";
 const MIN_STEPS = 3;
@@ -57,6 +72,8 @@ export function switchedKind<T extends AnswerFields>(value: T, kind: AnswerKind,
       return { ...value, ...none, kind, answer: "" };
     case "order":
       return { ...value, ...none, kind, steps: ["", "", ""] };
+    case "figure":
+      return { ...value, ...none, kind };
   }
 }
 
@@ -65,12 +82,14 @@ export function AnswerEditor<T extends AnswerFields>({
   onChange,
   exam = false,
   kinds = true,
+  figures,
 }: {
   value: T;
   onChange: (value: T) => void;
   exam?: boolean;
   /** false: the kind switch is drawn elsewhere, as the exam pool's Answer header does. */
   kinds?: boolean;
+  figures?: FigureChoices;
 }) {
   return (
     <>
@@ -79,6 +98,7 @@ export function AnswerEditor<T extends AnswerFields>({
         <Options
           options={value.options ?? []}
           exam={exam}
+          figures={figures?.plain ?? []}
           onChange={(options) => onChange({ ...value, options })}
         />
       )}
@@ -105,6 +125,7 @@ export function AnswerEditor<T extends AnswerFields>({
       {value.kind === "order" && (
         <Steps steps={value.steps ?? []} onChange={(steps) => onChange({ ...value, steps })} />
       )}
+      {value.kind === "figure" && figures !== undefined && <FigureKind figures={figures} />}
     </>
   );
 }
@@ -144,13 +165,69 @@ export function KindSwitch<T extends AnswerFields>({
   );
 }
 
+/** A figure question's answer: the figure with a task it is answered by, and what that figure
+ * computes as right, named (M6FA.7). */
+function FigureKind({ figures }: { figures: FigureChoices }) {
+  const id = useId();
+  const chosen = figures.tasked.find((f) => f.stem === figures.chosen);
+  const right = accepted(chosen).map((selection) => selection.join(" → "));
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor={id} className={LABEL}>
+        Answered by
+      </label>
+      <select
+        id={id}
+        value={figures.chosen ?? ""}
+        onChange={(e) => figures.onChoose(e.target.value)}
+        className={`${BOX} h-10 font-mono text-[13px]`}
+      >
+        <option value="">Choose a figure with a task</option>
+        {figures.tasked.map((f) => (
+          <option key={f.stem} value={f.stem}>
+            {f.stem}
+          </option>
+        ))}
+      </select>
+      {chosen !== undefined && (
+        <p data-testid="figure-answer-computed" className="font-mono text-[12.5px] text-ink-2">
+          {`right: ${right.join(" or ")}`}
+        </p>
+      )}
+      <div className="flex gap-3 text-[12.5px] font-medium">
+        {figures.onNew && (
+          <button type="button" className="text-sel hover:text-ink" onClick={figures.onNew}>
+            New figure
+          </button>
+        )}
+        {chosen !== undefined && figures.onOpen && (
+          <button
+            type="button"
+            className="text-sel hover:text-ink"
+            onClick={() => figures.onOpen?.(chosen.stem)}
+          >
+            Open in the composer
+          </button>
+        )}
+      </div>
+      <span className="text-[12.5px] text-ink-3">
+        A figure answer is computed by its component, never typed; its task is set in the composer’s
+        Interaction step.
+      </span>
+    </div>
+  );
+}
+
 function Options({
   options,
   exam,
+  figures,
   onChange,
 }: {
   options: OptionIn[];
   exam: boolean;
+  /** The node's figures without a task, any of which an option may be (M6FA.3). */
+  figures: string[];
   onChange: (options: OptionIn[]) => void;
 }) {
   const group = useId();
@@ -198,12 +275,37 @@ function Options({
                   }
                 />
               </label>
-              <input
-                aria-label={`Option ${letter}`}
-                value={option.text}
-                onChange={(e) => set(at, { ...option, text: e.target.value })}
-                className={`${BOX} h-9 flex-1`}
-              />
+              {option.figure ? (
+                <span className="flex-1 font-mono text-[13px]">{option.figure}</span>
+              ) : (
+                <input
+                  aria-label={`Option ${letter}`}
+                  value={option.text ?? ""}
+                  onChange={(e) => set(at, { ...option, text: e.target.value })}
+                  className={`${BOX} h-9 flex-1`}
+                />
+              )}
+              {figures.length > 0 && (
+                <select
+                  aria-label={`Option ${letter} is`}
+                  value={option.figure ?? ""}
+                  onChange={(e) => {
+                    const { figure: _was, ...rest } = option;
+                    set(
+                      at,
+                      e.target.value === "" ? rest : { ...rest, text: "", figure: e.target.value },
+                    );
+                  }}
+                  className={`${BOX} h-9 w-36 font-mono text-[12px]`}
+                >
+                  <option value="">text</option>
+                  {figures.map((stem) => (
+                    <option key={stem} value={stem}>
+                      {stem}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button
                 type="button"
                 aria-label={`Remove option ${letter}`}

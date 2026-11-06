@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
+import { OPTIONS, TRACE_PATH } from "../../figures/answer/answers.fixture";
 import { AnswerEditor, type AnswerFields, switchedKind } from "./AnswerEditor";
 
 function Harness({
@@ -143,5 +144,64 @@ describe("AnswerEditor", () => {
     render(<Harness start={CHOICE} seen={[]} />);
     expect(screen.queryByLabelText(/Misconception of option/)).toBeNull();
     expect(screen.queryByText("Options are shuffled per learner.")).toBeNull();
+  });
+});
+
+describe("figure answers and figure options (M6.6b spec, M6FA.7)", () => {
+  const FIGURES = {
+    tasked: [TRACE_PATH],
+    plain: OPTIONS.map((o) => o.stem),
+    chosen: null,
+    onChoose: () => {},
+  };
+
+  it("offers Figure as a fifth kind, clearing the other kinds' fields", () => {
+    render(<Harness start={CHOICE} seen={[]} />);
+    expect(screen.getByRole("radio", { name: "Figure" })).toBeInTheDocument();
+    expect(switchedKind(CHOICE, "figure", false)).toEqual({
+      kind: "figure",
+      options: null,
+      answer: null,
+      unit: "",
+      tolerance: null,
+      accept: [],
+      exact: false,
+      steps: null,
+    });
+  });
+
+  it("answers by a figure with a task, its computed answer named", () => {
+    const chosen: string[] = [];
+    render(
+      <AnswerEditor
+        value={{ kind: "figure" }}
+        onChange={() => {}}
+        figures={{ ...FIGURES, chosen: "trace-path", onChoose: (s) => chosen.push(s) }}
+      />,
+    );
+    const select = screen.getByRole("combobox", { name: "Answered by" });
+    expect([...select.querySelectorAll("option")].map((o) => o.value)).toEqual(["", "trace-path"]);
+    expect(screen.getByTestId("figure-answer-computed")).toHaveTextContent(
+      "right: ACG → CGT → GTT → TTA → TAG",
+    );
+    fireEvent.change(select, { target: { value: "" } });
+    expect(chosen).toEqual([""]);
+  });
+
+  it("makes an option a figure, saved as its stem", () => {
+    const seen: AnswerFields[] = [];
+    render(<AnswerEditor value={CHOICE} onChange={(next) => seen.push(next)} figures={FIGURES} />);
+    const select = screen.getByRole("combobox", { name: "Option A is" });
+    expect([...select.querySelectorAll("option")].map((o) => o.value)).toEqual([
+      "",
+      ...OPTIONS.map((o) => o.stem),
+    ]);
+    fireEvent.change(select, { target: { value: "options-tip" } });
+    expect(seen.at(-1)?.options?.[0]).toEqual({
+      text: "",
+      right: true,
+      misconception: "",
+      figure: "options-tip",
+    });
   });
 });

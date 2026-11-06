@@ -12,7 +12,7 @@ import type { Component } from "../../figures/schemas";
 import type { Finding } from "../../figures/validate";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
-import { addFigureFile, type Edit, setFigure, updateBlock } from "../workbench/edits";
+import { addFigureFile, addFigureFor, type Edit, setFigure, updateBlock } from "../workbench/edits";
 import { refusalOf } from "../workbench/refusal";
 import { useDraftEdit } from "../workbench/useDraftEdit";
 import { ChecksList } from "./ChecksList";
@@ -172,11 +172,14 @@ function Composer({
   stem,
   block,
   at,
+  question,
 }: {
   draft: DraftOut;
   stem: string | null;
   block: number | null;
   at: number;
+  /** A new figure made for this question, which it answers: no caption, no block (M6FA.7). */
+  question: string | null;
 }) {
   const node = draft.node;
   const navigate = useNavigate();
@@ -186,7 +189,7 @@ function Composer({
   const placed = block === null ? undefined : node?.blocks[block];
   const initialCaption =
     placed?.kind === "figure" && placed.file === stem ? placed.caption.replace(/\n$/, "") : null;
-  const [caption, setCaption] = useState(stem === null ? "" : initialCaption);
+  const [caption, setCaption] = useState(stem === null && question === null ? "" : initialCaption);
   const copy = useWorkingCopy(stem ?? "new", record?.text ?? null);
   const [choosing, setChoosing] = useState(stem === null);
   const [chosen, setChosen] = useState<Component | null>(null);
@@ -227,7 +230,11 @@ function Composer({
     if (!ready || edit.isPending) return;
     edit.reset();
     if (stem === null) {
-      edit.mutate(addFigureFile(at, copy.text, ended(caption ?? "")), { onSuccess: back });
+      const add =
+        question === null
+          ? addFigureFile(at, copy.text, ended(caption ?? ""))
+          : addFigureFor(question, copy.text);
+      edit.mutate(add, { onSuccess: back });
       return;
     }
     // One after another, each sent only once the one before it is saved: a refused file keeps
@@ -297,7 +304,10 @@ function Composer({
               type="button"
               className={PRIMARY}
               disabled={chosen === null}
-              onClick={() => setChoosing(false)}
+              onClick={() => {
+                setChoosing(false);
+                if (question !== null) setStep("interaction");
+              }}
             >
               Next
             </button>
@@ -317,6 +327,7 @@ function Composer({
       {choosing ? (
         <div className="grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_320px]">
           <Choose
+            {...(question === null ? {} : { only: Object.keys(TASKS) as Component[] })}
             chosen={chosen}
             onChoose={(picked) => {
               setChosen(picked);
@@ -422,6 +433,7 @@ export function ComposerPage() {
       stem={stem === "new" ? null : stem}
       block={block === null ? null : Number(block)}
       at={Number(params.get("at") ?? draft.data.node?.blocks.length ?? 0)}
+      question={params.get("for")}
     />
   );
 }

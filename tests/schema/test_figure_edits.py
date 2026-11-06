@@ -162,3 +162,45 @@ def test_a_figure_that_is_a_stems_only_block_is_not_removed() -> None:
     tpm = reread(replace(added(), exam=(alone, *TPM.exam[1:])))
     with pytest.raises(EditError, match=f"the exam question {alone.id}"):
         remove_figure(tpm, "flow")
+
+
+# ── a figure made for a question (M6.6b spec, M6FA.7) ───────────────────────────────────────────
+
+TRACE = (
+    "component: kmer-graph\n"
+    "alt: A de Bruijn graph of six 3-mers; one path spells ACGTTAG.\n"
+    "data:\n"
+    "  reads:\n"
+    "    - {sequence: ACGTT}\n"
+    "    - {sequence: CGTTA}\n"
+    "    - {sequence: GTTAG}\n"
+    "    - {sequence: CGTC}\n"
+    "  k: 3\n"
+    "  highlight: none\n"
+    "interact: {task: trace, spells: ACGTTAG}\n"
+)
+
+
+def test_a_figure_made_for_a_try_question_answers_it() -> None:
+    from code_schema.questions import FigureAnswer
+
+    node = reread(add_figure(DBG, None, caption="", text=TRACE, question="spell-the-path"))
+    asked = next(q for q in node.questions if q.id == "spell-the-path")
+    assert (asked.kind, asked.figure) == ("figure", "kmer-graph")
+    assert isinstance(asked.answer, FigureAnswer) and asked.answer.accept
+    assert not any(isinstance(b, Figure) and b.file == "kmer-graph" for b in node.blocks)
+
+
+def test_a_figure_made_for_an_exam_question_is_its_stems_figure() -> None:
+    from code_schema.questions import FigureAnswer
+
+    asked = TPM.exam[0]
+    node = reread(add_figure(TPM, None, caption="", text=TRACE, question=asked.id))
+    again = next(q for q in node.exam if q.id == asked.id)
+    assert isinstance(again.answer, FigureAnswer) and again.answer.figure == "kmer-graph"
+    assert [b.file for b in again.blocks if isinstance(b, Figure)] == ["kmer-graph"]
+
+
+def test_a_figure_for_no_such_question_is_refused() -> None:
+    with pytest.raises(EditError):
+        add_figure(DBG, None, caption="", text=TRACE, question="no-such-question")

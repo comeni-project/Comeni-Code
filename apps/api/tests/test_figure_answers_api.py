@@ -176,3 +176,19 @@ def test_a_draft_saves_figure_options(client: Client, ada: User, tmp_path: Path)
         ("", "kmer-path", True),
         ("Neither drawing", None, False),
     ]
+
+
+def test_a_figure_is_made_for_a_question(client: Client, ada: User) -> None:
+    """M6FA.7: the composer's New figure for a question adds the file and answers it, no block."""
+    rebuild_index(FIXTURES)
+    draft = drafts.open_existing("de-bruijn-graphs", by=ada)
+    added = client.post(
+        f"/api/studio/drafts/{draft.public_id}/figures",
+        {"revision": 1, "text": TRACE, "question": "spell-the-path"},
+        content_type="application/json",
+    )
+    assert added.status_code == 200, added.content
+    node = added.json()["draft"]["node"]
+    asked = next(q for q in node["questions"] if q["id"] == "spell-the-path")
+    assert (asked["kind"], asked["figure"]) == ("figure", "kmer-graph")
+    assert not any(b.get("file") == "kmer-graph" for b in node["blocks"])

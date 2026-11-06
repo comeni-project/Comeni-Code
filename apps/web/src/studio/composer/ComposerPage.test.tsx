@@ -297,3 +297,27 @@ describe("the Interaction step (M6.6b spec, M6FA.6)", () => {
     expect(screen.queryByRole("button", { name: /Interaction/ })).toBeNull();
   });
 });
+
+describe("a figure made for a question (M6.6b spec, M6FA.7)", () => {
+  it("offers only kits with tasks, opens Interaction, and saves the figure for the question", async () => {
+    const fake = composer("/studio/drafts/d-1/figures/new?for=trace-the-path", {
+      "POST /api/studio/drafts/d-1/figures": saved(),
+    });
+    const tiles = await screen.findAllByRole("button", { name: /:/ });
+    expect(tiles.map((t) => t.getAttribute("aria-label")?.split(":")[0])).toEqual([
+      "kmer-graph",
+      "graph-artifacts",
+    ]);
+    await userEvent.click(screen.getByRole("button", { name: /^kmer-graph/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await userEvent.click(screen.getByRole("radio", { name: /Trace a path/ }));
+    await userEvent.type(screen.getByLabelText("Alt text"), "A graph.");
+    await userEvent.click(screen.getByRole("button", { name: "Save to the page" }));
+    await waitFor(() => expect(writes(fake)).toHaveLength(1));
+    const [[call, body]] = writes(fake) as [[string, Record<string, unknown>]];
+    expect(call).toBe("POST /api/studio/drafts/d-1/figures");
+    expect(body.question).toBe("trace-the-path");
+    expect(body.at).toBeUndefined();
+    expect(String(body.text)).toContain("interact:\n  task: trace\n");
+  });
+});

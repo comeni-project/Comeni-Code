@@ -111,13 +111,15 @@ export interface ApiSchemas {
 }
 /**
  * A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
- * `alt` for its starter; never both. Its block's caption either way.
+ * `alt` for its starter; never both. Its block's caption either way. Placed at `at` in the
+ * body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).
  */
 export interface AddFigureIn {
   alt?: string | null;
-  at: number;
-  caption: string;
+  at?: number | null;
+  caption?: string;
   component?: string | null;
+  question?: string | null;
   revision: number;
   text?: string | null;
 }

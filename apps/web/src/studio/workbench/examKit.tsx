@@ -13,7 +13,9 @@ export function renderPool(
 ) {
   const fake = answering({
     "GET /api/me": signedInAs("author"),
-    "GET /api/studio/drafts/d-1": { body: { ...DRAFT, ...draft, node: { ...NODE, exam } } },
+    "GET /api/studio/drafts/d-1": {
+      body: { ...DRAFT, ...draft, node: { ...NODE, ...draft.node, exam } },
+    },
     // A save waits for Checks to be asked again (useDraftEdit), so the pool's tests answer it.
     "GET /api/studio/drafts/d-1/checklist": {
       body: { passed: true, items: [], problems: [], questions: [] },

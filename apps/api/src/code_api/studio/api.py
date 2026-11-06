@@ -820,11 +820,13 @@ def delete_image(request: HttpRequest, public_id: UUID, file: str, revision: int
 
 class AddFigureIn(Schema):
     """A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
-    `alt` for its starter; never both. Its block's caption either way."""
+    `alt` for its starter; never both. Its block's caption either way. Placed at `at` in the
+    body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7)."""
 
     revision: int
-    at: int
-    caption: str
+    at: int | None = None
+    question: str | None = None
+    caption: str = ""
     component: str | None = None
     alt: str | None = None
     text: str | None = None
@@ -843,7 +845,13 @@ def add_a_figure(request: HttpRequest, public_id: UUID, body: AddFigureIn) -> Sa
         public_id,
         body.revision,
         lambda node: add_figure(
-            node, body.at, body.component, alt=body.alt, text=body.text, caption=body.caption
+            node,
+            body.at,
+            body.component,
+            alt=body.alt,
+            text=body.text,
+            caption=body.caption,
+            question=body.question,
         ),
         f"added a {body.component} figure" if body.component else "added a figure",
     )

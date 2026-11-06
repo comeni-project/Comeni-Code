@@ -33,7 +33,7 @@ from code_schema.links import Link
 from code_schema.math import FORMULA_CODES
 from code_schema.node import Node
 from code_schema.problems import Problem
-from code_schema.questions import TryQuestion
+from code_schema.questions import FigureAnswer, TryQuestion
 from code_schema.resources import Resource
 
 
@@ -136,15 +136,19 @@ def _figure_file(stem: str) -> str:
 
 def add_figure(
     node: Node,
-    at: int,
+    at: int | None,
     component: str | None = None,
     *,
     caption: str,
     alt: str | None = None,
     text: str | None = None,
+    question: str | None = None,
 ) -> Node:
     """A new figure and its block at `at`: the file's whole text (the composer, M6CO.2), or a
-    component's starter data with its alt text. Its stem is free, after its component."""
+    component's starter data with its alt text. Its stem is free, after its component.
+
+    Made for a `question` instead (M6.6b spec, M6FA.7), it is placed by no block: it answers that
+    question, as a try's figure or as the one figure in an exam question's stem."""
     by_text = text is not None and component is None and alt is None
     if not by_text and (text is not None or component is None or alt is None):
         raise EditError("give the file's text, or a component and alt text")
@@ -167,7 +171,35 @@ def add_figure(
     block = Figure(stem, caption if caption.endswith("\n") else f"{caption}\n")
     # In file-name order, as figures/ is read, so the edit reads back as itself.
     figures = tuple(sorted((*node.figures, figure), key=lambda each: each.name))
+    if question is not None:
+        return _answered_by(replace(node, figures=figures), question, stem, caption)
+    if at is None:
+        raise EditError("a new figure goes at a place in the body, or with a question")
     return insert_block(replace(node, figures=figures), at, block)
+
+
+ASKED_CAPTION = "The figure the question is answered by."
+
+
+def _answered_by(node: Node, question_id: str, stem: str, caption: str) -> Node:
+    """`question_id` answered by the figure `stem` (M6FA.3): a try names it as its figure; an exam
+    question's stem places it as its one figure, after whatever else the stem says."""
+    answer = FigureAnswer(figure=stem)
+    for question in node.questions:
+        if question.id == question_id:
+            changed = replace(question, figure=stem, answer=answer)
+            return replace(
+                node,
+                questions=tuple(changed if q is question else q for q in node.questions),
+            )
+    for asked in node.exam:
+        if asked.id == question_id:
+            kept = [b for b in asked.blocks if not isinstance(b, Figure)]
+            said = (caption or ASKED_CAPTION).rstrip("\n") + "\n"
+            stem_text = write_faithfully([*kept, Figure(stem, said)], file="exam.yaml")
+            changed_exam = replace(asked, stem=stem_text, answer=answer)
+            return replace(node, exam=tuple(changed_exam if q is asked else q for q in node.exam))
+    raise EditError(f"this node has no question {question_id}")
 
 
 def set_figure(node: Node, stem: str, text: str) -> Node:

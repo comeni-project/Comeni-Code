@@ -2,7 +2,8 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { DraftNodeOut } from "../../api/schema";
+import type { DraftNodeOut, FigureOut, StudioFigureOut } from "../../api/schema";
+import { OPTIONS, TRACE_PATH } from "../../figures/answer/answers.fixture";
 import { type Answer, answering, renderAt, signedInAs } from "../../test-kit";
 import { DRAFT, NODE } from "./fixtures";
 import { WorkbenchPage } from "./WorkbenchPage";
@@ -175,5 +176,45 @@ describe("TryEditor", () => {
     await userEvent.type(screen.getByLabelText("Step 3"), " the path");
     await userEvent.click(screen.getByRole("button", { name: "Done" }));
     expect((await sent(fake)).question.steps).toEqual(["Cut", "Build", "Walk the path"]);
+  });
+});
+
+describe("a try answered by a figure (M6.6b spec, M6FA.7)", () => {
+  const studio = (f: FigureOut): StudioFigureOut => ({ ...f, text: `component: ${f.component}\n` });
+  const WITH_FIGURES: DraftNodeOut = {
+    ...WITH_TRY,
+    figures: [studio(TRACE_PATH), studio(OPTIONS[0] as FigureOut)],
+  };
+  const benchWith = () => {
+    const fake = answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts/d-1": { body: { ...DRAFT, node: WITH_FIGURES } },
+      "PUT /api/studio/drafts/d-1/blocks/1": saved,
+    });
+    renderAt("/studio/drafts/d-1", <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />);
+    return fake;
+  };
+
+  it("shows only figures without a task above a question of another kind", async () => {
+    benchWith();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    const shown = screen.getByRole("combobox", { name: "Figure" });
+    expect([...shown.querySelectorAll("option")].map((o) => o.value)).toEqual(["", "options-tip"]);
+  });
+
+  it("answers by a figure with a task, sent as kind figure and its figure", async () => {
+    const fake = benchWith();
+    await userEvent.click(await screen.findByRole("button", { name: "Edit block 2" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Figure" }));
+    expect(screen.queryByRole("combobox", { name: "Figure" })).toBeNull();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Answered by" }),
+      "trace-path",
+    );
+    await userEvent.click(screen.getByRole("heading", { level: 1 }));
+    const body = await sent(fake);
+    expect(body.question.figure).toBe("trace-path");
+    expect(body.question.kind).toBe("figure");
+    expect(body.question.options).toBeNull();
   });
 });

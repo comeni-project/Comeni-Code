@@ -112,7 +112,7 @@ describe("the workbench's figures open the composer (M6CO.1)", () => {
     const node = asking(null);
     const fake = bench({ "PUT /api/studio/drafts/d-1/blocks/2": saved(4, node) }, node);
     await userEvent.click(await screen.findByRole("button", { name: "Edit block 3" }));
-    const picker = screen.getByLabelText("Figure");
+    const picker = screen.getByRole("combobox", { name: "Figure" });
     expect(picker).toHaveValue("");
     expect(screen.queryByRole("button", { name: "Edit in the composer" })).toBeNull();
     await userEvent.selectOptions(picker, "flow");
