@@ -38,7 +38,7 @@ from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.providers import Provider
-from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
+from code_schema.questions import TRY_FIELD, ChoiceAnswer, TryQuestion, parse_questions
 from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -455,6 +455,15 @@ def parse_node_files(
         stems = [block for question in exam for block in question.blocks]
         shown = {block.file for block in (*node.blocks, *stems) if isinstance(block, Figure)}
         shown |= {q.figure for q in node.questions if q.figure is not None}
+        # And by an option that is a figure, in either pool (M6.6b spec, M6FA.3).
+        answers = [q.answer for q in node.questions] + [q.answer for q in exam]
+        shown |= {
+            option.figure
+            for answer in answers
+            if isinstance(answer, ChoiceAnswer)
+            for option in answer.options
+            if option.figure is not None
+        }
         # A file refused for its name is not also unplaced: CS1022 says enough.
         names = {n.removesuffix(".yaml") for n in texts if STEM.match(n.removesuffix(".yaml"))}
         names &= {n.removesuffix(".yaml") for n in texts if n.endswith(".yaml")}

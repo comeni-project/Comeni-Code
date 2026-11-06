@@ -35,6 +35,7 @@ from code_schema import (
     Example,
     ExamQuestion,
     Figure,
+    FigureAnswer,
     FigureFile,
     Image,
     Math,
@@ -275,6 +276,8 @@ def _answer_out(answer: Answer) -> dict[str, object]:
             return empty | {"answer": text, "accept": list(accept), "exact": exact}
         case OrderAnswer(steps=steps):
             return empty | {"steps": list(steps)}
+        case FigureAnswer():
+            return empty  # its figure computes it (M6FA.3); the API sends it in Task 4
 
 
 def _block_out(block: Block) -> AnyBlockOut:

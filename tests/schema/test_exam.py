@@ -171,7 +171,7 @@ def test_an_unknown_option_key_is_refused(tmp_path: Path) -> None:
     )
     assert lines(tmp_path, pool) == [
         "tpm/exam.yaml:13: exam: CS0808 unknown key `why` in an exam option "
-        "(text, right, misconception, plain)"
+        "(text, figure, right, misconception, plain)"
     ]
 
 

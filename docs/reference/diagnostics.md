@@ -452,6 +452,8 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
+**Retired** 2026-11-06 — figure questions arrived (M6.6b spec, M6FA.3); kind: figure is a kind
+
 **Fix.** Use kind: choice or kind: number until the phase the message names.
 
 **Why.** Figure questions are designed (tutor spec T7.1) and arrive with figures in M6; until then they are refused by name rather than silently ignored.
@@ -703,6 +705,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Keep only the fields of the question's kind, or change its kind.
 
 **Why.** Each kind is answered its own way, so a field of another kind is a question half rewritten (M4Q.3).
+
+#### CS0338 — a figure question names no figure with a task
+
+*Refuses.*
+
+**Fix.** Name the figure it is answered by (`figure: <stem>`), and give that figure's file a task in the composer's Interaction step.
+
+**Why.** A figure question is answered by working its figure, and the figure's component computes the right answer from its task (M6.6b spec, M6FA.1); without one there is nothing to answer.
+
+#### CS0339 — an option has both text and a figure
+
+*Refuses.*
+
+**Fix.** Keep one: an option is its text or a figure (`figure: <stem>`).
+
+**Why.** An option is drawn as what it holds; one that holds both would be read two ways (M6FA.3).
 
 ### CS0400–CS0499 · body
 
@@ -1307,6 +1325,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Remove the spaces at the end of the line, and write spaces for a tab; for a line break, end the line with a backslash.
 
 **Why.** exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
+
+#### CS0824 — a figure question has no single figure with a task in its stem
+
+*Refuses.*
+
+**Fix.** Place exactly one figure in the stem (`:::{figure} <stem>`), and give its file a task in the composer's Interaction step.
+
+**Why.** An exam figure question is answered by the one figure its stem places (M6.6b spec, M6FA.3); with none, two, or one with no task, there is no one answer to compute.
+
+#### CS0825 — an exam option has both text and a figure
+
+*Refuses.*
+
+**Fix.** Keep one: an option is its text or a figure (`figure: <stem>`).
+
+**Why.** An option is drawn as what it holds; one that holds both would be read two ways (M6FA.3).
 
 ### CS0900–CS0999 · images
 

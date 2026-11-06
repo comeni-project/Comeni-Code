@@ -12,13 +12,14 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
-from code_schema.blocks import Block, Callout, Example, Try, parse_blocks
+from code_schema.blocks import Block, Callout, Example, Figure, Try, parse_blocks
 from code_schema.fields import one_line, one_of, shown
 from code_schema.levels import Level
 from code_schema.problems import Problem
 from code_schema.questions import (
     Answer,
     ChoiceAnswer,
+    FigureAnswer,
     OptionRules,
     read_answer,
     read_head,
@@ -54,7 +55,10 @@ _KEYS = (
 )
 # CS0327 keeps its words for 2 to 5; CS0818 asks an exam's choice for three.
 _OPTIONS = OptionRules(
-    keys=("text", "right", "misconception", "plain"), code="CS0808", noun="an exam option"
+    keys=("text", "figure", "right", "misconception", "plain"),
+    code="CS0808",
+    noun="an exam option",
+    both="CS0825",
 )
 EXAM_OPTIONS = 3
 _level = one_of(tuple(Level), noun="level")
@@ -199,6 +203,8 @@ def parse_exam(
             _level_distance(entry, name, written.get("level"), node.level)
         answer = read_answer(entry, name, kind, field, rules=_OPTIONS)
         rationale = read_rationale(entry, name)
+        if isinstance(answer, FigureAnswer) and stem is not None:
+            answer = _stem_figure(entry, name, stem, file=file)
 
         if isinstance(answer, ChoiceAnswer):
             _check_options(entry, name, answer, written, misconceptions)
@@ -233,6 +239,20 @@ def parse_exam(
             f"— the node is left out of self-tests until it has {MIN_EXAM}",
         )
     return tuple(questions), problems
+
+
+def _stem_figure(entry: Entry, name: str, stem: str, *, file: str) -> FigureAnswer | None:
+    """An exam question answered by its figure is answered by the one figure its stem places."""
+    placed = [block.file for block in parse_blocks(stem, file=file)[0] if isinstance(block, Figure)]
+    if len(placed) != 1:
+        entry.problem(
+            "CS0824",
+            f"the figure question {name} places {len(placed)} figures in its stem "
+            "— it is answered by one",
+            key="stem",
+        )
+        return None
+    return FigureAnswer(figure=placed[0])
 
 
 def _check_options(
