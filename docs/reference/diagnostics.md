@@ -1616,6 +1616,38 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A figure is data written by a person or a model, read on every page that shows it (M6FG.1).
 
+#### CS1028 — a figure's task is not one its component has, or its fields do not fit
+
+*Refuses.*
+
+**Fix.** Name a task the component offers (kmer-graph: trace; graph-artifacts: pick) and give it the fields it takes: a trace its spells, a pick its artifact, tip or bubble. Most components have no task: remove interact from their files.
+
+**Why.** A figure that asks a question names what the learner does with it (M6.6b spec, M6FA.1); the component computes the right answer from the task and the data, so a task it does not know has no answer to compute.
+
+#### CS1030 — what a trace spells is not one walk of the graph
+
+*Refuses.*
+
+**Fix.** Spell a sequence whose k-mers are each in the graph, once, each step one a read takes, and at least k + 1 letters long; or add the read the message names.
+
+**Why.** A trace's right answer is the walk of k-mers that spells it (M6FA.2), so it must be one the figure draws: every edge drawn is a step a read takes (#408), and a learner picks each k-mer once.
+
+#### CS1031 — a trace on a figure that highlights its path
+
+*Refuses.*
+
+**Fix.** Set highlight to none or branches: a figure asked as a trace must not draw its answer.
+
+**Why.** Asked, a figure gives nothing away (M6FA.4); a highlighted path is the answer to a trace.
+
+#### CS1032 — a pick of a kind of run the figure does not have
+
+*Refuses.*
+
+**Fix.** Add a read that makes a tip or a bubble of that kind, or pick the other kind.
+
+**Why.** A pick's right answers are the k-mers of every run of its kind (M6FA.2); with none, the question has no right answer.
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes

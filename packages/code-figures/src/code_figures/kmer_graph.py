@@ -8,8 +8,11 @@ from collections.abc import Mapping
 
 from code_figures.findings import WRONG, Finding
 from code_figures.kmers import graph, kmers_of, missing_step, reads_findings, sequences, spells
+from code_figures.tasks import Answer, Task, task
 
 NOT_A_WALK = "CS1014"  # the highlighted reads do not make one path
+NOT_A_TRACE = "CS1030"  # what a trace spells is not one walk of this graph
+SHOWS_ANSWER = "CS1031"  # a trace on a figure that highlights its path
 
 STARTER: Mapping[str, object] = {
     "reads": [
@@ -93,3 +96,89 @@ def derive(data: Mapping[str, object]) -> dict[str, object]:
         computed["path"] = path
         computed["spells"] = spells(path)
     return computed
+
+
+def _trace_kmers(data: Mapping[str, object], fields: Mapping[str, object]) -> list[str]:
+    k = data["k"]
+    assert isinstance(k, int)
+    return kmers_of(str(fields["spells"]), k)
+
+
+def _check_trace(
+    data: Mapping[str, object], computed: Mapping[str, object], fields: Mapping[str, object]
+) -> list[Finding]:
+    """A trace spells one walk of the graph, each k-mer once (M6FA.2): else CS1030 says where."""
+    if data["highlight"] == "path":
+        return [
+            Finding(
+                SHOWS_ANSWER,
+                "interact.task",
+                "a trace on a highlighted path draws its answer: highlight none or branches",
+            )
+        ]
+    k = data["k"]
+    assert isinstance(k, int)
+    spelled = str(fields["spells"])
+    if len(spelled) < k + 1:
+        return [
+            Finding(
+                NOT_A_TRACE,
+                "interact.spells",
+                f"{spelled} is shorter than k + 1 = {k + 1}: a path takes at least one step",
+            )
+        ]
+    path = _trace_kmers(data, fields)
+    twice = next((kmer for at, kmer in enumerate(path) if kmer in path[:at]), None)
+    if twice is not None:
+        return [
+            Finding(
+                NOT_A_TRACE,
+                "interact.spells",
+                f"{spelled} holds {twice} twice: a trace picks each k-mer once",
+            )
+        ]
+    kmers = computed["kmers"]
+    assert isinstance(kmers, list)
+    absent = next((kmer for kmer in path if kmer not in kmers), None)
+    if absent is not None:
+        return [
+            Finding(
+                NOT_A_TRACE, "interact.spells", f"{spelled} needs {absent}, which no read holds"
+            )
+        ]
+    edges = computed["edges"]
+    assert isinstance(edges, list)
+    step = missing_step(path, [(a, b) for a, b in edges])
+    if step is not None:
+        return [
+            Finding(
+                NOT_A_TRACE,
+                "interact.spells",
+                f"{spelled} steps from {step[0]} to {step[1]}, which no read does",
+            )
+        ]
+    return []
+
+
+def _answer_trace(
+    data: Mapping[str, object], computed: Mapping[str, object], fields: Mapping[str, object]
+) -> Answer:
+    """The one right walk; the wrong one drawn turns off it at its first branch (M6FA.2)."""
+    path = _trace_kmers(data, fields)
+    edges = computed["edges"]
+    assert isinstance(edges, list)
+    for at, kmer in enumerate(path):
+        off = next(
+            (
+                b
+                for a, b in edges
+                if a == kmer and (at + 1 == len(path) or b != path[at + 1]) and b not in path
+            ),
+            None,
+        )
+        if off is not None:
+            return [path], [*path[: at + 1], off]
+    return [path], path[:-1]
+
+
+TASKS: Mapping[str, Task] = {"trace": task("kmer-graph", "trace", _check_trace, _answer_trace)}

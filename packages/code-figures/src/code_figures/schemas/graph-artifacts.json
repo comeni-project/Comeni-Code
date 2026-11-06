@@ -1,5 +1,5 @@
 {
-  "$comment": "Tips and bubbles found from the reads (M6.6a spec, M6DC.1): a run of k-mers held by one read rejoining the path is a bubble, else a tip. Computed.",
+  "$comment": "Tips and bubbles found from the reads (M6.6a spec, M6DC.1): a run of k-mers held by one read rejoining the path is a bubble, else a tip. Computed. `marks: hidden` draws every k-mer plain, for an option or a stem that must not give the answer away (M6FA.5).",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -27,6 +27,12 @@
       "type": "integer",
       "minimum": 2,
       "maximum": 8
+    },
+    "marks": {
+      "enum": [
+        "shown",
+        "hidden"
+      ]
     }
   },
   "required": [

@@ -9,8 +9,10 @@ from collections.abc import Mapping
 
 from code_figures.findings import Finding
 from code_figures.kmers import graph, reads_findings, sequences, support
+from code_figures.tasks import Answer, Task, task
 
 NO_SUPPORT = "CS1015"  # no k-mer is in two reads
+NO_ARTIFACT = "CS1032"  # a pick of a kind of run the figure does not have
 
 STARTER: Mapping[str, object] = {
     "reads": [
@@ -75,3 +77,38 @@ def derive(data: Mapping[str, object]) -> dict[str, object]:
         "support": held,
         "artifacts": artifacts,
     }
+
+
+def _runs(computed: Mapping[str, object], kind: object) -> list[str]:
+    artifacts = computed["artifacts"]
+    assert isinstance(artifacts, list)
+    return [kmer for a in artifacts if a["kind"] == kind for kmer in a["kmers"]]
+
+
+def _check_pick(
+    data: Mapping[str, object], computed: Mapping[str, object], fields: Mapping[str, object]
+) -> list[Finding]:
+    kind = fields["artifact"]
+    if not _runs(computed, kind):
+        return [
+            Finding(
+                NO_ARTIFACT,
+                "interact.artifact",
+                f"the reads make no {kind}: add a read that does, or pick the other kind",
+            )
+        ]
+    return []
+
+
+def _answer_pick(
+    data: Mapping[str, object], computed: Mapping[str, object], fields: Mapping[str, object]
+) -> Answer:
+    """Any k-mer of a run of the kind is right; the wrong one drawn is the first solid k-mer."""
+    held = computed["support"]
+    kmers = computed["kmers"]
+    assert isinstance(held, Mapping) and isinstance(kmers, list)
+    solid = next(kmer for kmer in kmers if held[kmer] >= 2)  # one exists: CS1015
+    return [[kmer] for kmer in _runs(computed, fields["artifact"])], [solid]
+
+
+TASKS: Mapping[str, Task] = {"pick": task("graph-artifacts", "pick", _check_pick, _answer_pick)}

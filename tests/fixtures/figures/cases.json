@@ -1,5 +1,5 @@
 {
- "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found. A `files` case with `pad` has that many # characters appended, as one comment line, before it is read. `starters` are each component's starter data, as code-figures holds it. `derived` are data with the values a component computes from them, compared whole, order included.",
+ "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found. A `files` case with `pad` has that many # characters appended, as one comment line, before it is read. `starters` are each component's starter data, as code-figures holds it. `derived` are data with the values a component computes from them, compared whole, order included. `interact` are data with a task (M6.6b spec, M6FA.2): the codes its checks find, and, with none, the `answer` computed: `accept` and `wrong`.",
  "cases": [
   {
    "name": "a bar chart",
@@ -10219,6 +10219,401 @@
      "GTT": 2
     },
     "artifacts": []
+   }
+  }
+ ],
+ "interact": [
+  {
+   "name": "a trace of the reads' path",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACGTTAG"
+   },
+   "codes": [],
+   "answer": {
+    "accept": [
+     [
+      "ACG",
+      "CGT",
+      "GTT",
+      "TTA",
+      "TAG"
+     ]
+    ],
+    "wrong": [
+     "ACG",
+     "CGT",
+     "GTC"
+    ]
+   }
+  },
+  {
+   "name": "a trace with no branch",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACGTT"
+   },
+   "codes": [],
+   "answer": {
+    "accept": [
+     [
+      "ACG",
+      "CGT",
+      "GTT"
+     ]
+    ],
+    "wrong": [
+     "ACG",
+     "CGT"
+    ]
+   }
+  },
+  {
+   "name": "a trace off the graph",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACGTCAG"
+   },
+   "codes": [
+    "CS1030"
+   ]
+  },
+  {
+   "name": "a trace too short to step",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACG"
+   },
+   "codes": [
+    "CS1030"
+   ]
+  },
+  {
+   "name": "a trace through a repeat",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGACGT"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACGACGT"
+   },
+   "codes": [
+    "CS1030"
+   ]
+  },
+  {
+   "name": "a trace on a highlighted path",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     3
+    ]
+   },
+   "interact": {
+    "task": "trace",
+    "spells": "ACGTTAG"
+   },
+   "codes": [
+    "CS1031"
+   ]
+  },
+  {
+   "name": "a trace with no sequence",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "trace"
+   },
+   "codes": [
+    "CS1028"
+   ]
+  },
+  {
+   "name": "a task the kit does not have",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "interact": {
+    "task": "walk"
+   },
+   "codes": [
+    "CS1028"
+   ]
+  },
+  {
+   "name": "a pick of the bubble",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     },
+     {
+      "sequence": "ACGTTAGG"
+     }
+    ],
+    "k": 3
+   },
+   "interact": {
+    "task": "pick",
+    "artifact": "bubble"
+   },
+   "codes": [],
+   "answer": {
+    "accept": [
+     [
+      "GTC"
+     ],
+     [
+      "TCA"
+     ],
+     [
+      "CAG"
+     ]
+    ],
+    "wrong": [
+     "ACG"
+    ]
+   }
+  },
+  {
+   "name": "a pick of the tip",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     },
+     {
+      "sequence": "ACGTTAGG"
+     }
+    ],
+    "k": 3
+   },
+   "interact": {
+    "task": "pick",
+    "artifact": "tip"
+   },
+   "codes": [],
+   "answer": {
+    "accept": [
+     [
+      "AGG"
+     ]
+    ],
+    "wrong": [
+     "ACG"
+    ]
+   }
+  },
+  {
+   "name": "a pick of a tip there is not",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     }
+    ],
+    "k": 3
+   },
+   "interact": {
+    "task": "pick",
+    "artifact": "tip"
+   },
+   "codes": [
+    "CS1032"
+   ]
+  },
+  {
+   "name": "a pick with marks hidden",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     },
+     {
+      "sequence": "ACGTTAGG"
+     }
+    ],
+    "k": 3,
+    "marks": "hidden"
+   },
+   "interact": {
+    "task": "pick",
+    "artifact": "bubble"
+   },
+   "codes": [],
+   "answer": {
+    "accept": [
+     [
+      "GTC"
+     ],
+     [
+      "TCA"
+     ],
+     [
+      "CAG"
+     ]
+    ],
+    "wrong": [
+     "ACG"
+    ]
    }
   }
  ]

@@ -1,0 +1,10 @@
+{
+  "$comment": "Pick a k-mer (M6.6b spec, M6FA.2): any k-mer of a run of that kind is right.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "task": { "const": "pick" },
+    "artifact": { "enum": ["tip", "bubble"] }
+  },
+  "required": ["task", "artifact"]
+}

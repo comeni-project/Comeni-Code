@@ -35,7 +35,8 @@ def test_each_starter_is_valid(name: str) -> None:
 
 
 def test_codes_lists_every_code_the_package_writes() -> None:
-    assert sorted(CODES) == [f"CS10{n:02}" for n in range(1, 17)]
+    tasks = ["CS1028", "CS1030", "CS1031", "CS1032"]  # M6FA.2; CS1029 is code-schema's
+    assert sorted(CODES) == [f"CS10{n:02}" for n in range(1, 17)] + tasks
 
 
 # ── table ─────────────────────────────────────────────────────────────────────────────────────
