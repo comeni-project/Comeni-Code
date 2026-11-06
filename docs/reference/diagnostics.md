@@ -1658,6 +1658,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A figure that asks a question names what the learner does with it (M6.6b spec, M6FA.1); the component computes the right answer from the task and the data, so a task it does not know has no answer to compute.
 
+#### CS1029 — a figure with a task is placed where nothing answers it
+
+*Refuses.*
+
+**Fix.** Use it only as a figure question's figure (a try's `figure:` with `kind: figure`, or the one figure in a figure question's stem), or remove its task in the composer. To show the same drawing elsewhere, make a second figure without the task.
+
+**Why.** A figure with a task asks the learner to work it (M6.6b spec, M6FA.1); on the page, above a question of another kind, or as an option, nothing would take the answer.
+
 #### CS1030 — what a trace spells is not one walk of the graph
 
 *Refuses.*

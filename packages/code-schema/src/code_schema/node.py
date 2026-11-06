@@ -24,6 +24,7 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+from code_schema.figure_answers import figure_answers
 from code_schema.figures import (
     FIGURE_FOLDER,
     STEM,
@@ -468,6 +469,12 @@ def parse_node_files(
         names = {n.removesuffix(".yaml") for n in texts if STEM.match(n.removesuffix(".yaml"))}
         names &= {n.removesuffix(".yaml") for n in texts if n.endswith(".yaml")}
         problems += figure_problems(names, shown, file=f"{where}{NODE_FILE}", where=where)
+        # A figure that asks a question answers one, and its right selections are computed.
+        questions, exam, asked = figure_answers(
+            node.blocks, node.questions, exam, read, where=where
+        )
+        problems += asked
+        node = replace(node, questions=questions)
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems

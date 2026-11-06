@@ -221,3 +221,52 @@ def test_the_writer_keeps_figure_answers_and_options(tmp_path: Path) -> None:
     )
     assert again is not None, found
     assert again.questions == node.questions and again.exam == node.exam
+
+
+# ── where a task figure may go, and its right selections (M6FA.1, M6FA.3) ───────────────────────
+
+
+def test_task_figure_on_the_page() -> None:
+    """Review Focus 5: placed as a try's figure and as a body block, CS1029 once, at the block."""
+    body = placing(TRY_FIGURE) + "\n:::{figure} trace-path\nThe reads' graph.\n:::\n"
+    _, found = read(TRY_FIGURE, body=body, trace_path=TRACE)
+    assert codes(found) == ["CS1029"]
+    assert found[0].file == "graphs/body.md"
+
+
+def test_task_figure_above_another_kind() -> None:
+    choice = choice_try(
+        "      - {text: The first, right: true}\n      - {text: The second}\n",
+        "    figure: trace-path\n",
+    )
+    _, found = read(choice, trace_path=TRACE)
+    assert codes(found) == ["CS1029"]
+
+
+def test_task_figure_as_an_option() -> None:
+    options = "      - {figure: trace-path, right: true}\n      - {figure: plain}\n"
+    _, found = read(choice_try(options), trace_path=TRACE, plain=PLAIN)
+    assert codes(found) == ["CS1029"]
+
+
+def test_task_figure_in_an_exam_stem_of_another_kind() -> None:
+    answer = "    answer: 3\n"
+    _, found = read(exam_yaml=exam(STEM_WITH, kind="number", answer=answer), trace_path=TRACE)
+    assert [c for c in codes(found) if c != "CS0813"] == ["CS1029"]
+
+
+def test_a_figure_try_whose_figure_has_no_task() -> None:
+    _, found = read(TRY_FIGURE, trace_path=PLAIN)
+    assert codes(found) == ["CS0338"]
+
+
+def test_an_exam_figure_question_whose_figure_has_no_task() -> None:
+    _, found = read(exam_yaml=exam(STEM_WITH), trace_path=PLAIN)
+    assert [c for c in codes(found) if c != "CS0813"] == ["CS0824"]
+
+
+def test_a_read_folder_fills_accept() -> None:
+    node, _ = read(TRY_FIGURE, exam_yaml=exam(STEM_WITH), trace_path=TRACE)
+    assert node is not None
+    for answer in (node.questions[0].answer, node.exam[0].answer):
+        assert isinstance(answer, FigureAnswer) and answer.accept == (tuple(PATH),)
