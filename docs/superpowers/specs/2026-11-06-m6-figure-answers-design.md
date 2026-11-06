@@ -99,8 +99,9 @@ k-mer of the kind, and the composer says so.
   `accept` into `score`, which changes three callers for no gain.
 - **Where the placement checks run**: CS0338, CS0824 and CS1029 need a question and a figure file
   together, so they run in the folder check in `node.py` beside the figure placement checks;
-  `interact` joins the figure file's keys in `figures.py` (CS1025 would refuse it). The web twins
-  them where it checks a draft's figures (`validate.ts`).
+  `interact` joins the figure file's keys in `figures.py` (CS1025 would refuse it). In the
+  workbench they arrive with the draft's verify, as every node-level problem does; the browser twins
+  only a task's own findings (M6FA.6), which the composer needs before a save.
 - **Options**: an option holds `text` or `figure` (a stem), exactly one (CS0339 in a try, CS0825 in
   the exam pool). Grading is unchanged: an option's index. **Any figure without a task** may be an
   option, of any component; whether it gives the answer away (a `kmer-graph` highlighting its path,
