@@ -77,6 +77,8 @@ describe("a question as a test asks it", () => {
       options: ["A bubble", "A tip", "A clean path"],
       unit: "",
       steps: [],
+      optionFigures: [null, null, null],
+      figure: null,
     });
   });
 });
@@ -94,5 +96,28 @@ describe("a stem's images and figures (#369)", () => {
       { kind: "figure", file: "two-transcripts", caption: "Reads and lengths.\n" },
       { kind: "image", file: "kmers.png", caption: "Three reads.\n" },
     ]);
+  });
+});
+
+describe("a test's ask of figure answers and figure options (#410, M6FA.7)", () => {
+  it("names each option's figure and a figure question's figure", () => {
+    const options = testAskOf({
+      ...examIn(examQuestion("w", "draft", "choice")),
+      options: [
+        { text: "", figure: "options-tip", right: false, plain: true },
+        { text: "", figure: "options-bubble", right: true },
+        { text: "Neither graph", right: false, plain: true },
+      ],
+    });
+    expect(options.optionFigures).toEqual(["options-tip", "options-bubble", null]);
+    const asked = testAskOf({
+      ...examIn(examQuestion("e", "draft")),
+      kind: "figure",
+      stem: [
+        { kind: "text", markdown: "Click a k-mer.\n" },
+        { kind: "figure", file: "error-bubble", caption: "The figure.\n" },
+      ],
+    });
+    expect(asked.figure).toBe("error-bubble");
   });
 });

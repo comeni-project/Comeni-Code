@@ -112,5 +112,12 @@ export function testAskOf(question: ExamQuestionIn): TestAsk {
     options: (question.options ?? []).map((option) => option.figure || option.text || ""),
     unit: question.unit ?? "",
     steps: (question.steps ?? []).filter((step) => step.trim() !== ""),
+    // An option drawn as its figure, and a figure question answered by its stem's one figure
+    // (M6FA.7, #410).
+    optionFigures: (question.options ?? []).map((option) => option.figure ?? null),
+    figure:
+      question.kind === "figure"
+        ? (question.stem.find((block) => block.kind === "figure")?.file ?? null)
+        : null,
   };
 }
