@@ -9414,6 +9414,18 @@
    "codes": [
     "CS1023"
    ]
+  },
+  {
+   "name": "a figure file with a task",
+   "text": "component: kmer-graph\nalt: A de Bruijn graph of six 3-mers; one path spells ACGTTAG.\ndata:\n  reads:\n    - {sequence: ACGTT}\n    - {sequence: CGTTA}\n    - {sequence: GTTAG}\n    - {sequence: CGTC}\n  k: 3\n  highlight: none\ninteract: {task: trace, spells: ACGTTAG}\n",
+   "codes": []
+  },
+  {
+   "name": "a figure file whose task does not fit",
+   "text": "component: kmer-graph\nalt: A de Bruijn graph of six 3-mers; one path spells ACGTTAG.\ndata:\n  reads:\n    - {sequence: ACGTT}\n    - {sequence: CGTTA}\n    - {sequence: GTTAG}\n    - {sequence: CGTC}\n  k: 3\n  highlight: none\ninteract: {task: trace, spells: ACGTCAG}\n",
+   "codes": [
+    "CS1030"
+   ]
   }
  ],
  "starters": {

@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
 import type { DraftOut } from "../../api/schema";
 import { lineOf, pathParts, writeFile } from "../../figures/document";
-import { STARTERS } from "../../figures/kits";
+import { STARTERS, TASKS } from "../../figures/kits";
 import type { Component } from "../../figures/schemas";
 import type { Finding } from "../../figures/validate";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
@@ -21,6 +21,8 @@ import { ComposerPreview } from "./ComposerPreview";
 import { DataPanel } from "./DataPanel";
 import { Describe } from "./Describe";
 import { focusPath, serverPath } from "./goTo";
+import { Interaction } from "./Interaction";
+import { StateStrip } from "./StateStrip";
 import { headline } from "./summary";
 import { ThisFigure } from "./ThisFigure";
 import { useLeaveGuard } from "./useLeaveGuard";
@@ -28,24 +30,51 @@ import { useWorkingCopy } from "./useWorkingCopy";
 
 const ended = (text: string) => (text.endsWith("\n") ? text : `${text}\n`);
 
-function Steps({ choosing, described }: { choosing: boolean; described: boolean }) {
+type Step = "data" | "interaction";
+
+function Steps({
+  choosing,
+  described,
+  tasks,
+  step,
+  onStep,
+}: {
+  choosing: boolean;
+  described: boolean;
+  /** Whether the kit has tasks: only then is Interaction a step (M6FA.6). */
+  tasks: boolean;
+  step: Step;
+  onStep: (step: Step) => void;
+}) {
+  const interaction: [string, "done" | "on" | ""][] = tasks
+    ? [["Interaction", step === "interaction" ? "on" : ""]]
+    : [];
   const steps: [string, "done" | "on" | ""][] = choosing
     ? [
         ["Choose", "on"],
         ["Data", ""],
+        ...(tasks ? [["Interaction", ""] as [string, ""]] : []),
         ["Describe", ""],
       ]
     : [
         ["Choose", "done"],
-        ["Data", "on"],
+        ["Data", step === "data" ? "on" : "done"],
+        ...interaction,
         ["Describe", described ? "done" : ""],
       ];
+  const goes: Record<string, Step> = { Data: "data", Interaction: "interaction" };
   return (
     <ol aria-label="Steps" className="flex items-center gap-1.5">
       {steps.map(([name, state], n) => (
         <li key={name} className="flex items-center gap-1.5">
           {n > 0 && <span className="h-px w-7 bg-border-2" />}
-          <span
+          {/* With a task step, Data and Interaction are where you go; the rest say where you are. */}
+          <StepBadge
+            go={
+              tasks && !choosing && goes[name] !== undefined
+                ? () => onStep(goes[name] as Step)
+                : undefined
+            }
             aria-current={state === "on" ? "step" : undefined}
             className={`flex items-center gap-2 rounded-pill px-3 py-1.5 text-[13px] ${
               state === "on"
@@ -59,10 +88,29 @@ function Steps({ choosing, described }: { choosing: boolean; described: boolean 
               {state === "done" ? "✓" : n + 1}
             </span>
             {name}
-          </span>
+          </StepBadge>
         </li>
       ))}
     </ol>
+  );
+}
+
+function StepBadge({
+  go,
+  children,
+  ...rest
+}: {
+  go: (() => void) | undefined;
+  children: React.ReactNode;
+  className: string;
+  "aria-current": "step" | undefined;
+}) {
+  return go === undefined ? (
+    <span {...rest}>{children}</span>
+  ) : (
+    <button type="button" onClick={go} {...rest}>
+      {children}
+    </button>
   );
 }
 
@@ -72,6 +120,7 @@ function checkLines(
   component: string | null,
   captionMissing: boolean,
   computed: string | null,
+  asked: { accept: number; wrong: string; drawn: number } | null,
 ): { ok: boolean; title: string; detail: string }[] {
   const has = (codes: string[]) => problems.some((p) => codes.includes(p.code));
   const FILE = ["CS1023", "CS1025", "CS1027"];
@@ -91,6 +140,25 @@ function checkLines(
     ...(computed === null
       ? []
       : [{ ok: !data, title: "Computed from the reads", detail: computed }]),
+    ...(asked === null
+      ? []
+      : [
+          {
+            ok: !problems.some((p) => p.path.startsWith("interact")),
+            title: "The task fits the data",
+            detail: "its fields, and every k-mer it names",
+          },
+          {
+            ok: asked.accept > 0,
+            title: "One right answer",
+            detail:
+              asked.accept === 1
+                ? "one selection is right"
+                : `any of ${asked.accept} k-mers is right`,
+          },
+          { ok: asked.wrong !== "", title: "A wrong answer exists", detail: asked.wrong },
+          { ok: asked.drawn === 4, title: "Every state draws", detail: `${asked.drawn} of 4` },
+        ]),
     {
       ok: !has(DESCRIBED) && !captionMissing,
       title: "Described",
@@ -123,6 +191,8 @@ function Composer({
   const [choosing, setChoosing] = useState(stem === null);
   const [chosen, setChosen] = useState<Component | null>(null);
   const [yamlOpen, setYamlOpen] = useState(false);
+  const [step, setStep] = useState<Step>("data");
+  const [drawn, setDrawn] = useState(0);
   const yamlRef = useRef<HTMLTextAreaElement>(null);
   void client;
 
@@ -130,6 +200,10 @@ function Composer({
   const changed = copy.changed || (stem !== null && captionChanged);
   const allow = useLeaveGuard(changed || edit.isPending);
   const component = (copy.figure?.component ?? record?.component ?? chosen) as Component | null;
+  const tasks = component !== null && TASKS[component] !== undefined;
+  // A figure that asks a question, as it would be asked: drawn in every state (M6FA.6).
+  const asking = copy.asking;
+  const answer = asking?.derived.answer as { accept?: string[][]; wrong?: string[] } | undefined;
 
   const refusal = refusalOf(edit.error);
   const server: Finding[] = (refusal?.problems ?? []).map((p) => ({
@@ -138,7 +212,12 @@ function Composer({
   }));
   const problems = [...copy.problems, ...server];
   const needsCaption = caption !== null && caption.trim() === "";
-  const ready = !choosing && copy.problems.length === 0 && changed && !needsCaption;
+  const ready =
+    !choosing &&
+    copy.problems.length === 0 &&
+    changed &&
+    !needsCaption &&
+    (asking === null || drawn === 4);
   const back = () => {
     allow();
     navigate(`/studio/drafts/${draft.public_id}`);
@@ -205,6 +284,9 @@ function Composer({
         <Steps
           choosing={choosing}
           described={copy.figure !== null && (caption === null || caption.trim() !== "")}
+          tasks={tasks}
+          step={step}
+          onStep={setStep}
         />
         <div className="flex gap-2">
           <button type="button" className={SECONDARY} onClick={back}>
@@ -258,28 +340,37 @@ function Composer({
             <section className="flex flex-col gap-2 rounded-panel border border-border bg-surface p-3.5">
               <h2 className="text-[14px] font-semibold">Answering by the figure</h2>
               <p className="text-[12.5px] leading-[1.5] text-ink-2">
-                Tracing a path or picking a bubble as a question’s answer comes next (M6.6b). Until
-                then a figure sits above a choice, as it does today.
+                A kmer-graph can be answered by tracing a path, a graph-artifacts by picking a k-mer
+                of a tip or bubble: set it in the Interaction step, after Data.
               </p>
             </section>
           </aside>
         </div>
       ) : (
         <div className="grid gap-[18px] lg:grid-cols-[420px_minmax(0,1fr)_320px]">
-          <DataPanel
-            copy={copy}
-            component={component}
-            stem={stem}
-            yamlOpen={yamlOpen}
-            onYamlOpen={setYamlOpen}
-            yamlRef={yamlRef}
-          />
+          {step === "interaction" && component !== null && tasks ? (
+            <Interaction copy={copy} component={component} />
+          ) : (
+            <DataPanel
+              copy={copy}
+              component={component}
+              stem={stem}
+              yamlOpen={yamlOpen}
+              onYamlOpen={setYamlOpen}
+              yamlRef={yamlRef}
+            />
+          )}
           <div className="flex min-w-0 flex-col gap-3">
             <ComposerPreview
               record={copy.lastGood}
               caption={caption ?? ""}
               waiting={copy.problems.length}
             />
+            {asking !== null && (
+              <section className="rounded-panel border border-border bg-surface px-4 py-3">
+                <StateStrip record={asking} onDrawn={setDrawn} />
+              </section>
+            )}
             <Describe
               copy={copy}
               caption={caption}
@@ -299,6 +390,13 @@ function Composer({
                 component === null || copy.fd.errors.length > 0
                   ? null
                   : headline(component, (copy.fd.doc.toJS() as { data?: unknown } | null)?.data),
+                asking === null
+                  ? null
+                  : {
+                      accept: answer?.accept?.length ?? 0,
+                      wrong: (answer?.wrong ?? []).join(" → "),
+                      drawn,
+                    },
               )}
               onGo={go}
             />

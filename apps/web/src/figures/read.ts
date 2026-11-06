@@ -12,12 +12,14 @@ export interface FigureFile {
   alt: string;
   data: Record<string, unknown>;
   source: { title: string; url: string | null } | null;
+  /** What a learner does with it, when it asks a question (M6.6b spec, M6FA.1). */
+  interact: Record<string, unknown> | null;
 }
 
 const MAX_BYTES = 64 * 1024;
 const MAX_ALT = 300;
 const MAX_TITLE = 160;
-const KEYS = ["component", "alt", "data", "source"];
+const KEYS = ["component", "alt", "data", "source", "interact"];
 const SOURCE_KEYS = ["title", "url"];
 const ODD = new RegExp(CHARACTERS.pattern);
 const FORMS = TWO_READINGS.map((form) => ({ name: form.name, pattern: new RegExp(form.pattern) }));
@@ -136,7 +138,7 @@ export function readFigure(text: string): { figure: FigureFile | null; problems:
   if (typeof component !== "string") {
     problems.push({ code: "CS1001", path: "component", message: "names no component" });
   } else {
-    problems.push(...figureFindings(component, written.data));
+    problems.push(...figureFindings(component, written.data, written.interact));
   }
   if (problems.length > 0) return refused(problems);
   return {
@@ -145,6 +147,7 @@ export function readFigure(text: string): { figure: FigureFile | null; problems:
       alt: alt as string,
       data: written.data as Record<string, unknown>,
       source: credit,
+      interact: (written.interact ?? null) as Record<string, unknown> | null,
     },
     problems: [],
   };
