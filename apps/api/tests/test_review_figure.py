@@ -10,6 +10,7 @@ from django.test import Client
 
 from code_api.accounts.models import User
 from code_api.content.index import rebuild_index
+from code_api.content.snapshot import node_from_index
 from code_api.studio import drafts, review
 from code_api.studio.models import Draft
 from code_schema.blocks import Try
@@ -108,3 +109,21 @@ def test_the_review_sends_the_figure_and_once_answered_its_path(
         "trace-path",
         [PATH],
     )
+
+
+def test_a_question_key_carries_its_option_figures() -> None:
+    """A reviewer sees the figures an option is (M6FA.3), as a key shows a try's figure."""
+    from code_api.studio.keys import review_keys
+    from code_schema.questions import ChoiceAnswer, Option
+
+    node = node_from_index("de-bruijn-graphs")
+    assert node is not None
+    asked = next(q for q in node.questions if q.id == "green-path")
+    options = (
+        Option(text="", right=True, figure="graph-artifacts"),
+        Option(text="Neither drawing"),
+    )
+    changed = replace(asked, answer=ChoiceAnswer(options=options))
+    node = replace(node, questions=tuple(changed if q is asked else q for q in node.questions))
+    key = next(k for k in review_keys(node) if k.key == "try/green-path")
+    assert [f.stem for f in key.figures] == ["kmer-path", "graph-artifacts"]

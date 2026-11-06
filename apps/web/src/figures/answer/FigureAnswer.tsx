@@ -21,6 +21,7 @@ export function FigureAnswer({
   onSelect,
   outcome = null,
   onCheck,
+  again = false,
   still = false,
 }: {
   record: FigureOut;
@@ -29,6 +30,8 @@ export function FigureAnswer({
   outcome?: Outcome;
   /** Check, beside Undo and Clear: a try's; a test question has none. */
   onCheck?: () => void;
+  /** Checked before and wrong: Check says Check again, as the board's wrong answer does. */
+  again?: boolean;
   /** Drawn as a state, to look at: no buttons and no controls (the composer's strip). */
   still?: boolean;
 }) {
@@ -104,7 +107,7 @@ export function FigureAnswer({
               onClick={onCheck}
               className="inline-flex min-h-10 items-center rounded-[10px] bg-btn px-[18px] text-[14px] font-semibold text-btn-ink shadow-[0_3px_0_var(--btn-sh)] disabled:bg-border-2 disabled:text-ink-3 disabled:shadow-none"
             >
-              {outcome === "wrong" ? "Check again" : "Check"}
+              {again || outcome === "wrong" ? "Check again" : "Check"}
             </button>
           )}
         </div>

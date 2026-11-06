@@ -124,6 +124,7 @@ export function Body({
             number={asked}
             big={big}
             figure={question.figure ? drawn.get(question.figure) : undefined}
+            figures={figures}
           />
         );
       })}

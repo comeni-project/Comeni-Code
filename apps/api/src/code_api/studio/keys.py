@@ -25,6 +25,7 @@ from code_schema import (
     Try,
     TryQuestion,
 )
+from code_schema.figure_answers import option_figures
 
 QUESTIONS = ("try", "exam")
 
@@ -60,7 +61,8 @@ class Key:
     kind: str  # node, text, callout, sequence, math, example, image, figure, try, resource, exam
     content: Content
     # The figures the key shows, by their files' text: a figure block's own, a try question's, an
-    # exam stem's. A changed file is a changed key, so a verdict does not carry over (M6FG.5).
+    # exam stem's, and an option's (M6FA.3). A changed file is a changed key, so a verdict does
+    # not carry over (M6FG.5).
     figures: tuple[FigureFile, ...] = ()
 
 
@@ -78,7 +80,8 @@ def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
         match block:
             case Try(question=question_id):
                 question = asked[question_id]
-                keys.append(Key(f"try/{question_id}", "try", question, shown(question.figure)))
+                stems = (question.figure, *option_figures(question.answer))
+                keys.append(Key(f"try/{question_id}", "try", question, shown(*stems)))
             case Figure(file=stem):
                 keys.append(Key(f"block/{at}", "figure", block, shown(stem)))
             case Text():
@@ -100,7 +103,10 @@ def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
             f"exam/{question.id}",
             "exam",
             question,
-            shown(*(b.file for b in question.blocks if isinstance(b, Figure))),
+            shown(
+                *(b.file for b in question.blocks if isinstance(b, Figure)),
+                *option_figures(question.answer),
+            ),
         )
         for question in node.exam
     ]

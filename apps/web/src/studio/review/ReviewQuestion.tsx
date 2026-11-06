@@ -18,11 +18,17 @@ export const shownGiven = (q: ReviewQuestionOut) =>
       : String(q.given);
 
 export const theKey = (q: ReviewQuestionOut) =>
-  q.kind === "choice" && q.right_option !== null
-    ? `${LETTERS[q.right_option]} · ${q.options?.[q.right_option] ?? ""}`
-    : q.kind === "order"
-      ? (q.right_steps ?? []).join(" → ")
-      : `${q.value ?? ""}${q.unit ? ` ${q.unit}` : ""}${q.tolerance ? ` (± ${q.tolerance})` : ""}`;
+  q.kind === "figure"
+    ? (q.right_selections ?? []).map((selection) => selection.join(" → ")).join(" or ")
+    : q.kind === "choice" && q.right_option !== null
+      ? `${LETTERS[q.right_option]} · ${
+          q.option_figures?.[q.right_option]
+            ? `the figure ${q.option_figures[q.right_option]}`
+            : (q.options?.[q.right_option] ?? "")
+        }`
+      : q.kind === "order"
+        ? (q.right_steps ?? []).join(" → ")
+        : `${q.value ?? ""}${q.unit ? ` ${q.unit}` : ""}${q.tolerance ? ` (± ${q.tolerance})` : ""}`;
 
 export function ReviewQuestion({
   draftId,
@@ -52,14 +58,17 @@ export function ReviewQuestion({
     options: question.options ?? [],
     unit: question.unit,
     steps: question.steps ?? [],
+    figure: question.figure ?? null,
+    optionFigures: question.option_figures ?? [],
   };
   return (
     <div className="flex max-w-[620px] flex-col gap-2.5">
       {/* A try question's figure, unnumbered as on the page (M6FG.6); a stem draws its own. */}
       {question.pool === "try" &&
-        figures.map((f) => (
-          <Figure key={f.stem} record={f} stem={f.stem} caption="" number={null} />
-        ))}
+        question.kind !== "figure" &&
+        figures
+          .filter((f) => !(question.option_figures ?? []).includes(f.stem))
+          .map((f) => <Figure key={f.stem} record={f} stem={f.stem} caption="" number={null} />)}
       {question.given === null ? (
         <TestQuestion
           ask={ask}

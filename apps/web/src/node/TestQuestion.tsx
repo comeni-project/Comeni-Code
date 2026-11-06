@@ -3,6 +3,8 @@
 // the self-test (M8) asks it.
 import { useId, useMemo, useState } from "react";
 import type { FigureOut } from "../api/schema";
+import { FigureAnswer } from "../figures/answer/FigureAnswer";
+import { Figure } from "../figures/Figure";
 import { Body } from "./Body";
 import type { Block } from "./body";
 import { OrderAnswer, shuffled } from "./OrderAnswer";
@@ -13,6 +15,10 @@ export interface TestAsk {
   options: string[];
   unit: string;
   steps: string[];
+  /** A figure question's figure: the one its stem places, drawn as the answer (M6FA.3). */
+  figure?: string | null;
+  /** Each option's figure, by stem, where the option is one (M6FA.3). */
+  optionFigures?: (string | null)[];
 }
 
 const LETTERS = "ABCDE";
@@ -44,14 +50,24 @@ export function TestQuestion({
   const field = useId();
   const [picked, setPicked] = useState<number | null>(null);
   const [given, setGiven] = useState("");
+  const [selection, setSelection] = useState<string[]>([]);
+  const record = (stem: string | null | undefined) =>
+    stem ? figures.find((f) => f.stem === stem) : undefined;
+  const answering = ask.kind === "figure" ? record(ask.figure) : undefined;
+  // The stem's figure is the answer, drawn once, below the rest of the stem.
+  const stem =
+    ask.kind === "figure"
+      ? ask.stem.filter((block) => !(block.kind === "figure" && block.file === ask.figure))
+      : ask.stem;
   // The steps are dealt by place, so an edited step keeps its place and shows its new words;
   // they are dealt again only when a step is added or removed (#268).
   const count = ask.steps.length;
   // biome-ignore lint/correctness/useExhaustiveDependencies: dealt again only when the count changes
   const places = useMemo(() => shuffle([...Array(count).keys()].map(String)).map(Number), [count]);
   const steps = places.map((at) => ask.steps[at] ?? "");
-  const answerOf = (): number | string | null => {
+  const answerOf = (): number | string | string[] | null => {
     if (ask.kind === "choice") return picked;
+    if (ask.kind === "figure") return selection.length > 0 ? selection : null;
     if (given.trim() === "") return null;
     if (ask.kind === "number") {
       const read = Number(given);
@@ -67,9 +83,15 @@ export function TestQuestion({
         {onAnswer === undefined ? "no hints in a test" : "answer before you see the key"}
       </span>
       <div className="flex flex-col gap-2 text-[15px] leading-[1.35] font-semibold">
-        <Body blocks={ask.stem} questions={[]} figures={figures} />
+        <Body blocks={stem} questions={[]} figures={figures} />
       </div>
-      {ask.kind === "choice" ? (
+      {ask.kind === "figure" ? (
+        answering === undefined ? (
+          <Figure record={undefined} stem={ask.figure ?? ""} caption="" number={null} />
+        ) : (
+          <FigureAnswer record={answering} selection={selection} onSelect={setSelection} />
+        )
+      ) : ask.kind === "choice" ? (
         <div className={`grid gap-1.5 ${phone ? "" : "grid-cols-2"}`}>
           {ask.options.map((text, at) => (
             <button
@@ -82,7 +104,19 @@ export function TestQuestion({
                 picked === at ? "border-sel bg-sel-soft" : "border-border-2 bg-surface"
               }`}
             >
-              <span className="font-mono text-[11px] text-ink-3">{LETTERS[at]}</span> {text}
+              <span className="font-mono text-[11px] text-ink-3">{LETTERS[at]}</span>{" "}
+              {ask.optionFigures?.[at] ? (
+                <span className="min-w-0 flex-1">
+                  <Figure
+                    record={record(ask.optionFigures[at])}
+                    stem={ask.optionFigures[at] ?? ""}
+                    caption=""
+                    number={null}
+                  />
+                </span>
+              ) : (
+                text
+              )}
             </button>
           ))}
         </div>

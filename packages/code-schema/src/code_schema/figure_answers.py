@@ -30,7 +30,8 @@ def _accept(figure: FigureFile) -> tuple[tuple[str, ...], ...]:
     return tuple(tuple(selection) for selection in answer["accept"])
 
 
-def _options(answer: Answer) -> list[str]:
+def option_figures(answer: Answer) -> list[str]:
+    """The stems of the options that are figures, in order (M6FA.3)."""
     if not isinstance(answer, ChoiceAnswer):
         return []
     return [option.figure for option in answer.options if option.figure is not None]
@@ -45,7 +46,7 @@ def placements(
     placed = {b.file for b in (*blocks, *stems) if isinstance(b, Figure)}
     placed |= {q.figure for q in questions if q.figure is not None}
     answers = [q.answer for q in questions] + [q.answer for q in exam]
-    return placed | {stem for answer in answers for stem in _options(answer)}
+    return placed | {stem for answer in answers for stem in option_figures(answer)}
 
 
 def figure_answers(
@@ -94,7 +95,7 @@ def figure_answers(
                 )
         elif question.figure in tasked:
             asks(question.figure, NODE_FILE, question.id)
-        for stem in _options(answer):
+        for stem in option_figures(answer):
             if stem in tasked:
                 asks(stem, NODE_FILE, question.id)
         tries.append(replace(question, answer=answer))
@@ -119,7 +120,7 @@ def figure_answers(
             for block in asked.blocks:
                 if isinstance(block, Figure) and block.file in tasked:
                     asks(block.file, EXAM_FILE, asked.id)
-        for stem in _options(answer):
+        for stem in option_figures(answer):
             if stem in tasked:
                 asks(stem, EXAM_FILE, asked.id)
         pool.append(replace(asked, answer=answer))

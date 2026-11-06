@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { QuestionOut } from "../api/schema";
+import { OPTIONS, PATH, TRACE_PATH } from "../figures/answer/answers.fixture";
 import { TryQuestion } from "./TryQuestion";
 
 const COUNT: QuestionOut = {
@@ -181,5 +182,72 @@ describe("a sequence or an order try (M4Q.6)", () => {
     await userEvent.click(screen.getByRole("button", { name: /Try it/ }));
     await userEvent.click(screen.getByRole("button", { name: "Check" }));
     expect(screen.getByText("0 of 3 pairs in order.")).toBeInTheDocument();
+  });
+});
+
+describe("a try answered by the figure (M6.6b spec, M6FA.4)", () => {
+  const TRACE_TRY: QuestionOut = {
+    id: "trace-the-path",
+    kind: "figure",
+    ask: "Trace the path that spells ACGTTAG.",
+    options: null,
+    answer: null,
+    unit: null,
+    tolerance: null,
+    accept: [],
+    exact: false,
+    steps: null,
+    hints: ["ACGTTAG has 7 letters, so its path has 7 − 3 + 1 = 5 k-mers."],
+    rationale: "Each step to the next k-mer adds its last letter.",
+    figure: "trace-path",
+  };
+  const pick = (name: string) =>
+    userEvent.click(screen.getByRole("button", { name: new RegExp(`^${name}$`) }));
+
+  it("goes through its four states: start, midway, wrong answer, answered", async () => {
+    render(<TryQuestion question={TRACE_TRY} number={3} figures={[TRACE_PATH]} big />);
+    expect(screen.getByRole("button", { name: "Check" })).toBeDisabled();
+    for (const name of ["ACG", "CGT", "GTC"]) await pick(name);
+    await userEvent.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByText(/Not quite/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^GTC$/ })).toHaveAttribute("aria-pressed", "true");
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    for (const name of ["GTT", "TTA", "TAG"]) await pick(name);
+    await userEvent.click(screen.getByRole("button", { name: "Check again" }));
+    expect(screen.getByText(`Right — ${PATH.join(" → ")}.`)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^ACG$/ })).toBeNull();
+  });
+
+  it("draws its figure once, as the answer, not above it", () => {
+    const { container } = render(
+      <TryQuestion question={TRACE_TRY} number={3} figures={[TRACE_PATH]} big />,
+    );
+    expect(container.querySelectorAll("svg[role=img]")).toHaveLength(1);
+  });
+
+  it("shows the computed path when the answer is shown", async () => {
+    render(<TryQuestion question={TRACE_TRY} number={3} figures={[TRACE_PATH]} big />);
+    await userEvent.click(screen.getByRole("button", { name: "Show the answer" }));
+    expect(screen.getByText(`The answer is ${PATH.join(" → ")}.`)).toBeInTheDocument();
+  });
+
+  it("offers figures as options, each named by its alt text", async () => {
+    const which: QuestionOut = {
+      ...CHOICE,
+      id: "which-graph",
+      ask: "In which graph does a read have a wrong base in its middle?",
+      options: OPTIONS.map((o) => ({
+        text: "",
+        right: o.stem === "options-bubble",
+        figure: o.stem,
+      })),
+    };
+    render(<TryQuestion question={which} number={1} figures={OPTIONS} big />);
+    await userEvent.click(screen.getByRole("button", { name: "options-tip: a graph of k-mers." }));
+    expect(screen.getByText(/Not quite/)).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole("button", { name: "options-bubble: a graph of k-mers." }),
+    );
+    expect(screen.getByText(/^Right/)).toBeInTheDocument();
   });
 });
