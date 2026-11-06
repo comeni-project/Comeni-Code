@@ -44,3 +44,55 @@ describe("grading, the server's rule (M4Q.3)", () => {
     expect(isRight(order, ["A", "B", "D", "C"])).toBe(false);
   });
 });
+
+describe("a figure question (M6.6b spec, M6FA.3)", () => {
+  const PATH = ["ACG", "CGT", "GTT", "TTA", "TAG"];
+  const traced: QuestionOut = {
+    ...base,
+    kind: "figure",
+    options: null,
+    answer: null,
+    accept: [],
+    exact: false,
+    steps: null,
+    figure: "trace-path",
+  };
+  const record = (accept: string[][]) =>
+    ({
+      stem: "trace-path",
+      component: "kmer-graph",
+      alt: "",
+      data: {},
+      derived: { answer: { accept, wrong: [] } },
+      source: null,
+    }) as const;
+
+  it("is right when the k-mers picked, in order, are one of its figure's selections", () => {
+    expect(isRight(traced, PATH, record([PATH]))).toBe(true);
+    expect(isRight(traced, ["ACG", "CGT", "GTC"], record([PATH]))).toBe(false);
+    expect(isRight(traced, ["TCA"], record([["GTC"], ["TCA"], ["CAG"]]))).toBe(true);
+  });
+
+  it("is wrong with no figure, no answer computed, or a string", () => {
+    expect(isRight(traced, PATH)).toBe(false);
+    expect(isRight(traced, PATH, record([]))).toBe(false);
+    expect(isRight(traced, "ACG", record([PATH]))).toBe(false);
+  });
+
+  it("grades a figure option by its stem", () => {
+    const options: QuestionOut = {
+      ...base,
+      kind: "choice",
+      options: [
+        { text: "", right: true, figure: "plain-a" },
+        { text: "", right: false, figure: "plain-b" },
+      ],
+      answer: null,
+      accept: [],
+      exact: false,
+      steps: null,
+    };
+    expect(isRight(options, "plain-a")).toBe(true);
+    expect(isRight(options, "plain-b")).toBe(false);
+  });
+});

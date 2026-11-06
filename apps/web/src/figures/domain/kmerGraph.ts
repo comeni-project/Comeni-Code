@@ -1,4 +1,6 @@
 // `kmer-graph`: the twin of code_figures/kmer_graph.py (M6.6a spec, M6DC.1).
+import { TASK_SCHEMAS } from "../schemas";
+import type { Answer, Fields, Task } from "../tasks";
 import type { Finding } from "../validate";
 import { type Data, graph, kmersOf, missingStep, readsFindings, sequences, spells } from "./kmers";
 
@@ -68,3 +70,64 @@ export function derive(data: Data): Record<string, unknown> {
   }
   return computed;
 }
+
+// ── trace: the twin of kmer_graph.py's (M6.6b spec, M6FA.2) ──────────────────────────────────
+
+const NOT_A_TRACE = "CS1030";
+const SHOWS_ANSWER = "CS1031";
+
+const traceKmers = (data: Data, fields: Fields) => kmersOf(String(fields.spells), data.k as number);
+
+function checkTrace(data: Data, computed: Record<string, unknown>, fields: Fields): Finding[] {
+  if (data.highlight === "path") {
+    return [
+      {
+        code: SHOWS_ANSWER,
+        path: "interact.task",
+        message: "a trace on a highlighted path draws its answer: highlight none or branches",
+      },
+    ];
+  }
+  const k = data.k as number;
+  const spelled = String(fields.spells);
+  const wrong = (message: string): Finding[] => [
+    { code: NOT_A_TRACE, path: "interact.spells", message },
+  ];
+  if (spelled.length < k + 1) {
+    return wrong(`${spelled} is shorter than k + 1 = ${k + 1}: a path takes at least one step`);
+  }
+  const path = traceKmers(data, fields);
+  const twice = path.find((kmer, at) => path.indexOf(kmer) < at);
+  if (twice !== undefined)
+    return wrong(`${spelled} holds ${twice} twice: a trace picks each k-mer once`);
+  const kmers = computed.kmers as string[];
+  const absent = path.find((kmer) => !kmers.includes(kmer));
+  if (absent !== undefined) return wrong(`${spelled} needs ${absent}, which no read holds`);
+  const step = missingStep(path, computed.edges as [string, string][]);
+  if (step !== null)
+    return wrong(`${spelled} steps from ${step[0]} to ${step[1]}, which no read does`);
+  return [];
+}
+
+/** The one right walk; the wrong one drawn turns off it at its first branch. */
+function answerTrace(data: Data, computed: Record<string, unknown>, fields: Fields): Answer {
+  const path = traceKmers(data, fields);
+  const edges = computed.edges as [string, string][];
+  for (const [at, kmer] of path.entries()) {
+    const off = edges.find(
+      ([a, b]) => a === kmer && (at + 1 === path.length || b !== path[at + 1]) && !path.includes(b),
+    );
+    if (off !== undefined) return { accept: [path], wrong: [...path.slice(0, at + 1), off[1]] };
+  }
+  return { accept: [path], wrong: path.slice(0, -1) };
+}
+
+export const TASKS: Record<string, Task> = {
+  trace: {
+    label: "Trace a path",
+    says: "click k-mers in order, each step along an arrow",
+    schema: TASK_SCHEMAS["kmer-graph.trace"],
+    check: checkTrace,
+    answer: answerTrace,
+  },
+};

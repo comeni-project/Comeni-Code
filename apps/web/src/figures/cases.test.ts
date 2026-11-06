@@ -13,6 +13,14 @@ interface Shared {
   cases: { name: string; component: Component; data: unknown; codes: string[] }[];
   files: { name: string; text: string; pad?: number; codes: string[] }[];
   starters: Record<string, unknown>;
+  interact: {
+    name: string;
+    component: Component;
+    data: unknown;
+    interact: Record<string, unknown>;
+    codes: string[];
+    answer?: unknown;
+  }[];
 }
 
 const SHARED: Shared = JSON.parse(
@@ -34,6 +42,14 @@ describe("the shared cases", () => {
     expect(distinct(readFigure(textOf(c)).problems.map((f) => f.code))).toEqual(c.codes);
   });
 
+  it.each(SHARED.interact.map((c) => [c.name, c] as const))("the task: %s", (_, c) => {
+    const found = figureFindings(c.component, c.data, c.interact).map((f) => f.code);
+    expect(distinct(found)).toEqual(c.codes);
+    if (c.codes.length === 0) {
+      expect(derive(c.component, c.data, c.interact).answer).toEqual(c.answer);
+    }
+  });
+
   it("names a path the way Python does", () => {
     const chart = SHARED.cases.find((c) => c.name === "a chart that links out");
     expect(figureFindings("chart", chart?.data).map((f) => f.path)).toEqual(["data.encoding.href"]);
@@ -44,11 +60,14 @@ describe("the shared cases", () => {
   });
 
   it("has a case for every code the browser writes", () => {
-    const found = new Set([...SHARED.cases, ...SHARED.files].flatMap((c) => c.codes));
+    const found = new Set(
+      [...SHARED.cases, ...SHARED.files, ...SHARED.interact].flatMap((c) => c.codes),
+    );
     expect([...CODES].filter((code) => !found.has(code))).toEqual([]);
     expect([...CODES].sort()).toEqual(
       [...Array.from({ length: 16 }, (_, n) => `CS10${String(n + 1).padStart(2, "0")}`)]
         .concat(["CS1023", "CS1024", "CS1025", "CS1026", "CS1027"])
+        .concat(["CS1028", "CS1030", "CS1031", "CS1032"])
         .sort(),
     );
   });

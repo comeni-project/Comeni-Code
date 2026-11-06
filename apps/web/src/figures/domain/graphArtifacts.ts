@@ -1,4 +1,6 @@
 // `graph-artifacts`: the twin of code_figures/graph_artifacts.py (M6.6a spec, M6DC.1).
+import { TASK_SCHEMAS } from "../schemas";
+import type { Task } from "../tasks";
 import type { Finding } from "../validate";
 import { type Data, graph, readsFindings, sequences, support } from "./kmers";
 
@@ -55,3 +57,36 @@ export function derive(data: Data): Record<string, unknown> {
   });
   return { kmers, edges: edges.map(([a, b]) => [a, b]), support: held, artifacts };
 }
+
+// ── pick: the twin of graph_artifacts.py's (M6.6b spec, M6FA.2) ──────────────────────────────
+
+const NO_ARTIFACT = "CS1032";
+
+const runs = (computed: Record<string, unknown>, kind: unknown): string[] =>
+  (computed.artifacts as { kind: string; kmers: string[] }[])
+    .filter((a) => a.kind === kind)
+    .flatMap((a) => a.kmers);
+
+export const TASKS: Record<string, Task> = {
+  pick: {
+    label: "Pick a k-mer",
+    says: "click one k-mer of a tip or a bubble",
+    schema: TASK_SCHEMAS["graph-artifacts.pick"],
+    check: (_data, computed, fields) =>
+      runs(computed, fields.artifact).length > 0
+        ? []
+        : [
+            {
+              code: NO_ARTIFACT,
+              path: "interact.artifact",
+              message: `the reads make no ${String(fields.artifact)}: add a read that does, or pick the other kind`,
+            },
+          ],
+    // Any k-mer of a run of the kind is right; the wrong one drawn is the first solid k-mer.
+    answer: (_data, computed, fields) => {
+      const held = computed.support as Record<string, number>;
+      const solid = (computed.kmers as string[]).find((kmer) => (held[kmer] ?? 0) >= 2) as string;
+      return { accept: runs(computed, fields.artifact).map((kmer) => [kmer]), wrong: [solid] };
+    },
+  },
+};

@@ -9,6 +9,7 @@ import * as kmerGraph from "./domain/kmerGraph";
 import * as kmerWindow from "./domain/kmerWindow";
 import * as readTiling from "./domain/readTiling";
 import { type Component, type FigureData, SCHEMAS } from "./schemas";
+import { fieldsFindings, NO_TASK, type Task } from "./tasks";
 import { type Finding, validate } from "./validate";
 
 type Data = Record<string, unknown>;
@@ -48,7 +49,17 @@ export const CODES: ReadonlySet<string> = new Set([
   "CS1025",
   "CS1026",
   "CS1027",
+  NO_TASK,
+  "CS1030",
+  "CS1031",
+  "CS1032",
 ]);
+
+/** What a learner may do with each kit's figures, by task (M6FA.2); most kits have none. */
+export const TASKS: Partial<Record<Component, Record<string, Task>>> = {
+  "graph-artifacts": graphArtifacts.TASKS,
+  "kmer-graph": kmerGraph.TASKS,
+};
 
 export const STARTERS: { [C in Component]: FigureData[C] } = {
   chart: {
@@ -356,8 +367,9 @@ const CHECKS: { [C in Component]: (data: Data) => Finding[] } = {
 
 const isComponent = (name: string): name is Component => Object.hasOwn(SCHEMAS, name);
 
-/** The schema's findings; the kit's own checks only once the schema has none (registry.py). */
-export function figureFindings(component: string, data: unknown): Finding[] {
+/** The schema's findings; the kit's own checks only once the schema has none; then, with
+ * `interact`, its task's, only once the data has none (registry.py). */
+export function figureFindings(component: string, data: unknown, interact?: unknown): Finding[] {
   if (!isComponent(component)) {
     const named = Object.keys(SCHEMAS).sort().join(", ");
     return [
@@ -368,7 +380,14 @@ export function figureFindings(component: string, data: unknown): Finding[] {
   if (problems.length > 0 || data === null || typeof data !== "object" || Array.isArray(data)) {
     return problems;
   }
-  return CHECKS[component](data as Data);
+  const found = CHECKS[component](data as Data);
+  if (found.length > 0 || interact === undefined || interact === null) return found;
+  const tasks = TASKS[component] ?? {};
+  const wrong = fieldsFindings(tasks, interact);
+  if (wrong.length > 0) return wrong;
+  const fields = interact as Data;
+  const derived = DERIVES[component]?.(data as Data) ?? {};
+  return (tasks[String(fields.task)] as Task).check(data as Data, derived, fields);
 }
 
 const DERIVES: Partial<{ [C in Component]: (data: Data) => Record<string, unknown> }> = {
@@ -380,9 +399,18 @@ const DERIVES: Partial<{ [C in Component]: (data: Data) => Record<string, unknow
   "sequence-track": lanes,
 };
 
-/** What the page draws and nobody writes; only for data with no findings (registry.py). */
-export function derive(component: Component, data: unknown): Record<string, unknown> {
-  return DERIVES[component]?.(data as Data) ?? {};
+/** What the page draws and nobody writes; only for data with no findings. With a task, its
+ * `answer`: every right selection, and one wrong one (registry.py, M6FA.2). */
+export function derive(
+  component: Component,
+  data: unknown,
+  interact?: unknown,
+): Record<string, unknown> {
+  const computed = DERIVES[component]?.(data as Data) ?? {};
+  if (interact === undefined || interact === null) return computed;
+  const fields = interact as Data;
+  const task = TASKS[component]?.[String(fields.task)] as Task;
+  return { ...computed, answer: task.answer(data as Data, computed, fields) };
 }
 
 /** A track's lanes, first fit by start (track.py). */

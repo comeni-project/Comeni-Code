@@ -9,7 +9,7 @@ import { OrderAnswer, shuffled } from "./OrderAnswer";
 
 export interface TestAsk {
   stem: Block[];
-  kind: "choice" | "number" | "sequence" | "order";
+  kind: "choice" | "number" | "sequence" | "order" | "figure";
   options: string[];
   unit: string;
   steps: string[];

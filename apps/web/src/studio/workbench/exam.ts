@@ -40,11 +40,12 @@ export function examIn(out: StudioExamQuestionOut): ExamQuestionIn {
     stem: out.stem.map((block) => ({ ...block }) as BlockIn),
     level: (out.level ?? null) as NonNullable<ExamQuestionIn["level"]> | null,
     options:
-      out.options?.map(({ text, right, misconception, plain }) => ({
+      out.options?.map(({ text, right, misconception, plain, figure }) => ({
         text,
         right,
         misconception,
         plain,
+        ...(figure ? { figure } : {}),
       })) ?? null,
     answer: out.answer,
     unit: out.unit,
@@ -108,7 +109,7 @@ export function testAskOf(question: ExamQuestionIn): TestAsk {
               ? { kind: block.kind, file: block.file ?? "", caption: block.caption ?? "" }
               : { kind: "text", markdown: block.markdown ?? "" },
     ),
-    options: (question.options ?? []).map((option) => option.text),
+    options: (question.options ?? []).map((option) => option.figure || option.text || ""),
     unit: question.unit ?? "",
     steps: (question.steps ?? []).filter((step) => step.trim() !== ""),
   };
