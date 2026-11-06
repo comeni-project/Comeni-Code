@@ -55,7 +55,7 @@ export function Figure({
       <div
         className={
           framed
-            ? "rounded-xl border border-border bg-canvas px-4 py-3"
+            ? "overflow-x-auto rounded-xl border border-border bg-canvas px-4 py-3"
             : "overflow-x-auto rounded-xl border border-border bg-surface"
         }
       >

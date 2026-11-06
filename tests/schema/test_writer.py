@@ -381,9 +381,14 @@ def test_a_folder_is_written_with_its_figures_as_they_were_written(tmp_path: Pat
     write_node_folder(node, folder)
     written = sorted(path.name for path in (folder / "figures").iterdir())
     assert written == [
+        "compare-graphs.yaml",
+        "graph-artifacts.yaml",
         "kmer-counts.yaml",
+        "kmer-path.yaml",  # M6.6a's domain figures
+        "kmer-window.yaml",
         "kmers-by-k.yaml",
         "primer-on-exon.yaml",
+        "read-tiling.yaml",
         "salmon-steps.yaml",
     ]
     source = root / content.folders[node.id] / "figures" / "kmers-by-k.yaml"

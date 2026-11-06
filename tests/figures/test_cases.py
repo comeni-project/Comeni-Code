@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from code_figures import CODES, COMPONENTS, figure_findings
+from code_figures import CODES, COMPONENTS, derived, figure_findings
 from code_schema.figures import read_figure
 
 SHARED: dict[str, Any] = json.loads(
@@ -48,3 +48,13 @@ def test_every_code_has_a_case() -> None:
 
 def test_the_starters_are_code_figures_own() -> None:
     assert SHARED["starters"] == {name: dict(c.starter) for name, c in COMPONENTS.items()}
+
+
+DERIVED: list[dict[str, Any]] = SHARED["derived"]
+
+
+@pytest.mark.parametrize("case", DERIVED, ids=[case["name"] for case in DERIVED])
+def test_each_computed_case(case: dict[str, Any]) -> None:
+    """M6DC.3: what a component computes, held to the same cases as the browser's twin."""
+    assert figure_findings(case["component"], case["data"]) == []
+    assert derived(case["component"], case["data"]) == case["derived"]

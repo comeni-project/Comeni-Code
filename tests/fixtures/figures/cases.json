@@ -1,5 +1,5 @@
 {
- "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found. A `files` case with `pad` has that many # characters appended, as one comment line, before it is read. `starters` are each component's starter data, as code-figures holds it.",
+ "about": "Figures checked as the server and the browser both check them (M6.4 spec, M6FG.2; M6.5 spec, M6CO.5). Python (tests/figures/test_cases.py) and the web (apps/web/src/figures/cases.test.ts) run every case. `cases` are data checked by a component's schema, in order of first appearance of each distinct code. `files` are whole figure files read as code-schema reads them, with the distinct codes found. A `files` case with `pad` has that many # characters appended, as one comment line, before it is read. `starters` are each component's starter data, as code-figures holds it. `derived` are data with the values a component computes from them, compared whole, order included.",
  "cases": [
   {
    "name": "a bar chart",
@@ -8928,6 +8928,329 @@
    "codes": [
     "CS1011"
    ]
+  },
+  {
+   "name": "a kmer-graph as the board draws it",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     3
+    ],
+    "spell": "shown"
+   },
+   "codes": []
+  },
+  {
+   "name": "k as long as a read",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 4,
+    "highlight": "path",
+    "path": [
+     1,
+     3
+    ],
+    "spell": "shown"
+   },
+   "codes": [
+    "CS1013"
+   ]
+  },
+  {
+   "name": "a path that is not a walk",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CCCCC"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     2
+    ],
+    "spell": "shown"
+   },
+   "codes": [
+    "CS1014"
+   ]
+  },
+  {
+   "name": "a path joined only by overlap",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGT"
+     },
+     {
+      "sequence": "GTAA"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     2
+    ],
+    "spell": "shown"
+   },
+   "codes": [
+    "CS1014"
+   ]
+  },
+  {
+   "name": "more k-mers than a page draws",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTACGGTCCATTGA"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "codes": [
+    "CS1016"
+   ]
+  },
+  {
+   "name": "a read in lower case",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "acgtt"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     3
+    ],
+    "spell": "shown"
+   },
+   "codes": [
+    "CS1010"
+   ]
+  },
+  {
+   "name": "reads placed on their genome",
+   "component": "read-tiling",
+   "data": {
+    "genome": "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+    "reads": [
+     {
+      "sequence": "ATGCGTACG"
+     },
+     {
+      "sequence": "TACGTTAGC"
+     },
+     {
+      "sequence": "AGCCTAGGA"
+     },
+     {
+      "sequence": "AGGATCCAG"
+     },
+     {
+      "sequence": "CCAGTACGT"
+     },
+     {
+      "sequence": "CGTTAGGCA"
+     },
+     {
+      "sequence": "AGGCATCGA"
+     }
+    ]
+   },
+   "codes": []
+  },
+  {
+   "name": "a read in no place",
+   "component": "read-tiling",
+   "data": {
+    "genome": "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+    "reads": [
+     {
+      "sequence": "GGGGGGG"
+     }
+    ]
+   },
+   "codes": [
+    "CS1012"
+   ]
+  },
+  {
+   "name": "a read in two places",
+   "component": "read-tiling",
+   "data": {
+    "genome": "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+    "reads": [
+     {
+      "sequence": "TACGTTAG"
+     }
+    ]
+   },
+   "codes": [
+    "CS1012"
+   ]
+  },
+  {
+   "name": "a k-mer window",
+   "component": "kmer-window",
+   "data": {
+    "read": "ACGTTAGCAT",
+    "k": 4,
+    "range": [
+     3,
+     7
+    ]
+   },
+   "codes": []
+  },
+  {
+   "name": "a window range past its read",
+   "component": "kmer-window",
+   "data": {
+    "read": "ACGTTAG",
+    "k": 4,
+    "range": [
+     3,
+     7
+    ]
+   },
+   "codes": [
+    "CS1013"
+   ]
+  },
+  {
+   "name": "a k outside its range",
+   "component": "kmer-window",
+   "data": {
+    "read": "ACGTTAGCAT",
+    "k": 8,
+    "range": [
+     3,
+     7
+    ]
+   },
+   "codes": [
+    "CS1003"
+   ]
+  },
+  {
+   "name": "both conventions",
+   "component": "compare-graphs",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     }
+    ],
+    "k": 3
+   },
+   "codes": []
+  },
+  {
+   "name": "both conventions past a page",
+   "component": "compare-graphs",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTACGGTCCA"
+     }
+    ],
+    "k": 3
+   },
+   "codes": [
+    "CS1016"
+   ]
+  },
+  {
+   "name": "a tip and a bubble",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     },
+     {
+      "sequence": "ACGTTAGG"
+     }
+    ],
+    "k": 3
+   },
+   "codes": []
+  },
+  {
+   "name": "reads that share no k-mer",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "GGCAA"
+     }
+    ],
+    "k": 3
+   },
+   "codes": [
+    "CS1015"
+   ]
   }
  ],
  "files": [
@@ -9123,6 +9446,14 @@
     }
    }
   },
+  "compare-graphs": {
+   "reads": [
+    {
+     "sequence": "ACGTT"
+    }
+   ],
+   "k": 3
+  },
   "flow": {
    "nodes": [
     {
@@ -9138,6 +9469,81 @@
     {
      "from": "reads",
      "to": "k-mers"
+    }
+   ]
+  },
+  "graph-artifacts": {
+   "reads": [
+    {
+     "sequence": "ACGTTAGC"
+    },
+    {
+     "sequence": "ACGTTAGC"
+    },
+    {
+     "sequence": "ACGTCAGC"
+    },
+    {
+     "sequence": "ACGTTAGG"
+    }
+   ],
+   "k": 3
+  },
+  "kmer-graph": {
+   "reads": [
+    {
+     "sequence": "ACGTT"
+    },
+    {
+     "sequence": "CGTTA"
+    },
+    {
+     "sequence": "GTTAG"
+    },
+    {
+     "sequence": "CGTC",
+     "note": "another read — a branch"
+    }
+   ],
+   "k": 3,
+   "highlight": "path",
+   "path": [
+    1,
+    3
+   ],
+   "spell": "shown"
+  },
+  "kmer-window": {
+   "read": "ACGTTAGCAT",
+   "k": 4,
+   "range": [
+    3,
+    7
+   ]
+  },
+  "read-tiling": {
+   "genome": "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+   "reads": [
+    {
+     "sequence": "ATGCGTACG"
+    },
+    {
+     "sequence": "TACGTTAGC"
+    },
+    {
+     "sequence": "AGCCTAGGA"
+    },
+    {
+     "sequence": "AGGATCCAG"
+    },
+    {
+     "sequence": "CCAGTACGT"
+    },
+    {
+     "sequence": "CGTTAGGCA"
+    },
+    {
+     "sequence": "AGGCATCGA"
     }
    ]
   },
@@ -9175,5 +9581,645 @@
     ]
    ]
   }
- }
+ },
+ "derived": [
+  {
+   "name": "the kmer-graph starter",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     3
+    ],
+    "spell": "shown"
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA",
+     "TAG",
+     "GTC"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGT"
+     ],
+     [
+      "CGT",
+      "GTT"
+     ],
+     [
+      "GTT",
+      "TTA"
+     ],
+     [
+      "TTA",
+      "TAG"
+     ],
+     [
+      "CGT",
+      "GTC"
+     ]
+    ],
+    "branches": [
+     "CGT"
+    ],
+    "notes": {
+     "GTC": "another read — a branch"
+    },
+    "path": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA",
+     "TAG"
+    ],
+    "spells": "ACGTTAG"
+   }
+  },
+  {
+   "name": "a repeat makes a cycle once",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGACGA"
+     }
+    ],
+    "k": 3,
+    "highlight": "none"
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGA",
+     "GAC"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGA"
+     ],
+     [
+      "CGA",
+      "GAC"
+     ],
+     [
+      "GAC",
+      "ACG"
+     ]
+    ],
+    "branches": [],
+    "notes": {}
+   }
+  },
+  {
+   "name": "a path through a shared k-mer",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     }
+    ],
+    "k": 3,
+    "highlight": "path",
+    "path": [
+     1,
+     2
+    ],
+    "spell": "shown"
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGT"
+     ],
+     [
+      "CGT",
+      "GTT"
+     ],
+     [
+      "GTT",
+      "TTA"
+     ]
+    ],
+    "branches": [],
+    "notes": {},
+    "path": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA"
+    ],
+    "spells": "ACGTTA"
+   }
+  },
+  {
+   "name": "branches highlighted",
+   "component": "kmer-graph",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "CGTTA"
+     },
+     {
+      "sequence": "GTTAG"
+     },
+     {
+      "sequence": "CGTC",
+      "note": "another read — a branch"
+     }
+    ],
+    "k": 3,
+    "highlight": "branches",
+    "path": [
+     1,
+     3
+    ],
+    "spell": "shown"
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA",
+     "TAG",
+     "GTC"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGT"
+     ],
+     [
+      "CGT",
+      "GTT"
+     ],
+     [
+      "GTT",
+      "TTA"
+     ],
+     [
+      "TTA",
+      "TAG"
+     ],
+     [
+      "CGT",
+      "GTC"
+     ]
+    ],
+    "branches": [
+     "CGT"
+    ],
+    "notes": {
+     "GTC": "another read — a branch"
+    }
+   }
+  },
+  {
+   "name": "the read-tiling starter",
+   "component": "read-tiling",
+   "data": {
+    "genome": "ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA",
+    "reads": [
+     {
+      "sequence": "ATGCGTACG"
+     },
+     {
+      "sequence": "TACGTTAGC"
+     },
+     {
+      "sequence": "AGCCTAGGA"
+     },
+     {
+      "sequence": "AGGATCCAG"
+     },
+     {
+      "sequence": "CCAGTACGT"
+     },
+     {
+      "sequence": "CGTTAGGCA"
+     },
+     {
+      "sequence": "AGGCATCGA"
+     }
+    ]
+   },
+   "derived": {
+    "starts": [
+     1,
+     6,
+     12,
+     17,
+     22,
+     28,
+     32
+    ],
+    "lanes": [
+     0,
+     1,
+     0,
+     1,
+     0,
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "name": "the kmer-window starter",
+   "component": "kmer-window",
+   "data": {
+    "read": "ACGTTAGCAT",
+    "k": 4,
+    "range": [
+     3,
+     7
+    ]
+   },
+   "derived": {
+    "by_k": {
+     "3": {
+      "windows": [
+       [
+        1,
+        "ACG"
+       ],
+       [
+        2,
+        "CGT"
+       ],
+       [
+        3,
+        "GTT"
+       ],
+       [
+        4,
+        "TTA"
+       ],
+       [
+        5,
+        "TAG"
+       ],
+       [
+        6,
+        "AGC"
+       ],
+       [
+        7,
+        "GCA"
+       ],
+       [
+        8,
+        "CAT"
+       ]
+      ],
+      "count": 8
+     },
+     "4": {
+      "windows": [
+       [
+        1,
+        "ACGT"
+       ],
+       [
+        2,
+        "CGTT"
+       ],
+       [
+        3,
+        "GTTA"
+       ],
+       [
+        4,
+        "TTAG"
+       ],
+       [
+        5,
+        "TAGC"
+       ],
+       [
+        6,
+        "AGCA"
+       ],
+       [
+        7,
+        "GCAT"
+       ]
+      ],
+      "count": 7
+     },
+     "5": {
+      "windows": [
+       [
+        1,
+        "ACGTT"
+       ],
+       [
+        2,
+        "CGTTA"
+       ],
+       [
+        3,
+        "GTTAG"
+       ],
+       [
+        4,
+        "TTAGC"
+       ],
+       [
+        5,
+        "TAGCA"
+       ],
+       [
+        6,
+        "AGCAT"
+       ]
+      ],
+      "count": 6
+     },
+     "6": {
+      "windows": [
+       [
+        1,
+        "ACGTTA"
+       ],
+       [
+        2,
+        "CGTTAG"
+       ],
+       [
+        3,
+        "GTTAGC"
+       ],
+       [
+        4,
+        "TTAGCA"
+       ],
+       [
+        5,
+        "TAGCAT"
+       ]
+      ],
+      "count": 5
+     },
+     "7": {
+      "windows": [
+       [
+        1,
+        "ACGTTAG"
+       ],
+       [
+        2,
+        "CGTTAGC"
+       ],
+       [
+        3,
+        "GTTAGCA"
+       ],
+       [
+        4,
+        "TTAGCAT"
+       ]
+      ],
+      "count": 4
+     }
+    }
+   }
+  },
+  {
+   "name": "the compare-graphs starter",
+   "component": "compare-graphs",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     }
+    ],
+    "k": 3
+   },
+   "derived": {
+    "as_nodes": {
+     "nodes": [
+      "ACG",
+      "CGT",
+      "GTT"
+     ],
+     "edges": [
+      [
+       "ACG",
+       "CGT"
+      ],
+      [
+       "CGT",
+       "GTT"
+      ]
+     ]
+    },
+    "as_edges": {
+     "nodes": [
+      "AC",
+      "CG",
+      "GT",
+      "TT"
+     ],
+     "edges": [
+      [
+       "AC",
+       "CG",
+       "ACG"
+      ],
+      [
+       "CG",
+       "GT",
+       "CGT"
+      ],
+      [
+       "GT",
+       "TT",
+       "GTT"
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "a tip and a bubble",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTTAGC"
+     },
+     {
+      "sequence": "ACGTCAGC"
+     },
+     {
+      "sequence": "ACGTTAGG"
+     }
+    ],
+    "k": 3
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGT",
+     "GTT",
+     "TTA",
+     "TAG",
+     "AGC",
+     "GTC",
+     "TCA",
+     "CAG",
+     "AGG"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGT"
+     ],
+     [
+      "CGT",
+      "GTT"
+     ],
+     [
+      "GTT",
+      "TTA"
+     ],
+     [
+      "TTA",
+      "TAG"
+     ],
+     [
+      "TAG",
+      "AGC"
+     ],
+     [
+      "CGT",
+      "GTC"
+     ],
+     [
+      "GTC",
+      "TCA"
+     ],
+     [
+      "TCA",
+      "CAG"
+     ],
+     [
+      "CAG",
+      "AGC"
+     ],
+     [
+      "TAG",
+      "AGG"
+     ]
+    ],
+    "support": {
+     "ACG": 4,
+     "CGT": 4,
+     "GTT": 3,
+     "TTA": 3,
+     "TAG": 3,
+     "AGC": 3,
+     "GTC": 1,
+     "TCA": 1,
+     "CAG": 1,
+     "AGG": 1
+    },
+    "artifacts": [
+     {
+      "kind": "bubble",
+      "kmers": [
+       "GTC",
+       "TCA",
+       "CAG"
+      ]
+     },
+     {
+      "kind": "tip",
+      "kmers": [
+       "AGG"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "duplicate reads add support, not k-mers",
+   "component": "graph-artifacts",
+   "data": {
+    "reads": [
+     {
+      "sequence": "ACGTT"
+     },
+     {
+      "sequence": "ACGTT"
+     }
+    ],
+    "k": 3
+   },
+   "derived": {
+    "kmers": [
+     "ACG",
+     "CGT",
+     "GTT"
+    ],
+    "edges": [
+     [
+      "ACG",
+      "CGT"
+     ],
+     [
+      "CGT",
+      "GTT"
+     ]
+    ],
+    "support": {
+     "ACG": 2,
+     "CGT": 2,
+     "GTT": 2
+    },
+    "artifacts": []
+   }
+  }
+ ]
 }

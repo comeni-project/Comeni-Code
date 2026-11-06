@@ -1,0 +1,33 @@
+{
+  "$comment": "A read cut into k-mers; the learner drags k (M6.6a spec, M6DC.1). Every k's windows and count are computed.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "read": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+$",
+      "maxLength": 16,
+      "format": "dna"
+    },
+    "k": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 8
+    },
+    "range": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      }
+    }
+  },
+  "required": [
+    "read",
+    "k",
+    "range"
+  ]
+}

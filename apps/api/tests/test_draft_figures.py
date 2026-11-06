@@ -116,7 +116,7 @@ def test_a_figure_that_would_not_validate_is_refused_with_its_path(client: Clien
 def test_an_unknown_component_is_refused_in_words(client: Client) -> None:
     answer = add(client, opened(client), component="pie")
     assert (answer.status_code, answer.json()["code"]) == (422, "CA0205")
-    assert answer.json()["detail"].startswith("Pie is not a component (chart, flow,")
+    assert answer.json()["detail"].startswith("Pie is not a component (chart, compare-graphs,")
 
 
 def test_a_figure_is_added_from_its_whole_file(client: Client) -> None:

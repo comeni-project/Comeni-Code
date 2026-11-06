@@ -1,0 +1,37 @@
+{
+  "$comment": "Reads placed on the genome they came from (M6.6a spec, M6DC.1). Where each read sits, and its lane, are computed from its one exact match.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "genome": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+$",
+      "maxLength": 60,
+      "format": "dna"
+    },
+    "reads": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sequence": {
+            "type": "string",
+            "pattern": "^[A-Za-z]+$",
+            "maxLength": 20,
+            "format": "dna"
+          }
+        },
+        "required": [
+          "sequence"
+        ]
+      }
+    }
+  },
+  "required": [
+    "genome",
+    "reads"
+  ]
+}

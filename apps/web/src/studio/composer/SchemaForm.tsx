@@ -1,13 +1,14 @@
 // Everything in a figure's data that is not a sheet, as a form generated from its schema (M6.5
 // spec, M6CO.4): an enum is a select, a string an input, a number a number, a boolean a switch, an
 // object a group, and a oneOf a choice between its branches by JSON type, as the validator picks
-// them. Only what the schema takes is offered, so the form cannot write a key it refuses. A
-// chart's field is offered from its values' columns; a track's sequence takes pasted FASTA.
+// them, and a short list of numbers of a fixed length (a path, a range) its inputs side by side.
+// Only what the schema takes is offered, so the form cannot write a key it refuses. A
+// chart's field is offered from its values' columns; letters marked `format: dna` take FASTA.
 import { type Op, type Path, pathText, type Value } from "../../figures/document";
 import { type Component, SCHEMAS } from "../../figures/schemas";
 import type { Finding } from "../../figures/validate";
 import { fastaLetters } from "./fasta";
-import { resolve, sheetPaths } from "./sheets";
+import { isPair, resolve, sheetPaths } from "./sheets";
 import { TypedInput } from "./TypedInput";
 
 // biome-ignore lint/suspicious/noExplicitAny: a schema is JSON, walked by key
@@ -72,6 +73,10 @@ function startOf(given: Schema, root: Schema, from?: unknown): unknown {
       start[key] = startOf(schema.properties[key], root, from);
     }
     return start;
+  }
+  if (isPair(schema)) {
+    const item = startOf(schema.items, root);
+    return Array.from({ length: schema.minItems as number }, () => item);
   }
   if (schema.type === "boolean") return false;
   if (schema.type === "null") return null;
@@ -141,7 +146,7 @@ function Scalar({
   if (schema.type === "null") return <span className="text-[12.5px] text-ink-3">none</span>;
   const number = schema.type === "integer" || schema.type === "number";
   const text = value === undefined || value === null ? "" : String(value);
-  if (path.length === 2 && path[1] === "sequence") {
+  if (schema.format === "dna") {
     return (
       <textarea
         {...common}
@@ -221,6 +226,30 @@ function Field({
       <Inline schema={schema} value={isRecord(value) ? value : {}} path={path} context={context} />
     );
   }
+  if (isPair(schema)) {
+    const items = Array.isArray(value) ? value : [];
+    return (
+      <span className="flex items-center gap-1.5 [&>input]:w-14">
+        {Array.from({ length: schema.minItems as number }, (_, at) => [
+          at > 0 && (
+            // biome-ignore lint/suspicious/noArrayIndexKey: a fixed-length list's place is its identity
+            <span key={`${at}:to`} aria-hidden="true" className="text-ink-3">
+              –
+            </span>
+          ),
+          <Scalar
+            // biome-ignore lint/suspicious/noArrayIndexKey: a fixed-length list's place is its identity
+            key={at}
+            schema={resolve(schema.items, context.root)}
+            value={items[at]}
+            path={[...path, at]}
+            name={`${name} ${at + 1}`}
+            context={context}
+          />,
+        ])}
+      </span>
+    );
+  }
   return <Scalar schema={schema} value={value} path={path} name={name} context={context} />;
 }
 
@@ -237,7 +266,8 @@ function shownKeys(schema: Schema, value: Record_, path: Path, context: Context)
   const required = (schema.required ?? []) as string[];
   const keys = Object.keys(properties).filter((key: string): boolean => {
     const own = resolve(properties[key] ?? {}, context.root);
-    if (context.sheets.includes(pathText([...path, key])) || own.type === "array") return false;
+    if (context.sheets.includes(pathText([...path, key]))) return false;
+    if (own.type === "array" && !isPair(own)) return false;
     // A group that holds only sheets (a chart's `data`) shows nothing.
     if (own.type === "object") return shownKeys(own, {}, [...path, key], context).keys.length > 0;
     return true;

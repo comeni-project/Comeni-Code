@@ -39,8 +39,9 @@ describe("the figure composer (M6.5)", () => {
     await userEvent.click(await screen.findByRole("button", { name: /^chart/ }));
     await userEvent.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByRole("table", { name: "Values" })).toBeInTheDocument();
-    await userEvent.type(screen.getByLabelText("Alt text"), "A bar chart of k-mers by k.");
-    await userEvent.type(screen.getByLabelText("Caption"), "Distinct k-mers as k grows.");
+    // Short words: each key re-renders the composer, and 54 of them neared the timeout (#401).
+    await userEvent.type(screen.getByLabelText("Alt text"), "Bars by k.");
+    await userEvent.type(screen.getByLabelText("Caption"), "K-mers by k.");
     await userEvent.click(screen.getByRole("button", { name: "Save to the page" }));
     await waitFor(() =>
       expect(screen.getByTestId("where")).toHaveTextContent("/studio/drafts/d-1"),
@@ -48,10 +49,23 @@ describe("the figure composer (M6.5)", () => {
     const [[call, body]] = writes(fake) as [[string, Record<string, unknown>]];
     expect(call).toBe("POST /api/studio/drafts/d-1/figures");
     expect(body.at).toBe(2);
-    expect(body.caption).toBe("Distinct k-mers as k grows.\n");
-    expect(String(body.text)).toMatch(
-      /^component: chart\nalt: A bar chart of k-mers by k\.\ndata:\n/,
-    );
+    expect(body.caption).toBe("K-mers by k.\n");
+    expect(String(body.text)).toMatch(/^component: chart\nalt: Bars by k\.\ndata:\n/);
+  });
+
+  it("names what a domain component computed, in Data and in Checks (M6DC.5)", async () => {
+    composer("/studio/drafts/d-1/figures/new?at=2");
+    await userEvent.click(await screen.findByRole("button", { name: /^kmer-graph/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    const computed = screen.getByRole("region", { name: "Computed" });
+    expect(within(computed).getByText("ACG CGT GTT TTA TAG GTC")).toBeInTheDocument();
+    expect(within(computed).getByText("spells ACGTTAG")).toBeInTheDocument();
+    const checks = screen.getByRole("region", { name: "Checks" });
+    expect(within(checks).getByText("Computed from the reads")).toBeInTheDocument();
+    expect(
+      within(checks).getByText("6 k-mers, 5 edges; the path of 1–3 spells ACGTTAG"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("4 reads · k = 3")).toBeInTheDocument();
   });
 
   it("sends a changed cell as its one line", async () => {

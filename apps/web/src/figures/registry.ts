@@ -2,6 +2,11 @@
 // unless these are exactly the components schemas.ts holds.
 import type { ComponentType } from "react";
 import { ChartFigure } from "./ChartFigure";
+import { CompareGraphsFigure } from "./domain/CompareGraphsFigure";
+import { GraphArtifactsFigure } from "./domain/GraphArtifactsFigure";
+import { KmerGraphFigure } from "./domain/KmerGraphFigure";
+import { KmerWindowFigure } from "./domain/KmerWindowFigure";
+import { ReadTilingFigure } from "./domain/ReadTilingFigure";
 import { FlowFigure } from "./FlowFigure";
 import type { Component, FigureData } from "./schemas";
 import { TableFigure } from "./TableFigure";
@@ -15,7 +20,12 @@ export interface KitProps<C extends Component> {
 
 export const RENDERERS: { [C in Component]: ComponentType<KitProps<C>> } = {
   chart: ChartFigure,
+  "compare-graphs": CompareGraphsFigure,
   flow: FlowFigure,
+  "graph-artifacts": GraphArtifactsFigure,
+  "kmer-graph": KmerGraphFigure,
+  "kmer-window": KmerWindowFigure,
+  "read-tiling": ReadTilingFigure,
   "sequence-track": TrackFigure,
   table: TableFigure,
 };

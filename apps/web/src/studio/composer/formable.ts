@@ -1,9 +1,10 @@
 // Whether the sheets and the form can hold a figure's file, and why not (M6.5 spec, M6CO.3): one
 // that does not parse, reads two ways, would be laid out anew, is a layered chart, or holds a key
-// or a list the form does not show opens in Edit as YAML with this line.
+// or a list the form does not show opens in Edit as YAML with this line. A short list of numbers
+// of a fixed length (a path, a range) the form shows (isPair).
 import { type FigureDocument, linesKept, type Path, pathText } from "../../figures/document";
 import { type Component, SCHEMAS, TWO_READINGS } from "../../figures/schemas";
-import { resolve, sheetPaths } from "./sheets";
+import { isPair, resolve, sheetPaths } from "./sheets";
 
 // biome-ignore lint/suspicious/noExplicitAny: a schema is JSON, walked by key
 type Schema = { readonly [key: string]: any };
@@ -43,6 +44,13 @@ function unshown(
   }
   const where = pathText(path);
   if (Array.isArray(value)) {
+    if (isPair(schema)) {
+      const length = schema.minItems as number;
+      const number = (item: unknown) => typeof item === "number";
+      return value.length === length && value.every(number)
+        ? null
+        : `${where} is not ${length} numbers, as the form shows it: ${AS_YAML}`;
+    }
     if (!sheets.includes(where)) return `${where} is a list the form does not show: ${AS_YAML}`;
     const items = resolve(schema.items ?? {}, root);
     if (items.type !== "object" || !items.properties) return null; // a table's rows

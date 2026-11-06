@@ -1,0 +1,6 @@
+component: kmer-window
+alt: A k-mer window. The read ACGTTAGCAT cut into its 4-mers, seven of them; the learner can move k from 3 to 7.
+data:
+  read: ACGTTAGCAT
+  k: 4
+  range: [3, 7]

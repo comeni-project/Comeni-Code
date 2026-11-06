@@ -1512,6 +1512,46 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A table is a checked figure: its cells are what its columns say (M6FG.3).
 
+#### CS1012 — a read is not in the genome, or is in it twice
+
+*Refuses.*
+
+**Fix.** Write each read as a stretch of the genome that occurs once; lengthen a read that matches in two places until it matches in one.
+
+**Why.** read-tiling places each read where it matches (M6DC.1); a read with no place, or two, could only be drawn by guessing.
+
+#### CS1013 — k is not shorter than every read
+
+*Refuses.*
+
+**Fix.** Lower k, or lengthen the read the message names: a read of length L has L - k + 1 k-mers, and a read no longer than k has none to draw.
+
+**Why.** A domain component computes its k-mers from the reads (M6DC.1); a read with none would vanish from the drawing without a word.
+
+#### CS1014 — the highlighted reads do not make one path
+
+*Refuses.*
+
+**Fix.** Highlight reads that a read carries from each k-mer to the next: each step of the path must be an edge, two k-mers that follow each other in some read. Add the read that bridges the gap the message names, or name reads that exist.
+
+**Why.** A kmer-graph spells the sequence a path walks (M6DC.1), and every edge it draws is a step some read takes, so a path is too (#408): k-mers that only overlap, with no read between them, would spell a sequence the figure cannot draw as one path.
+
+#### CS1015 — no k-mer is in two reads
+
+*Refuses.*
+
+**Fix.** Add reads that agree with each other: a path stands where reads share k-mers, and an error shows only against it.
+
+**Why.** graph-artifacts tells a tip or a bubble from the path by how many reads hold each k-mer (M6DC.1); with no k-mer in two reads there is no path to tell them from.
+
+#### CS1016 — more k-mers than a page can draw
+
+*Refuses.*
+
+**Fix.** Use fewer or shorter reads, or a larger k: a graph draws at most 12 k-mers (16 for compare-graphs's two halves together).
+
+**Why.** A figure is read at 390 px on a phone; a larger graph is refused, not shrunk (M6DC.2, W5.3's legibility check).
+
 #### CS1020 — a figure is placed but its file is missing
 
 *Refuses.*

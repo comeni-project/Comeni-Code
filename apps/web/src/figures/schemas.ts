@@ -363,6 +363,42 @@ export const SCHEMAS = {
       }
     }
   },
+  "compare-graphs": {
+    "$comment": "One set of reads under both conventions (M6.6a spec, M6DC.1): k-mers as nodes, and (k-1)-mers as nodes with each k-mer an edge. Both computed.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "reads": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z]+$",
+              "maxLength": 20,
+              "format": "dna"
+            }
+          },
+          "required": [
+            "sequence"
+          ]
+        }
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      }
+    },
+    "required": [
+      "reads",
+      "k"
+    ]
+  },
   "flow": {
     "$comment": "Boxes and arrows, laid out in the browser (M6.4 spec, M6FG.3).",
     "type": "object",
@@ -463,6 +499,176 @@ export const SCHEMAS = {
       "edges"
     ]
   },
+  "graph-artifacts": {
+    "$comment": "Tips and bubbles found from the reads (M6.6a spec, M6DC.1): a run of k-mers held by one read rejoining the path is a bubble, else a tip. Computed.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "reads": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z]+$",
+              "maxLength": 20,
+              "format": "dna"
+            }
+          },
+          "required": [
+            "sequence"
+          ]
+        }
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      }
+    },
+    "required": [
+      "reads",
+      "k"
+    ]
+  },
+  "kmer-graph": {
+    "$comment": "Reads joined by their k-mers (M6.6a spec, M6DC.1). The author writes the reads, k and the highlight; the k-mers, edges, branches, a path and what it spells are computed.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "reads": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z]+$",
+              "maxLength": 20,
+              "format": "dna"
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            }
+          },
+          "required": [
+            "sequence"
+          ]
+        }
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      },
+      "highlight": {
+        "enum": [
+          "none",
+          "branches",
+          "path"
+        ]
+      },
+      "path": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "spell": {
+        "enum": [
+          "shown",
+          "hidden"
+        ]
+      }
+    },
+    "required": [
+      "reads",
+      "k",
+      "highlight"
+    ]
+  },
+  "kmer-window": {
+    "$comment": "A read cut into k-mers; the learner drags k (M6.6a spec, M6DC.1). Every k's windows and count are computed.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "read": {
+        "type": "string",
+        "pattern": "^[A-Za-z]+$",
+        "maxLength": 16,
+        "format": "dna"
+      },
+      "k": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 8
+      },
+      "range": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8
+        }
+      }
+    },
+    "required": [
+      "read",
+      "k",
+      "range"
+    ]
+  },
+  "read-tiling": {
+    "$comment": "Reads placed on the genome they came from (M6.6a spec, M6DC.1). Where each read sits, and its lane, are computed from its one exact match.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "genome": {
+        "type": "string",
+        "pattern": "^[A-Za-z]+$",
+        "maxLength": 60,
+        "format": "dna"
+      },
+      "reads": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string",
+              "pattern": "^[A-Za-z]+$",
+              "maxLength": 20,
+              "format": "dna"
+            }
+          },
+          "required": [
+            "sequence"
+          ]
+        }
+      }
+    },
+    "required": [
+      "genome",
+      "reads"
+    ]
+  },
   "sequence-track": {
     "$comment": "A sequence, a ruler and features in lanes (M6.4 spec, M6FG.3). Positions are 1-based and inclusive.",
     "type": "object",
@@ -478,7 +684,8 @@ export const SCHEMAS = {
       "sequence": {
         "type": "string",
         "pattern": "^[A-Za-z]+$",
-        "maxLength": 120
+        "maxLength": 120,
+        "format": "dna"
       },
       "length": {
         "type": "integer",
@@ -636,7 +843,12 @@ export type Component = keyof typeof SCHEMAS;
 
 export interface FigureData {
   "chart": ChartData;
+  "compare-graphs": CompareGraphsData;
   "flow": FlowData;
+  "graph-artifacts": GraphArtifactsData;
+  "kmer-graph": KmerGraphData;
+  "kmer-window": KmerWindowData;
+  "read-tiling": ReadTilingData;
   "sequence-track": SequenceTrackData;
   "table": TableData;
 }
@@ -725,6 +937,22 @@ export interface Channel {
   } | null;
 }
 
+export interface CompareGraphsData {
+  /**
+   * @minItems 1
+   * @maxItems 8
+   */
+  reads: [
+    {
+      sequence: string;
+    },
+    ...{
+      sequence: string;
+    }[],
+  ];
+  k: number;
+}
+
 export interface FlowData {
   /**
    * @minItems 1
@@ -758,6 +986,73 @@ export interface FlowData {
     id: string;
     label: string;
   }[];
+}
+
+export interface GraphArtifactsData {
+  /**
+   * @minItems 1
+   * @maxItems 8
+   */
+  reads: [
+    {
+      sequence: string;
+    },
+    ...{
+      sequence: string;
+    }[],
+  ];
+  k: number;
+}
+
+export interface KmerGraphData {
+  /**
+   * @minItems 1
+   * @maxItems 8
+   */
+  reads: [
+    {
+      sequence: string;
+      note?: string;
+    },
+    ...{
+      sequence: string;
+      note?: string;
+    }[],
+  ];
+  k: number;
+  highlight: "none" | "branches" | "path";
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  path?: [number, number, ...number[]];
+  spell?: "shown" | "hidden";
+}
+
+export interface KmerWindowData {
+  read: string;
+  k: number;
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  range: [number, number, ...number[]];
+}
+
+export interface ReadTilingData {
+  genome: string;
+  /**
+   * @minItems 1
+   * @maxItems 8
+   */
+  reads: [
+    {
+      sequence: string;
+    },
+    ...{
+      sequence: string;
+    }[],
+  ];
 }
 
 export interface SequenceTrackData {

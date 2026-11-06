@@ -105,3 +105,12 @@ describe("Figure (M6FG.6)", () => {
     expect(Object.keys(RENDERERS).sort()).toEqual(Object.keys(SCHEMAS).sort());
   });
 });
+
+describe("a framed figure wider than its column (#402)", () => {
+  it("scrolls sideways in its frame", () => {
+    const { container } = render(
+      <Figure record={{ ...TRACK, stem: "t" }} caption="" number={null} />,
+    );
+    expect(container.querySelector("figure > div")).toHaveClass("overflow-x-auto");
+  });
+});

@@ -3,6 +3,7 @@
 // everything else is the form (SchemaForm.tsx).
 import { type Op, type Path, pathText, type Value } from "../../figures/document";
 import { type Component, SCHEMAS } from "../../figures/schemas";
+import { isFasta, parseFasta } from "./fasta";
 import { parsePaste } from "./paste";
 
 export type Cell = "text" | "number" | "select";
@@ -13,6 +14,8 @@ export interface Column {
   cell: Cell;
   options?: string[];
   required: boolean;
+  /** Letters marked `format: dna`: FASTA pasted into it fills a row per record (M6DC.5). */
+  dna?: boolean;
 }
 
 export interface SheetSpec {
@@ -40,11 +43,29 @@ const SHEETS: { [C in Component]: { title: string; path: Path }[] } = {
     { title: "Groups", path: ["data", "groups"] },
   ],
   "sequence-track": [{ title: "Features", path: ["data", "features"] }],
+  "read-tiling": [{ title: "Reads", path: ["data", "reads"] }],
+  "kmer-window": [],
+  "kmer-graph": [{ title: "Reads", path: ["data", "reads"] }],
+  "compare-graphs": [{ title: "Reads", path: ["data", "reads"] }],
+  "graph-artifacts": [{ title: "Reads", path: ["data", "reads"] }],
 };
 
 /** Where each kit's sheets are, as paths: the form leaves these out. */
 export const sheetPaths = (component: Component) =>
   SHEETS[component].map((sheet) => pathText(sheet.path));
+
+/** A short list of a fixed length, every item a number (a path's first and last read, a range):
+ * the form shows it as that many inputs side by side, never as a sheet (M6DC.5). */
+export function isPair(schema: Schema): boolean {
+  const items = schema.items as Schema | undefined;
+  return (
+    schema.type === "array" &&
+    typeof schema.minItems === "number" &&
+    schema.minItems === schema.maxItems &&
+    schema.minItems <= 4 &&
+    (items?.type === "integer" || items?.type === "number")
+  );
+}
 
 export function resolve(schema: Schema, root: Schema): Schema {
   const ref = schema.$ref;
@@ -64,7 +85,9 @@ function columnOf(key: string, schema: Schema, required: boolean): Column {
     return { key, label: key, cell: "select", options: schema.enum.map(String), required };
   }
   const number = schema.type === "integer" || schema.type === "number";
-  return { key, label: key, cell: number ? "number" : "text", required };
+  const column: Column = { key, label: key, cell: number ? "number" : "text", required };
+  if (schema.format === "dna") column.dna = true;
+  return column;
 }
 
 function at(data: unknown, path: Path): unknown {
@@ -140,6 +163,8 @@ export function pasteOps(
   column: number,
   text: string,
 ): { ops: Op[]; dropped: number } {
+  const into = sheet.columns[column];
+  if (into?.dna === true && isFasta(text)) return fastaOps(sheet, row, into, text);
   const pasted = parsePaste(
     text,
     sheet.columns.length - column,
@@ -162,4 +187,29 @@ export function pasteOps(
     });
   });
   return { ops, dropped: pasted.dropped };
+}
+
+/** FASTA into a `format: dna` column: a row per record from the row pasted into, its letters in
+ * that column and its header in the sheet's `note`, when it has one (M6DC.5). */
+function fastaOps(
+  sheet: SheetSpec,
+  row: number,
+  into: Column,
+  text: string,
+): { ops: Op[]; dropped: number } {
+  const note = sheet.columns.find((column) => column.key === "note");
+  const ops: Op[] = [];
+  let length = sheet.rows.length;
+  parseFasta(text).forEach((record, offset) => {
+    const target = row + offset;
+    if (length <= target) {
+      ops.push({ op: "insert", path: sheet.path, at: length, item: sheet.blank });
+      length += 1;
+    }
+    ops.push({ op: "set", path: [...sheet.path, target, into.key], value: record.letters });
+    if (note !== undefined && record.header !== "") {
+      ops.push({ op: "set", path: [...sheet.path, target, note.key], value: record.header });
+    }
+  });
+  return { ops, dropped: 0 };
 }

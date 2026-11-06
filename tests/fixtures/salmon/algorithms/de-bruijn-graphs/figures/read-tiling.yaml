@@ -1,0 +1,12 @@
+component: read-tiling
+alt: Read tiling. Seven 9-base reads placed on the 40-base genome they came from, overlapping in two lanes.
+data:
+  genome: ATGCGTACGTTAGCCTAGGATCCAGTACGTTAGGCATCGA
+  reads:
+    - {sequence: ATGCGTACG}
+    - {sequence: TACGTTAGC}
+    - {sequence: AGCCTAGGA}
+    - {sequence: AGGATCCAG}
+    - {sequence: CCAGTACGT}
+    - {sequence: CGTTAGGCA}
+    - {sequence: AGGCATCGA}

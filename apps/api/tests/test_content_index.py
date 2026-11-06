@@ -258,6 +258,7 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
         "kmers-per-read",
         "shared-unitig",
         "spell-the-path",
+        "green-path",
         "assembly-order",
     ]
     assert questions[0].kind == "number"
@@ -287,7 +288,7 @@ def test_a_second_rebuild_replaces_them() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
     assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
-    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 4
+    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 5  # with green-path
 
 
 def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
@@ -328,13 +329,23 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
     stored = Node.objects.get(id="de-bruijn-graphs").blocks
     assert [block["kind"] for block in stored] == [
         "text",
+        "figure",
+        "text",
         "sequence",
         "text",
+        "figure",
+        "text",
         "try",
+        "text",
+        "figure",
         "text",
         "try",
         "text",
         "try",
+        "text",
+        "try",
+        "text",
+        "figure",
         "text",
         "try",
         "text",
@@ -353,9 +364,12 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
         "figure",
         "text",
     ]
-    assert stored[1] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
-    assert stored[11]["kind"] == "math" and stored[11]["tex"].startswith("G_k(R)")
-    assert stored[3] == {"kind": "try", "question": "kmers-per-read"}
+    # Found by kind, not by place: M6.6a's domain figures moved every place after the first.
+    kinds = [block["kind"] for block in stored]
+    assert stored[kinds.index("sequence")] == {"kind": "sequence", "letters": "ACGTTGCA\n"}
+    math = stored[kinds.index("math")]
+    assert math["tex"].startswith("G_k(R)")
+    assert stored[kinds.index("try")] == {"kind": "try", "question": "kmers-per-read"}
     callout = Node.objects.get(id="tpm").blocks[1]
     assert (callout["kind"], callout["callout"]) == ("callout", "misconception")
 
