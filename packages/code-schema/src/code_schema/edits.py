@@ -25,6 +25,7 @@ from code_schema.blocks import (
     write_blocks,
 )
 from code_schema.exam import ExamQuestion
+from code_schema.figure_answers import placements
 from code_schema.figures import FIGURE_FOLDER, file_name, read_figure, starter_text
 from code_schema.images import ImageRecord, free_name
 from code_schema.levels import Level
@@ -194,10 +195,8 @@ def remove_figure(node: Node, stem: str) -> Node:
 
 
 def placed_figures(node: Node) -> set[str]:
-    """The stems a node places: by its body, its try questions and its exam stems (M6FG.1)."""
-    stems = [block for question in node.exam for block in question.blocks]
-    placed = {b.file for b in (*node.blocks, *stems) if isinstance(b, Figure)}
-    return placed | {q.figure for q in node.questions if q.figure is not None}
+    """The stems a node places (M6FG.1, M6FA.3): its folder's read uses the same rule."""
+    return placements(node.blocks, node.questions, node.exam)
 
 
 def without_unplaced_figures(node: Node) -> Node:

@@ -74,6 +74,7 @@ class StudioOptionOut(Schema):
     right: bool
     misconception: str
     plain: bool
+    figure: str | None = None  # a figure's stem, drawn as the option (M6FA.3)
 
 
 class StudioQuestionOut(Schema):
@@ -265,7 +266,11 @@ def _answer_out(answer: Answer) -> dict[str, object]:
             return empty | {
                 "options": [
                     StudioOptionOut(
-                        text=o.text, right=o.right, misconception=o.misconception, plain=o.plain
+                        text=o.text,
+                        right=o.right,
+                        misconception=o.misconception,
+                        plain=o.plain,
+                        figure=o.figure,
                     )
                     for o in options
                 ]
@@ -277,7 +282,7 @@ def _answer_out(answer: Answer) -> dict[str, object]:
         case OrderAnswer(steps=steps):
             return empty | {"steps": list(steps)}
         case FigureAnswer():
-            return empty  # its figure computes it (M6FA.3); the API sends it in Task 4
+            return empty  # its figure computes it, and the figure carries it (M6FA.3)
 
 
 def _block_out(block: Block) -> AnyBlockOut:
@@ -318,10 +323,11 @@ def figure_out(figure: FigureFile) -> StudioFigureOut:
         component=figure.component,
         alt=figure.alt,
         data=dict(figure.data),
-        derived=derived(figure.component, figure.data),
+        derived=derived(figure.component, figure.data, figure.interact),
         source=None
         if figure.source is None
         else FigureSourceOut(title=figure.source.title, url=figure.source.url),
+        interact=None if figure.interact is None else dict(figure.interact),
         text=figure.text,
     )
 
@@ -417,6 +423,11 @@ class ReviewQuestionOut(Schema):
     ask: str  # an exam question's title
     stem: list[BlockOut]  # an exam question's stem; a try question has none
     options: list[str] | None
+    # Each option's figure, by stem, where it is one (M6FA.3); the text is then "".
+    option_figures: list[str | None] | None = None
+    # The figure a figure question is answered by, and once answered its right selections.
+    figure: str | None = None
+    right_selections: list[list[str]] | None = None
     unit: str
     # An order's steps by their text, not as written; once answered, `right_steps` (#264).
     steps: list[str] | None
@@ -436,12 +447,16 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
     right_option = tolerance = None
     value: float | int | str | None = None
     texts: list[str] | None = None
+    figures: list[str | None] | None = None
+    figure: str | None = None
+    selections: list[list[str]] | None = None
     steps: list[str] | None = None
     right_steps: list[str] | None = None
     unit = ""
     match question.answer:
         case ChoiceAnswer(options=options):
             texts = [option.text for option in options]
+            figures = [option.figure for option in options]
             if shown:
                 right_option = next(i for i, option in enumerate(options) if option.right)
         case NumberAnswer(value=key, unit=unit, tolerance=within):
@@ -454,6 +469,10 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
             steps = sorted(written, key=str.casefold)
             if shown:
                 right_steps = list(written)
+        case FigureAnswer(figure=stem, accept=accept):
+            figure = stem
+            if shown:
+                selections = [list(selection) for selection in accept]
     exam = isinstance(question, ExamQuestion)
     return ReviewQuestionOut(
         id=answered.asked.id,
@@ -462,6 +481,9 @@ def review_question_out(answered: Answered) -> ReviewQuestionOut:
         ask=question.title if exam else question.ask,  # type: ignore[union-attr]
         stem=[_block_out(block) for block in question.blocks] if exam else [],  # type: ignore[union-attr]
         options=texts,
+        option_figures=figures,
+        figure=figure,
+        right_selections=selections,
         unit=unit,
         steps=steps,
         hints=[] if exam else list(question.hints),  # type: ignore[union-attr]

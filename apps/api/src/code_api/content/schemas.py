@@ -50,8 +50,9 @@ class ResourceOut(Schema):
 
 
 class OptionOut(Schema):
-    text: str
+    text: str  # "" for an option that is a figure
     right: bool
+    figure: str | None = None  # a figure's stem, drawn as the option (M6FA.3)
 
 
 class QuestionOut(Schema):
@@ -153,6 +154,8 @@ class FigureOut(Schema):
     data: dict[str, Any]
     derived: dict[str, Any]
     source: FigureSourceOut | None
+    # Its task, when it asks a question; `derived.answer` then holds what is right (M6FA.1).
+    interact: dict[str, Any] | None = None
 
 
 class ImageRecordOut(Schema):

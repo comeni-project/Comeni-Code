@@ -228,9 +228,9 @@ def test_a_choice_question_comes_with_its_options(client: Client) -> None:
     assert question["kind"] == "choice"
     assert question["answer"] is None
     assert question["options"] == [
-        {"text": "ACGTTG", "right": True},
-        {"text": "TTGCA", "right": False},
-        {"text": "ACGTTGCA", "right": False},
+        {"text": "ACGTTG", "right": True, "figure": None},
+        {"text": "TTGCA", "right": False, "figure": None},
+        {"text": "ACGTTGCA", "right": False, "figure": None},
     ]
 
 

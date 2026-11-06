@@ -815,7 +815,8 @@
               "choice",
               "number",
               "sequence",
-              "order"
+              "order",
+              "figure"
             ],
             "title": "Kind",
             "type": "string"
@@ -1040,6 +1041,18 @@
             "additionalProperties": true,
             "title": "Derived",
             "type": "object"
+          },
+          "interact": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interact"
           },
           "source": {
             "anyOf": [
@@ -2039,7 +2052,19 @@
         "type": "object"
       },
       "OptionIn": {
+        "description": "An option's text, or a figure's stem (M6FA.3): one or the other.",
         "properties": {
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
+          },
           "misconception": {
             "default": "",
             "title": "Misconception",
@@ -2056,18 +2081,27 @@
             "type": "boolean"
           },
           "text": {
+            "default": "",
             "title": "Text",
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ],
         "title": "OptionIn",
         "type": "object"
       },
       "OptionOut": {
         "properties": {
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
+          },
           "right": {
             "title": "Right",
             "type": "boolean"
@@ -3184,6 +3218,17 @@
             "title": "Ask",
             "type": "string"
           },
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
+          },
           "given": {
             "title": "Given"
           },
@@ -3201,6 +3246,27 @@
           "kind": {
             "title": "Kind",
             "type": "string"
+          },
+          "option_figures": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Option Figures"
           },
           "options": {
             "anyOf": [
@@ -3256,6 +3322,23 @@
               }
             ],
             "title": "Right Option"
+          },
+          "right_selections": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Right Selections"
           },
           "right_steps": {
             "anyOf": [
@@ -3882,6 +3965,18 @@
             "title": "Derived",
             "type": "object"
           },
+          "interact": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interact"
+          },
           "source": {
             "anyOf": [
               {
@@ -3915,6 +4010,17 @@
       },
       "StudioOptionOut": {
         "properties": {
+          "figure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure"
+          },
           "misconception": {
             "title": "Misconception",
             "type": "string"
@@ -4272,7 +4378,8 @@
               "choice",
               "number",
               "sequence",
-              "order"
+              "order",
+              "figure"
             ],
             "title": "Kind",
             "type": "string"

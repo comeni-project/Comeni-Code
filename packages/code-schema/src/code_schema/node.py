@@ -12,7 +12,7 @@ from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from code_schema.blocks import Block, Figure, Image, Try, parse_blocks
+from code_schema.blocks import Block, Image, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
@@ -24,7 +24,7 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
-from code_schema.figure_answers import figure_answers
+from code_schema.figure_answers import figure_answers, placements
 from code_schema.figures import (
     FIGURE_FOLDER,
     STEM,
@@ -39,7 +39,7 @@ from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problems import Problem
 from code_schema.providers import Provider
-from code_schema.questions import TRY_FIELD, ChoiceAnswer, TryQuestion, parse_questions
+from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
 from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
 from code_schema.yaml_lines import Lines, load_mapping
 
@@ -452,19 +452,8 @@ def parse_node_files(
     read, figure_found = parse_figures(texts, where=where)
     problems += figure_found
     if node is not None:
-        # Placed by the body, an exam stem or a try question's figure (M6FG.1).
-        stems = [block for question in exam for block in question.blocks]
-        shown = {block.file for block in (*node.blocks, *stems) if isinstance(block, Figure)}
-        shown |= {q.figure for q in node.questions if q.figure is not None}
-        # And by an option that is a figure, in either pool (M6.6b spec, M6FA.3).
-        answers = [q.answer for q in node.questions] + [q.answer for q in exam]
-        shown |= {
-            option.figure
-            for answer in answers
-            if isinstance(answer, ChoiceAnswer)
-            for option in answer.options
-            if option.figure is not None
-        }
+        # Placed by the body, an exam stem, a try question's figure or an option (M6FG.1, M6FA.3).
+        shown = placements(node.blocks, node.questions, exam)
         # A file refused for its name is not also unplaced: CS1022 says enough.
         names = {n.removesuffix(".yaml") for n in texts if STEM.match(n.removesuffix(".yaml"))}
         names &= {n.removesuffix(".yaml") for n in texts if n.endswith(".yaml")}

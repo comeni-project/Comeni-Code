@@ -10,6 +10,7 @@ name what is wrong — and so `kind: figure` can be refused by name until figure
 
 from __future__ import annotations
 
+import dataclasses
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -148,7 +149,9 @@ class FigureAnswer:
 
     kind: ClassVar[str] = "figure"
     figure: str
-    accept: tuple[tuple[str, ...], ...] = ()
+    # Computed, never written: two answers that name the same figure are the same answer, so a
+    # save that re-reads its files compares what was sent (#174), not what the read worked out.
+    accept: tuple[tuple[str, ...], ...] = dataclasses.field(default=(), compare=False)
 
 
 # How a question is answered, whichever pool it is in (spec M4E.2). A new kind joins here, once.

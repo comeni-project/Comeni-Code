@@ -270,3 +270,13 @@ def test_a_read_folder_fills_accept() -> None:
     assert node is not None
     for answer in (node.questions[0].answer, node.exam[0].answer):
         assert isinstance(answer, FigureAnswer) and answer.accept == (tuple(PATH),)
+
+
+def test_a_save_keeps_a_figure_only_an_option_places() -> None:
+    """A figure goes with its last placement (M6FG.1); an option is a placement (M6FA.3)."""
+    from code_schema.edits import placed_figures, without_unplaced_figures
+
+    node, found = read(choice_try(FIGURE_OPTIONS), plain_a=PLAIN, plain_b=PLAIN)
+    assert node is not None, found
+    assert placed_figures(node) == {"plain-a", "plain-b"}
+    assert without_unplaced_figures(node) is node

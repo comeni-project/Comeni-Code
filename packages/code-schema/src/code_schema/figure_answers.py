@@ -36,6 +36,18 @@ def _options(answer: Answer) -> list[str]:
     return [option.figure for option in answer.options if option.figure is not None]
 
 
+def placements(
+    blocks: Sequence[Block], questions: Sequence[TryQuestion], exam: Sequence[ExamQuestion]
+) -> set[str]:
+    """The stems a node places: by its body, its try questions, its exam stems (M6FG.1) and the
+    options that are figures, in either pool (M6FA.3)."""
+    stems = [block for question in exam for block in question.blocks]
+    placed = {b.file for b in (*blocks, *stems) if isinstance(b, Figure)}
+    placed |= {q.figure for q in questions if q.figure is not None}
+    answers = [q.answer for q in questions] + [q.answer for q in exam]
+    return placed | {stem for answer in answers for stem in _options(answer)}
+
+
 def figure_answers(
     blocks: Sequence[Block],
     questions: Sequence[TryQuestion],

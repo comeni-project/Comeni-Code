@@ -134,7 +134,7 @@ def _question(question: Question) -> QuestionOut:
         ),
         unit=question.unit or None,
         tolerance=number_from(question.tolerance),
-        accept=list(question.accept),
+        accept=list(question.accept) if kind == "sequence" else [],
         exact=question.exact,
         steps=list(question.steps) if kind == "order" else None,
         hints=list(question.hints),
@@ -190,6 +190,7 @@ def node(node_id: str) -> NodeOut | None:
                 data=figure.data,
                 derived=figure.derived,
                 source=None if figure.source is None else FigureSourceOut(**figure.source),
+                interact=figure.interact,
             )
             for figure in found.figures.defer("text").order_by("position")
         ],
