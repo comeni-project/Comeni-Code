@@ -1,0 +1,42 @@
+exam:
+  - id: error-bubble
+    title: Pick a k-mer the wrong read made
+    claim: recognises the bubble a mid-read error leaves
+    kind: figure
+    stem: |
+      This graph was built from reads with k = 3. One read has a single wrong base in its middle. Click a k-mer only that read holds.
+
+      :::{figure} error-bubble
+      The figure the question is answered by.
+      :::
+    rationale: A wrong base in a read's middle makes k-mers only that read holds, GTC, TCA and CAG; they leave the path at CGT and rejoin it at AGC, a bubble.
+  - id: which-graph
+    title: Which graph shows a mid-read error?
+    claim: tells a bubble from a tip, a clean path and a repeat
+    kind: choice
+    stem: |
+      Each graph was built from reads with k = 3. In which one does a read have a single wrong base in its middle?
+    options:
+      - figure: options-tip
+        plain: true
+      - figure: options-bubble
+        right: true
+      - figure: options-clean
+        plain: true
+      - figure: options-loop
+        plain: true
+    rationale: A wrong base mid-read leaves the path and rejoins it, a bubble; an error near the end dead-ends, a tip, and a loop is a repeat, not an error.
+  - id: kmers-of-a-read
+    title: How many 3-mers does a read of 10 hold?
+    kind: number
+    stem: |
+      How many 3-mers does a read of 10 bases hold?
+    answer: 8
+    rationale: A read of length L holds L − k + 1 k-mers, so 10 − 3 + 1 = 8.
+  - id: spell-a-walk
+    title: Spell a walk of 3-mers
+    kind: sequence
+    stem: |
+      What does the walk ACG → CGT → GTA spell?
+    answer: ACGTA
+    rationale: The first k-mer whole, then the last letter of each next one, ACG + T + A.

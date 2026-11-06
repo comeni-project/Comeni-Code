@@ -1,0 +1,11 @@
+component: graph-artifacts
+alt: A de Bruijn graph from four reads with k = 3, every k-mer drawn alike. One path runs from ACG to AGC; a branch leaves at CGT and rejoins at AGC, and another leaves TAG for AGG.
+data:
+  reads:
+    - {sequence: ACGTTAGC}
+    - {sequence: ACGTTAGC}
+    - {sequence: ACGTCAGC}
+    - {sequence: ACGTTAGG}
+  k: 3
+  marks: hidden
+interact: {task: pick, artifact: bubble}

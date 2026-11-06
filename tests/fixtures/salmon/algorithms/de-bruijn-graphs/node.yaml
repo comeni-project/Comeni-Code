@@ -80,6 +80,13 @@ try:
     hints:
       - Each step to the next k-mer adds exactly one letter.
     rationale: 'Start with the first k-mer, then add the last letter of each next one: ACG + T + T + A + G. The branch to GTC belongs to another read.'
+  - id: trace-the-path
+    kind: figure
+    ask: Trace the path that spells ACGTTAG.
+    figure: trace-path
+    hints:
+      - ACGTTAG has 7 letters, so its path has 7 − 3 + 1 = 5 k-mers.
+    rationale: 'Each step to the next k-mer adds its last letter: ACG + T + T + A + G. The arrow to GTC belongs to the fourth read, which spells ACGTC.'
   - id: assembly-order
     kind: order
     ask: Put the steps of de Bruijn assembly in order.

@@ -288,6 +288,7 @@ def test_a_placed_question_is_a_try_block(client: Client) -> None:
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
 

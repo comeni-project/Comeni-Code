@@ -1,0 +1,8 @@
+component: graph-artifacts
+alt: A graph where ACG leads to CGA and GAC and back to ACG, then on to CGT.
+data:
+  reads:
+    - {sequence: TACGACGT}
+    - {sequence: TACGACGT}
+  k: 3
+  marks: hidden

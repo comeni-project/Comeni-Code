@@ -167,6 +167,7 @@ def test_a_try_block_comes_with_its_question_and_goes_with_it(client: Client) ->
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
     deleted = call(client, "delete", f"/api/studio/drafts/{draft}/blocks/8?revision=2")
@@ -175,6 +176,7 @@ def test_a_try_block_comes_with_its_question_and_goes_with_it(client: Client) ->
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
 

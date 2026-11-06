@@ -47,6 +47,9 @@ Reading a path back is how an assembler spells a sequence: each edge adds one le
 :::{try} green-path
 :::
 
+:::{try} trace-the-path
+:::
+
 Real reads carry errors, and an error leaves k-mers that only one read holds:
 
 :::{figure} graph-artifacts

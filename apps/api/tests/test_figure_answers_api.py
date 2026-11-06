@@ -41,19 +41,9 @@ TRY = """  - id: trace-the-path
 
 
 def with_trace(tmp_path: Path) -> Path:
-    """The Salmon fixtures, the de Bruijn page holding a trace try after green-path."""
+    """The Salmon fixtures, whose de Bruijn page holds the trace try after green-path (M6FA.8)."""
     root = tmp_path / "salmon"
     shutil.copytree(FIXTURES, root)
-    folder = root / DBG
-    (folder / "figures" / "trace-path.yaml").write_text(TRACE, encoding="utf-8")
-    node = (folder / "node.yaml").read_text(encoding="utf-8")
-    at = node.index("  - id: assembly-order")
-    (folder / "node.yaml").write_text(node[:at] + TRY + node[at:], encoding="utf-8")
-    body = (folder / "body.md").read_text(encoding="utf-8")
-    body = body.replace(
-        ":::{try} green-path\n:::\n", ":::{try} green-path\n:::\n\n:::{try} trace-the-path\n:::\n"
-    )
-    (folder / "body.md").write_text(body, encoding="utf-8")
     return root
 
 
@@ -97,7 +87,7 @@ def test_figure_options_reach_the_page(tmp_path: Path) -> None:
     )
     node = (folder / "node.yaml").read_text(encoding="utf-8")
     options = (
-        "  - id: which-graph\n    kind: choice\n    ask: Which graph branches at CGT?\n"
+        "  - id: which-drawing\n    kind: choice\n    ask: Which graph branches at CGT?\n"
         "    options:\n      - {figure: plain-a, right: true}\n      - {figure: plain-b}\n"
         "    hints:\n      - Look for two ways out.\n    rationale: Only one branches.\n"
     )
@@ -105,11 +95,11 @@ def test_figure_options_reach_the_page(tmp_path: Path) -> None:
         node + options if node.endswith("\n") else node, encoding="utf-8"
     )
     body = (folder / "body.md").read_text(encoding="utf-8")
-    (folder / "body.md").write_text(body + "\n:::{try} which-graph\n:::\n", encoding="utf-8")
+    (folder / "body.md").write_text(body + "\n:::{try} which-drawing\n:::\n", encoding="utf-8")
     build = rebuild_index(root)
     assert build.outcome == "applied", build.problems
     page = Client().get("/api/nodes/de-bruijn-graphs").json()
-    question = next(q for q in page["questions"] if q["id"] == "which-graph")
+    question = next(q for q in page["questions"] if q["id"] == "which-drawing")
     assert question["options"] == [
         {"text": "", "right": True, "figure": "plain-a"},
         {"text": "", "right": False, "figure": "plain-b"},
