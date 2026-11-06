@@ -5,7 +5,21 @@ import { useId } from "react";
 import type { KitProps } from "../registry";
 import { layoutKmers } from "./graphLayout";
 import { kmersOf } from "./kmers";
-import { Arrowheads, Edge, KmerBox, legible, MONO, NEUTRAL, ON_PATH, Undrawn } from "./parts";
+import {
+  Arrowheads,
+  Edge,
+  isPicked,
+  KmerBox,
+  legible,
+  MONO,
+  NEUTRAL,
+  ON_PATH,
+  Order,
+  Picks,
+  STROKE,
+  Undrawn,
+  viewTone,
+} from "./parts";
 
 const TOP = 40; // the reads line
 const SPELLS = 56; // the path spells line
@@ -19,17 +33,21 @@ interface Computed {
   spells?: string;
 }
 
-export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) {
+export function KmerGraphFigure({ data, derived, alt, view }: KitProps<"kmer-graph">) {
   const id = `kg-${useId().replace(/:/g, "")}`;
   const got = derived as Partial<Computed>;
   if (!Array.isArray(got.kmers) || !Array.isArray(got.edges)) return <Undrawn alt={alt} />;
   const { kmers, edges, branches = [], notes = {}, path = [], spells = "" } = got;
-  const highlight = data.highlight;
+  // Asked, a figure draws no highlight and spells nothing (M6FA.4): its view draws the selection.
+  const highlight = view === undefined ? data.highlight : "none";
   const onPath = new Set(highlight === "path" ? path : []);
   const step = new Set(path.slice(1).map((to, at) => `${path[at]} ${to}`));
   const isStep = (from: string, to: string) => highlight === "path" && step.has(`${from} ${to}`);
   // The path in one row when there is one; else the first read's k-mers, as the board draws.
-  const line = highlight === "path" ? path : kmersOf(data.reads[0]?.sequence ?? "", data.k);
+  // A trace's path in the main row too, as the L5 board draws it (M6FA.4); else the first read's.
+  const traced = (got as { answer?: { accept?: string[][] } }).answer?.accept?.[0];
+  const line =
+    data.highlight === "path" ? path : (traced ?? kmersOf(data.reads[0]?.sequence ?? "", data.k));
   const laid = layoutKmers(kmers, edges, line);
   // A note sits right of its k-mer, as the board's does at a row's end; beneath it when another box
   // follows in the row, where right of it is an edge (#403).
@@ -45,7 +63,8 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
   const height =
     TOP + laid.height + (beneath.size > 0 ? 16 : 0) + (highlight === "path" ? SPELLS : 0);
   const letters = [...spells].map((ch) => (data.spell === "hidden" ? "?" : ch)).join(" ");
-  return (
+  const tone = view?.tone ?? "sel";
+  const drawing = (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
@@ -54,7 +73,10 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
       aria-label={alt}
       className="mx-auto block"
     >
-      <Arrowheads id={id} colours={{ plain: "var(--ink-3)", path: "var(--line)" }} />
+      <Arrowheads
+        id={id}
+        colours={{ plain: "var(--ink-3)", path: "var(--line)", picked: STROKE[tone] }}
+      />
       <text x={10} y={22} style={{ ...MONO, fontSize: 11, fill: "var(--ink-3)" }}>
         reads
         {data.reads.map((read, at) => (
@@ -68,15 +90,16 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
       <g transform={`translate(0 ${TOP})`}>
         {laid.paths.map((p, at) => {
           const on = isStep(p.from, p.to);
+          const picked = isPicked(view, p.from, p.to);
           return (
             <Edge
               // biome-ignore lint/suspicious/noArrayIndexKey: edges are distinct, in order
               key={at}
               path={p}
-              colour={on ? "var(--line)" : "var(--ink-3)"}
-              marker={`${id}-${on ? "path" : "plain"}`}
+              colour={picked ? STROKE[tone] : on ? "var(--line)" : "var(--ink-3)"}
+              marker={`${id}-${picked ? "picked" : on ? "path" : "plain"}`}
               dashed={highlight === "path" && !on}
-              data-on-path={on ? "" : undefined}
+              data-on-path={on || (picked && tone === "line") ? "" : undefined}
             />
           );
         })}
@@ -84,11 +107,18 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
           <g key={box.id}>
             <KmerBox
               box={box}
-              tone={onPath.has(box.id) ? ON_PATH : NEUTRAL}
+              tone={viewTone(view, box.id) ?? (onPath.has(box.id) ? ON_PATH : NEUTRAL)}
               double={highlight === "branches" && branches.includes(box.id)}
-              data-on-path={onPath.has(box.id) ? "" : undefined}
+              data-on-path={
+                onPath.has(box.id) || (tone === "line" && view?.selection.includes(box.id))
+                  ? ""
+                  : undefined
+              }
               data-branch={highlight === "branches" && branches.includes(box.id) ? "" : undefined}
             />
+            {view?.order && view.selection.includes(box.id) && (
+              <Order box={box} n={view.selection.indexOf(box.id) + 1} tone={tone} />
+            )}
             {notes[box.id] !== undefined &&
               (beneath.has(box.id) ? (
                 <text
@@ -134,5 +164,12 @@ export function KmerGraphFigure({ data, derived, alt }: KitProps<"kmer-graph">) 
         </g>
       )}
     </svg>
+  );
+  if (view?.onPick === undefined) return drawing;
+  return (
+    <div className="relative mx-auto" style={legible(width, 1.4)}>
+      {drawing}
+      <Picks boxes={laid.boxes} width={width} height={height} top={TOP} view={view} />
+    </div>
   );
 }

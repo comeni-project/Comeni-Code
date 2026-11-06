@@ -3,6 +3,7 @@
 // path is the only teal, a tip amber and a bubble red, each also named in words (W10).
 import type { CSSProperties } from "react";
 import type { Box, Path } from "../flow/layout";
+import type { FigureView } from "../registry";
 
 export const MONO = { fontFamily: "var(--font-mono)" } as const;
 
@@ -22,6 +23,92 @@ export const NEUTRAL: Tone = { fill: "var(--surface)", stroke: "var(--ink-2)" };
 export const ON_PATH: Tone = { fill: "var(--line-soft)", stroke: "var(--line)" };
 export const BUBBLE: Tone = { fill: "var(--open-soft)", stroke: "var(--open)", dashed: true };
 export const TIP: Tone = { fill: "var(--meas-soft)", stroke: "var(--meas-bar)", dashed: true };
+// A question's selection (M6FA.4): blue while picked, red when checked wrong, teal when right.
+export const PICKED: Record<FigureView["tone"], Tone> = {
+  sel: { fill: "var(--sel-soft)", stroke: "var(--sel)" },
+  open: { fill: "var(--open-soft)", stroke: "var(--open)" },
+  line: ON_PATH,
+};
+export const STROKE: Record<FigureView["tone"], string> = {
+  sel: "var(--sel)",
+  open: "var(--open)",
+  line: "var(--line)",
+};
+/** Where a trace can go next: dashed in the selection's blue. */
+export const NEXT: Tone = { fill: "var(--surface)", stroke: "var(--sel)", dashed: true };
+
+/** A box's tone in a question's view, or null when the view leaves it as the kit draws it. */
+export function viewTone(view: FigureView | undefined, id: string): Tone | null {
+  if (view === undefined) return null;
+  if (view.selection.includes(id)) return PICKED[view.tone];
+  if (view.next.includes(id)) return NEXT;
+  return null;
+}
+
+/** Whether an edge is a step of the view's selection. */
+export const isPicked = (view: FigureView | undefined, from: string, to: string) =>
+  view?.selection.some((kmer, at) => kmer === from && view.selection[at + 1] === to) ?? false;
+
+/** A pick's place in a trace, drawn at its box's corner (1, 2, 3…). */
+export function Order({ box, n, tone }: { box: Box; n: number; tone: FigureView["tone"] }) {
+  return (
+    <g data-order={n}>
+      <circle cx={box.x + box.w - 2} cy={box.y + 2} r={9} style={{ fill: STROKE[tone] }} />
+      <text
+        x={box.x + box.w - 2}
+        y={box.y + 6}
+        textAnchor="middle"
+        style={{ ...MONO, fontSize: 11, fontWeight: 600, fill: "#FFFFFF" }}
+      >
+        {n}
+      </text>
+    </g>
+  );
+}
+
+/** Each k-mer a real button over the drawing (M6FA.4), placed in % of the drawing so it scales
+ * with it, its tap area at least 44 px; Tab follows reading order, row by row. */
+export function Picks({
+  boxes,
+  width,
+  height,
+  top = 0,
+  view,
+}: {
+  boxes: Box[];
+  width: number;
+  height: number;
+  top?: number;
+  view: FigureView;
+}) {
+  const onPick = view.onPick;
+  if (onPick === undefined) return null;
+  const reading = [...boxes].sort((a, b) => a.y - b.y || a.x - b.x);
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {reading.map((box) => (
+        <button
+          key={box.id}
+          type="button"
+          data-kmer={box.id}
+          data-next={view.next.includes(box.id) ? "" : undefined}
+          aria-pressed={view.selection.includes(box.id)}
+          aria-label={box.id}
+          onClick={() => onPick(box.id)}
+          className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-lg bg-transparent focus-visible:outline-2 focus-visible:outline-sel"
+          style={{
+            left: `${((box.x + box.w / 2) / width) * 100}%`,
+            top: `${((top + box.y + box.h / 2) / height) * 100}%`,
+            width: `${(box.w / width) * 100}%`,
+            height: `${(box.h / height) * 100}%`,
+            minWidth: "44px",
+            minHeight: "44px",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 /** An arrowhead per colour the figure uses, each its own id. */
 export function Arrowheads({ id, colours }: { id: string; colours: Record<string, string> }) {

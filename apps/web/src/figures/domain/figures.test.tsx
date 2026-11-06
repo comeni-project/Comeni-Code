@@ -207,3 +207,14 @@ describe("legible at phone width (#402)", () => {
     }
   });
 });
+
+describe("graph-artifacts with marks hidden (M6.6b spec, M6FA.5)", () => {
+  it("draws every k-mer plain and names no tip or bubble", () => {
+    const d = { ...STARTERS["graph-artifacts"], marks: "hidden" as const };
+    const { container } = render(
+      <GraphArtifactsFigure data={d} derived={derive("graph-artifacts", d)} alt={ALT} />,
+    );
+    expect(container.querySelector("[data-artifact]")).toBeNull();
+    expect(container.textContent).not.toMatch(/bubble|tip/);
+  });
+});
