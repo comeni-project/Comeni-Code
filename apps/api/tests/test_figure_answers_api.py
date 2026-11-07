@@ -182,3 +182,11 @@ def test_a_figure_is_made_for_a_question(client: Client, ada: User) -> None:
     asked = next(q for q in node["questions"] if q["id"] == "spell-the-path")
     assert (asked["kind"], asked["figure"]) == ("figure", "kmer-graph")
     assert not any(b.get("file") == "kmer-graph" for b in node["blocks"])
+
+
+def test_the_node_api_leaves_out_a_figure_only_an_exam_places() -> None:
+    """#411: the page never draws a figure only an exam question places, nor its key."""
+    rebuild_index(FIXTURES)
+    stems = {f["stem"] for f in Client().get("/api/nodes/de-bruijn-graphs").json()["figures"]}
+    assert "trace-path" in stems  # a try's
+    assert not stems & {"error-bubble", "options-tip", "options-bubble", "options-clean"}
