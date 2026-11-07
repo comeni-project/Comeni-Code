@@ -1,7 +1,8 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { StudioExamQuestionOut } from "../../api/schema";
+import type { FigureOut, StudioExamQuestionOut, StudioFigureOut } from "../../api/schema";
+import { ERROR_BUBBLE } from "../../figures/answer/answers.fixture";
 import { type Answer, type answering, holding } from "../../test-kit";
 import { renderPool } from "./examKit";
 import { DRAFT, examQuestion, NODE } from "./fixtures";
@@ -239,5 +240,36 @@ describe("ExamEditor", () => {
     expect(screen.getByLabelText("Rationale")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Delete question" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Add a text block to the stem" })).toBeNull();
+  });
+});
+
+describe("an exam question answered by a figure (M6.6b spec, M6FA.7)", () => {
+  const studio = (f: FigureOut): StudioFigureOut => ({ ...f, text: `component: ${f.component}\n` });
+  it("writes the chosen figure as its stem's one figure block", async () => {
+    const question = examQuestion("a", "draft");
+    const fake = renderPool(
+      [question],
+      { "PUT /api/studio/drafts/d-1/exam/a": savedWith([question]) },
+      {
+        node: { ...NODE, exam: [question], figures: [studio(ERROR_BUBBLE)] },
+      },
+    );
+    await userEvent.click(await screen.findByRole("button", { name: /^Question a,/ }));
+    await userEvent.click(screen.getByRole("radio", { name: "Figure" }));
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Answered by" }),
+      "error-bubble",
+    );
+    expect(screen.getByTestId("figure-answer-computed")).toHaveTextContent(
+      "right: GTC or TCA or CAG",
+    );
+    await leave();
+    const body = await bodyOf(fake, "PUT");
+    expect(body.question.kind).toBe("figure");
+    expect(body.question.stem.at(-1)).toEqual({
+      kind: "figure",
+      file: "error-bubble",
+      caption: "The figure the question is answered by.\n",
+    });
   });
 });

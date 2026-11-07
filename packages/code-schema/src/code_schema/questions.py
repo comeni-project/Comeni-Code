@@ -10,6 +10,7 @@ name what is wrong — and so `kind: figure` can be refused by name until figure
 
 from __future__ import annotations
 
+import dataclasses
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ from code_schema.records import Entry, Field
 from code_schema.yaml_lines import Lines
 
 TRY_FIELD = "try"
-KINDS = ("choice", "number", "sequence", "order")
+KINDS = ("choice", "number", "sequence", "order", "figure")
 MAX_HINTS = 3
 OPTIONS = (2, 5)
 STEPS = (3, 8)
@@ -48,6 +49,7 @@ _FIELDS: dict[str, tuple[str, ...]] = {
     "number": ("answer", "unit", "tolerance"),
     "sequence": ("answer", "accept", "exact"),
     "order": ("steps",),
+    "figure": (),  # its figure computes the answer (M6.6b spec, M6FA.3); nothing is typed
 }
 # The refusals M3 already pinned, kept in their words; any other field of another kind is CS0337.
 _PINNED = {
@@ -56,7 +58,6 @@ _PINNED = {
     ("choice", "unit"): "CS0313",
     ("choice", "tolerance"): "CS0314",
 }
-_LATER_KINDS = {"figure": ("CS0306", "a figure question arrives with figures in M6")}
 
 _id = slug(noun="question id")
 _kind = one_of(KINDS, noun="kind of question")
@@ -76,10 +77,13 @@ class OptionRules:
     keys: tuple[str, ...]
     code: str
     noun: str
+    both: str  # an option with text and a figure (M6FA.3)
     minimum: int = 2  # how few options a choice may offer
 
 
-TRY_OPTIONS = OptionRules(keys=("text", "right"), code="CS0324", noun="an option")
+TRY_OPTIONS = OptionRules(
+    keys=("text", "figure", "right"), code="CS0324", noun="an option", both="CS0339"
+)
 
 # A number gives the answer away only when it stands alone: "5-mers" is not the answer 5.
 _NOT_A_BOUNDARY = re.compile(r"[0-9A-Za-z.\-]")
@@ -87,12 +91,18 @@ _NOT_A_BOUNDARY = re.compile(r"[0-9A-Za-z.\-]")
 
 @dataclass(frozen=True)
 class Option:
-    text: str
+    text: str  # "" for an option that is a figure
     right: bool = False
     # An exam option's link to a misconception callout by title (spec M4E.1); never on a try.
     misconception: str = ""
     # An exam option wrong on purpose, naming no misconception (M4.8c spec, M4Q.3).
     plain: bool = False
+    figure: str | None = None  # a figure's stem, drawn as the option (M6.6b spec, M6FA.3)
+
+    @property
+    def said(self) -> str:
+        """What tells it from the other options: its text, or its figure."""
+        return self.text if self.figure is None else f"figure:{self.figure}"
 
 
 @dataclass(frozen=True)
@@ -131,8 +141,21 @@ class OrderAnswer:
     steps: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class FigureAnswer:
+    """Answered by working its figure (M6.6b spec, M6FA.3): right when the k-mers picked, in
+    order, are one of `accept`, which the figure's component computes and the folder's read fills.
+    In a try `figure` is the question's own; in the exam pool, the one figure its stem places."""
+
+    kind: ClassVar[str] = "figure"
+    figure: str
+    # Computed, never written: two answers that name the same figure are the same answer, so a
+    # save that re-reads its files compares what was sent (#174), not what the read worked out.
+    accept: tuple[tuple[str, ...], ...] = dataclasses.field(default=(), compare=False)
+
+
 # How a question is answered, whichever pool it is in (spec M4E.2). A new kind joins here, once.
-Answer = ChoiceAnswer | NumberAnswer | SequenceAnswer | OrderAnswer
+Answer = ChoiceAnswer | NumberAnswer | SequenceAnswer | OrderAnswer | FigureAnswer
 
 
 def _same(texts: Sequence[str]) -> bool:
@@ -203,12 +226,27 @@ def _parse_options(
             rules.code,
             lambda key: f"unknown key `{key}` in {rules.noun} ({', '.join(rules.keys)})",
         )
-        text, right = item.get("text"), item.get("right", False)
-        if "text" not in item:
-            field.problem("CS0325", f"an option of {question} has no text")
+        text, right = item.get("text", ""), item.get("right", False)
+        figure = item.get("figure")
+        if "text" in item and "figure" in item:
+            option.problem(
+                rules.both, f"an option of {question} has text and a figure — one or the other"
+            )
             sound = False
             continue
-        if not option.check("text", _option, prefix=f"an option of {question} "):
+        if "text" not in item and "figure" not in item:
+            field.problem("CS0325", f"an option of {question} has no text or figure")
+            sound = False
+            continue
+        if "figure" in item and (not isinstance(figure, str) or not STEM.match(figure)):
+            option.problem(
+                "CS1022",
+                f"{shown(figure)} is not a figure's name (lowercase words joined by hyphens)",
+                key="figure",
+            )
+            sound = False
+            continue
+        if "text" in item and not option.check("text", _option, prefix=f"an option of {question} "):
             sound = False
             continue
         if not isinstance(right, bool):
@@ -229,7 +267,11 @@ def _parse_options(
         sound = sound and option.sound
         options.append(
             Option(
-                text=str(text), right=right, misconception=str(misconception), plain=plain is True
+                text=str(text),
+                right=right,
+                misconception=str(misconception),
+                plain=plain is True,
+                figure=None if figure is None else str(figure),
             )
         )
     if not sound:
@@ -250,7 +292,7 @@ def _parse_options(
         word = "two" if right_count == 2 else str(right_count)
         field.problem("CS0329", f"the question {question} has {word} right options")
         return (), False
-    if _same([option.text for option in options]):
+    if _same([option.said for option in options]):
         field.problem("CS0335", f"two options of {question} say the same thing")
         return (), False
     return tuple(options), True
@@ -262,10 +304,10 @@ def _gives_the_answer(hint: str, answer: Answer) -> bool:
             return _states_the_number(hint, str(value))
         case ChoiceAnswer(options=options):
             right = next((option.text for option in options if option.right), "")
-            return right.casefold() in hint.casefold()
+            return bool(right) and right.casefold() in hint.casefold()
         case SequenceAnswer(value=value):
             return "".join(value.split()).casefold() in "".join(hint.split()).casefold()
-        case OrderAnswer():
+        case OrderAnswer() | FigureAnswer():
             return False
 
 
@@ -316,7 +358,7 @@ def read_answer(
             )
     elif kind == "sequence":
         typed = _read_sequence(entry, name)
-    else:
+    elif kind == "order":
         steps = _read_steps(entry, name)
 
     if _refusals(field) > before:
@@ -335,6 +377,8 @@ def read_answer(
         case "sequence":
             assert typed is not None  # CS0330–CS0332 refuse the rest
             return typed
+        case "figure":
+            return FigureAnswer(figure="")  # each pool names its figure (M6FA.3)
     return OrderAnswer(steps=steps)
 
 
@@ -343,6 +387,7 @@ _SAYS = {
     "number": "a value, with its unit and tolerance",
     "sequence": "typed text, with what else it accepts",
     "order": "its steps in order",
+    "figure": "working its figure",
 }
 
 
@@ -421,9 +466,6 @@ def read_head(entry: Entry, *, ask: bool = True) -> tuple[str, str] | None:
     entry.name = name
     kind = written.get("kind")
     if not entry.require("kind", "CS0305", f"the question {name} has no kind ({', '.join(KINDS)})"):
-        return None
-    if isinstance(kind, str) and kind in _LATER_KINDS:
-        entry.problem(*_LATER_KINDS[kind], key="kind")
         return None
     if not entry.check("kind", _kind):
         return None
@@ -507,6 +549,16 @@ def parse_questions(
                 f"{shown(figure)} is not a figure's name (lowercase words joined by hyphens)",
                 key="figure",
             )
+
+        if kind == "figure" and entry.sound:
+            if isinstance(figure, str):
+                answer = FigureAnswer(figure=figure)
+            else:
+                entry.problem(
+                    "CS0338",
+                    f"the figure question {name} has no figure — name the figure it is answered by",
+                    key="kind",
+                )
 
         if not entry.sound:
             continue

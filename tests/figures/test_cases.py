@@ -15,6 +15,7 @@ SHARED: dict[str, Any] = json.loads(
 )
 CASES: list[dict[str, Any]] = SHARED["cases"]
 FILES: list[dict[str, Any]] = SHARED["files"]
+INTERACT: list[dict[str, Any]] = SHARED["interact"]
 FILE_CODES = {"CS1023", "CS1024", "CS1025", "CS1026", "CS1027"}
 
 
@@ -42,7 +43,7 @@ def test_the_cases_cover_every_kit_and_both_outcomes() -> None:
 
 def test_every_code_has_a_case() -> None:
     """The browser's twins are held to every code the server writes for a figure (M6CO.5)."""
-    found = {code for case in CASES + FILES for code in case["codes"]}
+    found = {code for case in CASES + FILES + INTERACT for code in case["codes"]}
     assert found >= CODES | FILE_CODES
 
 
@@ -58,3 +59,13 @@ def test_each_computed_case(case: dict[str, Any]) -> None:
     """M6DC.3: what a component computes, held to the same cases as the browser's twin."""
     assert figure_findings(case["component"], case["data"]) == []
     assert derived(case["component"], case["data"]) == case["derived"]
+
+
+@pytest.mark.parametrize("case", INTERACT, ids=[case["name"] for case in INTERACT])
+def test_each_task_case(case: dict[str, Any]) -> None:
+    """M6FA.2: a task's findings, or the answer it computes, as the browser's twin finds them."""
+    found = [f.code for f in figure_findings(case["component"], case["data"], case["interact"])]
+    assert list(dict.fromkeys(found)) == case["codes"]
+    if not case["codes"]:
+        computed = derived(case["component"], case["data"], case["interact"])
+        assert computed["answer"] == case["answer"]

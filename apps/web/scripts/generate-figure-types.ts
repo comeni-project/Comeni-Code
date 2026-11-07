@@ -31,6 +31,20 @@ export function readSchemas(): Record<string, JSONSchema> {
   );
 }
 
+/** Each kit's tasks' schemas, by `<component>.<task>` (M6.6b spec, M6FA.2). */
+export function readTaskSchemas(): Record<string, JSONSchema> {
+  const folder = `${SCHEMA_FOLDER}tasks/`;
+  const names = readdirSync(folder)
+    .filter((name) => name.endsWith(".json"))
+    .sort();
+  return Object.fromEntries(
+    names.map((name) => [
+      name.replace(/\.json$/, ""),
+      JSON.parse(readFileSync(`${folder}${name}`, "utf8")),
+    ]),
+  );
+}
+
 /** The plain YAML forms the server and the browser read apart (M6.5 spec, M6CO.3). */
 export function readReadings(): { name: string; pattern: string }[] {
   return JSON.parse(readFileSync(READINGS, "utf8")).forms;
@@ -45,6 +59,7 @@ export async function renderFigureTypes(
   schemas: Record<string, JSONSchema>,
   readings = readReadings(),
   characters = readCharacters(),
+  tasks = readTaskSchemas(),
 ): Promise<string> {
   const types: string[] = [];
   for (const [component, schema] of Object.entries(schemas)) {
@@ -67,6 +82,8 @@ export async function renderFigureTypes(
     "// `npm run figure-types`.",
     "// Do not edit (M6.4 spec, M6FG.2).",
     `export const SCHEMAS = ${JSON.stringify(schemas, null, 2)} as const;`,
+    "",
+    `export const TASK_SCHEMAS = ${JSON.stringify(tasks, null, 2)} as const;`,
     "",
     `export const TWO_READINGS = ${JSON.stringify(readings, null, 2)} as const;`,
     "",

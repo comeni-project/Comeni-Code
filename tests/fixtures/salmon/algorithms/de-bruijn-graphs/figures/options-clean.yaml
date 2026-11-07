@@ -1,0 +1,8 @@
+component: graph-artifacts
+alt: A graph of one unbranched path, ACG, CGT, GTT, TTA, TAG.
+data:
+  reads:
+    - {sequence: ACGTTAG}
+    - {sequence: ACGTTAG}
+  k: 3
+  marks: hidden

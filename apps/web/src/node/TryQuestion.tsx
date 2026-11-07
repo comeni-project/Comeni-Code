@@ -2,10 +2,11 @@
 //
 // It is formative: the answer came with the page (M3P1.4) and is checked here. Nothing is stored,
 // so the board's "Answered · back in review in 3 days" waits for learner records (T7).
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { FigureOut, QuestionOut } from "../api/schema";
+import { FigureAnswer } from "../figures/answer/FigureAnswer";
 import { Figure } from "../figures/Figure";
-import { type Given, isRight, pairsInOrder } from "./grading";
+import { accepted, type Given, isRight, pairsInOrder } from "./grading";
 import { OrderAnswer, shuffled } from "./OrderAnswer";
 import { SequenceAnswer } from "./SequenceAnswer";
 
@@ -14,6 +15,9 @@ const KINDS: Record<string, string> = {
   choice: "a choice",
   sequence: "a typed answer",
   order: "an order",
+  // A figure question says its task: what the learner does (#414).
+  trace: "a trace",
+  pick: "a pick",
 };
 
 const Chevron = ({ up = false }: { up?: boolean }) => (
@@ -31,9 +35,13 @@ const Chevron = ({ up = false }: { up?: boolean }) => (
 /** How many wrong answers before the rationale shows anyway. */
 const TRIES = 2;
 
-function answerOf(question: QuestionOut): string {
+const path = (selection: string[]) => selection.join(" → ");
+
+function answerOf(question: QuestionOut, figure: FigureOut | undefined): string {
+  if (question.kind === "figure") return accepted(figure).map(path).join(" or ");
   if (question.kind === "choice") {
-    return question.options?.find((option) => option.right)?.text ?? "";
+    const right = question.options?.find((option) => option.right);
+    return right?.figure ? "the figure marked right" : (right?.text ?? "");
   }
   if (question.kind === "sequence") return String(question.answer ?? "");
   if (question.kind === "order") return (question.steps ?? []).join(" → ");
@@ -46,12 +54,15 @@ export function TryQuestion({
   big = false,
   shuffle = shuffled,
   figure,
+  figures = [],
 }: {
   question: QuestionOut;
   number: number;
   big?: boolean;
   /** The figure the question shows, drawn under its ask (M6FG.1); unnumbered. */
   figure?: FigureOut | undefined;
+  /** The node's figures, by stem: a figure question's, and its options' (M6FA.3, M6FA.4). */
+  figures?: FigureOut[];
   /** How an order's steps are dealt: shuffled, and fixed in tests. */
   shuffle?: (steps: string[]) => string[];
 }) {
@@ -66,17 +77,33 @@ export function TryQuestion({
   const field = useId();
   const [orderSteps] = useState(() => shuffle(question.steps ?? []));
   const [lastOrder, setLastOrder] = useState<string[] | null>(null);
+  const [selection, setSelection] = useState<string[]>([]);
+  const [checkedWrong, setCheckedWrong] = useState(false);
+  const drawn = (stem: string | null | undefined) =>
+    stem
+      ? (figures.find((f) => f.stem === stem) ?? (stem === question.figure ? figure : undefined))
+      : undefined;
+  const asked = drawn(question.figure) ?? figure;
 
-  const answer = answerOf(question);
+  const answer = answerOf(question, asked);
   const done = right || shown || wrong >= TRIES;
 
   function check(value: Given) {
     if (right) return;
-    if (isRight(question, value)) setRight(true);
-    else setWrong(wrong + 1);
+    if (isRight(question, value, asked)) setRight(true);
+    else {
+      setWrong(wrong + 1);
+      setCheckedWrong(true);
+    }
   }
 
-  const meta = `1 min · ${KINDS[question.kind] ?? "a question"}`;
+  const told = question.kind === "figure" ? String(asked?.interact?.task ?? "") : question.kind;
+  const meta = `1 min · ${KINDS[told] ?? "a question"}`;
+  // A right figure answer takes its buttons away; focus goes to what was found, not to the page.
+  const feedback = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (right && question.kind === "figure") feedback.current?.focus();
+  }, [right, question.kind]);
   const badge = (
     <span className="flex size-[26px] shrink-0 items-center justify-center rounded-lg border-[1.5px] border-sel font-mono text-[12px] text-sel">
       {number}
@@ -135,11 +162,27 @@ export function TryQuestion({
         </div>
       )}
 
-      {question.figure && (
-        <Figure record={figure} stem={question.figure} caption="" number={null} />
+      {question.figure && question.kind !== "figure" && (
+        <Figure record={asked} stem={question.figure} caption="" number={null} />
       )}
 
-      {question.kind === "choice" ? (
+      {question.kind === "figure" ? (
+        asked === undefined ? (
+          <Figure record={undefined} stem={question.figure ?? ""} caption="" number={null} />
+        ) : (
+          <FigureAnswer
+            record={asked}
+            selection={selection}
+            onSelect={(next) => {
+              setSelection(next);
+              setCheckedWrong(false);
+            }}
+            outcome={right ? "right" : done ? "revealed" : checkedWrong ? "wrong" : null}
+            onCheck={() => check(selection)}
+            again={wrong > 0}
+          />
+        )
+      ) : question.kind === "choice" ? (
         <div
           className={
             big
@@ -148,7 +191,9 @@ export function TryQuestion({
           }
         >
           {(question.options ?? []).map((option) => {
-            const chosen = picked === option.text;
+            // An option is its text, or a figure drawn and named by its alt text (M6FA.3).
+            const said = option.figure || option.text;
+            const chosen = picked === said;
             const tone =
               chosen && option.right
                 ? `${big ? "border-[2.5px]" : "border-2"} border-btn bg-line-soft`
@@ -157,13 +202,13 @@ export function TryQuestion({
                   : `${big ? "border-[1.5px]" : "border"} border-border-2 bg-surface hover:border-sel ${big ? "" : "text-ink-3 hover:text-ink"}`;
             return (
               <button
-                key={option.text}
+                key={said}
                 type="button"
                 aria-pressed={chosen}
                 disabled={right}
                 onClick={() => {
-                  setPicked(option.text);
-                  check(option.text);
+                  setPicked(said);
+                  check(said);
                 }}
                 className={`flex items-center gap-3.5 text-left ${
                   big
@@ -192,7 +237,18 @@ export function TryQuestion({
                     className={`size-5 shrink-0 rounded-full border-2 ${chosen ? "border-open" : "border-border-2"}`}
                   />
                 ) : null}
-                {option.text}
+                {option.figure ? (
+                  <span className="min-w-0 flex-1">
+                    <Figure
+                      record={drawn(option.figure)}
+                      stem={option.figure}
+                      caption=""
+                      number={null}
+                    />
+                  </span>
+                ) : (
+                  option.text
+                )}
               </button>
             );
           })}
@@ -298,9 +354,15 @@ export function TryQuestion({
             big ? "rounded-[14px] px-[18px] py-4" : "rounded-[10px] px-3.5 py-3"
           }`}
         >
-          <p className={big ? "text-[19px] font-semibold" : "text-[14px] font-semibold"}>
+          <p
+            ref={feedback}
+            tabIndex={-1}
+            className={`outline-none ${big ? "text-[19px] font-semibold" : "text-[14px] font-semibold"}`}
+          >
             <span className="text-btn">
-              {right ? `Right — ${answer}.` : `The answer is ${answer}.`}
+              {right
+                ? `Right — ${question.kind === "figure" ? path(selection) : answer}.`
+                : `The answer is ${answer}.`}
             </span>{" "}
             <span className="font-medium text-ink-2">Why:</span>
           </p>

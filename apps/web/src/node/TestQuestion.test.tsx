@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { ERROR_BUBBLE, OPTIONS } from "../figures/answer/answers.fixture";
 import { type TestAsk, TestQuestion } from "./TestQuestion";
 
 const choice: TestAsk = {
@@ -84,5 +85,43 @@ describe("TestQuestion", () => {
   it("draws no Answer without onAnswer", () => {
     render(<TestQuestion ask={choice} number={1} of={1} />);
     expect(screen.queryByRole("button", { name: "Answer" })).toBeNull();
+  });
+});
+
+describe("a test question answered by the figure (M6.6b spec, M6FA.4)", () => {
+  it("draws the stem's figure as the answer and sends the k-mers picked", () => {
+    const onAnswer = vi.fn();
+    const ask: TestAsk = {
+      stem: [
+        { kind: "text", markdown: "Click a k-mer only the wrong read holds.\n" },
+        { kind: "figure", file: "error-bubble", caption: "The reads' graph.\n" },
+      ],
+      kind: "figure",
+      options: [],
+      unit: "",
+      steps: [],
+      figure: "error-bubble",
+    };
+    const { container } = render(
+      <TestQuestion ask={ask} number={7} of={12} figures={[ERROR_BUBBLE]} onAnswer={onAnswer} />,
+    );
+    expect(container.querySelectorAll("svg[role=img]")).toHaveLength(1);
+    expect(container.querySelector("[data-artifact]")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /^TCA$/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Answer" }));
+    expect(onAnswer).toHaveBeenCalledWith(["TCA"]);
+  });
+
+  it("offers figures as options, sent by their place", () => {
+    const onAnswer = vi.fn();
+    const ask: TestAsk = {
+      ...choice,
+      options: ["", "", "", ""],
+      optionFigures: OPTIONS.map((o) => o.stem),
+    };
+    render(<TestQuestion ask={ask} number={8} of={12} figures={OPTIONS} onAnswer={onAnswer} />);
+    fireEvent.click(screen.getByRole("button", { name: "B options-bubble: a graph of k-mers." }));
+    fireEvent.click(screen.getByRole("button", { name: "Answer" }));
+    expect(onAnswer).toHaveBeenCalledWith(1);
   });
 });

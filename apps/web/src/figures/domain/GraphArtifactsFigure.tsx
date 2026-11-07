@@ -11,9 +11,11 @@ import {
   KmerBox,
   legible,
   NEUTRAL,
+  Picks,
   TIP,
   type Tone,
   Undrawn,
+  viewTone,
 } from "./parts";
 
 const LINE = 22;
@@ -30,22 +32,26 @@ interface Artifact {
   kmers: string[];
 }
 
-export function GraphArtifactsFigure({ derived, alt }: KitProps<"graph-artifacts">) {
+export function GraphArtifactsFigure({ data, derived, alt, view }: KitProps<"graph-artifacts">) {
   const id = `ga-${useId().replace(/:/g, "")}`;
   const kmers = derived.kmers as string[] | undefined;
   const edges = derived.edges as [string, string][] | undefined;
   const artifacts = (derived.artifacts ?? []) as Artifact[];
   if (!Array.isArray(kmers) || !Array.isArray(edges)) return <Undrawn alt={alt} />;
-  const of = new Map(artifacts.flatMap((a) => a.kmers.map((k) => [k, a.kind] as const)));
+  const runOf = new Map(artifacts.flatMap((a) => a.kmers.map((k) => [k, a.kind] as const)));
+  // Marks hidden (M6FA.5): every k-mer plain, for an option or a question asked; a view says.
+  const marks = view === undefined ? data.marks !== "hidden" : view.marks;
+  const of = marks ? runOf : new Map<string, Kind>();
   // The k-mers the reads agree on in one row; each weak run leaves it in a row of its own.
   const laid = layoutKmers(
     kmers,
     edges,
-    kmers.filter((kmer) => !of.has(kmer)),
+    kmers.filter((kmer) => !runOf.has(kmer)),
   );
   const width = Math.max(laid.width, 420);
-  const height = laid.height + 14 + artifacts.length * LINE;
-  return (
+  const said = marks ? artifacts : [];
+  const height = laid.height + 14 + said.length * LINE;
+  const drawing = (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
@@ -77,12 +83,12 @@ export function GraphArtifactsFigure({ derived, alt }: KitProps<"graph-artifacts
           <KmerBox
             key={box.id}
             box={box}
-            tone={kind ? TONES[kind] : NEUTRAL}
+            tone={viewTone(view, box.id) ?? (kind ? TONES[kind] : NEUTRAL)}
             data-artifact={kind}
           />
         );
       })}
-      {artifacts.map((a, at) => (
+      {said.map((a, at) => (
         <text
           key={a.kmers.join(" ")}
           x={10}
@@ -93,5 +99,12 @@ export function GraphArtifactsFigure({ derived, alt }: KitProps<"graph-artifacts
         </text>
       ))}
     </svg>
+  );
+  if (view?.onPick === undefined) return drawing;
+  return (
+    <div className="relative mx-auto" style={legible(width, 1.4)}>
+      {drawing}
+      <Picks boxes={laid.boxes} width={width} height={height} view={view} />
+    </div>
   );
 }

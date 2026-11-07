@@ -7,14 +7,16 @@ import { useAfterSaves } from "../workbench/useDraftEdit";
 export function composerPath(
   draftId: string,
   stem: string | null,
-  place: { block?: number; at?: number } = {},
+  place: { block?: number; at?: number; question?: string } = {},
 ): string {
   const query =
     place.block !== undefined
       ? `?block=${place.block}`
       : place.at !== undefined
         ? `?at=${place.at}`
-        : "";
+        : place.question !== undefined
+          ? `?for=${encodeURIComponent(place.question)}`
+          : "";
   return `/studio/drafts/${draftId}/figures/${stem ?? "new"}${query}`;
 }
 

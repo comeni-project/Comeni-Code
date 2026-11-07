@@ -1,0 +1,9 @@
+component: graph-artifacts
+alt: A graph whose path ACG to TAG has a branch from ACG through CGA, GAT and ATA that rejoins at TAG.
+data:
+  reads:
+    - {sequence: ACGTTAG}
+    - {sequence: ACGTTAG}
+    - {sequence: ACGATAG}
+  k: 3
+  marks: hidden

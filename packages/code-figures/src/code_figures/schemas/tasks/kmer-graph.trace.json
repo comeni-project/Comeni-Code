@@ -1,0 +1,10 @@
+{
+  "$comment": "Trace a path (M6.6b spec, M6FA.2): the learner clicks the k-mers of `spells` in order, each step an edge a read holds.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "task": { "const": "trace" },
+    "spells": { "type": "string", "pattern": "^[ACGT]+$", "maxLength": 20 }
+  },
+  "required": ["task", "spells"]
+}

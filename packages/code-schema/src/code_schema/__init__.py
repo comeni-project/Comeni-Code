@@ -36,6 +36,7 @@ from code_schema.providers import Provider, parse_providers, read_providers
 from code_schema.questions import (
     Answer,
     ChoiceAnswer,
+    FigureAnswer,
     NumberAnswer,
     Option,
     OrderAnswer,
@@ -54,6 +55,7 @@ __all__ = [
     "Content",
     "Diagnostic",
     "ExamQuestion",
+    "FigureAnswer",
     "Level",
     "Link",
     "Node",

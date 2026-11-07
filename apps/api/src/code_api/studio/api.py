@@ -50,6 +50,7 @@ from code_schema import (
     Example,
     ExamQuestion,
     Figure,
+    FigureAnswer,
     Image,
     ImageRecord,
     Level,
@@ -344,7 +345,10 @@ class LinkIn(Schema):
 
 
 class OptionIn(Schema):
-    text: str
+    """An option's text, or a figure's stem (M6FA.3): one or the other."""
+
+    text: str = ""
+    figure: str | None = None
     right: bool = False
     misconception: str = ""
     plain: bool = False
@@ -369,9 +373,9 @@ class BlockIn(Schema):
 class AnswerIn(Schema):
     """A question's answer, flat as the files write it (M4Q.3): `options` for a choice; `answer`,
     `unit` and `tolerance` for a number; `answer` as text, `accept` and `exact` for a sequence;
-    `steps` for an order."""
+    `steps` for an order; nothing for a figure question, which its figure answers (M6FA.3)."""
 
-    kind: Literal["choice", "number", "sequence", "order"]
+    kind: Literal["choice", "number", "sequence", "order", "figure"]
     options: list[OptionIn] | None = None
     answer: float | int | str | None = None
     unit: str = ""
@@ -452,14 +456,20 @@ class ExamIn(Schema):
     question: ExamQuestionIn
 
 
-def _answer(given: AnswerIn) -> Answer:
+def _answer(given: AnswerIn, figure: str | None = None) -> Answer:
     """As written. Built inside the edit, so a missing answer is an EditError; other malformed
     answers — an order's count, repeated texts — are left for the parse to refuse in its words."""
     match given.kind:
         case "choice":
             return ChoiceAnswer(
                 options=tuple(
-                    Option(text=o.text, right=o.right, misconception=o.misconception, plain=o.plain)
+                    Option(
+                        text=o.text,
+                        right=o.right,
+                        misconception=o.misconception,
+                        plain=o.plain,
+                        figure=o.figure,
+                    )
                     for o in given.options or []
                 )
             )
@@ -469,6 +479,10 @@ def _answer(given: AnswerIn) -> Answer:
             return SequenceAnswer(value=given.answer, accept=tuple(given.accept), exact=given.exact)
         case "order":
             return OrderAnswer(steps=tuple(given.steps or ()))
+        case "figure":
+            if figure is None:
+                raise EditError("a figure question needs the figure it is answered by")
+            return FigureAnswer(figure=figure)
     if given.answer is None or isinstance(given.answer, str):
         raise EditError("a number question needs its answer")
     return NumberAnswer(value=given.answer, unit=given.unit, tolerance=given.tolerance)
@@ -480,7 +494,7 @@ def _try_question(given: TryQuestionIn | None) -> TryQuestion | None:
     return TryQuestion(
         id=given.id,
         ask=given.ask,
-        answer=_answer(given),
+        answer=_answer(given, given.figure),
         hints=tuple(given.hints),
         rationale=given.rationale,
         figure=given.figure or None,
@@ -493,10 +507,16 @@ def _exam_question(given: ExamQuestionIn) -> ExamQuestion:
         title=given.title,
         claim=given.claim,
         stem=write_faithfully([_block(block) for block in given.stem], file="exam.yaml"),
-        answer=_answer(given),
+        answer=_answer(given, _stem_figure(given.stem)),
         level=given.level,
         rationale=given.rationale,
     )
+
+
+def _stem_figure(stem: list[BlockIn]) -> str | None:
+    """The figure an exam figure question is answered by: its stem's one figure (M6FA.3)."""
+    placed = [block.file for block in stem if block.kind == "figure"]
+    return placed[0] if len(placed) == 1 else None
 
 
 def _block(given: BlockIn) -> Block:
@@ -800,11 +820,13 @@ def delete_image(request: HttpRequest, public_id: UUID, file: str, revision: int
 
 class AddFigureIn(Schema):
     """A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
-    `alt` for its starter; never both. Its block's caption either way."""
+    `alt` for its starter; never both. Its block's caption either way. Placed at `at` in the
+    body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7)."""
 
     revision: int
-    at: int
-    caption: str
+    at: int | None = None
+    question: str | None = None
+    caption: str = ""
     component: str | None = None
     alt: str | None = None
     text: str | None = None
@@ -823,7 +845,13 @@ def add_a_figure(request: HttpRequest, public_id: UUID, body: AddFigureIn) -> Sa
         public_id,
         body.revision,
         lambda node: add_figure(
-            node, body.at, body.component, alt=body.alt, text=body.text, caption=body.caption
+            node,
+            body.at,
+            body.component,
+            alt=body.alt,
+            text=body.text,
+            caption=body.caption,
+            question=body.question,
         ),
         f"added a {body.component} figure" if body.component else "added a figure",
     )

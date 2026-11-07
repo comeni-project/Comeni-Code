@@ -111,6 +111,7 @@ class NodeFigure(models.Model):
     data = models.JSONField()
     derived = models.JSONField(default=dict)
     source = models.JSONField(null=True)  # {title, url}, when the data came from elsewhere
+    interact = models.JSONField(null=True)  # its task, when it asks a question (M6FA.1)
 
 
 class Question(models.Model):
@@ -129,7 +130,8 @@ class Question(models.Model):
     unit = models.TextField(blank=True)
     tolerance = models.TextField(null=True)
     # A sequence's other right forms and whether it is matched exactly; an order's steps in the
-    # right order (M4.8c spec, M4Q.5).
+    # right order (M4.8c spec, M4Q.5). A figure question's `answer` is its figure and `accept`
+    # the selections that figure computes (M6.6b spec, M6FA.3).
     accept = models.JSONField(default=list)
     exact = models.BooleanField(default=False)
     steps = models.JSONField(default=list)

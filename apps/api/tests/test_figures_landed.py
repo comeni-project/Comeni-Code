@@ -34,14 +34,20 @@ def test_the_index_keeps_each_figure_with_its_text() -> None:
     rows = NodeFigure.objects.filter(node_id="de-bruijn-graphs").order_by("position")
     assert [row.stem for row in rows] == [
         "compare-graphs",
+        "error-bubble",
         "graph-artifacts",
         "kmer-counts",
         "kmer-path",  # M6.6a's domain figures, kept in file order
         "kmer-window",
         "kmers-by-k",
+        "options-bubble",
+        "options-clean",
+        "options-loop",
+        "options-tip",
         "primer-on-exon",
         "read-tiling",
         "salmon-steps",
+        "trace-path",
     ]
     track = rows.get(stem="primer-on-exon")
     assert track.text == (DBG / "figures" / "primer-on-exon.yaml").read_text()

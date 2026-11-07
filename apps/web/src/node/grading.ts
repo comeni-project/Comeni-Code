@@ -1,14 +1,26 @@
 // How right an answer is, by the rule code-schema's grading uses (M4.5 spec, M4.8c spec M4Q.3):
 // a choice at its right option, a number within its tolerance, a sequence by its forms (case and
 // spaces aside unless exact), an order by the share of step pairs in order. Only an order scores
-// between 0 and 1.
-import type { QuestionOut } from "../api/schema";
+// between 0 and 1. A figure question is right when the k-mers picked, in order, are one of the
+// selections its figure computes (M6.6b spec, M6FA.3), so it is graded with its figure's record.
+import type { FigureOut, QuestionOut } from "../api/schema";
 
 export type Given = string | string[];
 
 const loose = (text: string) => text.replace(/\s+/g, "").toLowerCase();
 
-export function score(question: QuestionOut, given: Given): number {
+/** The selections a figure's task makes right, from what its component computed. */
+export function accepted(record: FigureOut | undefined): string[][] {
+  const answer = record?.derived.answer as { accept?: string[][] } | undefined;
+  return answer?.accept ?? [];
+}
+
+export function score(question: QuestionOut, given: Given, figure?: FigureOut): number {
+  if (question.kind === "figure") {
+    if (!Array.isArray(given)) return 0;
+    const picked = given.join(" ");
+    return accepted(figure).some((selection) => selection.join(" ") === picked) ? 1 : 0;
+  }
   if (question.kind === "order") {
     const steps = question.steps ?? [];
     if (!Array.isArray(given) || given.length !== steps.length) return 0;
@@ -25,7 +37,9 @@ export function score(question: QuestionOut, given: Given): number {
   }
   if (Array.isArray(given)) return 0;
   if (question.kind === "choice") {
-    return question.options?.some((option) => option.right && option.text === given) ? 1 : 0;
+    // An option is given as its text, or its figure's stem when it is one (M6FA.3).
+    const said = (option: { text: string; figure?: string | null }) => option.figure || option.text;
+    return question.options?.some((option) => option.right && said(option) === given) ? 1 : 0;
   }
   if (question.kind === "sequence") {
     const key = question.exact ? (text: string) => text.trim() : loose;
@@ -37,8 +51,8 @@ export function score(question: QuestionOut, given: Given): number {
   return Math.abs(value - question.answer) <= (question.tolerance ?? 0) + 1e-9 ? 1 : 0;
 }
 
-export const isRight = (question: QuestionOut, given: Given): boolean =>
-  score(question, given) === 1;
+export const isRight = (question: QuestionOut, given: Given, figure?: FigureOut): boolean =>
+  score(question, given, figure) === 1;
 
 /** The pairs an order got right, for its feedback: "3 of 6 pairs in order." */
 export function pairsInOrder(question: QuestionOut, given: string[]): [number, number] {

@@ -5,12 +5,20 @@ reviewer's answers, and later a self-test, by the same rule a learner meets: a c
 at its right option; a number within its tolerance, none meaning exact, with a slack for floats.
 A choice is given as an option's index, which the web may move to. A sequence is right in any of
 its forms, case and spaces aside unless exact; an order scores the share of step pairs in order,
-given as the step texts in the learner's order (M4.8c spec, M4Q.3).
+given as the step texts in the learner's order (M4.8c spec, M4Q.3). A figure answer is right when
+the k-mers picked, in order, are one of the selections its figure computes (M6.6b spec, M6FA.3).
 """
 
 from __future__ import annotations
 
-from code_schema.questions import Answer, ChoiceAnswer, NumberAnswer, OrderAnswer, SequenceAnswer
+from code_schema.questions import (
+    Answer,
+    ChoiceAnswer,
+    FigureAnswer,
+    NumberAnswer,
+    OrderAnswer,
+    SequenceAnswer,
+)
 
 SLACK = 1e-9  # the web's: 0.4 - 0.3 is not 0.1 in floats
 
@@ -63,6 +71,13 @@ def score(answer: Answer, given: object) -> float:
             place = {step: at for at, step in enumerate(given)}
             pairs = [(a, b) for at, a in enumerate(steps) for b in steps[at + 1 :]]
             return sum(place[a] < place[b] for a, b in pairs) / len(pairs)
+        case FigureAnswer(accept=accept):
+            # The k-mers picked, in order, right when one of the selections its figure computes.
+            if not accept:
+                raise NotAnAnswer("this figure question's figure has no answer computed")
+            if not isinstance(given, list) or any(not isinstance(kmer, str) for kmer in given):
+                raise NotAnAnswer("a figure question is answered with the k-mers picked, in order")
+            return 1.0 if tuple(given) in accept else 0.0
     raise AssertionError(f"an answer of no known kind: {answer!r}")
 
 

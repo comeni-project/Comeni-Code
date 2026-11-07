@@ -59,17 +59,24 @@ function Thumb({ component, what }: { component: Component; what: string }) {
 export function Choose({
   chosen,
   onChoose,
+  only,
 }: {
   chosen: Component | null;
   onChoose: (component: Component) => void;
+  /** The kits offered, when a figure is made for a question: those with tasks (M6FA.7). */
+  only?: readonly Component[];
 }) {
+  const groups = GROUPS.map((group) => ({
+    ...group,
+    kits: group.kits.filter((kit) => only === undefined || only.includes(kit.component)),
+  })).filter((group) => group.kits.length > 0);
   return (
     <section
       aria-label="Choose a component"
       className="flex flex-col gap-[18px] rounded-panel border border-border bg-surface p-[18px]"
     >
       <h2 className="text-[14px] font-semibold">Choose a component</h2>
-      {GROUPS.map((group) => (
+      {groups.map((group) => (
         <fieldset key={group.title} className="flex min-w-0 flex-col gap-2.5">
           <legend className="mb-2.5 flex flex-wrap items-baseline gap-x-2.5">
             <span className="text-[13px] font-semibold">{group.title}</span>

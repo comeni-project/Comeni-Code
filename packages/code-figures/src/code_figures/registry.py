@@ -24,6 +24,7 @@ from code_figures import (
 )
 from code_figures.findings import BOUND, NOT_ALLOWED, WRONG, Finding
 from code_figures.schema import Schema, validate
+from code_figures.tasks import NO_TASK, Task, fields_findings
 
 UNKNOWN = "CS1001"  # a component nobody built
 _SCHEMAS = Path(__file__).resolve().parent / "schemas"
@@ -38,6 +39,7 @@ class Component:
     check: Callable[[Data], list[Finding]]
     derive: Callable[[Data], dict[str, object]]
     starter: Data
+    tasks: Mapping[str, Task]  # what a learner may do with it, by name (M6FA.2); most have none
 
 
 def _component(name: str, module: object) -> Component:
@@ -48,6 +50,7 @@ def _component(name: str, module: object) -> Component:
         check=getattr(module, "check"),  # noqa: B009 — each kit module has the same three names
         derive=getattr(module, "derive"),  # noqa: B009
         starter=getattr(module, "STARTER"),  # noqa: B009
+        tasks=getattr(module, "TASKS", {}),
     )
 
 
@@ -84,12 +87,17 @@ CODES: frozenset[str] = frozenset(
         kmer_graph.NOT_A_WALK,
         graph_artifacts.NO_SUPPORT,
         kmers.TOO_MANY,
+        NO_TASK,
+        kmer_graph.NOT_A_TRACE,
+        kmer_graph.SHOWS_ANSWER,
+        graph_artifacts.NO_ARTIFACT,
     }
 )
 
 
-def figure_findings(component: str, data: object) -> list[Finding]:
-    """The schema's findings; the component's own checks only once the schema has none."""
+def figure_findings(component: str, data: object, interact: object = None) -> list[Finding]:
+    """The schema's findings; the component's own checks only once the schema has none; then,
+    with `interact`, its task's (M6FA.2), only once the data has none."""
     found = COMPONENTS.get(component)
     if found is None:
         named = ", ".join(sorted(COMPONENTS))
@@ -97,9 +105,24 @@ def figure_findings(component: str, data: object) -> list[Finding]:
     problems = validate(found.schema, data)
     if problems or not isinstance(data, Mapping):
         return problems
-    return found.check(data)
+    problems = found.check(data)
+    if problems or interact is None:
+        return problems
+    problems = fields_findings(found.tasks, interact)
+    if problems:
+        return problems
+    assert isinstance(interact, Mapping)
+    return found.tasks[str(interact["task"])].check(data, found.derive(data), interact)
 
 
-def derived(component: str, data: Data) -> dict[str, object]:
-    """What the page draws and nobody writes; only for data with no findings."""
-    return COMPONENTS[component].derive(data)
+def derived(
+    component: str, data: Data, interact: Mapping[str, object] | None = None
+) -> dict[str, object]:
+    """What the page draws and nobody writes; only for data with no findings. With a task, its
+    `answer`: every right selection, and one wrong one (M6FA.2)."""
+    found = COMPONENTS[component]
+    computed = found.derive(data)
+    if interact is not None:
+        accept, wrong = found.tasks[str(interact["task"])].answer(data, computed, interact)
+        computed["answer"] = {"accept": accept, "wrong": wrong}
+    return computed

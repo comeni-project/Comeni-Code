@@ -30,6 +30,7 @@ from code_schema import (
     Answer,
     ChoiceAnswer,
     Content,
+    FigureAnswer,
     NumberAnswer,
     OrderAnswer,
     SequenceAnswer,
@@ -138,7 +139,8 @@ def _figure_rows(content: Content) -> list[NodeFigure]:
             component=figure.component,
             alt=figure.alt,
             data=dict(figure.data),
-            derived=derived(figure.component, figure.data),
+            derived=derived(figure.component, figure.data, figure.interact),
+            interact=None if figure.interact is None else dict(figure.interact),
             source=None
             if figure.source is None
             else {"title": figure.source.title, "url": figure.source.url},
@@ -200,6 +202,7 @@ def _fill_answer(row: Question | ExamQuestion, answer: Answer, *, exam: bool) ->
             row.options = [
                 {"text": option.text, "right": option.right}
                 | ({"misconception": option.misconception, "plain": option.plain} if exam else {})
+                | ({} if option.figure is None else {"figure": option.figure})
                 for option in options
             ]
         case NumberAnswer(value=value, unit=unit, tolerance=tolerance):
@@ -208,6 +211,8 @@ def _fill_answer(row: Question | ExamQuestion, answer: Answer, *, exam: bool) ->
             row.answer, row.accept, row.exact = text, list(accept), exact
         case OrderAnswer(steps=steps):
             row.steps = list(steps)
+        case FigureAnswer(figure=figure, accept=accept):
+            row.answer, row.accept = figure, [list(selection) for selection in accept]
 
 
 def _question_row(node_id: str, position: int, question: TryQuestion) -> Question:

@@ -20,6 +20,7 @@ from code_schema.questions import (
     TRY_FIELD,
     Answer,
     ChoiceAnswer,
+    FigureAnswer,
     NumberAnswer,
     Option,
     OrderAnswer,
@@ -78,7 +79,9 @@ def _resource(resource: Resource) -> dict[str, object]:
 
 
 def _option(option: Option) -> dict[str, object]:
-    written: dict[str, object] = {"text": option.text}
+    written: dict[str, object] = (
+        {"text": option.text} if option.figure is None else {"figure": option.figure}
+    )
     if option.right:
         written["right"] = True
     if option.misconception:
@@ -109,6 +112,8 @@ def _answer(answer: Answer) -> dict[str, object]:
             return typed
         case OrderAnswer(steps=steps):
             return {"steps": list(steps)}
+        case FigureAnswer():
+            return {}  # a try names its figure, an exam stem places it (M6FA.3)
 
 
 def _question(question: TryQuestion) -> dict[str, object]:

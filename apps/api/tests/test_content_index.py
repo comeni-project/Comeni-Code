@@ -259,6 +259,7 @@ def test_a_rebuild_stores_providers_resources_and_questions() -> None:
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
     assert questions[0].kind == "number"
@@ -288,7 +289,7 @@ def test_a_second_rebuild_replaces_them() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
     assert Resource.objects.filter(node_id="de-bruijn-graphs").count() == 3
-    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 5  # with green-path
+    assert Question.objects.filter(node_id="de-bruijn-graphs").count() == 6  # and trace-the-path
 
 
 def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
@@ -302,13 +303,14 @@ def test_the_digest_covers_providers_yaml(tmp_path: Path) -> None:
 def test_a_warning_does_not_refuse_a_build(tmp_path: Path) -> None:
     # M4.2 (spec M4E.4): only errors refuse; an applied build keeps no problems.
     root = copy_of_fixtures(tmp_path)
-    (root / "algorithms" / "de-bruijn-graphs" / "exam.yaml").write_text(SMALL_POOL)
+    # A node with no pool of its own, so no figure loses its placement (M6.6b gave de Bruijn one).
+    (root / "algorithms" / "graphs" / "exam.yaml").write_text(SMALL_POOL)
     build = rebuild_index(root)
     assert build.outcome == IndexBuild.Outcome.APPLIED
     assert build.problems == []
-    assert Node.objects.filter(id="de-bruijn-graphs").exists()
+    assert Node.objects.filter(id="graphs").exists()
     # The warned pool is stored all the same (#150).
-    assert ExamQuestion.objects.filter(node_id="de-bruijn-graphs").count() == 3
+    assert ExamQuestion.objects.filter(node_id="graphs").count() == 3
 
 
 def test_a_refused_build_leaves_the_resources_standing(tmp_path: Path) -> None:
@@ -338,6 +340,8 @@ def test_a_rebuild_stores_each_nodes_blocks() -> None:
         "try",
         "text",
         "figure",
+        "text",
+        "try",
         "text",
         "try",
         "text",
@@ -417,11 +421,14 @@ def test_the_tpm_exam_pool_is_indexed_as_parsed() -> None:
                 assert (row.steps, row.answer) == (list(steps), None)
 
 
-def test_only_tpm_has_a_pool_and_a_rebuild_replaces_it() -> None:
+def test_two_nodes_have_a_pool_and_a_rebuild_replaces_them() -> None:
     rebuild_index(FIXTURES)
     rebuild_index(FIXTURES)
-    assert ExamQuestion.objects.count() == 6
-    assert set(ExamQuestion.objects.values_list("node_id", flat=True)) == {"tpm"}
+    assert ExamQuestion.objects.count() == 10  # TPM's six, de Bruijn's four (M6.6b)
+    assert set(ExamQuestion.objects.values_list("node_id", flat=True)) == {
+        "de-bruijn-graphs",
+        "tpm",
+    }
 
 
 def test_a_refused_build_leaves_the_exam_pool_standing(tmp_path: Path) -> None:

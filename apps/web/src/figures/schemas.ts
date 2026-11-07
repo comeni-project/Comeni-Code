@@ -500,7 +500,7 @@ export const SCHEMAS = {
     ]
   },
   "graph-artifacts": {
-    "$comment": "Tips and bubbles found from the reads (M6.6a spec, M6DC.1): a run of k-mers held by one read rejoining the path is a bubble, else a tip. Computed.",
+    "$comment": "Tips and bubbles found from the reads (M6.6a spec, M6DC.1): a run of k-mers held by one read rejoining the path is a bubble, else a tip. Computed. `marks: hidden` draws every k-mer plain, for an option or a stem that must not give the answer away (M6FA.5).",
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -528,6 +528,12 @@ export const SCHEMAS = {
         "type": "integer",
         "minimum": 2,
         "maximum": 8
+      },
+      "marks": {
+        "enum": [
+          "shown",
+          "hidden"
+        ]
       }
     },
     "required": [
@@ -815,6 +821,48 @@ export const SCHEMAS = {
   }
 } as const;
 
+export const TASK_SCHEMAS = {
+  "graph-artifacts.pick": {
+    "$comment": "Pick a k-mer (M6.6b spec, M6FA.2): any k-mer of a run of that kind is right.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "task": {
+        "const": "pick"
+      },
+      "artifact": {
+        "enum": [
+          "tip",
+          "bubble"
+        ]
+      }
+    },
+    "required": [
+      "task",
+      "artifact"
+    ]
+  },
+  "kmer-graph.trace": {
+    "$comment": "Trace a path (M6.6b spec, M6FA.2): the learner clicks the k-mers of `spells` in order, each step an edge a read holds.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "task": {
+        "const": "trace"
+      },
+      "spells": {
+        "type": "string",
+        "pattern": "^[ACGT]+$",
+        "maxLength": 20
+      }
+    },
+    "required": [
+      "task",
+      "spells"
+    ]
+  }
+} as const;
+
 export const TWO_READINGS = [
   {
     "name": "a YAML 1.1 boolean",
@@ -1002,6 +1050,7 @@ export interface GraphArtifactsData {
     }[],
   ];
   k: number;
+  marks?: "shown" | "hidden";
 }
 
 export interface KmerGraphData {

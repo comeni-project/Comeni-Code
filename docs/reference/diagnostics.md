@@ -452,6 +452,8 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 *Refuses.*
 
+**Retired** 2026-11-06 — figure questions arrived (M6.6b spec, M6FA.3); kind: figure is a kind
+
 **Fix.** Use kind: choice or kind: number until the phase the message names.
 
 **Why.** Figure questions are designed (tutor spec T7.1) and arrive with figures in M6; until then they are refused by name rather than silently ignored.
@@ -703,6 +705,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Keep only the fields of the question's kind, or change its kind.
 
 **Why.** Each kind is answered its own way, so a field of another kind is a question half rewritten (M4Q.3).
+
+#### CS0338 — a figure question names no figure with a task
+
+*Refuses.*
+
+**Fix.** Name the figure it is answered by (`figure: <stem>`), and give that figure's file a task in the composer's Interaction step.
+
+**Why.** A figure question is answered by working its figure, and the figure's component computes the right answer from its task (M6.6b spec, M6FA.1); without one there is nothing to answer.
+
+#### CS0339 — an option has both text and a figure
+
+*Refuses.*
+
+**Fix.** Keep one: an option is its text or a figure (`figure: <stem>`).
+
+**Why.** An option is drawn as what it holds; one that holds both would be read two ways (M6FA.3).
 
 ### CS0400–CS0499 · body
 
@@ -1308,6 +1326,22 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** exam.yaml writes a stem as a literal block (`stem: |`), which YAML cannot do for a line that ends in spaces or holds a tab; such a stem would land rewritten as an escaped string, so it is refused instead (#264, as CS0415 refuses what the blocks cannot carry).
 
+#### CS0824 — a figure question has no single figure with a task in its stem
+
+*Refuses.*
+
+**Fix.** Place exactly one figure in the stem (`:::{figure} <stem>`), and give its file a task in the composer's Interaction step.
+
+**Why.** An exam figure question is answered by the one figure its stem places (M6.6b spec, M6FA.3); with none, two, or one with no task, there is no one answer to compute.
+
+#### CS0825 — an exam option has both text and a figure
+
+*Refuses.*
+
+**Fix.** Keep one: an option is its text or a figure (`figure: <stem>`).
+
+**Why.** An option is drawn as what it holds; one that holds both would be read two ways (M6FA.3).
+
 ### CS0900–CS0999 · images
 
 #### CS0901 — the images field is not a list
@@ -1615,6 +1649,46 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Trim the data; a figure is a drawing, not a dataset.
 
 **Why.** A figure is data written by a person or a model, read on every page that shows it (M6FG.1).
+
+#### CS1028 — a figure's task is not one its component has, or its fields do not fit
+
+*Refuses.*
+
+**Fix.** Name a task the component offers (kmer-graph: trace; graph-artifacts: pick) and give it the fields it takes: a trace its spells, a pick its artifact, tip or bubble. Most components have no task: remove interact from their files.
+
+**Why.** A figure that asks a question names what the learner does with it (M6.6b spec, M6FA.1); the component computes the right answer from the task and the data, so a task it does not know has no answer to compute.
+
+#### CS1029 — a figure with a task is placed where nothing answers it
+
+*Refuses.*
+
+**Fix.** Use it only as a figure question's figure (a try's `figure:` with `kind: figure`, or the one figure in a figure question's stem), or remove its task in the composer. To show the same drawing elsewhere, make a second figure without the task.
+
+**Why.** A figure with a task asks the learner to work it (M6.6b spec, M6FA.1); on the page, above a question of another kind, or as an option, nothing would take the answer.
+
+#### CS1030 — what a trace spells is not one walk of the graph
+
+*Refuses.*
+
+**Fix.** Spell a sequence whose k-mers are each in the graph, once, each step one a read takes, and at least k + 1 letters long; or add the read the message names.
+
+**Why.** A trace's right answer is the walk of k-mers that spells it (M6FA.2), so it must be one the figure draws: every edge drawn is a step a read takes (#408), and a learner picks each k-mer once.
+
+#### CS1031 — a trace on a figure that highlights its path
+
+*Refuses.*
+
+**Fix.** Set highlight to none or branches: a figure asked as a trace must not draw its answer.
+
+**Why.** Asked, a figure gives nothing away (M6FA.4); a highlighted path is the answer to a trace.
+
+#### CS1032 — a pick of a kind of run the figure does not have
+
+*Refuses.*
+
+**Fix.** Add a read that makes a tip or a bubble of that kind, or pick the other kind.
+
+**Why.** A pick's right answers are the k-mers of every run of its kind (M6FA.2); with none, the question has no right answer.
 
 ## CW — code-weaver: routes and search
 

@@ -1,0 +1,11 @@
+component: kmer-graph
+alt: A de Bruijn graph of six 3-mers from four reads. One path runs ACG, CGT, GTT, TTA, TAG; a fourth read branches off at CGT to GTC.
+data:
+  reads:
+    - {sequence: ACGTT}
+    - {sequence: CGTTA}
+    - {sequence: GTTAG}
+    - {sequence: CGTC, note: another read — a branch}
+  k: 3
+  highlight: none
+interact: {task: trace, spells: ACGTTAG}

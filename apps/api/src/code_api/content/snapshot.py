@@ -12,6 +12,7 @@ from code_schema import (
     Answer,
     ChoiceAnswer,
     ExamQuestion,
+    FigureAnswer,
     ImageRecord,
     Level,
     Link,
@@ -61,6 +62,7 @@ def _answer(row: models.Question | models.ExamQuestion) -> Answer:
                         right=option["right"],
                         misconception=option.get("misconception", ""),
                         plain=option.get("plain", False),
+                        figure=option.get("figure"),
                     )
                     for option in row.options
                 )
@@ -70,6 +72,11 @@ def _answer(row: models.Question | models.ExamQuestion) -> Answer:
             return SequenceAnswer(value=row.answer, accept=tuple(row.accept), exact=row.exact)
         case "order":
             return OrderAnswer(steps=tuple(row.steps))
+        case "figure":
+            assert row.answer is not None  # a figure question's answer names its figure
+            return FigureAnswer(
+                figure=row.answer, accept=tuple(tuple(selection) for selection in row.accept)
+            )
     value = number_from(row.answer)
     assert value is not None  # a number question always has its answer
     return NumberAnswer(value=value, unit=row.unit, tolerance=number_from(row.tolerance))

@@ -12,6 +12,7 @@ def test_the_public_api_is_what_the_spec_names() -> None:
         "Content",
         "Diagnostic",
         "ExamQuestion",
+        "FigureAnswer",
         "Level",
         "Link",
         "Node",

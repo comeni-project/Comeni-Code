@@ -4,6 +4,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { type RefObject, useEffect, useRef, useState } from "react";
+import { useDraft } from "../../api/queries";
 import type { BlockIn, ExamQuestionIn, Level } from "../../api/schema";
 import { composerPath, useOpenComposer } from "../composer/open";
 import { LEVELS } from "../drafts/NewNodeForm";
@@ -25,6 +26,10 @@ const HEAD = "flex items-center gap-2.5 border-b border-border px-3 py-[9px]";
 const CHIP =
   "rounded-[5px] border border-border bg-bg px-[7px] py-px font-mono text-[11px] text-ink-2";
 const TOOL = "rounded-[6px] px-1.5 py-0.5 text-[12px] text-ink-2 hover:bg-bg disabled:opacity-30";
+
+/** A figure question's stem figure needs a caption (CS0429); the test draws it as the answer,
+ * so learners never read it (M6FA.4), and the API writes the same words (edits.ASKED_CAPTION). */
+const ASKED = "The figure the question is answered by.";
 
 export function ExamEditor({
   draftId,
@@ -76,6 +81,13 @@ export function ExamEditor({
   useEffect(() => onChange?.(question, changed), [question, changed, onChange]);
 
   const set = (patch: Partial<ExamQuestionIn>) => setQuestion((now) => ({ ...now, ...patch }));
+  // The node's figures as this question may use them (M6FA.7): one with a task is the one figure
+  // a figure question's stem places; one without may be an option.
+  const figures = useDraft(draftId).data?.node?.figures ?? [];
+  const tasked = figures.filter((f) => f.interact);
+  const taskedStems = new Set(tasked.map((f) => f.stem));
+  const answeredBy =
+    question.stem.find((b) => b.kind === "figure" && taskedStems.has(b.file ?? ""))?.file ?? null;
   // A key per stem block that moves with it, so a moved block keeps its field.
   const made = useRef(initial.stem.length);
   const [keys, setKeys] = useState(() => initial.stem.map((_, at) => at));
@@ -307,6 +319,33 @@ export function ExamEditor({
               exam
               kinds={false}
               onChange={(next) => setQuestion(next)}
+              figures={{
+                tasked,
+                plain: figures.filter((f) => !f.interact).map((f) => f.stem),
+                chosen: answeredBy,
+                onChoose: (stem) => {
+                  const kept = question.stem
+                    .map((block, at) => [block, keys[at] ?? at] as const)
+                    .filter(([b]) => !(b.kind === "figure" && taskedStems.has(b.file ?? "")));
+                  const added: [BlockIn, number][] = stem
+                    ? [[{ kind: "figure", file: stem, caption: `${ASKED}\n` }, made.current++]]
+                    : [];
+                  const next = [...kept, ...added];
+                  setStem(
+                    next.map(([b]) => b),
+                    next.map(([, k]) => k),
+                  );
+                },
+                ...(base === null
+                  ? {}
+                  : {
+                      onNew: () =>
+                        compose(composerPath(draftId, null, { question: base.id }), () => {
+                          if (!(question.kind === "figure" && answeredBy === null)) commit();
+                        }),
+                    }),
+                onOpen: (stem) => compose(composerPath(draftId, stem), commit),
+              }}
             />
           </div>
         </section>

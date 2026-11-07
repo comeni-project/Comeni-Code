@@ -116,6 +116,13 @@ export const addFigureFile = (at: number, text: string, caption: string): Edit =
   body: { at, text, caption },
 });
 
+/** A new figure made for a question, which it answers: no block on the page (M6FA.7). */
+export const addFigureFor = (question: string, text: string): Edit => ({
+  method: "POST",
+  path: "figures",
+  body: { question, text },
+});
+
 /** A figure's file replaced by `text`, kept as written; refused unless it validates. */
 export const setFigure = (stem: string, text: string): Edit => ({
   method: "PUT",

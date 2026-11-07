@@ -10,7 +10,7 @@ export interface Finding {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: a schema is JSON, walked by key
-type Schema = { readonly [key: string]: any };
+export type Schema = { readonly [key: string]: any };
 
 const NOT_ALLOWED = "CS1002";
 const WRONG = "CS1003";

@@ -128,16 +128,16 @@ def test_an_answer_on_a_choice_question_is_refused() -> None:
     assert codes(problems) == ["CS0308"]
 
 
-def test_a_figure_question_names_m6() -> None:
+def test_a_figure_question_is_answered_by_its_figure() -> None:
+    """M6.6b, M6FA.3: kind figure is a kind; a number's answer on it is another kind's field."""
     _, problems = parse(NUMBER.replace("kind: number", "kind: figure"))
-    assert messages(problems) == ["a figure question arrives with figures in M6"]
-    assert codes(problems) == ["CS0306"]
+    assert codes(problems)[0] == "CS0337"
 
 
 def test_another_kind_lists_the_four() -> None:
     _, problems = parse(NUMBER.replace("kind: number", "kind: essay"))
     assert messages(problems) == [
-        '"essay" is not a kind of question (choice, number, sequence, order)'
+        '"essay" is not a kind of question (choice, number, sequence, order, figure)'
     ]
     assert codes(problems) == ["CS0012"]
 

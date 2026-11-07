@@ -21,7 +21,7 @@ from code_schema.problems import Problem
 FIGURE_FOLDER = "figures"
 MAX_FIGURE_BYTES = 64 * 1024
 STEM = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-_KEYS = ("component", "alt", "data", "source")
+_KEYS = ("component", "alt", "data", "source", "interact")
 _SOURCE_KEYS = ("title", "url")
 MAX_ALT = 300
 MAX_TITLE = 160
@@ -43,6 +43,8 @@ class FigureFile:
     alt: str
     data: Mapping[str, object]
     source: FigureSource | None = None
+    # What a learner does with it, when it asks a question (M6.6b spec, M6FA.1); None when read.
+    interact: Mapping[str, object] | None = None
 
     @property
     def name(self) -> str:
@@ -220,13 +222,15 @@ def _figure(stem: str, text: str, file: str) -> tuple[FigureFile | None, list[Pr
     else:
         problems += [
             problem(found.code, f"{found.path}: {found.message}")
-            for found in figure_findings(component, written.get("data"))
+            for found in figure_findings(component, written.get("data"), written.get("interact"))
         ]
     if problems:
         return None, problems
     data = written["data"]
     assert isinstance(data, Mapping) and isinstance(component, str) and isinstance(alt, str)
-    return FigureFile(stem, text, component, alt, data, source), []
+    interact = written.get("interact")
+    assert interact is None or isinstance(interact, Mapping)  # CS1028 refuses the rest
+    return FigureFile(stem, text, component, alt, data, source, interact), []
 
 
 def parse_figures(

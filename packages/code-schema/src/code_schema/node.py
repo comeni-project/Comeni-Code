@@ -12,7 +12,7 @@ from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from code_schema.blocks import Block, Figure, Image, Try, parse_blocks
+from code_schema.blocks import Block, Image, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
@@ -24,6 +24,7 @@ from code_schema.fields import (
     slug,
     whole_number,
 )
+from code_schema.figure_answers import figure_answers, placements
 from code_schema.figures import (
     FIGURE_FOLDER,
     STEM,
@@ -451,14 +452,18 @@ def parse_node_files(
     read, figure_found = parse_figures(texts, where=where)
     problems += figure_found
     if node is not None:
-        # Placed by the body, an exam stem or a try question's figure (M6FG.1).
-        stems = [block for question in exam for block in question.blocks]
-        shown = {block.file for block in (*node.blocks, *stems) if isinstance(block, Figure)}
-        shown |= {q.figure for q in node.questions if q.figure is not None}
+        # Placed by the body, an exam stem, a try question's figure or an option (M6FG.1, M6FA.3).
+        shown = placements(node.blocks, node.questions, exam)
         # A file refused for its name is not also unplaced: CS1022 says enough.
         names = {n.removesuffix(".yaml") for n in texts if STEM.match(n.removesuffix(".yaml"))}
         names &= {n.removesuffix(".yaml") for n in texts if n.endswith(".yaml")}
         problems += figure_problems(names, shown, file=f"{where}{NODE_FILE}", where=where)
+        # A figure that asks a question answers one, and its right selections are computed.
+        questions, exam, asked = figure_answers(
+            node.blocks, node.questions, exam, read, where=where
+        )
+        problems += asked
+        node = replace(node, questions=questions)
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems

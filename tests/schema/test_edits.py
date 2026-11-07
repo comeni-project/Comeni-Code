@@ -128,6 +128,7 @@ def test_a_try_block_carries_its_question_in() -> None:
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
 
@@ -150,6 +151,7 @@ def test_deleting_a_try_block_deletes_its_question() -> None:
         "shared-unitig",
         "spell-the-path",
         "green-path",
+        "trace-the-path",
         "assembly-order",
     ]
     assert Try(question="kmers-per-read") not in edited.blocks
@@ -192,6 +194,7 @@ def test_a_block_moves() -> None:
         Try(question="kmers-per-read"),
         Try(question="spell-the-path"),
         Try(question="green-path"),
+        Try(question="trace-the-path"),
         Try(question="assembly-order"),
     ]
 

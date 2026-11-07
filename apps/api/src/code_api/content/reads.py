@@ -134,7 +134,7 @@ def _question(question: Question) -> QuestionOut:
         ),
         unit=question.unit or None,
         tolerance=number_from(question.tolerance),
-        accept=list(question.accept),
+        accept=list(question.accept) if kind == "sequence" else [],
         exact=question.exact,
         steps=list(question.steps) if kind == "order" else None,
         hints=list(question.hints),
@@ -157,6 +157,16 @@ def node(node_id: str) -> NodeOut | None:
     incoming = found.links_in.filter(kind=Link.Kind.NEEDS).select_related("source")
     # Sorted here, not by the database: Postgres's collation and Python's differ on case.
     needed_by = sorted(incoming, key=lambda link: (link.source.title.casefold(), link.source.id))
+    # The figures the page draws: its body's, its try questions' and their options'. One only an
+    # exam question places, and its computed answer, stays with the exam pool (#411, M4E.5).
+    drawn = {block["file"] for block in found.blocks if block["kind"] == "figure"}
+    drawn |= {question.figure for question in questions if question.figure}
+    drawn |= {
+        option["figure"]
+        for question in questions
+        for option in question.options
+        if option.get("figure")
+    }
     return NodeOut(
         id=found.id,
         title=found.title,
@@ -190,8 +200,10 @@ def node(node_id: str) -> NodeOut | None:
                 data=figure.data,
                 derived=figure.derived,
                 source=None if figure.source is None else FigureSourceOut(**figure.source),
+                interact=figure.interact,
             )
             for figure in found.figures.defer("text").order_by("position")
+            if figure.stem in drawn
         ],
     )
 

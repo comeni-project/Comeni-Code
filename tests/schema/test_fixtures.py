@@ -211,7 +211,8 @@ def test_de_bruijn_graphs_asks_one_question_of_each_kind(content: Content) -> No
         "number",
         "choice",
         "sequence",
-        "choice",  # green-path, a choice until M6.6b answers by the figure
+        "choice",  # green-path, a choice beside its figure
+        "figure",  # trace-the-path, answered by tracing it (M6.6b)
         "order",
     ]
     assert all(question.hints and question.rationale for question in node.questions)
@@ -254,7 +255,7 @@ def test_the_tpm_node_carries_an_exam_pool_of_every_kind(content: Content) -> No
 
 def test_every_exam_yaml_is_canonical(content: Content) -> None:
     pooled = [node_id for node_id, node in content.nodes.items() if node.exam]
-    assert pooled == ["tpm"]
+    assert pooled == ["de-bruijn-graphs", "tpm"]
     for node_id in pooled:
         written = (ROOT / content.folders[node_id] / "exam.yaml").read_text(encoding="utf-8")
         assert written == write_exam_yaml(content.nodes[node_id]), node_id

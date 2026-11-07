@@ -158,8 +158,18 @@ export function BlockEditor({ draftId, at, insert, initial, question, onClose }:
         <TryEditor
           question={asked}
           onChange={setAsked}
-          figures={(cached?.node?.figures ?? []).map((f) => f.stem)}
+          figures={cached?.node?.figures ?? []}
           onCompose={(stem) => compose(composerPath(draftId, stem), commit)}
+          // A figure made for the question answers it (M6FA.7); the question must be saved first,
+          // and a figure question with no figure yet is not saved (CS0338): the figure's save sets it.
+          {...(insert
+            ? {}
+            : {
+                onNewFigure: () =>
+                  compose(composerPath(draftId, null, { question: asked.id }), () => {
+                    if (!(asked.kind === "figure" && !asked.figure)) commit();
+                  }),
+              })}
         />
       )}
       {refusal !== null && (

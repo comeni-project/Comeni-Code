@@ -2489,7 +2489,9 @@ const kitFigure = (tag, n, body, caption, { plain = false } = {}) => figureBlock
 function figureComposer(view) {
   const steps = view.startsWith('choose')
     ? [['Choose', 'on'], ['Data', ''], ['Describe', '']]
-    : [['Choose', 'done'], ['Data', 'on'], ['Describe', view === 'flow' ? '' : 'done']];
+    : view === 'interaction'
+      ? [['Choose', 'done'], ['Data', 'done'], ['Interaction', 'on'], ['Describe', 'done']]
+      : [['Choose', 'done'], ['Data', 'on'], ['Describe', view === 'flow' ? '' : 'done']];
   const stepper = `<div style="display:flex;align-items:center;gap:6px">${steps.map(([n, st], i) => `${i ? `<span style="width:28px;height:1px;background:${c.border2}"></span>` : ''}<span style="display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:13px;${st === 'on' ? `background:${c.ink};color:${c.bg};font-weight:600` : st === 'done' ? `background:${c.lineSoft};color:${c.btn}` : `border:1px solid ${c.border2};color:${c.ink2}`}"><span style="font-family:${MONO};font-size:11px">${st === 'done' ? '✓' : i + 1}</span>${n}</span>`).join('')}</div>`;
   const cell = (v, o = {}) => `<div style="padding:6px 9px;border-right:1px solid ${c.border};font-family:${o.ui ? UI : MONO};font-size:12.5px;white-space:nowrap;overflow:hidden;${o.bad ? `outline:2px solid ${c.open};outline-offset:-2px;background:${c.openSoft};color:${c.open}` : ''}${o.muted ? `color:${c.ink3}` : ''}">${v}</div>`;
   const sheet = (head, rows, widths) => `<div style="border:1px solid ${c.border2};border-radius:9px;overflow:hidden;background:${c.surface}">
@@ -2526,6 +2528,58 @@ function figureComposer(view) {
       <span style="font-size:12px;color:${c.ink3}">Drawn in your browser by the page's own component, from the data as you edit it.</span>
     </div>`;
   const placed = (lines) => card(`<span style="font-size:14px;font-weight:600">This figure</span><span style="font-size:12.5px;color:${c.ink2};line-height:1.5">${lines}</span>`);
+
+  // M6.6b: the Interaction step, between Data and Describe, for a kit with tasks. The task is the
+  // figure file's `interact`; what a right answer is, and a wrong one, are computed from the data.
+  if (view === 'interaction') {
+    const thumb = (t, svg, on) => `<div style="display:flex;flex-direction:column;gap:5px;min-width:0"><div style="border-radius:8px;${on ? `border:2px solid ${c.sel}` : `border:1px solid ${c.border}`};background:${c.surface};padding:4px 6px">${svg}</div><span style="font-size:12px;text-align:center;color:${on ? c.ink : c.ink2};font-weight:${on ? 600 : 400}">${t}</span></div>`;
+    const taskOpt = (t, d, on) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}"><span style="margin-top:2px;width:16px;height:16px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:600">${t}</span><span style="font-size:12px;color:${c.ink2}">${d}</span></div></div>`;
+    const inner = `${header('de Bruijn graphs › figure trace-path')}
+    <div style="flex:1;display:grid;grid-template-columns:420px minmax(0, 1fr) 320px;gap:18px;min-height:0">
+      <section style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+        ${kitStrip('kmer-graph', 'trace-path · reads joined by their k-mers')}
+        ${field('What the learner does', `<div style="display:flex;flex-direction:column;gap:7px">
+          ${taskOpt('Nothing', 'the figure is read, not answered; it may sit on the page')}
+          ${taskOpt('Trace a path', 'click k-mers in order, each step along an arrow', true)}
+        </div>`, 'The tasks are the component’s own. A figure with a task is placed only in a question.')}
+        ${field('The path spells', `<span style="display:block;padding:7px 10px;border-radius:8px;border:1px solid ${c.border2};background:${c.surface};font-family:${MONO};font-size:13px">ACGTTAG</span>`, 'Its k-mers must each be in the graph, each step an arrow a read holds.')}
+        <div style="display:flex;flex-direction:column;gap:5px"><span style="font-size:12.5px;font-weight:600">Computed</span>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;border-radius:9px;background:${c.bg};font-size:12.5px">
+            <span style="color:${c.ink3}">right</span><span style="font-family:${MONO}">ACG → CGT → GTT → TTA → TAG</span>
+            <span style="color:${c.ink3}">a wrong one</span><span style="font-family:${MONO}">ACG → CGT → GTC · spells ACGTC</span>
+            <span style="color:${c.ink3}">asked as</span><span>no highlight, nothing spelled, until answered</span>
+          </div>
+          <span style="font-size:11.5px;color:${c.ink3}">Worked out from the reads, k and the sequence; shown, never written.</span></div>
+        ${yamlFoot('interact: trace · spells ACGTTAG')}
+      </section>
+      <section style="display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0">
+        <div style="${panel(c)};padding:12px 16px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Preview · midway</span>${seg(c, ['Desktop', 'Phone', 'Dark'], 0)}</div>
+          <div style="flex:1;${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:18px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px">${traceFig({ sel: ['ACG', 'CGT', 'GTT'], next: ['TTA'] })}${readout('ACG → CGT → GTT', 'ACGTT')}</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">Every state</span><span style="font-size:12px;color:${c.ink3}">what the learner sees, each drawn by the component</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:10px">
+              ${thumb('start', traceFig())}${thumb('midway', traceFig({ sel: ['ACG', 'CGT', 'GTT'], next: ['TTA'] }), true)}${thumb('wrong answer', traceFig({ sel: ['ACG', 'CGT', 'GTC'], tone: 'open' }))}${thumb('answered', traceFig({ sel: ['ACG', 'CGT', 'GTT', 'TTA', 'TAG'], tone: 'line' }))}
+            </div>
+          </div>
+        </div>
+        ${describe('Trace the reads’ path through their k-mers.', 'A de Bruijn graph of six 3-mers from four reads; one path spells ACGTTAG, and a branch at CGT leads to GTC.')}
+      </section>
+      <aside style="display:flex;flex-direction:column;gap:14px">
+        <div style="${panel(c)};padding:14px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:4px"><span style="font-size:14px;font-weight:600">Checks</span>${greenTag('all pass')}</div>
+          ${check(1, 'The data fits a kmer-graph', 'every read A, C, G, T; k shorter than each read')}
+          ${check(1, 'The task fits the data', 'ACGTTAG’s five 3-mers are in the graph, each step an arrow')}
+          ${check(1, 'One right answer', 'a sequence has one path of k-mers')}
+          ${check(1, 'A wrong answer exists', 'the branch at CGT')}
+          ${check(1, 'Every state draws', '4 of 4, on desktop and phone')}
+          ${check(1, 'Described', 'a caption and alt text')}
+        </div>
+        ${placed(`${mono('figures/trace-path.yaml')} answers <i>Try it 3</i> (${mono('kind: figure')}). A figure with a task cannot also sit on the page.`)}
+      </aside>
+    </div>`;
+    return studio('Drafts', inner, 1680, 1060, { collapsed: true });
+  }
 
   if (view === 'choose') {
     const thumbs = [
@@ -2810,6 +2864,196 @@ const benchFigurePreview = () => `<div style="border-radius:10px;border:1px soli
       <span style="font-size:12px;color:${c.ink2}"><b style="color:${c.ink};font-weight:600">Figure 2.</b> Distinct k-mers as k grows, for two genomes of the same length.</span>
     </div></div>`;
 
+// ── M6.6b answering by the figure: one drawer for every k-mer graph a question asks about ──
+// kgraph draws k-mers (boxes) and the steps reads hold (arrows). A question adds a selection, in
+// order, in one tone: blue while the learner picks (sel), red when checked wrong (open), teal when
+// right (line); `next` dashes the k-mers an arrow leads to from the last pick; `marks` shows the
+// computed tips and bubbles, which a question hides until it is answered.
+const TONE = () => ({ sel: [c.sel, c.selSoft], open: [c.open, c.openSoft], line: [c.line, c.lineSoft] });
+function kgraph({ nodes, edges, w = 700, h = 190, bw = 76, bh = 34, font = 15, sel = [], tone = 'sel', next = [], marks = {}, top = '', order = true }) {
+  const [tc, ts] = TONE()[tone];
+  const mk = { bubble: [c.open, c.openSoft], tip: [c.measBar, c.measSoft] };
+  const on = (a, b) => sel.some((s, i) => s === a && sel[i + 1] === b);
+  let s = `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block">${top}`;
+  for (const [a, b] of edges) {
+    const [ax, ay] = nodes[a], [bx, by] = nodes[b];
+    let d, end, dir;
+    if (bx > ax) { const x1 = ax + bw, y1 = ay + bh / 2, x2 = bx, y2 = by + bh / 2; d = `M${x1} ${y1} C${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2 - 2} ${y2}`; end = [x2, y2]; dir = 'r'; }
+    else if (bx < ax) { const x1 = ax, y1 = ay + bh / 2, x2 = bx + bw, y2 = by + bh / 2; d = `M${x1} ${y1} C${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2 + 2} ${y2}`; end = [x2, y2]; dir = 'l'; }
+    else { const up = by < ay, x = ax + bw / 2, y1 = up ? ay : ay + bh, y2 = up ? by + bh : by; d = `M${x} ${y1} V${y2 + (up ? 2 : -2)}`; end = [x, y2]; dir = up ? 'u' : 'd'; }
+    const kind = marks[a] || marks[b];
+    const col = on(a, b) ? tc : kind ? mk[kind][0] : c.ink3;
+    const sw = on(a, b) ? 2.6 : 1.8;
+    const [ex, ey] = end, hd = { r: `M${ex - 8} ${ey - 5} L${ex} ${ey} L${ex - 8} ${ey + 5}`, l: `M${ex + 8} ${ey - 5} L${ex} ${ey} L${ex + 8} ${ey + 5}`, u: `M${ex - 5} ${ey + 8} L${ex} ${ey} L${ex + 5} ${ey + 8}`, d: `M${ex - 5} ${ey - 8} L${ex} ${ey} L${ex + 5} ${ey - 8}` }[dir];
+    s += `<path d="${d}" style="fill:none;stroke:${col};stroke-width:${sw};${kind && !on(a, b) ? 'stroke-dasharray:5 4;' : ''}"></path><path d="${hd}" style="fill:none;stroke:${col};stroke-width:${sw};stroke-linejoin:round;stroke-linecap:round"></path>`;
+  }
+  for (const [id, [x, y]] of Object.entries(nodes)) {
+    const at = sel.indexOf(id), kind = marks[id];
+    const [st, fi] = at >= 0 ? [tc, ts] : kind ? mk[kind] : [c.ink2, c.surface];
+    const dash = (kind && at < 0) || next.includes(id);
+    s += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="7" style="fill:${next.includes(id) ? c.surface : fi};stroke:${next.includes(id) ? c.sel : st};stroke-width:${at >= 0 || next.includes(id) ? 2.2 : 1.5};${dash ? 'stroke-dasharray:4 3' : ''}"></rect>`;
+    s += `<text x="${x + bw / 2}" y="${y + bh / 2 + font * 0.36}" text-anchor="middle" style="font-family:${MONO};font-size:${font}px;font-weight:500;fill:${c.ink}">${id}</text>`;
+    if (at >= 0 && order) s += `<circle cx="${x + bw - 2}" cy="${y + 2}" r="9" style="fill:${tc}"></circle><text x="${x + bw - 2}" y="${y + 6}" text-anchor="middle" style="font-family:${MONO};font-size:11px;font-weight:600;fill:#FFFFFF">${at + 1}</text>`;
+  }
+  return s + '</svg>';
+}
+
+// The trace try's graph: reads ACGTT, CGTTA, GTTAG and CGTC, k = 3, as kmer-graph computes it.
+const TRACE = {
+  nodes: { ACG: [20, 52], CGT: [156, 52], GTT: [292, 52], TTA: [428, 52], TAG: [564, 52], GTC: [292, 132] },
+  edges: [['ACG', 'CGT'], ['CGT', 'GTT'], ['GTT', 'TTA'], ['TTA', 'TAG'], ['CGT', 'GTC']],
+  top: `<text x="0" y="22" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">reads</text>${['ACGTT', 'CGTTA', 'GTTAG', 'CGTC'].map((r, i) => `<text x="${70 + i * 92}" y="22" style="font-family:${MONO};font-size:14px;fill:${c.ink2}">${r}</text>`).join('')}<text x="460" y="22" style="font-family:${MONO};font-size:11px;fill:${c.ink3}">k = 3</text>`,
+};
+const traceFig = (o = {}) => kgraph({ ...TRACE, ...o });
+// The pick question's graph: graph-artifacts from ACGTTAGC twice, ACGTCAGC and ACGTTAGG (the L5 board's Figure 4).
+const PICK = {
+  nodes: { ACG: [10, 70], CGT: [112, 70], GTT: [214, 70], TTA: [316, 70], TAG: [418, 70], AGC: [520, 70], GTC: [214, 140], TCA: [316, 140], CAG: [418, 140], AGG: [520, 4] },
+  edges: [['ACG', 'CGT'], ['CGT', 'GTT'], ['GTT', 'TTA'], ['TTA', 'TAG'], ['TAG', 'AGC'], ['CGT', 'GTC'], ['GTC', 'TCA'], ['TCA', 'CAG'], ['CAG', 'AGC'], ['TAG', 'AGG']],
+  bw: 62, w: 600, h: 184,
+};
+const PICK_MARKS = { GTC: 'bubble', TCA: 'bubble', CAG: 'bubble', AGG: 'tip' };
+const pickFig = (o = {}) => kgraph({ ...PICK, order: false, ...o });
+// Four small graph-artifacts figures, marks hidden, for a choice whose options are figures.
+const OPT_BOX = { bw: 46, bh: 26, font: 12, w: 370, h: 104 };
+const OPTS = {
+  clean: { nodes: { ACG: [6, 40], CGT: [78, 40], GTT: [150, 40], TTA: [222, 40], TAG: [294, 40] }, edges: [['ACG', 'CGT'], ['CGT', 'GTT'], ['GTT', 'TTA'], ['TTA', 'TAG']] },
+  tip: { nodes: { ACG: [6, 22], CGT: [78, 22], GTT: [150, 22], TTA: [222, 22], TAG: [294, 22], TTC: [222, 72] }, edges: [['ACG', 'CGT'], ['CGT', 'GTT'], ['GTT', 'TTA'], ['TTA', 'TAG'], ['GTT', 'TTC']] },
+  bubble: { nodes: { ACG: [6, 8], CGT: [78, 8], GTT: [150, 8], TTA: [222, 8], TAG: [294, 8], CGA: [78, 70], GAT: [150, 70], ATA: [222, 70] }, edges: [['ACG', 'CGT'], ['CGT', 'GTT'], ['GTT', 'TTA'], ['TTA', 'TAG'], ['ACG', 'CGA'], ['CGA', 'GAT'], ['GAT', 'ATA'], ['ATA', 'TAG']] },
+  loop: { nodes: { TAC: [6, 14], ACG: [78, 14], CGT: [222, 14], CGA: [150, 70], GAC: [78, 70] }, edges: [['TAC', 'ACG'], ['ACG', 'CGT'], ['ACG', 'CGA'], ['CGA', 'GAC'], ['GAC', 'ACG']] },
+};
+const optFig = (k) => kgraph({ ...OPTS[k], ...OPT_BOX });
+
+const tryShell = (n, ask, meta, inner, { tag = '{% try trace-the-path %}' } = {}) => `<div style="display:flex;flex-direction:column;gap:6px">${blockTag(tag).replace('{{ tags }}', 'inline-flex')}
+  <div style="display:flex;flex-direction:column;gap:14px;padding:18px 20px;border-radius:14px;border:2px solid ${c.sel};background:${c.surface}">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1.5px solid ${c.sel};color:${c.sel};font-family:${MONO};font-size:12px">${n}</span>
+      <span style="font-size:16px;font-weight:600;flex:1">${ask}</span>
+      <span style="font-size:12px;color:${c.ink3}">${meta}</span>
+    </div>${inner}</div></div>`;
+const figBox = (svg, pad = '10px 16px') => `<div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;padding:${pad}">${svg}</div>`;
+const readout = (path, spells, extra = '') => `<div aria-live="polite" style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:13.5px"><span style="color:${c.ink3}">Your path</span><span style="font-family:${MONO};font-size:14px">${path}</span>${spells ? `<span style="color:${c.ink3}">spells</span><span style="font-family:${MONO};font-size:14px;font-weight:600">${spells}</span>` : ''}${extra}</div>`;
+const tryBtns = (check = true, again = false) => `<div style="display:flex;gap:8px;align-items:center">${secondary(c, 'Undo')}${secondary(c, 'Clear')}<span style="flex:1"></span>${check ? primary(c, again ? 'Check again' : 'Check', '') : `<span style="display:inline-flex;align-items:center;padding:10px 18px;border-radius:10px;border:1px solid ${c.border2};color:${c.ink3};font-size:14px;font-weight:600">Check</span>`}</div>`;
+const stateLabel = (n, t, d) => `<div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:${MONO};font-size:12px;color:${c.ink3}">${n}</span><span style="font-size:14px;font-weight:600">${t}</span><span style="font-size:12.5px;color:${c.ink3}">${d}</span></div>`;
+
+// ── L5 · a trace try in its four states, and at 390 px ──
+function nodeTrace() {
+  const ask = 'Trace the path that spells ACGTTAG.';
+  const states = [
+    ['1', 'start', 'drawn plain: no path, nothing spelled', tryShell(3, ask, '2 min · trace', `${figBox(traceFig())}
+      <div aria-live="polite" style="font-size:13.5px;color:${c.ink3}">Click the k-mer the path starts at. Tab and Enter work too.</div>${tryBtns(false)}`)],
+    ['2', 'midway', 'each pick follows an arrow; where it can go next is dashed', tryShell(3, ask, '2 min · trace', `${figBox(traceFig({ sel: ['ACG', 'CGT', 'GTT'], next: ['TTA'] }))}
+      ${readout('ACG → CGT → GTT', 'ACGTT')}
+      <span style="font-size:12.5px;color:${c.ink2}">TAG doesn’t follow GTT: the only arrow from GTT leads to TTA.</span>${tryBtns()}`)],
+    ['3', 'wrong answer', 'checked: the path stays, a hint opens', tryShell(3, ask, '2 min · trace', `${figBox(traceFig({ sel: ['ACG', 'CGT', 'GTC'], tone: 'open' }))}
+      ${readout('ACG → CGT → GTC', 'ACGTC')}
+      <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.openSoft}"><span style="font-size:14px;font-weight:600;color:${c.open}">Not yet — your path spells ACGTC.</span><span style="font-size:13.5px;line-height:1.5"><b style="font-weight:600">Hint 1 of 2</b> · ACGTTAG has 7 letters, so its path has 7 − 3 + 1 = 5 k-mers.</span></div>${tryBtns(true, true)}`)],
+    ['4', 'answered', 'the computed path drawn, then why', tryShell(3, ask, '2 min · trace', `${figBox(traceFig({ sel: ['ACG', 'CGT', 'GTT', 'TTA', 'TAG'], tone: 'line' }))}
+      ${readout('ACG → CGT → GTT → TTA → TAG', 'ACGTTAG')}
+      <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.lineSoft}"><span style="font-size:14px;font-weight:600;color:${c.btn}">Right — five k-mers, each one letter on. <span style="font-weight:500;color:${c.ink2}">Why:</span></span><span style="font-size:13.5px;line-height:1.55">Each step to the next k-mer adds its last letter: ACG + T + T + A + G. The arrow to GTC belongs to the fourth read, which spells ACGTC.</span><span style="font-size:12px;color:${c.ink3}">This question comes back in your review in 3 days.</span></div>`)],
+  ];
+  const phone = `<div style="width:390px;flex:none;border-radius:28px;border:1px solid ${c.border2};background:${c.bg};overflow:hidden;display:flex;flex-direction:column">
+    <div style="height:52px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid ${c.border};background:${c.surface}">${logo(c, '')}<span style="margin-left:10px;font-size:13px;color:${c.ink2}">de Bruijn graphs</span></div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;border:2px solid ${c.sel};background:${c.surface}">
+        <span style="font-size:15px;font-weight:600">3 · ${ask}</span>
+        <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:10px;overflow:hidden;position:relative"><div style="width:525px;padding:8px 10px">${traceFig({ sel: ['ACG', 'CGT', 'GTT'], next: ['TTA'] })}</div>
+          <span style="position:absolute;right:0;top:0;bottom:0;width:36px;background:linear-gradient(90deg, transparent, ${c.bg})"></span></div>
+        ${readout('ACG → CGT → GTT', 'ACGTT')}
+        <div style="display:flex;gap:8px">${secondary(c, 'Undo')}${secondary(c, 'Clear')}<span style="flex:1"></span>${primary(c, 'Check', '')}</div>
+      </div>
+    </div></div>`;
+  return page(1440, 1640, `${learnBar()}
+  <main style="flex:1;display:flex;flex-direction:column;gap:28px;padding:28px 36px;min-height:0">
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:${c.ink3}">Learn Salmon › de Bruijn graphs › Building the graph</span>${h1('Try it 3 — answered by tracing the figure', 26)}</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:28px 32px">${states.map(([n, t, d, body]) => `<div style="display:flex;flex-direction:column;gap:10px">${stateLabel(n, t, d)}${body}</div>`).join('')}</div>
+    <div style="display:flex;gap:32px;align-items:flex-start">${phone}
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:560px;padding-top:12px">
+        ${stateLabel('390', 'phone', 'midway, as a phone draws it')}
+        ${p('Every k-mer is a button: Tab moves between them in reading order, Enter or Space picks one, and the line under the figure reads the path back. A pick that does not follow an arrow is not taken; the line says which k-mers can come next. Undo takes back the last pick and Clear all of them.')}
+        ${p('At 390 px the drawing keeps three quarters of its width, so its letters stay 11 px or more, and scrolls sideways (#402). Each k-mer’s tap area is at least 44 px, larger than its box.')}
+        ${p('Nothing is spelled and nothing is highlighted until the path is checked, so the figure never gives the answer away. A right path is the one the component computes from the reads; nobody types it.')}
+      </div></div>
+  </main>`);
+}
+
+// ── L13 · a test question answered by picking in the figure ──
+function examPick() {
+  return page(1440, 900, `
+    ${focusBar('Test · Learn Salmon', progress(6, 6, 12), `<span style="font-size:13px;color:${c.ink2}">Stop and save</span>`)}
+    <div style="width:100%;max-width:860px;align-self:center;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:40px 36px">
+      <span style="${label(c)}">Question 7 of 12 · no hints in a test</span>
+      ${h1('This graph was built from reads with k = 3. One read has a single wrong base in its middle. Click a k-mer only that read holds.', 24)}
+      ${figBox(pickFig({ sel: ['TCA'] }), '12px 18px')}
+      <div aria-live="polite" style="display:flex;align-items:center;gap:10px;font-size:13.5px"><span style="color:${c.ink3}">Your pick</span><span style="font-family:${MONO};font-size:14px;font-weight:600">TCA</span><span style="flex:1"></span>${secondary(c, 'Clear')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12.5px;color:${c.ink3}">Any k-mer the wrong base made is right. Which ones, and why, is shown with your results.</span>
+        ${primary(c, 'Next question', '')}
+      </div>
+    </div>`);
+}
+
+// ── L13 · a choice whose options are figures ──
+function examOptions() {
+  const opt = (L, k, on) => `<div style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;${on ? `border:2px solid ${c.sel};background:${c.selSoft}` : `border:1px solid ${c.border2};background:${c.surface}`}">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:18px;height:18px;border-radius:50%;flex:none;${on ? `border:5px solid ${c.sel};background:${c.surface}` : `border:1.5px solid ${c.border2}`}"></span><span style="font-family:${MONO};font-size:13px;font-weight:600;color:${c.ink2}">${L}</span></div>
+    <div style="${gridBg(c)};border:1px solid ${c.border};border-radius:8px;padding:6px 8px">${optFig(k)}</div></div>`;
+  return page(1440, 980, `
+    ${focusBar('Test · Learn Salmon', progress(7, 7, 12), `<span style="font-size:13px;color:${c.ink2}">Stop and save</span>`)}
+    <div style="width:100%;max-width:860px;align-self:center;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:40px 36px">
+      <span style="${label(c)}">Question 8 of 12 · no hints in a test</span>
+      ${h1('Each graph was built from three reads with k = 3. In which one does a read have a single wrong base in its middle?', 24)}
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px">${opt('A', 'tip')}${opt('B', 'bubble', true)}${opt('C', 'clean')}${opt('D', 'loop')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12.5px;color:${c.ink3}">Each option is a figure, read aloud by its alt text. Options are shuffled per learner.</span>
+        ${primary(c, 'Next question', '')}
+      </div>
+    </div>`);
+}
+
+// ── S3 · the exam pool: a question answered by the figure, and a choice of figures ──
+function benchExamFigure() {
+  const qRow = (n, t, kind, on) => `<div style="display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-radius:9px;${on ? `background:${c.selSoft};box-shadow:inset 3px 0 0 ${c.sel}` : `border:1px solid ${c.border};background:${c.surface}`}"><span style="font-family:${MONO};font-size:11px;color:${c.ink3}">Q${n} · ${kind}</span><span style="font-size:12.5px;font-weight:${on ? 600 : 500};line-height:1.35">${t}</span></div>`;
+  const kinds = `<div role="radiogroup" style="display:inline-flex;gap:2px;padding:3px;border-radius:9px;background:${c.bg};border:1px solid ${c.border}">${['Choice', 'Number', 'Sequence', 'Order', 'Figure'].map((k) => `<span style="padding:4px 11px;border-radius:7px;font-size:12.5px;${k === 'Figure' ? `background:${c.surface};font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)` : `color:${c.ink2}`}">${k}</span>`).join('')}</div>`;
+  const optRow = (L, k, right, mis) => `<div style="display:grid;grid-template-columns:20px 170px minmax(0, 1fr);gap:10px;align-items:center;padding:6px 8px;border-radius:10px;${right ? `border:2px solid ${c.btn};background:${c.lineSoft}` : `border:1px solid ${c.border};background:${c.surface}`}">
+    <span style="font-family:${MONO};font-size:12px;font-weight:600;color:${right ? c.btn : c.ink2}">${L}</span>
+    <div style="border-radius:7px;border:1px solid ${c.border};background:${c.bg};padding:2px 4px">${optFig(k)}</div>
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-family:${MONO};font-size:11.5px;color:${c.ink3}">figure · options-${k}</span><span style="font-size:12.5px;color:${right ? c.btn : c.ink2}">${right ? 'the right option' : mis}</span></div></div>`;
+  return benchBody(`
+    <div style="display:grid;grid-template-columns:220px minmax(0, 1fr);gap:16px;min-height:0">
+      <aside style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">Exam pool</span><span style="font-size:12px;color:${c.sel}">+ New</span></div>
+        ${qRow(1, 'How many 5-mers does a 100-base read hold?', 'number')}${qRow(2, 'Spell the path', 'sequence')}${qRow(3, 'Put the steps in order', 'order')}${qRow(4, 'Is a k-mer a node or an edge here?', 'choice')}
+        ${qRow(5, 'Click a k-mer only the wrong read holds', 'figure · pick', true)}${qRow(6, 'Which graph has a mid-read error?', 'choice of figures')}
+      </aside>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div style="${benchCard}">
+          <span style="font-size:14px;font-weight:600">Q5 · Click a k-mer only the wrong read holds</span>
+          ${benchArea('Stem', 'This graph was built from reads with k = 3. One read has a single wrong base in its middle. Click a k-mer only that read holds.')}
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">Answer</span>${kinds}</div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid ${c.border};background:${c.bg}">
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-family:${MONO};font-size:13px;font-weight:500">figures/error-bubble.yaml</span><span style="font-size:12.5px;color:${c.ink2}">graph-artifacts · task: pick a k-mer of a bubble</span><span style="flex:1"></span><a style="font-size:12.5px;font-weight:500">Open in the composer</a></div>
+            <div style="max-width:520px">${figBox(pickFig(), '6px 10px')}</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px"><span style="color:${c.ink3}">computed</span><span style="font-family:${MONO}">right: any of GTC, TCA, CAG · the bubble from CGT to AGC</span><span style="color:${c.ink3}">drawn</span><span>every k-mer plain until the results: the marks would give the answer away</span></div>
+          </div>
+          <span style="${benchHint}">A figure answer is computed by its component, never typed. Only a figure with a task can answer; the task is set in the composer’s Interaction step.</span>
+        </div>
+        <div style="${benchCard}">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:600">Q6 · options that are figures</span><span style="font-size:12px;color:${c.ink3}">each option is text or a figure</span></div>
+          <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px">${optRow('A', 'tip', false, 'an error near a read’s end')}${optRow('B', 'bubble', true)}${optRow('C', 'clean', false, 'thinks an error leaves no mark')}${optRow('D', 'loop', false, 'reads a repeat as an error')}</div>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;color:${c.ink2}"><span>An option’s figure is drawn as asked: tips and bubbles unmarked.</span><span style="color:${c.sel}">+ Option · text or figure</span></div>
+        </div>
+      </div>
+    </div>`);
+}
+const benchExamFigurePreview = () => `<div style="border-radius:10px;border:1px solid ${c.border};background:${c.bg};padding:14px;display:flex;flex-direction:column;gap:10px">
+  <span style="font-size:11px;color:${c.ink3}">As in a test · no hints</span>
+  <span style="font-size:14.5px;font-weight:600;line-height:1.35">This graph was built from reads with k = 3. One read has a single wrong base in its middle. Click a k-mer only that read holds.</span>
+  ${figBox(pickFig({ sel: ['TCA'] }), '4px 6px')}
+  <span style="font-size:12px;color:${c.ink2}">Answer it here as a learner would: <b style="font-weight:600">TCA</b> is right.</span>
+  <span style="font-size:11px;color:${c.ink3}">Results view</span>
+  ${figBox(pickFig({ marks: PICK_MARKS, sel: ['TCA'], tone: 'line' }), '4px 6px')}
+</div>`;
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -2819,6 +3063,9 @@ const LEARN = [
   ['Node', 'L5 · Node — learn it, blocks, questions with hints, a step back', node(), 1440, 5420, 'Reached from: a route, Continue, search, Needed-by / Goes-deeper links, Labs.\nLeads to: needs (back), goes deeper / related (sideways), needed by (forward), the problem, back to the route.\nA block document: every dark tag names the block type the AI wrote through the Studio API (toggle “showBlocks”). Learn it (tutor spec T4): Read / Watch, an embedded outside video playing only the part it covers, and linked readings and tutorials, each with provider and licence. Checks carry hints and a rationale; a wrong answer that reveals a gap offers a step back to the prerequisite (T6). Figures are library components filled with data; the image carries author and licence. Try-it questions return in review; the Rosalind-style problem settles the node.'],
   ['NodeFirstSteps', 'L5 · Node at First steps — design-round draft', firstStepsNode(), 1440, 1940, 'Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.'],
   ['ExamSetup', 'L13 · Exam — set up', examSetup('setup'), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
+  ['NodeTrace', 'L5 · Node, M6.6b — a try answered by tracing the figure', nodeTrace(), 1440, 1640, 'M6.6b: a try whose answer is a path the learner traces in a kmer-graph, in its four states (start, midway, wrong answer, answered) and at 390 px. The figure file holds the task (interact: trace, spells); the right path is computed from the reads. Nothing is highlighted or spelled until the path is checked.'],
+  ['ExamPick', 'L13 · Exam, M6.6b — a question answered by picking in the figure', examPick(), 1440, 900, 'M6.6b: a test question answered by clicking a k-mer of the bubble in a graph-artifacts figure. The tips and bubbles are drawn unmarked until the results; any k-mer of the run is right.'],
+  ['ExamOptions', 'L13 · Exam, M6.6b — a choice whose options are figures', examOptions(), 1440, 980, 'M6.6b: a choice question whose options are figures, each drawn by its component with the marks hidden, read aloud by its alt text. Graded as any choice: the option’s index.'],
   ['ExamTest', 'L13 · Exam — a test in progress', examSetup('test'), 1440, 760, 'Reached from: Start the test.\nLeads to: results.\nNo hints and no answers until the end; stop and save keeps your place. The page a question comes from is shown only with the results.'],
   ['ExamResults', 'L13 · Exam — results per page, on the route', examResults(), 1440, 1160, 'Reached from: finishing or stopping a test.\nLeads to: step back, review, the route.\nResults are per page, never a grade: confirmed (no colour), shaky (amber — added to review), not yet (red — back on the route, with a step back to what the wrong answers point at). Drawn on the metro map with a table. Not a certificate.'],
   ['Explore', 'L12 · Explore — search and filter at scale', explore(), 1440, 1120, 'Reached from: Home, search.\nLeads to: starting or continuing a track; Start to ask for a new goal.\nSearch first; filters with counts; applied filters as removable chips; dense rows sorted by how much you already hold. Network view shows only filtered tracks.'],
@@ -2839,6 +3086,7 @@ const STUDIO = [
   ['ComposerChart', 'S4 · Figure composer, M6.5 — Data: a chart', figureComposer('chart'), 1680, 1060, 'M6.5: the data as a sheet (values, pasteable from a spreadsheet), the settings made from the chart’s schema, Edit as YAML underneath. The preview draws in the browser as you edit; Save writes the file once, comments and order kept. Describe holds caption, alt text and an optional source.'],
   ['ComposerDomain', 'S4 · Figure composer, M6.6a — Choose, with the de Bruijn components', figureComposer('choose-domain'), 1680, 1060, 'M6.6a: five domain components join the gallery above the general kits, each drawn from its sample data. What follows from the reads (k-mers, edges, paths, counts, tips, bubbles) is computed by the component. Answering by the figure is M6.6b.'],
   ['ComposerKmerGraph', 'S4 · Figure composer, M6.6a — Data: a kmer-graph', figureComposer('kmer-graph'), 1680, 1060, 'M6.6a: the reads as a sheet (FASTA or a spreadsheet), k and the highlight as settings from the schema, and what is computed from them named beneath, never typed. No Interaction step yet (M6.6b).'],
+  ['ComposerInteraction', 'S4 · Figure composer, M6.6b — Interaction: trace a path', figureComposer('interaction'), 1680, 1060, 'M6.6b: the step between Data and Describe, shown only for a kit with tasks. The task goes in the figure file (interact); the right answer, a wrong one and how the figure is drawn while asked are computed and named, never typed. Every state is drawn by the component, and the checks say whether each draws.'],
   ['ComposerFlow', 'S4 · Figure composer, M6.5 — Data: a flow with a problem', figureComposer('flow'), 1680, 1060, 'M6.5: a kit with several sheets (nodes, edges, groups). A check names its code and path and goes to the cell; the preview keeps the last drawing that checks until the problem is fixed; Save waits for every check.'],
   ['Review', 'S6 · Review — approve blocks, lowest score first', reviewStudio(), 1680, 1000, 'Reached from: the rail, Inbox, Implementing.\nTutor spec T8: blocks sorted and filtered by the judge’s score; the block shown standalone and beside its sources; the score’s named parts with reasons and the redraft history; Approve stays inert until its conditions hold (you didn’t draft it, sources opened, unsourced sentences marked). “Was the score right?” feeds judge–human agreement in Quality.'],
   ['ReviewM4', 'S6 · Review — as M4 builds it: a verdict per block', reviewM4(), 1680, 1000, 'M4.9b, built before the judge exists: every block of a submitted draft (its fields, text, try, callouts, resources, exam questions) gets a reviewer\'s verdict, one at a time or ticked and approved together (a question only once answered); Approve the draft opens once every block is approved. Questions are answered before the right answer shows; a wrong answer counts, never blocks. The score column, the judge\'s panel and “Was the score right?” are placeholders until M5 fills them; the S6 board beside it is the target.'],
@@ -2854,6 +3102,7 @@ const STUDIO = [
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
   ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
   ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block\u2019s Edit now opens the figure composer (S4), and this editor is gone.'],
+  ['WorkbenchExamFigure', 'S3 · Workbench — Exam pool, M6.6b: a figure answer and figure options', workbench({ tab: 'Exam pool', body: benchExamFigure(), preview: benchExamFigurePreview() }), 1680, 1060, 'M6.6b: the answer kind Figure takes a figure whose file has a task, made in the composer; its right answers are computed and named. A choice option holds text or a figure. The preview answers it as a learner would, then shows the results view with the marks.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];
 const IDENTITY = [

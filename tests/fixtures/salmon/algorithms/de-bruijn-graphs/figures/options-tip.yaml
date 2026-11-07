@@ -1,0 +1,9 @@
+component: graph-artifacts
+alt: A graph whose path ACG to TAG has a short branch from GTT to TTC that ends there.
+data:
+  reads:
+    - {sequence: ACGTTAG}
+    - {sequence: ACGTTAG}
+    - {sequence: ACGTTC}
+  k: 3
+  marks: hidden

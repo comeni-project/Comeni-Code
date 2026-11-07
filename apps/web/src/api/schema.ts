@@ -111,13 +111,15 @@ export interface ApiSchemas {
 }
 /**
  * A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
- * `alt` for its starter; never both. Its block's caption either way.
+ * `alt` for its starter; never both. Its block's caption either way. Placed at `at` in the
+ * body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).
  */
 export interface AddFigureIn {
   alt?: string | null;
-  at: number;
-  caption: string;
+  at?: number | null;
+  caption?: string;
   component?: string | null;
+  question?: string | null;
   revision: number;
   text?: string | null;
 }
@@ -318,6 +320,7 @@ export interface StudioExamQuestionOut {
   unit: string;
 }
 export interface StudioOptionOut {
+  figure?: string | null;
   misconception: string;
   plain: boolean;
   right: boolean;
@@ -335,6 +338,9 @@ export interface StudioFigureOut {
   derived: {
     [k: string]: unknown;
   };
+  interact?: {
+    [k: string]: unknown;
+  } | null;
   source: FigureSourceOut | null;
   stem: string;
   text: string;
@@ -467,7 +473,7 @@ export interface ExamQuestionIn {
   claim?: string;
   exact?: boolean;
   id: string;
-  kind: "choice" | "number" | "sequence" | "order";
+  kind: "choice" | "number" | "sequence" | "order" | "figure";
   level?: Level | null;
   options?: OptionIn[] | null;
   rationale: string;
@@ -477,11 +483,15 @@ export interface ExamQuestionIn {
   tolerance?: number | null;
   unit?: string;
 }
+/**
+ * An option's text, or a figure's stem (M6FA.3): one or the other.
+ */
 export interface OptionIn {
+  figure?: string | null;
   misconception?: string;
   plain?: boolean;
   right?: boolean;
-  text: string;
+  text?: string;
 }
 export interface FieldsIn {
   claim?: string | null;
@@ -504,6 +514,9 @@ export interface FigureOut {
   derived: {
     [k: string]: unknown;
   };
+  interact?: {
+    [k: string]: unknown;
+  } | null;
   source: FigureSourceOut | null;
   stem: string;
 }
@@ -569,7 +582,7 @@ export interface TryQuestionIn {
   figure?: string | null;
   hints: string[];
   id: string;
-  kind: "choice" | "number" | "sequence" | "order";
+  kind: "choice" | "number" | "sequence" | "order" | "figure";
   options?: OptionIn[] | null;
   rationale: string;
   steps?: string[] | null;
@@ -718,6 +731,7 @@ export interface QuestionOut {
   unit: string | null;
 }
 export interface OptionOut {
+  figure?: string | null;
   right: boolean;
   text: string;
 }
@@ -867,15 +881,18 @@ export interface ReviewFieldsOut {
  */
 export interface ReviewQuestionOut {
   ask: string;
+  figure?: string | null;
   given: unknown;
   hints: string[];
   id: string;
   kind: string;
+  option_figures?: (string | null)[] | null;
   options: string[] | null;
   pool: "try" | "exam";
   rationale: string | null;
   right: boolean | null;
   right_option: number | null;
+  right_selections?: string[][] | null;
   right_steps: string[] | null;
   stem: (
     | TextBlockOut

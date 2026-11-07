@@ -4,7 +4,14 @@ import re
 
 import pytest
 
-from code_schema import ChoiceAnswer, NumberAnswer, Option, OrderAnswer, SequenceAnswer
+from code_schema import (
+    ChoiceAnswer,
+    FigureAnswer,
+    NumberAnswer,
+    Option,
+    OrderAnswer,
+    SequenceAnswer,
+)
 from code_schema.grading import NotAnAnswer, is_right, score
 
 CHOICE = ChoiceAnswer(options=(Option("A", right=True), Option("B"), Option("C")))
@@ -105,3 +112,26 @@ def test_an_order_is_given_every_step_once(given: object) -> None:
 def test_only_a_full_order_is_right() -> None:
     assert is_right(STEPS, ["A", "B", "D", "C"]) is False
     assert is_right(STEPS, ["A", "B", "C", "D"]) is True
+
+
+# ── a figure answer (M6.6b spec, M6FA.3) ────────────────────────────────────────────────────────
+
+TRACED = FigureAnswer(figure="trace-path", accept=(("ACG", "CGT", "GTT", "TTA", "TAG"),))
+
+
+def test_a_figure_answer_is_one_of_its_selections() -> None:
+    assert score(TRACED, ["ACG", "CGT", "GTT", "TTA", "TAG"]) == 1.0
+    assert score(TRACED, ["ACG", "CGT", "GTC"]) == 0.0
+    picked = FigureAnswer(figure="bubble", accept=(("GTC",), ("TCA",), ("CAG",)))
+    assert score(picked, ["TCA"]) == 1.0 and score(picked, ["ACG"]) == 0.0
+
+
+def test_a_figure_answer_is_a_list_of_kmers() -> None:
+    for given in ("ACG", [1, 2], None, [["ACG"]]):
+        with pytest.raises(NotAnAnswer):
+            score(TRACED, given)
+
+
+def test_a_figure_answer_with_no_selections_cannot_be_graded() -> None:
+    with pytest.raises(NotAnAnswer):
+        score(FigureAnswer(figure="trace-path"), ["ACG"])
