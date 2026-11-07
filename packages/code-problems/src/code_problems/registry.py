@@ -3,7 +3,7 @@ reviewed change: a module beside these, its schema, and an entry here."""
 
 from collections.abc import Mapping
 
-from code_problems import de_bruijn_edges
+from code_problems import count_kmers, de_bruijn_edges
 from code_problems.kit import Kit
 
-KITS: Mapping[str, Kit] = {kit.name: kit for kit in (de_bruijn_edges.KIT,)}
+KITS: Mapping[str, Kit] = {kit.name: kit for kit in (de_bruijn_edges.KIT, count_kmers.KIT)}

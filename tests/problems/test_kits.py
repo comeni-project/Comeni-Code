@@ -66,3 +66,23 @@ def test_a_given_answer_is_read_loosely() -> None:
     tight = case.answer.replace(" -> ", "->")
     verdict = kit.check(case, tight)
     assert not verdict.right and "A -> B" in verdict.said
+
+
+COUNT: dict[str, Any] = {"k": 3, "genome": [40, 400], "read": 12, "coverage": 3, "errors": 0}
+
+
+def test_count_kmers_counts_the_distinct() -> None:
+    case = case_of("count-kmers", COUNT, 5)
+    k, *rows = case.dataset.text.splitlines()
+    distinct = {r[i : i + 3] for r in rows for i in range(len(r) - 2)}
+    assert case.answer == str(len(distinct)) and k == "3"
+
+
+@pytest.mark.parametrize("mistake", ["counted-all", "off-by-one"])
+def test_count_mistakes_are_named_in_order(mistake: str) -> None:
+    kit = KITS["count-kmers"]
+    case = case_of("count-kmers", COUNT, 5)
+    verdict = kit.check(case, kit.mistakes[mistake](case))
+    assert not verdict.right and verdict.mistakes == (mistake,)
+    assert kit.check(case, case.answer).right
+    assert not kit.check(case, "seven").right

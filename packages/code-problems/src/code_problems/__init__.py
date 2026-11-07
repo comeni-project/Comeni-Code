@@ -5,5 +5,6 @@ seed, solves it, and checks an answer, naming the mistakes it recognises."""
 from code_problems.kit import Case, Dataset, Kit, Verdict
 from code_problems.registry import KITS
 from code_problems.rng import Rng
+from code_problems.self_test import CODES, SelfTest, self_test
 
-__all__ = ["KITS", "Case", "Dataset", "Kit", "Rng", "Verdict"]
+__all__ = ["CODES", "KITS", "Case", "Dataset", "Kit", "Rng", "SelfTest", "Verdict", "self_test"]

@@ -131,5 +131,5 @@ KIT = Kit(
         "unsorted": _unsorted,
         "reversed": _reversed,
     },
-    max_bytes=600_000,
+    max_bytes=120_000,
 )
