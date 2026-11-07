@@ -2316,6 +2316,66 @@ codes:
     explanation: |
       A dataset of one's own makes an answer worth nothing to anyone else (the first spec's §5.1.1); at least 18 of 20 seeds must answer differently (M6PR.4).
 
+  CS1106:
+    emitted_by: schema
+    concern: problems
+    says: a problem names no kit
+    refuses: true
+    fix: |
+      Name a kit code-problems has: de-bruijn-edges or count-kmers.
+    explanation: |
+      A problem's dataset, answer and checks come from its kit (M6.7 spec, M6PR.1); there is no per-problem code.
+
+  CS1107:
+    emitted_by: schema
+    concern: problems
+    says: a problem file is not as written
+    refuses: true
+    fix: |
+      Keep to the problem's keys (title, rung, statement, given, return, kit, params, sample, hints, mistakes, rationale), each of its kind; a rung is 1 to 4; one to three hints.
+    explanation: |
+      A problem is read as data (M6PR.3); a key the format does not have, or one missing, would not reach a learner as the author meant.
+
+  CS1108:
+    emitted_by: schema
+    concern: problems
+    says: a problem and its block are not together
+    refuses: true
+    fix: |
+      Place the problem with one :::{problem} block, which holds nothing, beside problem.yaml; or remove both.
+    explanation: |
+      The block says where the problem sits on the page and the file what it is (M6PR.3); either alone is half a problem.
+
+  CS1109:
+    emitted_by: schema
+    concern: problems
+    says: the body places the problem twice
+    refuses: true
+    fix: |
+      Keep one :::{problem} block.
+    explanation: |
+      A node has one problem, its proof (M6PR.3).
+
+  CS1110:
+    emitted_by: schema
+    concern: problems
+    says: a problem's mistake names no callout, or a mistake its kit does not catch
+    refuses: true
+    fix: |
+      Map only mistakes the kit names, each to the title of a misconception callout in the body.
+    explanation: |
+      A wrong answer with a mapped mistake shows that callout, where a step back starts (M6PR.3, T6.1).
+
+  CS1111:
+    emitted_by: schema
+    concern: problems
+    says: a problem's hint holds the sample's answer
+    refuses: true
+    fix: |
+      Rewrite the hint so the learner still works the answer out.
+    explanation: |
+      A hint leaves work for the learner (T6.2); the sample's answer in a hint gives it away.
+
   CS1020:
     emitted_by: schema
     concern: figures
