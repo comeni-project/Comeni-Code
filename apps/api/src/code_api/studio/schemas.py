@@ -20,6 +20,7 @@ from code_api.content.schemas import (
     ImageBlockOut,
     ImageRecordOut,
     MathBlockOut,
+    ProblemBlockOut,
     SequenceBlockOut,
     TextBlockOut,
     TryBlockOut,
@@ -50,6 +51,8 @@ from code_schema import (
     Try,
     TryQuestion,
 )
+from code_schema.blocks import ProblemBlock
+from code_schema.problem_file import ProblemFile
 
 
 class LinkOut(Schema):
@@ -124,6 +127,31 @@ class StudioExamQuestionOut(Schema):
     rationale: str
 
 
+class NodeProblemOut(Schema):
+    """A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed
+    from its seed, as the page will show it."""
+
+    text: str
+    title: str
+    rung: int
+    kit: str
+    sample_dataset: str
+    sample_output: str
+
+
+def problem_out(problem: ProblemFile | None) -> NodeProblemOut | None:
+    if problem is None:
+        return None
+    return NodeProblemOut(
+        text=problem.text,
+        title=problem.title,
+        rung=problem.rung,
+        kit=problem.kit,
+        sample_dataset=problem.sample.dataset.text,
+        sample_output=problem.sample.answer,
+    )
+
+
 class DraftNodeOut(Schema):
     title: str
     claim: str
@@ -139,6 +167,7 @@ class DraftNodeOut(Schema):
     exam: list[StudioExamQuestionOut]
     images: list[ImageRecordOut] = []  # each file's credit (M6.3 spec, M6IM.1)
     figures: list[StudioFigureOut] = []  # each figure file, read, with its text (M6FG.5)
+    problem: NodeProblemOut | None = None  # problem.yaml and its computed sample (M6PR.6)
 
 
 class DraftSummaryOut(Schema):
@@ -303,6 +332,8 @@ def _block_out(block: Block) -> AnyBlockOut:
             return ImageBlockOut(kind="image", file=file, caption=caption)
         case Figure(file=file, caption=caption):
             return FigureBlockOut(kind="figure", file=file, caption=caption)
+        case ProblemBlock():
+            return ProblemBlockOut(kind="problem")
 
 
 def _question_out(question: TryQuestion) -> StudioQuestionOut:
@@ -388,6 +419,7 @@ def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> Draf
             for i in node.images
         ],
         figures=[figure_out(figure) for figure in node.figures],
+        problem=problem_out(node.problem),
     )
 
 
@@ -524,6 +556,7 @@ class ReviewContentOut(Schema):
     question: ReviewQuestionOut | None
     image: ImageRecordOut | None = None  # an image key's record, drawn as the page draws it
     figures: list[StudioFigureOut] = []  # the figures a key shows, with their files (M6FG.5)
+    problem: NodeProblemOut | None = None  # the problem key's file and sample (M6PR.6)
 
 
 class ReviewItemOut(ReviewContentOut):
@@ -605,6 +638,7 @@ def _content(key: Key, given: object | None) -> ReviewContentOut:
         figures=[
             figure_out(figure, keyed=asked is None or given is not None) for figure in key.figures
         ],
+        problem=problem_out(content) if isinstance(content, ProblemFile) else None,
     )
 
 

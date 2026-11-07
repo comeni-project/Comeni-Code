@@ -69,6 +69,7 @@ from code_schema import (
 from code_schema.edits import (
     EditError,
     FigureRefused,
+    ProblemRefused,
     Unfaithful,
     add_exam_question,
     add_figure,
@@ -78,10 +79,12 @@ from code_schema.edits import (
     move_block,
     remove_figure,
     remove_image,
+    remove_problem,
     set_fields,
     set_figure,
     set_image_record,
     set_links,
+    set_problem,
     set_resources,
     update_block,
     update_exam_question,
@@ -588,7 +591,7 @@ def _edit(
         return Status(422, RefusedOut(detail=detail, code="CA0210", problems=[]))
     except EditError as wrong:
         # A figure that would not validate says why, as a save's files do (M6FG.5).
-        if isinstance(wrong, FigureRefused) and wrong.problems:
+        if isinstance(wrong, FigureRefused | ProblemRefused) and wrong.problems:
             return Status(
                 422, refused(list(wrong.problems), "The figure's file would not validate.")
             )
@@ -905,6 +908,29 @@ def edit_resources(request: HttpRequest, public_id: UUID, body: ResourcesIn) -> 
         lambda node: set_resources(node, resources),
         "replaced the resources",
     )
+
+
+class ProblemIn(Schema):
+    revision: int
+    text: str
+
+
+@router.put("/{public_id}/problem", response=_EDIT_RESPONSES, summary="Set the node's problem")
+def set_the_problem(request: HttpRequest, public_id: UUID, body: ProblemIn) -> SaveAnswer:
+    """problem.yaml whole, kept as written, its block added when the body has none (M6PR.6)."""
+    return _edit(
+        request,
+        public_id,
+        body.revision,
+        lambda node: set_problem(node, body.text),
+        "set the problem",
+    )
+
+
+@router.delete("/{public_id}/problem", response=_EDIT_RESPONSES, summary="Remove the problem")
+def remove_the_problem(request: HttpRequest, public_id: UUID, revision: int) -> SaveAnswer:
+    """problem.yaml and its block, gone together."""
+    return _edit(request, public_id, revision, remove_problem, "removed the problem")
 
 
 @router.post("/{public_id}/exam", response=_EDIT_RESPONSES, summary="Add an exam question")

@@ -376,6 +376,7 @@
                   "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
+                  "problem": "#/components/schemas/ProblemBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -406,6 +407,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/FigureBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ProblemBlockOut"
                 }
               ]
             },
@@ -460,6 +464,16 @@
             },
             "title": "Needs",
             "type": "array"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeProblemOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "questions": {
             "items": {
@@ -1903,6 +1917,7 @@
                   "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
+                  "problem": "#/components/schemas/ProblemBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -1933,6 +1948,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/FigureBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ProblemBlockOut"
                 }
               ]
             },
@@ -2042,6 +2060,45 @@
           "questions"
         ],
         "title": "NodeOut",
+        "type": "object"
+      },
+      "NodeProblemOut": {
+        "description": "A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed\nfrom its seed, as the page will show it.",
+        "properties": {
+          "kit": {
+            "title": "Kit",
+            "type": "string"
+          },
+          "rung": {
+            "title": "Rung",
+            "type": "integer"
+          },
+          "sample_dataset": {
+            "title": "Sample Dataset",
+            "type": "string"
+          },
+          "sample_output": {
+            "title": "Sample Output",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "title",
+          "rung",
+          "kit",
+          "sample_dataset",
+          "sample_output"
+        ],
+        "title": "NodeProblemOut",
         "type": "object"
       },
       "OpenIn": {
@@ -2163,6 +2220,39 @@
           "expires_at"
         ],
         "title": "PendingInviteOut",
+        "type": "object"
+      },
+      "ProblemBlockOut": {
+        "description": "Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem.",
+        "properties": {
+          "kind": {
+            "const": "problem",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ProblemBlockOut",
+        "type": "object"
+      },
+      "ProblemIn": {
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "text"
+        ],
+        "title": "ProblemIn",
         "type": "object"
       },
       "ProblemOut": {
@@ -2899,6 +2989,7 @@
                     "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
+                    "problem": "#/components/schemas/ProblemBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
                     "try": "#/components/schemas/TryBlockOut"
@@ -2929,6 +3020,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/FigureBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ProblemBlockOut"
                   }
                 ]
               },
@@ -2960,6 +3054,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/ImageRecordOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeProblemOut"
               },
               {
                 "type": "null"
@@ -3077,6 +3181,7 @@
                     "figure": "#/components/schemas/FigureBlockOut",
                     "image": "#/components/schemas/ImageBlockOut",
                     "math": "#/components/schemas/MathBlockOut",
+                    "problem": "#/components/schemas/ProblemBlockOut",
                     "sequence": "#/components/schemas/SequenceBlockOut",
                     "text": "#/components/schemas/TextBlockOut",
                     "try": "#/components/schemas/TryBlockOut"
@@ -3107,6 +3212,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/FigureBlockOut"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ProblemBlockOut"
                   }
                 ]
               },
@@ -3159,6 +3267,16 @@
           "note": {
             "title": "Note",
             "type": "string"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeProblemOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "question": {
             "anyOf": [
@@ -3380,6 +3498,7 @@
                   "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
+                  "problem": "#/components/schemas/ProblemBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -3410,6 +3529,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/FigureBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ProblemBlockOut"
                 }
               ]
             },
@@ -3863,6 +3985,7 @@
                   "figure": "#/components/schemas/FigureBlockOut",
                   "image": "#/components/schemas/ImageBlockOut",
                   "math": "#/components/schemas/MathBlockOut",
+                  "problem": "#/components/schemas/ProblemBlockOut",
                   "sequence": "#/components/schemas/SequenceBlockOut",
                   "text": "#/components/schemas/TextBlockOut",
                   "try": "#/components/schemas/TryBlockOut"
@@ -3893,6 +4016,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/FigureBlockOut"
+                },
+                {
+                  "$ref": "#/components/schemas/ProblemBlockOut"
                 }
               ]
             },
@@ -7006,6 +7132,161 @@
           }
         ],
         "summary": "Replace a link list",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{public_id}/problem": {
+      "delete": {
+        "description": "problem.yaml and its block, gone together.",
+        "operationId": "code_api_studio_api_remove_the_problem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision",
+            "required": true,
+            "schema": {
+              "title": "Revision",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Remove the problem",
+        "tags": [
+          "studio"
+        ]
+      },
+      "put": {
+        "description": "problem.yaml whole, kept as written, its block added when the body has none (M6PR.6).",
+        "operationId": "code_api_studio_api_set_the_problem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "public_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Public Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefusedOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Set the node's problem",
         "tags": [
           "studio"
         ]

@@ -68,6 +68,7 @@ class Revision(models.Model):
     node_yaml = models.TextField()
     body_md = models.TextField(blank=True)
     exam_yaml = models.TextField(blank=True)  # empty: the node has no exam pool
+    problem_yaml = models.TextField(blank=True)  # empty: the node has no problem (M6PR.6)
     # Each image file in the node's images/ by name, as its Asset's sha256 (M6.3 spec, M6IM.3).
     images = models.JSONField(default=dict, blank=True)
     # Each figure file in the node's figures/ by name, as its text: small, so kept here (M6FG.5).

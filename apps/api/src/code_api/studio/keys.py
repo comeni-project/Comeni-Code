@@ -26,6 +26,7 @@ from code_schema import (
     TryQuestion,
 )
 from code_schema.figure_answers import option_figures
+from code_schema.problem_file import ProblemFile
 
 QUESTIONS = ("try", "exam")
 
@@ -52,6 +53,7 @@ Content = (
     | Resource
     | TryQuestion
     | ExamQuestion
+    | ProblemFile
 )
 
 
@@ -97,6 +99,9 @@ def review_keys(node: Node, shas: Mapping[str, str] | None = None) -> list[Key]:
             case Image(file=file):
                 seen = Pictured(block, records.get(file), (shas or {}).get(file, ""))
                 keys.append(Key(f"block/{at}", "image", seen))
+    # The problem is one key, its file; its block gets none of its own (M6PR.6).
+    if node.problem is not None:
+        keys.append(Key("problem", "problem", node.problem))
     keys += [Key(f"resource/{at}", "resource", r) for at, r in enumerate(node.resources)]
     keys += [
         Key(
@@ -145,6 +150,8 @@ def label(key: Key) -> str:
         return _cut(content.ask)
     if isinstance(content, ExamQuestion):
         return _cut(content.title)
+    if isinstance(content, ProblemFile):
+        return _cut(f"Problem · {content.title}")
     return f"{content.provider} · {content.kind}"
 
 
