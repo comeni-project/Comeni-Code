@@ -9,6 +9,7 @@ import type {
   FigureBlockOut,
   ImageBlockOut,
   MathBlockOut,
+  ProblemBlockOut,
   SequenceBlockOut,
   TextBlockOut,
   TryBlockOut,
@@ -22,7 +23,8 @@ export type Block =
   | MathBlockOut
   | ExampleBlockOut
   | ImageBlockOut
-  | FigureBlockOut;
+  | FigureBlockOut
+  | ProblemBlockOut;
 
 const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const SECOND = /^##\s+(.+?)\s*#*\s*$/;
