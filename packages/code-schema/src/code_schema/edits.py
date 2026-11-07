@@ -194,6 +194,15 @@ def _answered_by(node: Node, question_id: str, stem: str, caption: str) -> Node:
             )
     for asked in node.exam:
         if asked.id == question_id:
+            # The figure it was answered by goes; any other is the author's, and a figure
+            # question's stem places one figure (CS0824): they remove it, rather than lose it
+            # without a word (#414).
+            tasked = {f.stem for f in node.figures if f.interact is not None and f.stem != stem}
+            if any(isinstance(b, Figure) and b.file not in tasked for b in asked.blocks):
+                raise EditError(
+                    f"the stem of {question_id} already places a figure: remove it first, "
+                    "a figure question is answered by its stem's one figure"
+                )
             kept = [b for b in asked.blocks if not isinstance(b, Figure)]
             said = (caption or ASKED_CAPTION).rstrip("\n") + "\n"
             stem_text = write_faithfully([*kept, Figure(stem, said)], file="exam.yaml")

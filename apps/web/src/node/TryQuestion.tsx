@@ -2,7 +2,7 @@
 //
 // It is formative: the answer came with the page (M3P1.4) and is checked here. Nothing is stored,
 // so the board's "Answered · back in review in 3 days" waits for learner records (T7).
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { FigureOut, QuestionOut } from "../api/schema";
 import { FigureAnswer } from "../figures/answer/FigureAnswer";
 import { Figure } from "../figures/Figure";
@@ -15,7 +15,9 @@ const KINDS: Record<string, string> = {
   choice: "a choice",
   sequence: "a typed answer",
   order: "an order",
-  figure: "trace",
+  // A figure question says its task: what the learner does (#414).
+  trace: "a trace",
+  pick: "a pick",
 };
 
 const Chevron = ({ up = false }: { up?: boolean }) => (
@@ -95,7 +97,13 @@ export function TryQuestion({
     }
   }
 
-  const meta = `1 min · ${KINDS[question.kind] ?? "a question"}`;
+  const told = question.kind === "figure" ? String(asked?.interact?.task ?? "") : question.kind;
+  const meta = `1 min · ${KINDS[told] ?? "a question"}`;
+  // A right figure answer takes its buttons away; focus goes to what was found, not to the page.
+  const feedback = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (right && question.kind === "figure") feedback.current?.focus();
+  }, [right, question.kind]);
   const badge = (
     <span className="flex size-[26px] shrink-0 items-center justify-center rounded-lg border-[1.5px] border-sel font-mono text-[12px] text-sel">
       {number}
@@ -346,7 +354,11 @@ export function TryQuestion({
             big ? "rounded-[14px] px-[18px] py-4" : "rounded-[10px] px-3.5 py-3"
           }`}
         >
-          <p className={big ? "text-[19px] font-semibold" : "text-[14px] font-semibold"}>
+          <p
+            ref={feedback}
+            tabIndex={-1}
+            className={`outline-none ${big ? "text-[19px] font-semibold" : "text-[14px] font-semibold"}`}
+          >
             <span className="text-btn">
               {right
                 ? `Right — ${question.kind === "figure" ? path(selection) : answer}.`

@@ -204,3 +204,33 @@ def test_a_figure_made_for_an_exam_question_is_its_stems_figure() -> None:
 def test_a_figure_for_no_such_question_is_refused() -> None:
     with pytest.raises(EditError):
         add_figure(DBG, None, caption="", text=TRACE, question="no-such-question")
+
+
+def test_a_figure_for_an_exam_question_whose_stem_has_one_is_refused() -> None:
+    """#414: an author's figure in the stem is not dropped without a word; it is asked to go."""
+    from code_schema.edits import add_exam_question
+
+    asked = replace(TPM.exam[0], stem=TPM.exam[0].stem + "\n:::{figure} flow\nA figure.\n:::\n")
+    node = add_exam_question(remove_exam(TPM, asked.id), asked)
+    with pytest.raises(EditError, match="already places a figure"):
+        add_figure(node, None, caption="", text=TRACE, question=asked.id)
+
+
+def remove_exam(node: Node, question_id: str) -> Node:
+    return replace(node, exam=tuple(q for q in node.exam if q.id != question_id))
+
+
+def test_a_new_figure_for_an_exam_question_replaces_the_one_it_was_answered_by() -> None:
+    from code_schema.questions import FigureAnswer
+
+    asked = TPM.exam[0]
+    once = reread(add_figure(TPM, None, caption="", text=TRACE, question=asked.id))
+    # As a draft's save does: a figure goes with its last placement.
+    from code_schema.edits import without_unplaced_figures
+
+    twice = reread(
+        without_unplaced_figures(add_figure(once, None, caption="", text=TRACE, question=asked.id))
+    )
+    again = next(q for q in twice.exam if q.id == asked.id)
+    assert isinstance(again.answer, FigureAnswer) and again.answer.figure == "kmer-graph-2"
+    assert [b.file for b in again.blocks if isinstance(b, Figure)] == ["kmer-graph-2"]

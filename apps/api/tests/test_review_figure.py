@@ -127,3 +127,17 @@ def test_a_question_key_carries_its_option_figures() -> None:
     node = replace(node, questions=tuple(changed if q is asked else q for q in node.questions))
     key = next(k for k in review_keys(node) if k.key == "try/green-path")
     assert [f.stem for f in key.figures] == ["kmer-path", "graph-artifacts"]
+
+
+def test_the_review_does_not_send_a_figure_questions_key_before_it_is_answered(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    """#414: right_selections waits for the reviewer's answer, so the figure beside it does too."""
+    draft = submitted(ready, ada)
+    client = Client()
+    client.force_login(grace)
+    review_page = client.get(f"/api/studio/drafts/{draft.public_id}/review").json()
+    item = next(i for i in review_page["items"] if i["key"] == "try/trace-the-path")
+    (figure,) = item["figures"]
+    assert figure["interact"] == {"task": "trace", "spells": "ACGTTAG"}
+    assert "edges" in figure["derived"] and "answer" not in figure["derived"]

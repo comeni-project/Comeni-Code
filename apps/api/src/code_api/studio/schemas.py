@@ -317,13 +317,18 @@ def _question_out(question: TryQuestion) -> StudioQuestionOut:
     )
 
 
-def figure_out(figure: FigureFile) -> StudioFigureOut:
+def figure_out(figure: FigureFile, *, keyed: bool = True) -> StudioFigureOut:
+    """`keyed`: with what a task makes right (`derived.answer`); a reviewer's question figure goes
+    without it until they answer, as `right_selections` does (#414)."""
+    derived_values = derived(figure.component, figure.data, figure.interact)
+    if not keyed:
+        derived_values.pop("answer", None)
     return StudioFigureOut(
         stem=figure.stem,
         component=figure.component,
         alt=figure.alt,
         data=dict(figure.data),
-        derived=derived(figure.component, figure.data, figure.interact),
+        derived=derived_values,
         source=None
         if figure.source is None
         else FigureSourceOut(title=figure.source.title, url=figure.source.url),
@@ -597,7 +602,9 @@ def _content(key: Key, given: object | None) -> ReviewContentOut:
             source=record.source,
             licence=record.licence,
         ),
-        figures=[figure_out(figure) for figure in key.figures],
+        figures=[
+            figure_out(figure, keyed=asked is None or given is not None) for figure in key.figures
+        ],
     )
 
 

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { QuestionOut } from "../api/schema";
-import { OPTIONS, PATH, TRACE_PATH } from "../figures/answer/answers.fixture";
+import { ERROR_BUBBLE, OPTIONS, PATH, TRACE_PATH } from "../figures/answer/answers.fixture";
 import { TryQuestion } from "./TryQuestion";
 
 const COUNT: QuestionOut = {
@@ -249,5 +249,35 @@ describe("a try answered by the figure (M6.6b spec, M6FA.4)", () => {
       screen.getByRole("button", { name: "options-bubble: a graph of k-mers." }),
     );
     expect(screen.getByText(/^Right/)).toBeInTheDocument();
+  });
+});
+
+describe("a figure try's meta and focus (#414)", () => {
+  const PICK_TRY: QuestionOut = {
+    id: "error-pick",
+    kind: "figure",
+    ask: "Click a k-mer only the wrong read holds.",
+    options: null,
+    answer: null,
+    unit: null,
+    tolerance: null,
+    accept: [],
+    exact: false,
+    steps: null,
+    hints: ["The wrong read leaves the path."],
+    rationale: "The bubble's k-mers are one read's.",
+    figure: "error-bubble",
+  };
+
+  it("names its task in the meta: a pick is not a trace", () => {
+    render(<TryQuestion question={PICK_TRY} number={1} figures={[ERROR_BUBBLE]} />);
+    expect(screen.getByText("1 min · a pick")).toBeInTheDocument();
+  });
+
+  it("moves focus to the feedback once answered right, so the keyboard is not lost", async () => {
+    render(<TryQuestion question={PICK_TRY} number={1} figures={[ERROR_BUBBLE]} big />);
+    await userEvent.click(screen.getByRole("button", { name: /^TCA$/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Check" }));
+    expect(document.activeElement).toHaveTextContent(/^Right — TCA\./);
   });
 });
