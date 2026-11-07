@@ -39,3 +39,30 @@ def test_the_learner_page_leaves_the_problem_out() -> None:
     page = Client().get("/api/nodes/de-bruijn-graphs").json()
     assert all(block["kind"] != "problem" for block in page["blocks"])
     assert "problem" not in page
+
+
+def test_a_problem_a_tightened_kit_refuses_still_reads_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """#420: after a deploy that tightens a kit, the index still gives the node back, problem and
+    all; a draft's own read is where the problem is refused, as for a dropped registry (#173)."""
+    from dataclasses import replace
+
+    from code_problems import registry
+
+    from code_schema import problem_file
+
+    rebuild_index(FIXTURES)
+    kit = registry.KITS["de-bruijn-edges"]
+    monkeypatch.setitem(registry.KITS, kit.name, replace(kit, max_bytes=10))
+    monkeypatch.setattr(problem_file, "_RUNS", {})
+    node = node_from_index("de-bruijn-graphs")
+    assert node is not None and node.problem is not None
+    assert (
+        node.problem.text
+        == (FIXTURES / "algorithms" / "de-bruijn-graphs" / "problem.yaml").read_text()
+    )
+    assert (
+        node.problem.sample.dataset.text
+        == NodeProblem.objects.get(node_id="de-bruijn-graphs").sample_dataset
+    )

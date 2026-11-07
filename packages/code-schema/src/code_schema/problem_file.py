@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 
-from code_problems import KITS, Case, SelfTest, self_test
+from code_problems import KITS, Case, Dataset, SelfTest, self_test
 
 from code_schema.problems import Problem
 from code_schema.yaml_lines import load_mapping
@@ -157,4 +157,36 @@ def _read(
             sample=tested.sample,
         ),
         [],
+    )
+
+
+def stored_problem(text: str, sample_dataset: str, sample_output: str) -> ProblemFile:
+    """A problem as the index stored it, after it validated, with the sample computed then: no
+    self-test, so a kit tightened since cannot make the index unreadable (#420). Whether it still
+    validates is for the draft's own read to say."""
+    data, _, _ = load_mapping(text, file=PROBLEM_FILE)
+    assert data is not None  # the index stores only files that read
+    kit, sample, params = str(data["kit"]), data["sample"], data["params"]
+    assert isinstance(sample, dict) and isinstance(params, dict)
+    seed = int(sample["seed"])
+    lines = sample_dataset.splitlines()
+    dataset = Dataset(sample_dataset, f"{kit}-{seed}.txt", len(lines))
+    hints = data.get("hints", [])
+    mistakes = data.get("mistakes", {})
+    assert isinstance(hints, list) and isinstance(mistakes, dict)
+    return ProblemFile(
+        text=text,
+        title=str(data["title"]),
+        rung=int(str(data["rung"])),
+        statement=str(data["statement"]),
+        given=str(data["given"]),
+        returns=str(data["return"]),
+        kit=kit,
+        params=params,
+        sample_seed=seed,
+        sample_params=sample["params"],
+        hints=tuple(str(h) for h in hints),
+        mistakes={str(k): str(v) for k, v in mistakes.items()},
+        rationale=str(data["rationale"]),
+        sample=Case(sample["params"], dataset, sample_output),
     )
