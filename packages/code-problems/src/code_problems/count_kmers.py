@@ -3,6 +3,7 @@ they hold. The genome's length is drawn from a range, since a count varies betwe
 if the dataset's size does."""
 
 import json
+import re
 from pathlib import Path
 
 from code_problems import reads
@@ -10,6 +11,7 @@ from code_problems.kit import Case, Dataset, Kit, Params, Verdict
 from code_problems.rng import Rng
 
 NAME = "count-kmers"
+_WHOLE = re.compile(r"[0-9]{1,3}(,[0-9]{3})*|[0-9]+")
 SCHEMA = json.loads(
     (Path(__file__).resolve().parent / "schemas" / f"{NAME}.json").read_text(encoding="utf-8")
 )
@@ -65,10 +67,11 @@ def solve(case: Case) -> str:
 
 
 def check(case: Case, given: str) -> Verdict:
-    said = given.strip().replace(",", "")
-    if not said.isdigit():
+    said = given.strip()
+    # ASCII digits only, commas only between groups of three (#418): str.isdigit takes ².
+    if not _WHOLE.fullmatch(said):
         return Verdict(False, (), "Write one whole number.")
-    value = int(said)
+    value = int(said.replace(",", ""))
     if value == int(case.answer):
         return Verdict(True, (), "")
     told = f"Your count is {value:,}."

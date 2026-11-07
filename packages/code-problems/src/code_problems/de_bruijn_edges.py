@@ -99,12 +99,9 @@ def _duplicates(case: Case) -> str:
 
 
 def _extra(case: Case) -> str:
+    """An edge no read can hold: AAA… to CCC… do not overlap by k − 1 (#417)."""
     k, _ = reads.parse(case.dataset.text)
-    lines = case.answer.splitlines()
-    absent = next(
-        f"{a} -> {a}" for a in ("A" * k, "C" * k, "G" * k, "T" * k) if f"{a} -> {a}" not in lines
-    )
-    return "\n".join(sorted([*lines, absent]))
+    return "\n".join(sorted([*case.answer.splitlines(), f"{'A' * k} -> {'C' * k}"]))
 
 
 def _unsorted(case: Case) -> str:

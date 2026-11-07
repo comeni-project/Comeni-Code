@@ -72,3 +72,21 @@ def test_answers_alike_between_learners() -> None:
 def test_an_unknown_kit_raises_for_the_caller() -> None:
     with pytest.raises(KeyError):
         self_test("no-such-kit", PARAMS, SAMPLE, [])
+
+
+def test_extra_is_made_when_every_self_loop_is_an_edge() -> None:
+    """#417: at k = 3 a long genome holds AAAA, CCCC, GGGG and TTTT; extra must still be made."""
+    big = {"k": 3, "genome": 3000, "read": 100, "coverage": 5, "errors": 0}
+    assert codes(self_test("de-bruijn-edges", big, SAMPLE, ["extra"])) in ([], ["CS1105"])
+
+
+def test_a_kit_that_raises_is_a_finding(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#417: a kit's bug never escapes the self-test; it is CS1103 for that seed."""
+    kit = KITS["de-bruijn-edges"]
+
+    def broken(case: object) -> str:
+        raise ValueError("a kit's bug")
+
+    monkeypatch.setitem(registry.KITS, kit.name, replace(kit, solve=broken))
+    found = self_test(kit.name, PARAMS, SAMPLE, [])
+    assert codes(found)[0] == "CS1103" and "a kit's bug" in found.findings[0].message

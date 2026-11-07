@@ -43,6 +43,27 @@ def case_at(kit: Kit, params: Params, seed: int) -> Case:
     return Case(params, dataset, kit.solve(Case(params, dataset, "")))
 
 
+def _seed(
+    kit: Kit, params: Params, at: int, mapped: list[str]
+) -> tuple[Case | None, list[Finding]]:
+    """One seed's run. A kit's bug never escapes: it is CS1103 for that seed (#417)."""
+    found: list[Finding] = []
+    try:
+        case = case_at(kit, params, at)
+        if not kit.check(case, case.answer).right:
+            return None, [Finding(REFUSED, "kit", f"seed {at}: the solver's own answer is refused")]
+        for name in mapped:
+            if name not in kit.mistakes:
+                continue  # a mistake the kit does not declare is for code-schema to say
+            verdict = kit.check(case, kit.mistakes[name](case))
+            if verdict.right or name not in verdict.mistakes:
+                said = f"seed {at}: the mistake {name} is not caught as itself"
+                found.append(Finding(UNCAUGHT, f"mistakes.{name}", said))
+    except Exception as error:  # noqa: BLE001 — any kit failure is reported, never raised
+        return None, [Finding(REFUSED, "kit", f"seed {at}: the kit failed ({error})")]
+    return case, found
+
+
 def self_test(
     kit_name: str, params: Params, sample: Mapping[str, object], mapped: Iterable[str]
 ) -> SelfTest:
@@ -58,20 +79,17 @@ def self_test(
             found.append(Finding(COST, where, said))
     if found:
         return SelfTest(found, None)
-    runs = [(seed, case_at(kit, small, seed))] + [(s, case_at(kit, params, s)) for s in SEEDS]
-    for at, case in runs:
-        if not kit.check(case, case.answer).right:
-            found.append(Finding(REFUSED, "kit", f"seed {at}: the solver's own answer is refused"))
-            continue
-        for name in mapped:
-            if name not in kit.mistakes:
-                continue  # a mistake the kit does not declare is for code-schema to say
-            verdict = kit.check(case, kit.mistakes[name](case))
-            if verdict.right or name not in verdict.mistakes:
-                said = f"seed {at}: the mistake {name} is not caught as itself"
-                found.append(Finding(UNCAUGHT, f"mistakes.{name}", said))
-    answers = {case.answer for at, case in runs[1:]}
+    names = list(mapped)
+    cases: list[Case] = []
+    for what, at in [(small, seed)] + [(params, s) for s in SEEDS]:
+        case, said = _seed(kit, what, at, names)
+        found += said
+        if case is not None:
+            cases.append(case)
+    answers = {case.answer for case in cases[1:]}
     if not found and len(answers) < DISTINCT:
-        said = f"seeds 0–19 give {len(answers)} different answers; at least {DISTINCT} are needed"
-        found.append(Finding(ALIKE, "params", said))
-    return SelfTest(found, runs[0][1] if not found else None)
+        said_alike = (
+            f"seeds 0–19 give {len(answers)} different answers; at least {DISTINCT} are needed"
+        )
+        found.append(Finding(ALIKE, "params", said_alike))
+    return SelfTest(found, cases[0] if not found else None)

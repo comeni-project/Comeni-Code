@@ -86,3 +86,19 @@ def test_count_mistakes_are_named_in_order(mistake: str) -> None:
     assert not verdict.right and verdict.mistakes == (mistake,)
     assert kit.check(case, case.answer).right
     assert not kit.check(case, "seven").right
+
+
+@pytest.mark.parametrize("given", ["12²", "١٢", "1,2", "", "\x00", "-3", "3.0"])
+def test_a_count_is_ascii_digits_only_and_never_crashes(given: str) -> None:
+    """#418: never a crash; commas only as thousands separators."""
+    kit = KITS["count-kmers"]
+    case = case_of("count-kmers", COUNT, 5)
+    verdict = kit.check(case, given)
+    assert not verdict.right
+
+
+def test_a_count_takes_thousands_separators() -> None:
+    kit = KITS["count-kmers"]
+    case = case_of("count-kmers", {**COUNT, "k": 8, "genome": [3000, 3000], "read": 40}, 5)
+    shown = f"{int(case.answer):,}"
+    assert "," in shown and kit.check(case, shown).right
