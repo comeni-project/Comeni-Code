@@ -28,3 +28,30 @@ def test_letters_and_choice() -> None:
     word = rng.letters(40)
     assert len(word) == 40 and set(word) <= set("ACGT")
     assert rng.choice(["a", "b", "c"]) in {"a", "b", "c"}
+
+
+CHILD_SEED = 7
+
+
+def test_the_same_seed_in_another_process() -> None:
+    """M6PR.7.4: a learner's dataset is the same wherever and whenever it is made."""
+    import subprocess
+    import sys
+
+    from code_problems import KITS
+
+    params = {"k": 4, "genome": 300, "read": 30, "coverage": 8, "errors": 0.01}
+    child = (
+        "import json, sys; from code_problems import KITS, Rng; "
+        f"sys.stdout.write(KITS['de-bruijn-edges'].generate(json.loads(sys.argv[1]), "
+        f"Rng({CHILD_SEED})).text)"
+    )
+    import json
+
+    made = subprocess.run(
+        [sys.executable, "-c", child, json.dumps(params)],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert made == KITS["de-bruijn-edges"].generate(params, Rng(7)).text
