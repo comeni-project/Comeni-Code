@@ -130,3 +130,14 @@ def test_the_writer_keeps_the_file_as_written(tmp_path: Path) -> None:
     assert (tmp_path / "problem.yaml").read_text() == PROBLEM
     again, found = read((tmp_path / "problem.yaml").read_text(), (tmp_path / "body.md").read_text())
     assert codes(found) == [] and again == node
+
+
+def test_a_cached_problem_names_the_file_it_was_found_in() -> None:
+    """#419: the same text read for two files names each its own."""
+    from code_schema.problem_file import read_problem
+
+    bad = PROBLEM.replace("kit: de-bruijn-edges", "kit: walk")
+    _, first = read_problem(bad, file="a/problem.yaml", misconceptions=set())
+    _, second = read_problem(bad, file="b/problem.yaml", misconceptions=set())
+    assert [p.file for p in first] == ["a/problem.yaml"]
+    assert [p.file for p in second] == ["b/problem.yaml"]

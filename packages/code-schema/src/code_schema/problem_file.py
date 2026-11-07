@@ -5,7 +5,7 @@ is: it is edited whole."""
 from __future__ import annotations
 
 from collections.abc import Collection, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from code_problems import KITS, Case, SelfTest, self_test
 
@@ -58,7 +58,8 @@ def read_problem(
         read, problems = _read(text, file, misconceptions)
         _RUNS[key] = (read, tuple(problems))
     found, kept = _RUNS[key]
-    return found, list(kept)
+    # Cached without regard to the file: each caller's problems name its own (#419).
+    return found, [replace(problem, file=file) for problem in kept]
 
 
 def _read(
