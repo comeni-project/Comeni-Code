@@ -5,12 +5,14 @@
 import { type ComponentType, useState } from "react";
 import type { FigureOut } from "../../api/schema";
 import { accepted } from "../../node/grading";
+import { spells } from "../domain/kmers";
 import { type FigureView, type KitProps, RENDERERS } from "../registry";
 import type { Component } from "../schemas";
 import { nextOf, pick, refused, said, type TaskName } from "./selection";
 
-/** How a checked answer came out: wrong keeps the selection, red, to fix; right draws the answer. */
-export type Outcome = "wrong" | "right" | null;
+/** How a checked answer came out: wrong keeps the selection, red, to fix; right draws the answer;
+ * revealed draws it too, shown rather than found, and says so (#413). */
+export type Outcome = "wrong" | "right" | "revealed" | null;
 
 const BUTTON =
   "inline-flex min-h-9 items-center rounded-[9px] border border-border-2 bg-surface px-3.5 text-[13.5px] font-medium text-ink disabled:text-ink-3";
@@ -38,14 +40,20 @@ export function FigureAnswer({
   const [notTaken, setNotTaken] = useState<string | null>(null);
   const task = String(record.interact?.task ?? "trace") as TaskName;
   const edges = (record.derived.edges ?? []) as [string, string][];
-  const answered = outcome === "right";
+  const revealed = outcome === "revealed";
+  const answered = outcome === "right" || revealed;
   const shown =
-    answered && (task === "trace" || selection.length === 0)
+    revealed || (answered && (task === "trace" || selection.length === 0))
       ? (accepted(record)[0] ?? selection)
       : selection;
   const choose = (kmer: string) => {
     const next = pick(task, edges, selection, kmer);
-    setNotTaken(next === null ? refused(edges, selection, kmer) : null);
+    setNotTaken(null);
+    if (next === null) {
+      const why = refused(edges, selection, kmer);
+      // Cleared first, then said, so the same refusal twice is announced twice (#412).
+      queueMicrotask(() => setNotTaken(why));
+    }
     if (next !== null) onSelect(next);
   };
   const view: FigureView = {
@@ -72,10 +80,15 @@ export function FigureAnswer({
         data-testid="figure-answer-said"
         className="m-0 font-mono text-[13.5px] text-ink-2"
       >
-        {said(task, shown)}
+        {revealed
+          ? task === "trace"
+            ? `The path ${shown.join(" → ")} spells ${spells(shown)}`
+            : `Any k-mer of the run is right: ${accepted(record).flat().join(", ")}`
+          : said(task, shown)}
       </p>
-      {notTaken !== null && !still && (
-        <p role="status" className="m-0 text-[12.5px] text-ink-2">
+      {/* Always there, so each refusal is announced, the same one again too (#412). */}
+      {!still && (
+        <p role="status" className="m-0 min-h-[1em] text-[12.5px] text-ink-2">
           {notTaken}
         </p>
       )}
@@ -86,7 +99,10 @@ export function FigureAnswer({
               type="button"
               className={BUTTON}
               disabled={selection.length === 0}
-              onClick={() => onSelect(selection.slice(0, -1))}
+              onClick={() => {
+                setNotTaken(null);
+                onSelect(selection.slice(0, -1));
+              }}
             >
               Undo
             </button>
@@ -95,7 +111,10 @@ export function FigureAnswer({
             type="button"
             className={BUTTON}
             disabled={selection.length === 0}
-            onClick={() => onSelect([])}
+            onClick={() => {
+              setNotTaken(null);
+              onSelect([]);
+            }}
           >
             Clear
           </button>

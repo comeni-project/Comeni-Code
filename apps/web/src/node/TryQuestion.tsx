@@ -169,7 +169,7 @@ export function TryQuestion({
               setSelection(next);
               setCheckedWrong(false);
             }}
-            outcome={done ? "right" : checkedWrong ? "wrong" : null}
+            outcome={right ? "right" : done ? "revealed" : checkedWrong ? "wrong" : null}
             onCheck={() => check(selection)}
             again={wrong > 0}
           />

@@ -2,7 +2,7 @@
 // while asked, the four states.
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { FigureOut } from "../../api/schema";
 import { derive } from "../kits";
 import { FigureAnswer, type Outcome } from "./FigureAnswer";
@@ -63,7 +63,7 @@ describe("a trace", () => {
     expect(live()).toBe("Your path ACG → CGT spells ACGT");
   });
 
-  it("trace by keyboard: Tab reaches the k-mers in reading order, a pick off the arrows is not taken", () => {
+  it("trace by keyboard: Tab reaches the k-mers in reading order, a pick off the arrows is not taken", async () => {
     render(<Held figure={record("kmer-graph", TRACE_DATA, TRACE)} />);
     const order = screen.getAllByRole("button").map((b) => b.getAttribute("data-kmer"));
     expect(order.filter(Boolean)).toEqual(["ACG", "CGT", "GTT", "TTA", "TAG", "GTC"]);
@@ -74,8 +74,10 @@ describe("a trace", () => {
     }
     fireEvent.click(kmer("TAG"));
     expect(kmer("TAG")).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "TAG doesn’t follow GTT: the only arrow from GTT leads to TTA.",
+    await vi.waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "TAG doesn’t follow GTT: the only arrow from GTT leads to TTA.",
+      ),
     );
     expect(kmer("TTA")).toHaveAttribute("data-next", "");
   });
@@ -124,5 +126,24 @@ describe("a pick", () => {
     expect(kmer("TCA")).toHaveAttribute("aria-pressed", "false");
     rerender(<Held figure={record("graph-artifacts", PICK_DATA, PICK)} outcome="right" />);
     expect(container.querySelector("[data-artifact=bubble]")).not.toBeNull();
+  });
+});
+
+describe("what a screen reader hears (#412, #413)", () => {
+  it("announces a refusal through a region always there, cleared by Undo and Clear", async () => {
+    render(<Held figure={record("kmer-graph", TRACE_DATA, TRACE)} />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("");
+    for (const name of ["ACG", "CGT", "GTT"]) fireEvent.click(kmer(name));
+    fireEvent.click(kmer("TAG"));
+    expect(screen.getByRole("status")).toBe(status);
+    await vi.waitFor(() => expect(status).toHaveTextContent("TAG doesn’t follow GTT"));
+    fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(status).toHaveTextContent("");
+  });
+
+  it("tells a revealed answer from the learner's own", () => {
+    render(<Held figure={record("kmer-graph", TRACE_DATA, TRACE)} outcome="revealed" />);
+    expect(live()).toBe("The path ACG → CGT → GTT → TTA → TAG spells ACGTTAG");
   });
 });
