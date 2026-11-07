@@ -28,7 +28,9 @@ from code_schema import (
     block_from_json,
     write_blocks,
 )
+from code_schema.blocks import Callout
 from code_schema.figures import FigureFile, file_name, read_figure
+from code_schema.problem_file import PROBLEM_FILE, ProblemFile, read_problem
 
 
 def regions_from_index() -> dict[str, Region]:
@@ -182,4 +184,17 @@ def node_from_index(node_id: str) -> Node | None:
             )
             for question in row.exam.order_by("position")
         ),
+        problem=_problem(row),
     )
+
+
+def _problem(row: models.Node) -> ProblemFile | None:
+    """Read again from its text, as `_figures` does, so a node from the index equals its folder."""
+    stored = models.NodeProblem.objects.filter(node_id=row.id).first()
+    if stored is None:
+        return None
+    blocks = [block_from_json(block) for block in row.blocks]
+    titles = {b.title for b in blocks if isinstance(b, Callout) and b.kind == "misconception"}
+    problem, problems = read_problem(stored.text, file=PROBLEM_FILE, misconceptions=titles)
+    assert problem is not None, problems  # the index holds only problems that read
+    return problem

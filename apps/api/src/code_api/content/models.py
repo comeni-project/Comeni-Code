@@ -114,6 +114,19 @@ class NodeFigure(models.Model):
     interact = models.JSONField(null=True)  # its task, when it asks a question (M6FA.1)
 
 
+class NodeProblem(models.Model):
+    """A node's problem (M6.7 spec, M6PR.6): its file as written, the fields a listing needs, and
+    the sample computed from its seed. No learner endpoint sends it until M6.8."""
+
+    node = models.OneToOneField(Node, on_delete=models.CASCADE, related_name="problem")
+    text = models.TextField()
+    title = models.TextField()
+    rung = models.PositiveSmallIntegerField()
+    kit = models.TextField()
+    sample_dataset = models.TextField()
+    sample_output = models.TextField()
+
+
 class Question(models.Model):
     """One try question (M3P1.3). Its options and hints are ordered lists inside the row."""
 
