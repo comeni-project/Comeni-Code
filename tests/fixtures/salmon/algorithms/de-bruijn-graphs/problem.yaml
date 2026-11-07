@@ -1,0 +1,16 @@
+title: Construct a de Bruijn graph
+rung: 3
+statement: |
+  Given a set of reads and an integer k, return the edges of the de Bruijn graph that uses
+  k-mers as nodes: one line per pair of k-mers where the second follows the first in a read.
+given: k on the first line, then the reads, one per line
+return: edges as "A -> B", one per line, sorted, no duplicates
+kit: de-bruijn-edges
+params: {k: 4, genome: 300, read: 30, coverage: 8, errors: 0}
+sample: {seed: 1, params: {k: 3, genome: 7, read: 5, coverage: 2, errors: 0}}
+hints:
+  - The same k-mer can come from many reads.
+  - Each read adds one edge for every pair of k-mers next to each other in it.
+mistakes:
+  duplicates: Every edge appears once
+rationale: Each read adds the edges between its consecutive k-mers, and the graph keeps each edge once, sorted.
