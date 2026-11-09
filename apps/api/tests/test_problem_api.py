@@ -76,6 +76,8 @@ def test_a_failing_problem_is_refused_with_its_codes(client: Client, ada: User) 
     assert refused.status_code == 422
     assert refused.json()["code"] == "CA0208"
     assert [p["code"] for p in refused.json()["problems"]] == ["CS1106"]
+    assert refused.json()["problems"][0]["field"] == "kit"
+    assert refused.json()["detail"] == "The problem would not validate."
 
 
 def test_a_problem_is_removed_with_its_block(client: Client, ada: User) -> None:

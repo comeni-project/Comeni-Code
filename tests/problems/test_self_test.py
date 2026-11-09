@@ -104,3 +104,16 @@ def test_a_sample_over_two_thousand_bytes_is_cs1102() -> None:
 
 def test_the_fixtures_sample_fits() -> None:
     assert KITS["de-bruijn-edges"].cost(SAMPLE["params"]) <= SAMPLE_BYTES
+
+
+def test_cs1104_once_per_mistake(monkeypatch: pytest.MonkeyPatch) -> None:
+    """M6PB.5: a mapping the checker never catches is one problem, naming its first seed."""
+    kit = KITS["de-bruijn-edges"]
+    blind = replace(kit, mistakes={**kit.mistakes, "duplicates": lambda case: case.answer})
+    monkeypatch.setitem(registry.KITS, kit.name, blind)
+    found = [
+        f
+        for f in self_test(kit.name, PARAMS, SAMPLE, ["duplicates"]).findings
+        if f.code == "CS1104"
+    ]
+    assert [(f.code, f.path) for f in found] == [("CS1104", "mistakes.duplicates")]
