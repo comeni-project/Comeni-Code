@@ -19,6 +19,7 @@ from code_api.content.models import (
     Node,
     NodeFigure,
     NodeImage,
+    NodeProblem,
     Provider,
     Question,
     Region,
@@ -257,6 +258,23 @@ def _exam_rows(content: Content) -> list[ExamQuestion]:
     ]
 
 
+def _problem_rows(content: Content) -> list[NodeProblem]:
+    """Each node's problem, its sample computed when its folder was read (M6PR.6)."""
+    return [
+        NodeProblem(
+            node_id=node.id,
+            text=node.problem.text,
+            title=node.problem.title,
+            rung=node.problem.rung,
+            kit=node.problem.kit,
+            sample_dataset=node.problem.sample.dataset.text,
+            sample_output=node.problem.sample.answer,
+        )
+        for node in content.nodes.values()
+        if node.problem is not None
+    ]
+
+
 def _question_rows(content: Content) -> list[Question]:
     return [
         _question_row(node.id, position, question)
@@ -291,6 +309,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         Resource.objects.all().delete()
         NodeImage.objects.all().delete()
         NodeFigure.objects.all().delete()
+        NodeProblem.objects.all().delete()
         Node.objects.all().delete()
         Region.objects.all().delete()
         Provider.objects.all().delete()
@@ -301,6 +320,7 @@ def rebuild_index(root: Path, *, commit: str = "", source: str = "") -> IndexBui
         Resource.objects.bulk_create(_resource_rows(content))
         NodeImage.objects.bulk_create(_image_rows(root, content))
         NodeFigure.objects.bulk_create(_figure_rows(content))
+        NodeProblem.objects.bulk_create(_problem_rows(content))
         Question.objects.bulk_create(_question_rows(content))
         ExamQuestion.objects.bulk_create(_exam_rows(content))
         return IndexBuild.objects.create(

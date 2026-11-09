@@ -177,6 +177,8 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
               </span>
               <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
                 {firstWords(block, node)}
+                {/* The problem is built in M6.8's builder; here it is only placed (M6PR.6). */}
+                {block.kind === "problem" && " · built in M6.8"}
               </span>
               {editable && confirming === at && (
                 <span className="flex items-center gap-2 text-[12.5px]">
@@ -215,18 +217,20 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
               )}
               {editable && confirming !== at && (
                 <span className="flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    aria-label={`Edit block ${n}`}
-                    className={TOOL}
-                    onClick={() =>
-                      block.kind === "figure"
-                        ? compose(composerPath(draftId, block.file, { block: at }))
-                        : open(at, existing)
-                    }
-                  >
-                    Edit
-                  </button>
+                  {block.kind !== "problem" && (
+                    <button
+                      type="button"
+                      aria-label={`Edit block ${n}`}
+                      className={TOOL}
+                      onClick={() =>
+                        block.kind === "figure"
+                          ? compose(composerPath(draftId, block.file, { block: at }))
+                          : open(at, existing)
+                      }
+                    >
+                      Edit
+                    </button>
+                  )}
                   <button
                     type="button"
                     aria-label={`Move block ${n} up`}
@@ -245,14 +249,16 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                   >
                     ↓
                   </button>
-                  <button
-                    type="button"
-                    aria-label={`Delete block ${n}`}
-                    className={TOOL}
-                    onClick={() => setConfirming(at)}
-                  >
-                    Delete
-                  </button>
+                  {block.kind !== "problem" && (
+                    <button
+                      type="button"
+                      aria-label={`Delete block ${n}`}
+                      className={TOOL}
+                      onClick={() => setConfirming(at)}
+                    >
+                      Delete
+                    </button>
+                  )}
                 </span>
               )}
             </div>

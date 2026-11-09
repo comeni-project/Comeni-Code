@@ -27,7 +27,6 @@ from code_schema.problems import Problem
 CalloutKind = Literal["misconception", "caveat", "convention"]
 CALLOUTS: tuple[CalloutKind, ...] = get_args(CalloutKind)
 _LATER = {
-    "problem": "M6",
     "claim": "a later phase",
 }
 _OPEN = re.compile(r"^:::\{([^}]*)\}(?: (.*))?$")
@@ -93,7 +92,12 @@ class Figure:
     caption: str
 
 
-Block = Text | Try | Callout | SequenceBlock | Math | Example | Image | Figure
+@dataclass(frozen=True)
+class ProblemBlock:
+    """Where the node's problem sits (M6.7 spec, M6PR.3); the problem is problem.yaml."""
+
+
+Block = Text | Try | Callout | SequenceBlock | Math | Example | Image | Figure | ProblemBlock
 
 
 def block_text(block: Block) -> str:
@@ -107,7 +111,7 @@ def block_text(block: Block) -> str:
             return letters
         case Math(tex=tex):
             return tex
-        case Try():
+        case Try() | ProblemBlock():
             return ""
 
 
@@ -214,6 +218,13 @@ def parse_blocks(
                 blocks.append(Try(argument))
                 starts.append(number)
             continue
+        if name == "problem":
+            if argument or "".join(inner).strip():
+                problem("CS1108", ":::{problem} holds nothing: the problem is problem.yaml", number)
+            else:
+                blocks.append(ProblemBlock())
+                starts.append(number)
+            continue
         if name == "sequence":
             letters = "".join(inner)
             if argument:
@@ -283,7 +294,7 @@ def parse_blocks(
             )
             continue
         message = f":::{{{name}}} is not a directive this format reads"
-        known = ["try", "sequence", "math", "example", "image", "figure", *CALLOUTS]
+        known = ["try", "sequence", "math", "example", "image", "figure", "problem", *CALLOUTS]
         if close := difflib.get_close_matches(name, known, n=1):
             message += f" — did you mean {close[0]}?"
         problem("CS0412", message, number)
@@ -342,6 +353,8 @@ def write_blocks(blocks: Sequence[Block]) -> str:
             out.append(f":::{{image}} {block.file}{newline}{block.caption}:::{newline}")
         elif isinstance(block, Figure):
             out.append(f":::{{figure}} {block.file}{newline}{block.caption}:::{newline}")
+        elif isinstance(block, ProblemBlock):
+            out.append(f":::{{problem}}{newline}:::{newline}")
         else:
             title = f" {block.title}" if block.title else ""
             out.append(f":::{{{block.kind}}}{title}{newline}{block.markdown}:::{newline}")
@@ -367,6 +380,8 @@ def block_json(block: Block) -> dict[str, str]:
             return {"kind": "image", "file": file, "caption": caption}
         case Figure(file=file, caption=caption):
             return {"kind": "figure", "file": file, "caption": caption}
+        case ProblemBlock():
+            return {"kind": "problem"}
 
 
 def block_from_json(stored: dict[str, str]) -> Block:
@@ -386,6 +401,8 @@ def block_from_json(stored: dict[str, str]) -> Block:
             return Image(stored["file"], stored["caption"])
         case "figure":
             return Figure(stored["file"], stored["caption"])
+        case "problem":
+            return ProblemBlock()
         case "callout" if (kind := stored.get("callout")) in CALLOUTS:
             return Callout(kind, stored["title"], stored["markdown"])
         case other:

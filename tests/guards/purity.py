@@ -33,12 +33,27 @@ ALLOWED: Mapping[str, frozenset[str]] = {
             "typing",
         }
     ),
+    # M6.7: problem kits; a params schema is checked by code-figures' validator (M6PR.1).
+    "code-problems": frozenset(
+        {
+            "__future__",
+            "code_figures.findings",
+            "code_figures.schema",
+            "collections.abc",
+            "dataclasses",
+            "json",
+            "pathlib",
+            "re",
+            "typing",
+        }
+    ),
     "code-schema": frozenset(
         {
             "__future__",
             "argparse",
             # M6.4: a figure's data is checked by its component (M6FG.2).
             "code_figures",
+            "code_problems",
             "collections.abc",
             "dataclasses",
             "difflib",

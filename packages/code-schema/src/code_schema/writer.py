@@ -16,6 +16,7 @@ from code_schema.figures import FIGURE_FOLDER, figure_texts
 from code_schema.images import IMAGE_FIELD, ImageRecord
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
+from code_schema.problem_file import PROBLEM_FILE
 from code_schema.questions import (
     TRY_FIELD,
     Answer,
@@ -197,6 +198,12 @@ def write_node_folder(node: Node, folder: Path) -> None:
         exam.write_text(write_exam_yaml(node), encoding="utf-8", newline="\n")
     else:
         exam.unlink(missing_ok=True)  # a pool removed from the node leaves no stale file
+    # The problem as it was written (M6PR.3); none leaves no stale file.
+    problem = folder / PROBLEM_FILE
+    if node.problem is not None:
+        problem.write_text(node.problem.text, encoding="utf-8", newline="")
+    else:
+        problem.unlink(missing_ok=True)
     # Figures as they were written (M6FG.1); a file the node no longer has is removed.
     figures = folder / FIGURE_FOLDER
     texts = figure_texts(node.figures)

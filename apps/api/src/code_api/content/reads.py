@@ -115,6 +115,7 @@ def _block(stored: dict[str, Any]) -> AnyBlockOut:
             return ImageBlockOut(kind="image", file=file, caption=caption)
         case Figure(file=file, caption=caption):
             return FigureBlockOut(kind="figure", file=file, caption=caption)
+    raise AssertionError("the problem's block is left out of the learner's page (M6PR.6)")
 
 
 def _question(question: Question) -> QuestionOut:
@@ -174,7 +175,8 @@ def node(node_id: str) -> NodeOut | None:
         region=_region(found.region),
         level=found.level,
         minutes=found.minutes,
-        blocks=[_block(block) for block in found.blocks],
+        # The problem's block waits for M6.8's learner problem (M6PR.6).
+        blocks=[_block(block) for block in found.blocks if block["kind"] != "problem"],
         folder=found.folder,
         needs=out[Link.Kind.NEEDS],
         goes_deeper=out[Link.Kind.GOES_DEEPER],

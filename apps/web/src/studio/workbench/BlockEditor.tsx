@@ -42,7 +42,7 @@ function empty(block: Block, question: TryQuestionIn | undefined): boolean {
 
 /** What is sent: text that ends its last line, as every block in a body does (#256). */
 function ended(block: Block): Block {
-  if (block.kind === "try") return block;
+  if (block.kind === "try" || block.kind === "problem") return block;
   if (block.kind === "sequence") {
     return block.letters.endsWith("\n") ? block : { ...block, letters: `${block.letters}\n` };
   }

@@ -168,6 +168,12 @@ class ImageRecordOut(Schema):
     licence: str
 
 
+class ProblemBlockOut(Schema):
+    """Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem."""
+
+    kind: Literal["problem"]
+
+
 AnyBlockOut = (
     TextBlockOut
     | TryBlockOut
@@ -177,6 +183,7 @@ AnyBlockOut = (
     | ExampleBlockOut
     | ImageBlockOut
     | FigureBlockOut
+    | ProblemBlockOut
 )
 BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
 

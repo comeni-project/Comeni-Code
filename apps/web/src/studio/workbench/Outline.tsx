@@ -20,7 +20,9 @@ export function firstWords(block: Block, node: DraftNodeOut): string {
           .split("\n")[0]
       : block.kind === "callout"
         ? block.title
-        : (node.questions.find((q) => q.id === block.question)?.ask ?? block.question);
+        : block.kind === "problem"
+          ? (node.problem?.title ?? "the problem")
+          : (node.questions.find((q) => q.id === block.question)?.ask ?? block.question);
   return words === undefined || words === "" ? "(empty)" : words;
 }
 

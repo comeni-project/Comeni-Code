@@ -1,0 +1,13 @@
+{
+  "$comment": "Construct a de Bruijn graph (M6.7 spec, M6PR.2): reads drawn from a random genome; the answer is every edge between k-mers that follow each other in a read.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "k": { "type": "integer", "minimum": 3, "maximum": 12 },
+    "genome": { "type": "integer", "minimum": 7, "maximum": 5000 },
+    "read": { "type": "integer", "minimum": 4, "maximum": 150 },
+    "coverage": { "type": "integer", "minimum": 1, "maximum": 30 },
+    "errors": { "type": "number", "minimum": 0, "maximum": 0.02 }
+  },
+  "required": ["k", "genome", "read", "coverage", "errors"]
+}

@@ -65,6 +65,13 @@ Formally, for reads $R$ and an integer $k$:
 G_k(R) = (V, E), \quad V = \{\,(k-1)\text{-mers of } R\,\}, \quad E = \{\,k\text{-mers of } R\,\}
 :::
 
+:::{misconception} Every edge appears once
+The same two k-mers follow each other in many reads, but they make one edge: the graph keeps each edge once, however many reads hold it.
+:::
+
+:::{problem}
+:::
+
 :::{example} Three reads into one sequence
 Cut each read into 3-mers, keep the distinct ones, and walk them in order:
 

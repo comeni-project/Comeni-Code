@@ -42,6 +42,7 @@ def reread(node: Node) -> Node:
         providers=CONTENT.providers,
         where=f"{CONTENT.folders[node.id]}/",
         figures=figure_texts(node.figures),
+        problem_yaml=None if node.problem is None else node.problem.text,
     )
     assert problems == [], [str(problem) for problem in problems]
     assert again is not None

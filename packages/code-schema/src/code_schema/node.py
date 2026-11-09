@@ -12,7 +12,7 @@ from collections.abc import Collection, Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from code_schema.blocks import Block, Image, Try, parse_blocks
+from code_schema.blocks import Block, Callout, Image, ProblemBlock, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
 from code_schema.fields import (
     Spec,
@@ -37,6 +37,7 @@ from code_schema.images import IMAGE_FIELD, IMAGE_FOLDER, ImageRecord, image_pro
 # Re-exported: every earlier part imports Level from here (M1P1.3).
 from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
+from code_schema.problem_file import PROBLEM_FILE, ProblemFile, read_problem
 from code_schema.problems import Problem
 from code_schema.providers import Provider
 from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
@@ -67,6 +68,7 @@ class Node:
     exam: tuple[ExamQuestion, ...] = ()  # from exam.yaml, beside node.yaml (spec M4E.1)
     images: tuple[ImageRecord, ...] = ()  # each file in images/ and its credit (M6IM.1)
     figures: tuple[FigureFile, ...] = ()  # each file in figures/, read (M6FG.1)
+    problem: ProblemFile | None = None  # problem.yaml, placed by one :::{problem} (M6PR.3)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -380,6 +382,13 @@ def read_node(
         if image_folder.is_dir()
         else {}
     )
+    problem_text: str | None = None
+    if (folder / PROBLEM_FILE).is_file():
+        problem_text, problem_error = _read_text(folder / PROBLEM_FILE)
+        if problem_error is not None:
+            near_misses.append(
+                Problem(file=f"{where}{PROBLEM_FILE}", code="CS0022", message=problem_error)
+            )
     figure_folder = folder / FIGURE_FOLDER
     figures = (
         {
@@ -400,6 +409,7 @@ def read_node(
         where=where,
         images=images,
         figures=figures,
+        problem_yaml=problem_text,
     )
     if not near_misses:
         return node, problems
@@ -420,6 +430,7 @@ def parse_node_files(
     where: str,
     images: Mapping[str, bytes] | None = None,
     figures: Mapping[str, str] | None = None,
+    problem_yaml: str | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """A node from its three texts, as a folder holds them (M4.4 spec, M4W.3). Never raises.
 
@@ -464,11 +475,40 @@ def parse_node_files(
         )
         problems += asked
         node = replace(node, questions=questions)
+    problem: ProblemFile | None = None
+    if node is not None:
+        problem, found = _problem(node, problem_yaml, where=where)
+        problems += found
     problems.sort(key=Problem.sort_key)
     if node is None or any(problem.refuses for problem in problems):
         return None, problems
     # Only warnings, if anything: the node is kept, and its warnings go with it (spec M4E.4).
-    return replace(node, exam=exam, figures=read), problems
+    return replace(node, exam=exam, figures=read, problem=problem), problems
+
+
+def _problem(
+    node: Node, text: str | None, *, where: str
+) -> tuple[ProblemFile | None, list[Problem]]:
+    """The node's problem and its one block (M6PR.3): the file and the block go together."""
+    placed = sum(isinstance(block, ProblemBlock) for block in node.blocks)
+    file = f"{where}{PROBLEM_FILE}"
+    if placed > 1:
+        said = f"the body places the problem {placed} times; a node has one problem"
+        return None, [Problem(file=f"{where}{BODY_FILE}", code="CS1109", message=said)]
+    if text is None:
+        if placed:
+            said = f"the body places a problem, but there is no {PROBLEM_FILE}"
+            return None, [Problem(file=f"{where}{BODY_FILE}", code="CS1108", message=said)]
+        return None, []
+    if not placed:
+        said = f"{PROBLEM_FILE} is placed by no :::{{problem}} block in the body"
+        return None, [Problem(file=file, code="CS1108", message=said)]
+    titles = {
+        block.title
+        for block in node.blocks
+        if isinstance(block, Callout) and block.kind == "misconception"
+    }
+    return read_problem(text, file=file, misconceptions=titles)
 
 
 def _near_misses_of_exam(folder: Path, where: str) -> list[Problem]:

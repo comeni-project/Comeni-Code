@@ -1,0 +1,14 @@
+[project]
+name = "code-problems"
+version = "0.0.0"
+description = "Comeni Code's problem kits: a learner's dataset generated from a seed, solved and checked, and the mistakes a checker names. Pure: no web framework, HTTP client or model library."
+requires-python = ">=3.14"
+license = "Apache-2.0"
+dependencies = ["code-figures"]
+
+[tool.uv.sources]
+code-figures = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"

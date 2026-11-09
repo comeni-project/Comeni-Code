@@ -92,6 +92,11 @@ def _files(node: Node) -> tuple[str, str, str]:
     return write_node_yaml(node), node.body, write_exam_yaml(node) if node.exam else ""
 
 
+def _problem_text(node: Node) -> str:
+    """The node's problem.yaml as written, or empty for none (M6PR.6)."""
+    return "" if node.problem is None else node.problem.text
+
+
 def _read(
     node_id: str,
     folder: str,
@@ -100,6 +105,7 @@ def _read(
     exam: str,
     images: Mapping[str, bytes] | None = None,
     figures: Mapping[str, str] | None = None,
+    problem: str = "",
 ) -> tuple[Node | None, list[Problem]]:
     """The draft's files read as CI reads a node folder, against the index's registries."""
     return parse_node_files(
@@ -112,6 +118,7 @@ def _read(
         where=f"{folder}/",
         images={} if images is None else images,
         figures=figures,
+        problem_yaml=problem or None,
     )
 
 
@@ -162,6 +169,7 @@ def node_of(draft: Draft, revision: Revision | None = None) -> tuple[Node | None
         shown.exam_yaml,
         images_of(shown),
         shown.figures,
+        shown.problem_yaml,
     )
 
 
@@ -184,7 +192,8 @@ def _start(
 ) -> Draft:
     node_yaml, body, exam = _files(node)
     figures = figure_texts(node.figures)
-    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {}, figures)
+    problem = _problem_text(node)
+    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {}, figures, problem)
     if any(problem.refuses for problem in problems):
         raise Refused(problems)
     try:
@@ -198,6 +207,7 @@ def _start(
                 node_yaml=node_yaml,
                 body_md=body,
                 exam_yaml=exam,
+                problem_yaml=problem,
                 images=_stored(images or {}),
                 figures=figures,
                 saved_by=by,
@@ -298,8 +308,9 @@ def save(
             else:
                 files[name] = data
         figures = figure_texts(edited.figures)
+        problem = _problem_text(edited)
         again, problems = _read(
-            locked.node_id, locked.folder, node_yaml, body, exam, files, figures
+            locked.node_id, locked.folder, node_yaml, body, exam, files, figures, problem
         )
         if any(problem.refuses for problem in problems):
             raise Refused(problems)
@@ -313,6 +324,7 @@ def save(
             node_yaml=node_yaml,
             body_md=body,
             exam_yaml=exam,
+            problem_yaml=problem,
             images=_stored(files),
             figures=figures,
             saved_by=by,

@@ -298,8 +298,8 @@ def test_a_placed_question_is_a_try_block(client: Client) -> None:
 
 def test_a_stored_block_kind_the_api_does_not_know_is_an_error(client: Client) -> None:
     rebuild_index(FIXTURES)
-    StoredNode.objects.filter(id="tpm").update(blocks=[{"kind": "problem", "markdown": "x"}])
-    with pytest.raises(ValueError, match="problem"):
+    StoredNode.objects.filter(id="tpm").update(blocks=[{"kind": "claim", "markdown": "x"}])
+    with pytest.raises(ValueError, match="claim"):
         get(client, "tpm")
 
 

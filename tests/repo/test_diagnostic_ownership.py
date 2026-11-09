@@ -15,6 +15,8 @@ SOURCES = {
     "CS": ROOT / "packages" / "code-schema" / "src",
     # code-figures writes its findings' codes, declared in code-schema's registry (M6FG.2).
     "CS ": ROOT / "packages" / "code-figures" / "src",
+    # code-problems writes its self-test's codes the same way (M6.7 spec, M6PR.5).
+    "CS  ": ROOT / "packages" / "code-problems" / "src",
     "CW": ROOT / "packages" / "code-weaver" / "src",
     "CA": ROOT / "apps" / "api" / "src",
 }
@@ -66,3 +68,10 @@ def test_code_figures_writes_only_the_figures_band() -> None:
 
     assert written(SOURCES["CS "]) == set(CODES)
     assert all(DIAGNOSTICS[code].concern == "figures" for code in CODES)
+
+
+def test_code_problems_writes_only_the_problems_band() -> None:
+    from code_problems import CODES
+
+    assert written(SOURCES["CS  "]) == set(CODES)
+    assert all(DIAGNOSTICS[code].concern == "problems" for code in CODES)

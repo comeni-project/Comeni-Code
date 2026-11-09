@@ -1,0 +1,18 @@
+{
+  "$comment": "Count distinct k-mers (M6.7 spec, M6PR.2): reads drawn from a genome whose length is drawn from a range, so the count differs between learners.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "k": { "type": "integer", "minimum": 2, "maximum": 12 },
+    "genome": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 7, "maximum": 5000 }
+    },
+    "read": { "type": "integer", "minimum": 4, "maximum": 150 },
+    "coverage": { "type": "integer", "minimum": 1, "maximum": 30 },
+    "errors": { "type": "number", "minimum": 0, "maximum": 0.02 }
+  },
+  "required": ["k", "genome", "read", "coverage", "errors"]
+}

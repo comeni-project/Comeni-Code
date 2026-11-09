@@ -29,6 +29,7 @@ from code_schema import (
     write_blocks,
 )
 from code_schema.figures import FigureFile, file_name, read_figure
+from code_schema.problem_file import ProblemFile, stored_problem
 
 
 def regions_from_index() -> dict[str, Region]:
@@ -182,4 +183,15 @@ def node_from_index(node_id: str) -> Node | None:
             )
             for question in row.exam.order_by("position")
         ),
+        problem=_problem(row),
     )
+
+
+def _problem(row: models.Node) -> ProblemFile | None:
+    """The stored problem, equal to its folder's while its kit is unchanged."""
+    stored = models.NodeProblem.objects.filter(node_id=row.id).first()
+    if stored is None:
+        return None
+    # As stored, its sample with it: a kit tightened since never makes the index unreadable;
+    # a draft's own read says whether it still validates (#420, #173).
+    return stored_problem(stored.text, stored.sample_dataset, stored.sample_output)

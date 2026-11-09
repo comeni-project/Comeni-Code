@@ -16,8 +16,10 @@ from dataclasses import replace
 from code_figures import COMPONENTS
 from code_schema.blocks import (
     Block,
+    Callout,
     Figure,
     Image,
+    ProblemBlock,
     Text,
     Try,
     block_text,
@@ -32,6 +34,7 @@ from code_schema.levels import Level
 from code_schema.links import Link
 from code_schema.math import FORMULA_CODES
 from code_schema.node import Node
+from code_schema.problem_file import PROBLEM_FILE, read_problem
 from code_schema.problems import Problem
 from code_schema.questions import FigureAnswer, TryQuestion
 from code_schema.resources import Resource
@@ -249,6 +252,34 @@ def without_unplaced_figures(node: Node) -> Node:
     return node if kept == node.figures else replace(node, figures=kept)
 
 
+class ProblemRefused(EditError):
+    """A problem file that would not validate, and why (M6PR.6); nothing is saved."""
+
+    def __init__(self, message: str, problems: Sequence[Problem] = ()) -> None:
+        super().__init__(message)
+        self.problems = list(problems)
+
+
+def set_problem(node: Node, text: str) -> Node:
+    """The node's problem replaced by `text`, kept as written; its block added at the body's end
+    when it has none. Refused unless the file validates against this node's callouts."""
+    titles = {b.title for b in node.blocks if isinstance(b, Callout) and b.kind == "misconception"}
+    problem, problems = read_problem(text, file=PROBLEM_FILE, misconceptions=titles)
+    if problem is None:
+        raise ProblemRefused("the problem would not validate", problems)
+    placed = any(isinstance(block, ProblemBlock) for block in node.blocks)
+    with_problem = replace(node, problem=problem)
+    return with_problem if placed else insert_block(with_problem, len(node.blocks), ProblemBlock())
+
+
+def remove_problem(node: Node) -> Node:
+    """The node's problem gone whole: its file and its block."""
+    if node.problem is None:
+        raise EditError("this node has no problem")
+    blocks = [block for block in node.blocks if not isinstance(block, ProblemBlock)]
+    return replace(_with_blocks(node, blocks, list(node.questions)), problem=None)
+
+
 def _merged(blocks: Sequence[Block]) -> list[Block]:
     """Adjacent text blocks joined: the body reads them back as one, so they are stored as one,
     with a blank line between them so the two stay paragraphs (#258)."""
@@ -278,7 +309,7 @@ def _check_position(node: Node, at: int, *, inserting: bool = False) -> None:
 def _check_lines(node: Node, block: Block) -> None:
     """A text, callout or sequence block ends its last line, in the body's line endings (#173):
     otherwise its prose runs into the next block, or the body would not read back as its blocks."""
-    if isinstance(block, Try):
+    if isinstance(block, Try | ProblemBlock):
         return
     crlf = "\r\n" in node.body
     text = block_text(block)
@@ -356,8 +387,11 @@ def insert_block(node: Node, at: int, block: Block, question: TryQuestion | None
 
 
 def delete_block(node: Node, at: int) -> Node:
-    """The block at `at` removed; a `try` block takes its question with it."""
+    """The block at `at` removed; a `try` block takes its question with it. The problem's block
+    goes only with its problem (`remove_problem`), never alone (M6PR.6)."""
     _check_position(node, at)
+    if isinstance(node.blocks[at], ProblemBlock):
+        raise EditError("the problem's block goes with the problem: remove the problem instead")
     blocks = list(node.blocks)
     removed = blocks.pop(at)
     questions = list(node.questions)

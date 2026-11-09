@@ -58,10 +58,13 @@ export interface ApiSchemas {
   NeighbourOut: NeighbourOut;
   NewNodeIn: NewNodeIn;
   NodeOut: NodeOut;
+  NodeProblemOut: NodeProblemOut;
   OpenIn: OpenIn;
   OptionIn: OptionIn;
   OptionOut: OptionOut;
   PendingInviteOut: PendingInviteOut;
+  ProblemBlockOut: ProblemBlockOut;
+  ProblemIn: ProblemIn;
   ProblemOut: ProblemOut;
   ProviderOut: ProviderOut;
   QuestionChecksOut: QuestionChecksOut;
@@ -223,6 +226,7 @@ export interface DraftNodeOut {
     | ExampleBlockOut
     | ImageBlockOut
     | FigureBlockOut
+    | ProblemBlockOut
   )[];
   claim: string;
   exam: StudioExamQuestionOut[];
@@ -232,6 +236,7 @@ export interface DraftNodeOut {
   level: string;
   minutes: number;
   needs: LinkOut[];
+  problem?: NodeProblemOut | null;
   questions: StudioQuestionOut[];
   region: string;
   related: LinkOut[];
@@ -289,6 +294,12 @@ export interface FigureBlockOut {
   kind: "figure";
 }
 /**
+ * Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem.
+ */
+export interface ProblemBlockOut {
+  kind: "problem";
+}
+/**
  * An exam question as the builder edits it (M4Q.5): its stem as blocks and as the text the
  * file holds, and whether the live index holds it unchanged.
  */
@@ -312,6 +323,7 @@ export interface StudioExamQuestionOut {
     | ExampleBlockOut
     | ImageBlockOut
     | FigureBlockOut
+    | ProblemBlockOut
   )[];
   stem_text: string;
   steps: string[] | null;
@@ -365,6 +377,18 @@ export interface ImageRecordOut {
   file: string;
   licence: string;
   source: string | null;
+}
+/**
+ * A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed
+ * from its seed, as the page will show it.
+ */
+export interface NodeProblemOut {
+  kit: string;
+  rung: number;
+  sample_dataset: string;
+  sample_output: string;
+  text: string;
+  title: string;
 }
 /**
  * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
@@ -680,6 +704,7 @@ export interface NodeOut {
     | ExampleBlockOut
     | ImageBlockOut
     | FigureBlockOut
+    | ProblemBlockOut
   )[];
   claim: string;
   figures?: FigureOut[];
@@ -770,6 +795,10 @@ export interface PendingInviteOut {
   public_id: string;
   role: string;
 }
+export interface ProblemIn {
+  revision: number;
+  text: string;
+}
 export interface QueueKeyOut {
   answered: boolean | null;
   key: string;
@@ -854,11 +883,13 @@ export interface ReviewContentOut {
         | ExampleBlockOut
         | ImageBlockOut
         | FigureBlockOut
+        | ProblemBlockOut
       )
     | null;
   fields: ReviewFieldsOut | null;
   figures?: StudioFigureOut[];
   image?: ImageRecordOut | null;
+  problem?: NodeProblemOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
 }
@@ -903,6 +934,7 @@ export interface ReviewQuestionOut {
     | ExampleBlockOut
     | ImageBlockOut
     | FigureBlockOut
+    | ProblemBlockOut
   )[];
   steps: string[] | null;
   tolerance: number | null;
@@ -925,6 +957,7 @@ export interface ReviewItemOut {
         | ExampleBlockOut
         | ImageBlockOut
         | FigureBlockOut
+        | ProblemBlockOut
       )
     | null;
   change: string;
@@ -934,6 +967,7 @@ export interface ReviewItemOut {
   key: string;
   kind: string;
   note: string;
+  problem?: NodeProblemOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
   verdict: string | null;

@@ -1690,6 +1690,96 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A pick's right answers are the k-mers of every run of its kind (M6FA.2); with none, the question has no right answer.
 
+### CS1100–CS1199 · problems
+
+#### CS1101 — a problem's params do not fit its kit
+
+*Refuses.*
+
+**Fix.** Give the kit's params within its bounds: the message names the param and what it takes (the kit's schema in code-problems' schemas/).
+
+**Why.** A problem's dataset is generated from its params (M6.7 spec, M6PR.1); params outside the kit's bounds could make no dataset, or a wrong one. The sample's params are held to the same schema.
+
+#### CS1102 — a problem's dataset would be larger than its kit allows
+
+*Refuses.*
+
+**Fix.** Ask for fewer reads: a smaller genome, a lower coverage, or longer reads.
+
+**Why.** The size is worked out from the params before anything is generated (M6PR.4), so a save, a build and CI agree, and nothing runs that could run away.
+
+#### CS1103 — a problem's kit refuses its own answer
+
+*Refuses.*
+
+**Fix.** This is the kit's fault, not the file's: report it; the kit needs fixing before the problem can be used.
+
+**Why.** Every learner's answer is checked against the one the kit computes (M6PR.4); a kit that refuses its own answer would refuse every right one.
+
+#### CS1104 — a mistake a problem maps is not caught as itself
+
+*Refuses.*
+
+**Fix.** Map only mistakes the kit catches for these params, or change the params so the mistake can happen.
+
+**Why.** A mapped mistake shows its misconception callout (M6PR.3); the self-test makes it on purpose for every seed, so a learner who makes it is answered.
+
+#### CS1105 — a problem's answers are alike between learners
+
+*Refuses.*
+
+**Fix.** Widen the params: a larger k, or a genome length drawn from a wider range, so most seeds answer differently.
+
+**Why.** A dataset of one's own makes an answer worth nothing to anyone else (the first spec's §5.1.1); at least 18 of 20 seeds must answer differently (M6PR.4).
+
+#### CS1106 — a problem names no kit
+
+*Refuses.*
+
+**Fix.** Name a kit code-problems has: de-bruijn-edges or count-kmers.
+
+**Why.** A problem's dataset, answer and checks come from its kit (M6.7 spec, M6PR.1); there is no per-problem code.
+
+#### CS1107 — a problem file is not as written
+
+*Refuses.*
+
+**Fix.** Keep to the problem's keys (title, rung, statement, given, return, kit, params, sample, hints, mistakes, rationale), each of its kind; a rung is 1 to 4; one to three hints.
+
+**Why.** A problem is read as data (M6PR.3); a key the format does not have, or one missing, would not reach a learner as the author meant.
+
+#### CS1108 — a problem and its block are not together
+
+*Refuses.*
+
+**Fix.** Place the problem with one :::{problem} block, which holds nothing, beside problem.yaml; or remove both.
+
+**Why.** The block says where the problem sits on the page and the file what it is (M6PR.3); either alone is half a problem.
+
+#### CS1109 — the body places the problem twice
+
+*Refuses.*
+
+**Fix.** Keep one :::{problem} block.
+
+**Why.** A node has one problem, its proof (M6PR.3).
+
+#### CS1110 — a problem's mistake names no callout, or a mistake its kit does not catch
+
+*Refuses.*
+
+**Fix.** Map only mistakes the kit names, each to the title of a misconception callout in the body.
+
+**Why.** A wrong answer with a mapped mistake shows that callout, where a step back starts (M6PR.3, T6.1).
+
+#### CS1111 — a problem's hint holds the sample's answer
+
+*Refuses.*
+
+**Fix.** Rewrite the hint so the learner still works the answer out.
+
+**Why.** A hint leaves work for the learner (T6.2); the sample's answer in a hint gives it away.
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes

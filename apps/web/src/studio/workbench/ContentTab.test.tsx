@@ -448,3 +448,13 @@ describe("ContentTab", () => {
     expect(screen.getByRole("button", { name: "Edit block 3" })).toBeInTheDocument();
   });
 });
+
+describe("the problem's block (M6.7 spec, M6PR.6)", () => {
+  it("is listed with no editor until M6.8 builds the problem", async () => {
+    bench({}, [...NODE.blocks, { kind: "problem" }]);
+    expect(await screen.findByText("the problem · built in M6.8")).toBeInTheDocument();
+    const count = NODE.blocks.length + 1;
+    expect(screen.queryByRole("button", { name: `Edit block ${count}` })).toBeNull();
+    expect(screen.queryByRole("button", { name: `Delete block ${count}` })).toBeNull();
+  });
+});

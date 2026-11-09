@@ -28,6 +28,7 @@ from code_schema.exam import EXAM_FILE
 from code_schema.figures import FIGURE_FOLDER
 from code_schema.images import IMAGE_FOLDER
 from code_schema.node import BODY_FILE, NODE_FILE
+from code_schema.problem_file import PROBLEM_FILE
 
 
 class NotConfigured(Exception):
@@ -224,6 +225,10 @@ def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | by
         files[f"{folder}/{EXAM_FILE}"] = revision.exam_yaml
     elif client.exists(f"{folder}/{EXAM_FILE}", head):
         files[f"{folder}/{EXAM_FILE}"] = None  # the pool was removed
+    if revision.problem_yaml:
+        files[f"{folder}/{PROBLEM_FILE}"] = revision.problem_yaml
+    elif client.exists(f"{folder}/{PROBLEM_FILE}", head):
+        files[f"{folder}/{PROBLEM_FILE}"] = None  # the problem was removed (M6PR.6)
     # Images: what changed since revision 1, which holds the node as the draft began (M6IM.3).
     started = entry.draft.revisions.get(number=1).images
     now = drafts.images_of(revision)
@@ -249,7 +254,12 @@ def _approval(draft: Draft) -> DraftEvent:
 
 
 # A revision's files by name, in the order Land shows them (M4.9c spec, M4LS.1).
-_FILES = (("node", "node_yaml"), ("body", "body_md"), ("exam", "exam_yaml"))
+_FILES = (
+    ("node", "node_yaml"),
+    ("body", "body_md"),
+    ("exam", "exam_yaml"),
+    ("problem", "problem_yaml"),
+)
 
 
 def changes(first: Revision | None, last: Revision) -> list[tuple[str, str]]:
