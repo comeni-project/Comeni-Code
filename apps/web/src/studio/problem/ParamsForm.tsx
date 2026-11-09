@@ -28,6 +28,7 @@ export function ParamsForm({
   onSet,
   findings,
   disabled = false,
+  named = "",
 }: {
   schema: Schema;
   root: Path;
@@ -35,6 +36,8 @@ export function ParamsForm({
   onSet: (path: Path, value: Value) => void;
   findings: readonly Finding[];
   disabled?: boolean;
+  /** Put before each input's name, so the sample's `k` is not the params' `k` to a reader. */
+  named?: string;
 }) {
   const where = root.join(".");
   const properties = Object.entries((schema.properties ?? {}) as Record<string, Schema>);
@@ -49,8 +52,9 @@ export function ParamsForm({
         const input = (label: string, path: Path, shown: unknown) => (
           <TypedInput
             key={label}
-            aria-label={label}
+            aria-label={`${named}${label}`}
             aria-invalid={said.length > 0}
+            data-root={where}
             disabled={disabled}
             value={shown === undefined || shown === null ? "" : String(shown)}
             onType={(typed) => onSet(path, typedNumber(typed))}

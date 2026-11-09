@@ -4,6 +4,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { composerPath, useOpenComposer } from "../composer/open";
@@ -177,9 +178,13 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
               </span>
               <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
                 {firstWords(block, node)}
-                {/* The problem is built in M6.8's builder; here it is only placed (M6PR.6). */}
-                {block.kind === "problem" && " · built in M6.8"}
               </span>
+              {/* The problem is built in its own tab; here it is only placed (M6PB.1). */}
+              {block.kind === "problem" && (
+                <Link to="?tab=problem" className="shrink-0 text-[12.5px] font-medium text-sel">
+                  Open in the Problem tab
+                </Link>
+              )}
               {editable && confirming === at && (
                 <span className="flex items-center gap-2 text-[12.5px]">
                   <span className="text-open">

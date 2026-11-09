@@ -450,9 +450,12 @@ describe("ContentTab", () => {
 });
 
 describe("the problem's block (M6.7 spec, M6PR.6)", () => {
-  it("is listed with no editor until M6.8 builds the problem", async () => {
+  it("is listed with no editor, and a link to the Problem tab (M6PB.1)", async () => {
     bench({}, [...NODE.blocks, { kind: "problem" }]);
-    expect(await screen.findByText("the problem · built in M6.8")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Open in the Problem tab" })).toHaveAttribute(
+      "href",
+      "/studio/drafts/d-1?tab=problem",
+    );
     const count = NODE.blocks.length + 1;
     expect(screen.queryByRole("button", { name: `Edit block ${count}` })).toBeNull();
     expect(screen.queryByRole("button", { name: `Delete block ${count}` })).toBeNull();

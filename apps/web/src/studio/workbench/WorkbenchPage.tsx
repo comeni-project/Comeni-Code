@@ -7,6 +7,7 @@ import { useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
 import type { DraftNodeOut, DraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { ProblemTab } from "../problem/ProblemTab";
 import { ChecksPanel } from "./ChecksPanel";
 import { ContentTab } from "./ContentTab";
 import { ExamPoolTab } from "./ExamPoolTab";
@@ -75,6 +76,13 @@ const TABS: readonly Tab[] = [
         node={node}
         editable={editable(draft)}
       />
+    ),
+  },
+  {
+    key: "problem",
+    label: "Problem",
+    body: (draft, node) => (
+      <ProblemTab draftId={draft.public_id} node={node} editable={editable(draft)} />
     ),
   },
   {

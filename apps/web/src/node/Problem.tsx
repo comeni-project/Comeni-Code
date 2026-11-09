@@ -9,6 +9,7 @@ import { ANSWER_BYTES, browserSeed, fetchDataset, sendAnswer, tooLong } from "..
 import { queryKeys } from "../api/queries";
 import type { AnswerOut, CalloutBlockOut, LearnerProblemOut } from "../api/schema";
 import { componentsFor, Prose } from "./prose";
+import { RUNGS } from "./rungs";
 import { Tag } from "./tags";
 
 export type ProblemShown = Omit<LearnerProblemOut, "version">;
@@ -22,12 +23,6 @@ export interface NamedCallout {
   anchor: string;
 }
 
-const RUNGS: Record<number, string> = {
-  1: "read it off the file",
-  2: "one command",
-  3: "a few lines of code",
-  4: "it has to be efficient",
-};
 const CHANGED = "This problem was updated after you downloaded your dataset. Download it again.";
 const TOO_LONG = "Your answer is over 1 MB. A problem’s answer is at most 1 MB.";
 const BOX =
