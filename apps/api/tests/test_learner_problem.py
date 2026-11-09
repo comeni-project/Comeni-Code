@@ -176,6 +176,7 @@ def test_garbage_is_a_sentence(page: dict[str, Any], given: str) -> None:
         (NODE, "42", "x" * (ANSWER_LIMIT + 1), False, 422, "CA0012"),
         (NODE, "42", "x", True, 409, "CA0010"),
     ],
+    ids=["no-node", "no-problem", "negative", "exp", "too-big", "empty", "huge-answer", "stale"],
 )
 def test_errors(
     page: dict[str, Any], node: str, seed: str, answer: str, stale: bool, status: int, code: str
