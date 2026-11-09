@@ -197,6 +197,11 @@ function Page({ node, goals, known }: { node: NodeOut; goals: string[]; known: s
           questions={node.questions}
           pictures={{ records: node.images ?? [], url: (file) => imageUrl(node.id, file) }}
           figures={node.figures ?? []}
+          problem={
+            node.problem
+              ? { shown: node.problem, live: { node: node.id, version: node.problem.version } }
+              : undefined
+          }
         />
       </article>
       <Aside around={around} goals={goals} known={known} open={open} onToggle={toggle} />

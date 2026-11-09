@@ -10,6 +10,7 @@ import { Callout } from "./Callout";
 import { Example } from "./Example";
 import { Formula } from "./Formula";
 import { Picture, type Pictures } from "./Picture";
+import { type NamedCallout, Problem, type ProblemLive, type ProblemShown } from "./Problem";
 import { componentsFor, Prose } from "./prose";
 import { SequenceBlock } from "./SequenceBlock";
 import { TryQuestion } from "./TryQuestion";
@@ -20,6 +21,7 @@ export function Body({
   big = false,
   pictures,
   figures = [],
+  problem,
 }: {
   blocks: Block[];
   questions: QuestionOut[];
@@ -28,10 +30,18 @@ export function Body({
   pictures?: Pictures | undefined;
   /** The node's figures, which figure blocks and try questions name by stem (M6FG.6). */
   figures?: FigureOut[];
+  /** The node's problem, drawn at its block; `live` only on a learner's page (M6LP.5). */
+  problem?: { shown: ProblemShown; live?: ProblemLive } | undefined;
 }) {
   const drawn = new Map(figures.map((figure) => [figure.stem, figure]));
   const byId = new Map(questions.map((question) => [question.id, question]));
   const components = componentsFor(big);
+  const named = new Map<string, NamedCallout>();
+  blocks.forEach((block, index) => {
+    if (block.kind === "callout" && !named.has(block.title)) {
+      named.set(block.title, { block, anchor: `callout-${index}` });
+    }
+  });
   let asked = 0;
   let figured = 0;
   return (
@@ -48,6 +58,7 @@ export function Body({
             <Callout
               // biome-ignore lint/suspicious/noArrayIndexKey: callouts have no identity beyond their place
               key={`callout:${index}`}
+              anchor={named.get(block.title)?.block === block ? `callout-${index}` : undefined}
               kind={block.callout}
               title={block.title}
               markdown={block.markdown}
@@ -111,6 +122,12 @@ export function Body({
               markdown={block.markdown}
               components={components}
             />
+          );
+        }
+        if (block.kind === "problem") {
+          if (problem === undefined) return null;
+          return (
+            <Problem key="problem" problem={problem.shown} live={problem.live} named={named} />
           );
         }
         if (block.kind !== "try") return null; // a kind this page does not draw yet

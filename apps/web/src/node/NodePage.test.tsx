@@ -268,3 +268,31 @@ describe("the Node page's states", () => {
     expect(screen.getByText("Loading the page…")).toBeInTheDocument();
   });
 });
+
+describe("the problem", () => {
+  it("is drawn at its block with a dataset of this browser's own", async () => {
+    const withProblem: NodeOut = {
+      ...DE_BRUIJN,
+      blocks: [...DE_BRUIJN.blocks, { kind: "problem" }],
+      problem: {
+        title: "Construct a de Bruijn graph",
+        rung: 3,
+        statement: "Return the edges.",
+        given: "k, then reads",
+        returns: "edges",
+        sample_dataset: "3\nACGTT\n",
+        sample_output: "ACG -> CGT\n",
+        hints: [],
+        callouts: [],
+        kit: "de-bruijn-edges",
+        size: 2482,
+        version: "0123456789ab",
+      },
+    };
+    answering([withProblem]);
+    open("/node/de-bruijn-graphs");
+    const region = await screen.findByRole("region", { name: "Construct a de Bruijn graph" });
+    expect(within(region).getByRole("button", { name: "Download" })).toBeInTheDocument();
+    expect(within(region).getByRole("textbox", { name: "Your answer" })).toBeInTheDocument();
+  });
+});
