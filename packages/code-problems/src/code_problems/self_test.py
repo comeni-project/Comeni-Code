@@ -14,6 +14,7 @@ from code_problems.rng import Rng
 
 PARAMS = "CS1101"  # params outside the kit's schema or rules
 COST = "CS1102"  # a dataset past the kit's limit
+SAMPLE_BYTES = 2_000  # a sample is drawn on the page (M6.8a spec, M6LP.6)
 REFUSED = "CS1103"  # the solver's answer refused by the checker
 UNCAUGHT = "CS1104"  # a mapped mistake not caught as itself
 ALIKE = "CS1105"  # answers alike between learners
@@ -73,10 +74,12 @@ def self_test(
     found = _fits(kit, params, "params") + _fits(kit, small, "sample.params")
     if found:
         return SelfTest(found, None)
-    for where, what in (("params", params), ("sample.params", small)):
-        if kit.cost(what) > kit.max_bytes:
-            said = f"asks for {kit.cost(what):,} bytes; {kit.name} makes at most {kit.max_bytes:,}"
-            found.append(Finding(COST, where, said))
+    if kit.cost(params) > kit.max_bytes:
+        said = f"asks for {kit.cost(params):,} bytes; {kit.name} makes at most {kit.max_bytes:,}"
+        found.append(Finding(COST, "params", said))
+    if kit.cost(small) > min(kit.max_bytes, SAMPLE_BYTES):
+        said = f"asks for {kit.cost(small):,} bytes; a sample is drawn on the page: at most 2,000"
+        found.append(Finding(COST, "sample.params", said))
     if found:
         return SelfTest(found, None)
     names = list(mapped)

@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 from code_problems import KITS, registry, self_test
+from code_problems.self_test import SAMPLE_BYTES
 
 PARAMS: dict[str, Any] = {"k": 3, "genome": 400, "read": 40, "coverage": 10, "errors": 0}
 SAMPLE: dict[str, Any] = {
@@ -90,3 +91,16 @@ def test_a_kit_that_raises_is_a_finding(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setitem(registry.KITS, kit.name, replace(kit, solve=broken))
     found = self_test(kit.name, PARAMS, SAMPLE, [])
     assert codes(found)[0] == "CS1103" and "a kit's bug" in found.findings[0].message
+
+
+def test_a_sample_over_two_thousand_bytes_is_cs1102() -> None:
+    """M6LP.6: a sample is drawn on the page, so its cost is at most 2,000 bytes."""
+    big: dict[str, Any] = {"seed": 1, "params": dict(PARAMS)}
+    assert 2_000 < KITS["de-bruijn-edges"].cost(big["params"]) <= KITS["de-bruijn-edges"].max_bytes
+    found = self_test("de-bruijn-edges", PARAMS, big, [])
+    assert [(f.code, f.path) for f in found.findings] == [("CS1102", "sample.params")]
+    assert "2,000" in found.findings[0].message
+
+
+def test_the_fixtures_sample_fits() -> None:
+    assert KITS["de-bruijn-edges"].cost(SAMPLE["params"]) <= SAMPLE_BYTES
