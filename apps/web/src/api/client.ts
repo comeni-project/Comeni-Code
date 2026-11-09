@@ -51,6 +51,21 @@ export async function getJson<T>(
   return readAnswer<T>(response, accept);
 }
 
+/**
+ * The text body of `url` (a learner's dataset, M6LP.3). A status outside 2xx rejects as `getJson`
+ * does, with the API's sentence and the status.
+ */
+export async function getText(url: string): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(url, { headers: { Accept: "text/plain, application/json" } });
+  } catch {
+    throw new ApiUnreachable("network error");
+  }
+  if (response.ok) return response.text();
+  return readAnswer<never>(response, []);
+}
+
 /** The JSON of an answer, or why there is none, as `getJson` and `sendJson` both read it. */
 async function readAnswer<T>(response: Response, accept: readonly number[]): Promise<T> {
   const usable = response.ok || accept.includes(response.status);

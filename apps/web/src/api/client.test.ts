@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiUnreachable, csrfToken, getJson, sendJson, sentenceOf } from "./client";
+import { ApiUnreachable, csrfToken, getJson, getText, sendJson, sentenceOf } from "./client";
 import { nodeUrl } from "./nodes";
 import { routeUrl } from "./routes";
 import { searchUrl } from "./search";
@@ -165,5 +165,17 @@ describe("csrfToken", () => {
   it("is empty without the cookie", () => {
     vi.stubGlobal("document", { cookie: "theme=dark" });
     expect(csrfToken()).toBe("");
+  });
+});
+
+describe("getText", () => {
+  it("returns a 200's body as text", async () => {
+    vi.stubGlobal("fetch", async () => new Response("4\nACGT\n", { status: 200 }));
+    await expect(getText("/api/nodes/n/problem/dataset")).resolves.toBe("4\nACGT\n");
+  });
+
+  it("rejects with the API's sentence on an error", async () => {
+    answers({ detail: "n has no problem.", code: "CA0009" }, 404);
+    await expect(getText("/api/nodes/n/problem/dataset")).rejects.toThrow("n has no problem.");
   });
 });
