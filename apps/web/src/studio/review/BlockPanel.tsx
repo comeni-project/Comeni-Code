@@ -10,6 +10,7 @@ import type {
 } from "../../api/schema";
 import { Body } from "../../node/Body";
 import { imageUrl } from "../../node/Picture";
+import { ProblemReview } from "../problem/ProblemReview";
 import { wordDiff } from "./diff";
 import { ReviewQuestion, shownGiven, theKey } from "./ReviewQuestion";
 
@@ -76,6 +77,7 @@ function Content({ content, url }: { content: ReviewContentOut; url: (file: stri
     );
   }
   if (content.question !== null) return <Asked question={content.question} />;
+  if (content.problem) return <ProblemReview problem={content.problem} />;
   return null;
 }
 
@@ -114,10 +116,19 @@ function Changes({ item, draft }: { item: ReviewItemOut; draft: QueuedDraftOut }
     return <p className="text-[14px] text-ink-2">Unchanged since it landed.</p>;
   const was = item.before.block;
   const is = item.block;
-  if (was?.kind === "text" && is?.kind === "text") {
+  // A text block's words, or a problem's file (M6PB.6), as a word diff.
+  const pair: [string, string] | null =
+    was?.kind === "text" && is?.kind === "text"
+      ? [was.markdown, is.markdown]
+      : item.before.problem && item.problem
+        ? [item.before.problem.text, item.problem.text]
+        : null;
+  if (pair !== null) {
     return (
-      <p className="whitespace-pre-wrap text-[14px] leading-[1.65]">
-        {wordDiff(was.markdown, is.markdown).map((piece, at) => {
+      <p
+        className={`whitespace-pre-wrap leading-[1.65] ${item.problem ? "font-mono text-[12.5px]" : "text-[14px]"}`}
+      >
+        {wordDiff(pair[0], pair[1]).map((piece, at) => {
           const key = `${at}:${piece.kind}`;
           if (piece.kind === "gone")
             return (
