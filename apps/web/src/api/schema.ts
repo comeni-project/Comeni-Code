@@ -44,6 +44,7 @@ export interface ApiSchemas {
   InviteIn: InviteIn;
   InviteOut: InviteOut;
   ItemOut: ItemOut;
+  KitMistakeOut: KitMistakeOut;
   LandingEntryOut: LandingEntryOut;
   LandingIn: LandingIn;
   LandingOut: LandingOut;
@@ -53,6 +54,7 @@ export interface ApiSchemas {
   LinkOut: LinkOut;
   LinkTargetOut: LinkTargetOut;
   LinksIn: LinksIn;
+  MappedMistakeOut: MappedMistakeOut;
   MathBlockOut: MathBlockOut;
   MeOut: MeOut;
   MemberOut: MemberOut;
@@ -68,6 +70,7 @@ export interface ApiSchemas {
   PendingInviteOut: PendingInviteOut;
   ProblemBlockOut: ProblemBlockOut;
   ProblemIn: ProblemIn;
+  ProblemKitOut: ProblemKitOut;
   ProblemOut: ProblemOut;
   ProviderOut: ProviderOut;
   QuestionChecksOut: QuestionChecksOut;
@@ -400,13 +403,16 @@ export interface ImageRecordOut {
 }
 /**
  * A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows
- * of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index.
+ * of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index. The
+ * rationale and which mistake names which callout are for Review (M6PB.6), never a learner.
  */
 export interface NodeProblemOut {
   callouts: string[];
   given: string;
   hints: string[];
   kit: string;
+  mistakes: MappedMistakeOut[];
+  rationale: string;
   returns: string;
   rung: number;
   sample_dataset: string;
@@ -415,6 +421,10 @@ export interface NodeProblemOut {
   statement: string;
   text: string;
   title: string;
+}
+export interface MappedMistakeOut {
+  callout: string;
+  name: string;
 }
 /**
  * A try question; `options` for a choice, `answer` with unit and tolerance for a number, or
@@ -650,6 +660,10 @@ export interface InviteOut {
   email: string;
   role: string;
 }
+export interface KitMistakeOut {
+  name: string;
+  says: string;
+}
 export interface LandingEntryOut {
   draft: string;
   dropped_code: string;
@@ -842,6 +856,23 @@ export interface PendingInviteOut {
 export interface ProblemIn {
   revision: number;
   text: string;
+}
+/**
+ * A problem kit as the builder offers it (M6PB.4).
+ */
+export interface ProblemKitOut {
+  about: string;
+  example: {
+    [k: string]: unknown;
+  };
+  mistakes: KitMistakeOut[];
+  name: string;
+  params_schema: {
+    [k: string]: unknown;
+  };
+  rung: number;
+  sample_dataset: string;
+  sample_output: string;
 }
 export interface QueueKeyOut {
   answered: boolean | null;

@@ -14,6 +14,7 @@ from code_api.content.search import router as search_router
 from code_api.health.api import router as health_router
 from code_api.studio.api import router as studio_router
 from code_api.studio.index_api import router as index_router
+from code_api.studio.kits_api import router as kits_router
 from code_api.studio.landing_api import router as landing_router
 from code_api.studio.review_api import router as review_router
 
@@ -27,4 +28,5 @@ api.add_router("/search", search_router)
 api.add_router("/studio/drafts", studio_router)
 api.add_router("/studio/landings", landing_router)
 api.add_router("/studio/index", index_router)
+api.add_router("/studio/problem-kits", kits_router)
 api.add_router("/studio/review", review_router)

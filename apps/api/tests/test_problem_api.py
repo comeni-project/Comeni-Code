@@ -49,6 +49,10 @@ def test_a_draft_starts_with_its_problem_and_sends_it(client: Client, ada: User)
     assert node["problem"]["text"] == PROBLEM
     assert node["problem"]["sample_dataset"].startswith("3\n")
     assert {"kind": "problem"} in node["blocks"]
+    assert node["problem"]["rationale"].startswith("Each read adds the edges")
+    assert node["problem"]["mistakes"] == [
+        {"name": "duplicates", "callout": "Every edge appears once"}
+    ]
 
 
 def test_a_problem_is_saved_whole_and_reads_back(client: Client, ada: User) -> None:

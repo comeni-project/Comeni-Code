@@ -103,4 +103,16 @@ KIT = Kit(
     check=check,
     mistakes={"counted-all": lambda case: str(_counted_all(case)), "off-by-one": _off_by_one},
     max_bytes=120_000,
+    about="k and some reads; the learner returns how many distinct k-mers the reads hold.",
+    says={
+        "counted-all": "every read's k-mers summed, not the distinct ones",
+        "off-by-one": "L - k k-mers in a read of length L, not L - k + 1",
+    },
+    example={
+        "params": {"k": 8, "genome": [300, 400], "read": 30, "coverage": 8, "errors": 0},
+        "sample": {
+            "seed": 1,
+            "params": {"k": 3, "genome": [7, 9], "read": 5, "coverage": 2, "errors": 0},
+        },
+    },
 )

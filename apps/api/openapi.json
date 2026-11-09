@@ -1572,6 +1572,24 @@
         "title": "ItemOut",
         "type": "object"
       },
+      "KitMistakeOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "says": {
+            "title": "Says",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "says"
+        ],
+        "title": "KitMistakeOut",
+        "type": "object"
+      },
       "LandingEntryOut": {
         "properties": {
           "draft": {
@@ -1875,6 +1893,24 @@
           "links"
         ],
         "title": "LinksIn",
+        "type": "object"
+      },
+      "MappedMistakeOut": {
+        "properties": {
+          "callout": {
+            "title": "Callout",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "callout"
+        ],
+        "title": "MappedMistakeOut",
         "type": "object"
       },
       "MathBlockOut": {
@@ -2211,7 +2247,7 @@
         "type": "object"
       },
       "NodeProblemOut": {
-        "description": "A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows\nof it (M6LP.5), the sample computed from its seed. No version: a draft is in no index.",
+        "description": "A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows\nof it (M6LP.5), the sample computed from its seed. No version: a draft is in no index. The\nrationale and which mistake names which callout are for Review (M6PB.6), never a learner.",
         "properties": {
           "callouts": {
             "items": {
@@ -2233,6 +2269,17 @@
           },
           "kit": {
             "title": "Kit",
+            "type": "string"
+          },
+          "mistakes": {
+            "items": {
+              "$ref": "#/components/schemas/MappedMistakeOut"
+            },
+            "title": "Mistakes",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
             "type": "string"
           },
           "returns": {
@@ -2280,7 +2327,9 @@
           "callouts",
           "kit",
           "size",
-          "text"
+          "text",
+          "rationale",
+          "mistakes"
         ],
         "title": "NodeProblemOut",
         "type": "object"
@@ -2437,6 +2486,60 @@
           "text"
         ],
         "title": "ProblemIn",
+        "type": "object"
+      },
+      "ProblemKitOut": {
+        "description": "A problem kit as the builder offers it (M6PB.4).",
+        "properties": {
+          "about": {
+            "title": "About",
+            "type": "string"
+          },
+          "example": {
+            "additionalProperties": true,
+            "title": "Example",
+            "type": "object"
+          },
+          "mistakes": {
+            "items": {
+              "$ref": "#/components/schemas/KitMistakeOut"
+            },
+            "title": "Mistakes",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "params_schema": {
+            "additionalProperties": true,
+            "title": "Params Schema",
+            "type": "object"
+          },
+          "rung": {
+            "title": "Rung",
+            "type": "integer"
+          },
+          "sample_dataset": {
+            "title": "Sample Dataset",
+            "type": "string"
+          },
+          "sample_output": {
+            "title": "Sample Output",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "rung",
+          "about",
+          "params_schema",
+          "mistakes",
+          "example",
+          "sample_dataset",
+          "sample_output"
+        ],
+        "title": "ProblemKitOut",
         "type": "object"
       },
       "ProblemOut": {
@@ -8714,6 +8817,37 @@
           }
         ],
         "summary": "Close a failed landing",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/problem-kits": {
+      "get": {
+        "operationId": "code_api_studio_kits_api_problem_kits",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemKitOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The problem kits, as the builder offers them",
         "tags": [
           "studio"
         ]
