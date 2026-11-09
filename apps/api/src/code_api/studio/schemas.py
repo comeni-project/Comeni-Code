@@ -137,7 +137,11 @@ class NodeProblemOut(ProblemShownOut):
 
 
 def problem_out(problem: ProblemFile | None) -> NodeProblemOut | None:
-    return None if problem is None else NodeProblemOut(**shown(problem), text=problem.text)
+    return (
+        None
+        if problem is None
+        else NodeProblemOut(**shown(problem).model_dump(), text=problem.text)
+    )
 
 
 class DraftNodeOut(Schema):

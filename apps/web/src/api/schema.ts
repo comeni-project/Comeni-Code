@@ -10,6 +10,8 @@ export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
   AddFigureIn: AddFigureIn;
+  AnswerIn: AnswerIn;
+  AnswerOut: AnswerOut;
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
@@ -126,6 +128,23 @@ export interface AddFigureIn {
   question?: string | null;
   revision: number;
   text?: string | null;
+}
+/**
+ * A learner's answer (M6LP.4). The seed is digits, as a JSON number loses them past 2**53.
+ */
+export interface AnswerIn {
+  answer: string;
+  seed: string;
+  version: string;
+}
+/**
+ * The kit's verdict: never the answer; the rationale only when right (M6LP.4).
+ */
+export interface AnswerOut {
+  callouts: string[];
+  rationale: string | null;
+  right: boolean;
+  said: string;
 }
 export interface ApproveIn {
   reason?: string;

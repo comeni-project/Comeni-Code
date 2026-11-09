@@ -5,15 +5,18 @@ The kit runs here, in the request; nothing about the learner is stored. The answ
 """
 
 import hashlib
+import re
 
 from code_problems import Case, Dataset, Rng, registry
 from code_problems.kit import Kit
 
 from code_api.content.models import NodeProblem
+from code_api.content.schemas import AnswerOut, ProblemShownOut
 from code_schema.problem_file import ProblemFile, stored_problem
 
 # A version per problem text and kit, within this process: a deploy restarts it (M6LP.2).
 _VERSIONS: dict[tuple[str, int], str] = {}
+_DIGITS = re.compile(r"[0-9]{1,20}")
 
 
 def stored(row: NodeProblem) -> ProblemFile:
@@ -38,22 +41,22 @@ def callouts(problem: ProblemFile, named: tuple[str, ...] | None = None) -> list
     return titles
 
 
-def shown(problem: ProblemFile) -> dict[str, object]:
-    """What a page shows of a problem (`ProblemShownOut`'s fields): never its params, its mistakes'
+def shown(problem: ProblemFile) -> ProblemShownOut:
+    """What a page shows of a problem: never its params, its mistakes'
     names, its rationale or an answer."""
-    return {
-        "title": problem.title,
-        "rung": problem.rung,
-        "statement": problem.statement,
-        "given": problem.given,
-        "returns": problem.returns,
-        "sample_dataset": problem.sample.dataset.text,
-        "sample_output": problem.sample.answer,
-        "hints": list(problem.hints),
-        "callouts": callouts(problem),
-        "kit": problem.kit,
-        "size": _kit(problem).cost(problem.params),
-    }
+    return ProblemShownOut(
+        title=problem.title,
+        rung=problem.rung,
+        statement=problem.statement,
+        given=problem.given,
+        returns=problem.returns,
+        sample_dataset=problem.sample.dataset.text,
+        sample_output=problem.sample.answer,
+        hints=list(problem.hints),
+        callouts=callouts(problem),
+        kit=problem.kit,
+        size=_kit(problem).cost(problem.params),
+    )
 
 
 def dataset(problem: ProblemFile, seed: int) -> Dataset:
@@ -70,6 +73,29 @@ def version(problem: ProblemFile) -> str:
         whole = "\0".join((problem.text, made.text, answer))
         _VERSIONS[key] = hashlib.sha256(whole.encode()).hexdigest()[:12]
     return _VERSIONS[key]
+
+
+def seed_of(text: str) -> int | None:
+    """A seed as the page sends it: digits, below 2**64 (M6LP.1); None otherwise."""
+    if not _DIGITS.fullmatch(text):
+        return None
+    seed = int(text)
+    return seed if seed < 2**64 else None
+
+
+def verdict(problem: ProblemFile, seed: int, given: str) -> AnswerOut:
+    """The kit's check of an answer to this seed's dataset: never the answer, the rationale only
+    when right (M6LP.4). A byte-order mark a Windows editor wrote is dropped first."""
+    kit = _kit(problem)
+    made = dataset(problem, seed)
+    answer = kit.solve(Case(problem.params, made, ""))
+    found = kit.check(Case(problem.params, made, answer), given.removeprefix("\ufeff"))
+    return AnswerOut(
+        right=found.right,
+        said=found.said,
+        callouts=callouts(problem, found.mistakes),
+        rationale=problem.rationale if found.right else None,
+    )
 
 
 def forget() -> None:

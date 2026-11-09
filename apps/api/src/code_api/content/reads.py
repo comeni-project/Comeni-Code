@@ -232,7 +232,9 @@ def _problem(found: Node) -> LearnerProblemOut | None:
     except NodeProblem.DoesNotExist:
         return None
     problem = problems.stored(row)
-    return LearnerProblemOut(**problems.shown(problem), version=problems.version(problem))
+    return LearnerProblemOut(
+        **problems.shown(problem).model_dump(), version=problems.version(problem)
+    )
 
 
 def image(node_id: str, file: str) -> tuple[bytes, str] | None:
