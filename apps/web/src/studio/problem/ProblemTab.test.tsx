@@ -212,3 +212,73 @@ it("Content's problem row opens the Problem tab", async () => {
   await userEvent.click(await screen.findByRole("link", { name: "Open in the Problem tab" }));
   expect(await screen.findByLabelText("Title")).toBeTruthy();
 });
+
+describe("unsaved edits (M6PB.5)", () => {
+  const edited = async () => {
+    const title = await screen.findByLabelText("Title");
+    await userEvent.type(title, "!");
+  };
+
+  it("asks before another tab: Stay stays, Discard goes", async () => {
+    bench(WITH_PROBLEM);
+    await edited();
+    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+    expect(screen.getByText("Save the problem first?")).toBeTruthy();
+    await userEvent.click(screen.getByRole("button", { name: "Stay" }));
+    expect(screen.getByLabelText("Title")).toHaveValue("Construct a de Bruijn graph!");
+    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+    await userEvent.click(screen.getByRole("button", { name: "Discard" }));
+    expect(screen.getByRole("tab", { name: "Settings" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("Save in the confirm saves, then goes; a refused save stays with its problems", async () => {
+    bench(WITH_PROBLEM, {
+      [PUT]: {
+        status: 422,
+        body: {
+          detail: "The problem would not validate.",
+          code: "CA0208",
+          problems: [
+            {
+              file: "p/problem.yaml",
+              line: null,
+              field: "kit",
+              code: "CS1103",
+              message: "kit: seed 4: the kit failed (boom)",
+              text: "CS1103 …",
+            },
+          ],
+        },
+      },
+    });
+    await edited();
+    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("the kit failed (boom)");
+    expect(screen.getByRole("tab", { name: "Problem" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("goes without asking once saved", async () => {
+    bench(WITH_PROBLEM);
+    await screen.findByLabelText("Title");
+    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+    expect(screen.queryByText("Save the problem first?")).toBeNull();
+  });
+
+  it("asks before leaving the draft, in the problem's words", async () => {
+    const ask = vi.spyOn(window, "confirm").mockReturnValue(false);
+    answering({
+      "GET /api/me": signedInAs("author"),
+      "GET /api/studio/drafts/d-1": { body: { ...DRAFT, node: WITH_PROBLEM } },
+      "GET /api/studio/problem-kits": { body: KITS },
+    });
+    renderAt(
+      "/studio/drafts/d-1?tab=problem",
+      <Route path="/studio/drafts/:id" element={<WorkbenchPage />} />,
+    );
+    await edited();
+    // The workbench's own breadcrumb back to Drafts.
+    await userEvent.click(screen.getByRole("link", { name: "Drafts" }));
+    expect(ask).toHaveBeenCalledWith("Leave the problem? What you changed here is not saved.");
+  });
+});

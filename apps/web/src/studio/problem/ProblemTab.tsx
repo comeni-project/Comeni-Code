@@ -9,9 +9,11 @@ import type { DraftNodeOut, ProblemKitOut, ProblemOut } from "../../api/schema";
 import type { Finding } from "../../figures/validate";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { openFile, writeFile } from "../../yaml/document";
+import { useLeaveGuard } from "../composer/useLeaveGuard";
 import { removeProblem, setProblem } from "../workbench/edits";
 import { RefusalNotice } from "../workbench/RefusalNotice";
 import { refusalOf } from "../workbench/refusal";
+import { useHoldTab } from "../workbench/tabHold";
 import { useDraftEdit } from "../workbench/useDraftEdit";
 import { problemFindings } from "./findings";
 import { problemFormable } from "./formable";
@@ -20,6 +22,7 @@ import { ProblemForm } from "./ProblemForm";
 
 const BUTTON =
   "rounded-control border border-border-2 bg-surface px-3 py-1.5 text-[13px] font-medium hover:border-sel";
+export const LEAVE_PROBLEM = "Leave the problem? What you changed here is not saved.";
 const ON_FORM = /^(title|rung|statement|given|return|rationale|hints|params|sample|mistakes)\b/;
 
 /** The first file of a problem started from a kit: empty words, the kit's example (M6PB.2). */
@@ -85,6 +88,23 @@ function Builder({
     [node.blocks],
   );
   const fd = useMemo(() => (text === null ? null : openFile(text)), [text]);
+  const unsaved = text !== saved;
+  // Unsaved work holds the tab bar and asks before leaving the draft (M6PB.5).
+  const hold = useMemo(
+    () =>
+      unsaved && text !== null && editable
+        ? {
+            save: () =>
+              edit
+                .mutateAsync(setProblem(text))
+                .then(() => true)
+                .catch(() => false),
+          }
+        : null,
+    [unsaved, text, editable, edit.mutateAsync],
+  );
+  useHoldTab(hold);
+  useLeaveGuard(unsaved && editable, LEAVE_PROBLEM);
 
   if (text === null || fd === null) {
     return (
