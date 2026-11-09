@@ -1922,7 +1922,7 @@ function reviewStudio() {
 // score column, the judge panel and "Was the score right?" are drawn as placeholders, never values.
 const scorePending = () => `<span title="Scores arrive with the judge in M5" style="font-family:${MONO};font-size:12.5px;color:${c.border2}">—</span>`;
 const placeholder = (title, why) => `<div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;border:1.5px dashed ${c.border2};font-size:12.5px;line-height:1.45;color:${c.ink3}"><span style="font-weight:600;color:${c.ink2}">${title}</span><span>${why}</span></div>`;
-function reviewM4() {
+function reviewM4(view = {}) {
   const cols = '18px minmax(0, 1.2fr) 74px 46px 96px';
   const verdict = (v) => v === 'approved' ? greyTag(`${ic.check(c.ink2)}approved`) : v === 'changes' ? amberTag('changes') : '';
   const group = (node, rev, who, done) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid ${c.border};background:${c.bg};font-size:12px"><span><b style="font-weight:600;color:${c.ink}">${node}</b> <span style="color:${c.ink3}">· rev ${rev} · ${who}</span></span><span style="color:${c.ink3};font-variant-numeric:tabular-nums">${done}</span></div>`;
@@ -1931,6 +1931,20 @@ function reviewM4() {
     <span style="font-family:${MONO};font-size:11.5px;color:${c.ink2}">${k}</span>${scorePending()}<span style="display:flex;justify-content:flex-end">${verdict(v)}</span></div>`;
   const cond = (ok, t) => `<div style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px"><span style="margin-top:1px;color:${ok ? c.ink2 : c.open}">${ok ? ic.check(c.ink2) : ic.close}</span><span style="color:${ok ? c.ink2 : c.ink};font-weight:${ok ? 400 : 600}">${t}</span></div>`;
   const option = (letter, text, o = {}) => `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:14px;${o.right ? `border:2px solid ${c.btn};background:${c.lineSoft}` : o.mine ? `border:2px solid ${c.sel}` : `border:1px solid ${c.border}`}"><span style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11.5px;font-weight:600;${o.right ? `background:${c.btn};color:${c.btnInk}` : `border:1.5px solid ${c.border2};color:${c.ink2}`}">${letter}</span><span style="flex:1">${text}</span>${o.right ? `<span style="font-size:12px;color:${c.btn}">right answer · yours</span>` : ''}</div>`;
+  const tryMiddle = `      <section style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:${c.ink3}">de Bruijn graphs · try block · written by [Author A]</span><span style="font-size:19px;font-weight:600">How many 5-mers…</span></div>
+          ${seg(c, ['Standalone', 'Changes'], 0)}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:620px">
+          <span style="font-size:14.5px;line-height:1.6">A read is 12 bases long. How many 5-mers does it hold?</span>
+          ${option('A', '7')}${option('B', '8', { right: 1 })}${option('C', '12')}
+          <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:${c.bg};font-size:12.5px;line-height:1.5;color:${c.ink2}"><span style="font-weight:600;color:${c.ink}">Hints the learner sees</span><span>1 · Slide the window one base at a time.</span><span>2 · The last window starts at base 8.</span></div>
+          <span style="font-size:12px;color:${c.ink3}">You answered before the right answer was shown; a wrong answer counts, never blocks.</span>
+        </div>
+        ${placeholder('Judge’s score · arrives with M5', 'A model from another family scores each block against its rubric; its named parts, reasons and redraft history go here.')}
+      </section>
+`;
   const inner = `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
       <div style="display:flex;align-items:baseline;gap:14px">${h1('Review', 26)}<span style="font-size:13px;color:${c.ink2}">Every block of a submitted draft gets your verdict; then you approve the draft.</span></div>
@@ -1945,12 +1959,13 @@ function reviewM4() {
         ${[
           ['Title, claim, level, links', 'node', 'approved'],
           ['From reads to k-mers', 'text', 'approved'],
-          ['How many 5-mers…', 'try', '', { focus: 1, sel: 1 }],
+          ['How many 5-mers…', 'try', '', view.middle ? { sel: 1 } : { focus: 1, sel: 1 }],
           ['An error sits at a read’s end', 'callout', '', { sel: 1 }],
           ['Video · genome assembly', 'resource', 'approved'],
           ['Q1 · Which mark does an error leave?', 'exam', 'changes'],
           ['Q2 · Count the edges', 'exam', '', { sel: 1 }],
           ['Q3 · Order the steps', 'exam', ''],
+          ...(view.middle ? [['Construct a de Bruijn graph', 'problem', '', { focus: 1 }]] : []),
         ].map(row).join('')}
         ${group('k-mers', 6, '[Author B]', '0 of 3')}
         ${[['Title, claim, level, links', 'node', ''], ['Sliding a window', 'text', '']].map(row).join('')}
@@ -1960,20 +1975,7 @@ function reviewM4() {
           <span style="font-size:11.5px;opacity:.75">Q2 is skipped: answer it first.</span>
         </div>
       </section>
-      <section style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:${c.ink3}">de Bruijn graphs · try block · written by [Author A]</span><span style="font-size:19px;font-weight:600">How many 5-mers…</span></div>
-          ${seg(c, ['Standalone', 'Changes'], 0)}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;max-width:620px">
-          <span style="font-size:14.5px;line-height:1.6">A read is 12 bases long. How many 5-mers does it hold?</span>
-          ${option('A', '7')}${option('B', '8', { right: 1 })}${option('C', '12')}
-          <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:${c.bg};font-size:12.5px;line-height:1.5;color:${c.ink2}"><span style="font-weight:600;color:${c.ink}">Hints the learner sees</span><span>1 · Slide the window one base at a time.</span><span>2 · The last window starts at base 8.</span></div>
-          <span style="font-size:12px;color:${c.ink3}">You answered before the right answer was shown; a wrong answer counts, never blocks.</span>
-        </div>
-        ${placeholder('Judge’s score · arrives with M5', 'A model from another family scores each block against its rubric; its named parts, reasons and redraft history go here.')}
-      </section>
-      <aside style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:12px">
+${view.middle ?? tryMiddle}      <aside style="${panel(c)};padding:16px;display:flex;flex-direction:column;gap:12px">
         <span style="font-size:14px;font-weight:600">Your verdict</span>
         <div style="display:flex;flex-direction:column;gap:7px">${cond(true, 'Read standalone')}${cond(true, 'Answered it yourself')}${cond(true, 'You didn’t write it')}</div>
         ${wide(primary(c, 'Approve this block'))}
@@ -3183,6 +3185,43 @@ function benchProblemNew() {
     <span style="${benchHint}">A new kit is a reviewed change to code-problems, never code in a problem file. The problem’s block goes at the body’s end; move it in Content.</span>`);
 }
 
+
+// S6 · Review, M6.8b — a problem key: the problem as the page draws it, and what only a reviewer sees
+function reviewProblem() {
+  const fileText = `title: Construct a de Bruijn graph
+rung: 3
+statement: |
+  Given a set of reads and an integer k, return the edges …
+given: k on the first line, then the reads, one per line
+return: edges as "A -&gt; B", one per line, sorted, no duplicates
+kit: de-bruijn-edges
+params: {k: 4, genome: 300, read: 30, coverage: 8, errors: 0}
+sample: {seed: 1, params: {k: 3, genome: 7, read: 5, coverage: 2, errors: 0}}
+hints:
+  - The same k-mer can come from many reads.
+  - Each read adds one edge for every pair of k-mers next to each other in it.
+mistakes:
+  duplicates: Every edge appears once
+rationale: Each read adds the edges between its consecutive k-mers, …`;
+  const hidden = (k, v) => `<div style="display:grid;grid-template-columns:150px minmax(0, 1fr);gap:10px;font-size:13px;line-height:1.5"><span style="color:${c.ink3}">${k}</span><span>${v}</span></div>`;
+  const middle = `<section style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:12px;color:${c.ink3}">de Bruijn graphs · problem · written by [Author A]</span><span style="font-size:19px;font-weight:600">Construct a de Bruijn graph</span></div>
+      ${seg(c, ['Standalone', 'Changes'], 0)}
+    </div>
+    <div style="zoom:.86">${pbShell(`${pbStatement()}${pbHints(false)}<div style="display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:10px;background:${c.bg};border:1px dashed ${c.border2}"><span style="font-size:14px;font-weight:600">Your dataset</span><span style="font-size:12.5px;color:${c.ink2}">Each learner downloads their own here: about 2.5 KB at these params.</span></div>`, { tag: false, pad: '16px' })}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:10px;background:${c.bg}">
+      <span style="font-size:13px;font-weight:600">What the learner doesn’t see until they answer</span>
+      ${hidden('Rationale', PB.rationale)}
+      ${hidden('Mistakes named', `${mono('duplicates', 'font-size:12px')} → the callout <i>${PB.callout[0]}</i>; ${mono('missing', 'font-size:12px')}, ${mono('extra', 'font-size:12px')}, ${mono('unsorted', 'font-size:12px')}, ${mono('reversed', 'font-size:12px')} → the checker’s sentence only`)}
+      ${hidden('Dataset', `${mono('de-bruijn-edges', 'font-size:12px')} · k 4, genome 300, read 30, coverage 8, errors 0`)}
+      ${hidden('Self-test', 'passed on the sample and seeds 0–19')}
+    </div>
+    <details open style="display:flex;flex-direction:column;gap:6px"><summary style="font-size:13px;font-weight:600;cursor:pointer">problem.yaml</summary><pre style="margin:6px 0 0;padding:10px 12px;border-radius:9px;background:${c.bg};border:1px solid ${c.border};font-family:${MONO};font-size:12px;line-height:1.6;overflow-x:auto">${fileText}</pre></details>
+  </section>`;
+  return reviewM4({ middle });
+}
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -3234,6 +3273,7 @@ const STUDIO = [
   ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block\u2019s Edit now opens the figure composer (S4), and this editor is gone.'],
   ['WorkbenchProblem', 'S5 · Workbench — Problem, M6.8: the problem builder', workbench({ tab: 'Problem', body: benchProblem(), preview: benchProblemPreview(), h: 1860, checks: 0 }), 1680, 1860, 'M6.8: the node\u2019s problem.yaml as a form: the words, the kit and its params (fields from the kit\u2019s schema), the sample, hints, the kit\u2019s mistakes each pointed at a misconception callout or left to the checker, and the rationale. Edit as YAML opens the file itself. Save sends the whole file; the server runs the 20-seed self-test and refuses it with the problems shown in Checks.'],
   ['WorkbenchProblemNew', 'S5 · Workbench — Problem, M6.8: a node with none', workbench({ tab: 'Problem', body: benchProblemNew(), preview: `<div style="font-size:13px;color:${c.ink3};padding:20px 4px">No problem to preview.</div>`, checks: 0 }), 1680, 1060, 'M6.8: a node without a problem. Each kit is shown with its sample; starting from one writes a first file from the kit\u2019s example params and adds the block at the body\u2019s end.'],
+  ['ReviewProblem', 'S6 · Review, M6.8b — a problem key', reviewProblem(), 1680, 1000, 'M6.8b: the problem key drawn as the learner page draws it, with no Download or answer, then what only a reviewer judges: the rationale, which mistakes name which callout, the kit and its params, the self-test, and the file itself. Changes shows the file before and after.'],
   ['WorkbenchExamFigure', 'S3 · Workbench — Exam pool, M6.6b: a figure answer and figure options', workbench({ tab: 'Exam pool', body: benchExamFigure(), preview: benchExamFigurePreview() }), 1680, 1060, 'M6.6b: the answer kind Figure takes a figure whose file has a task, made in the composer; its right answers are computed and named. A choice option holds text or a figure. The preview answers it as a learner would, then shows the results view with the marks.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];

@@ -439,9 +439,18 @@
       "page": "studio"
     },
     {
+      "file": "ReviewProblem.dc.html",
+      "title": "S6 · Review, M6.8b — a problem key",
+      "x": 1800,
+      "y": 14080,
+      "w": 1680,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
       "file": "WorkbenchExamFigure.dc.html",
       "title": "S3 · Workbench — Exam pool, M6.6b: a figure answer and figure options",
-      "x": 1800,
+      "x": 3600,
       "y": 14080,
       "w": 1680,
       "h": 1060,
@@ -450,8 +459,8 @@
     {
       "file": "Team.dc.html",
       "title": "S14 · Team — members, roles and invites",
-      "x": 3600,
-      "y": 14080,
+      "x": 0,
+      "y": 15500,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -871,8 +880,16 @@
       "page": "studio"
     },
     {
-      "id": "note-workbenchexamfigure",
+      "id": "note-reviewproblem",
       "x": 1800,
+      "y": 13830,
+      "w": 620,
+      "text": "M6.8b: the problem key drawn as the learner page draws it, with no Download or answer, then what only a reviewer judges: the rationale, which mistakes name which callout, the kit and its params, the self-test, and the file itself. Changes shows the file before and after.",
+      "page": "studio"
+    },
+    {
+      "id": "note-workbenchexamfigure",
+      "x": 3600,
       "y": 13830,
       "w": 620,
       "text": "M6.6b: the answer kind Figure takes a figure whose file has a task, made in the composer; its right answers are computed and named. A choice option holds text or a figure. The preview answers it as a learner would, then shows the results view with the marks.",
@@ -880,8 +897,8 @@
     },
     {
       "id": "note-team",
-      "x": 3600,
-      "y": 13830,
+      "x": 0,
+      "y": 15250,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
       "page": "studio"
