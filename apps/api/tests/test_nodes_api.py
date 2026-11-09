@@ -104,6 +104,7 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
         "questions": [],
         "images": [],
         "figures": [],
+        "problem": None,
     }
     assert [card["id"] for card in body["needs"]][0] == "rna-seq-libraries"
     assert len(body["goes_deeper"]) == 5

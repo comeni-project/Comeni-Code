@@ -45,6 +45,7 @@ export interface ApiSchemas {
   LandingEntryOut: LandingEntryOut;
   LandingIn: LandingIn;
   LandingOut: LandingOut;
+  LearnerProblemOut: LearnerProblemOut;
   Level: Level;
   LinkIn: LinkIn;
   LinkOut: LinkOut;
@@ -294,7 +295,7 @@ export interface FigureBlockOut {
   kind: "figure";
 }
 /**
- * Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem.
+ * Where the node's problem sits (M6PR.3); the problem itself is the node's `problem`.
  */
 export interface ProblemBlockOut {
   kind: "problem";
@@ -379,14 +380,20 @@ export interface ImageRecordOut {
   source: string | null;
 }
 /**
- * A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed
- * from its seed, as the page will show it.
+ * A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows
+ * of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index.
  */
 export interface NodeProblemOut {
+  callouts: string[];
+  given: string;
+  hints: string[];
   kit: string;
+  returns: string;
   rung: number;
   sample_dataset: string;
   sample_output: string;
+  size: number;
+  statement: string;
   text: string;
   title: string;
 }
@@ -648,6 +655,23 @@ export interface LandingOut {
   started_by: MemberOut | null;
   state: string;
 }
+/**
+ * The problem on a learner's page, with the version its datasets are made from (M6LP.2).
+ */
+export interface LearnerProblemOut {
+  callouts: string[];
+  given: string;
+  hints: string[];
+  kit: string;
+  returns: string;
+  rung: number;
+  sample_dataset: string;
+  sample_output: string;
+  size: number;
+  statement: string;
+  title: string;
+  version: string;
+}
 export interface LinkIn {
   node: string;
   reason: string;
@@ -716,6 +740,7 @@ export interface NodeOut {
   minutes: number;
   needed_by: SideCardOut[];
   needs: SideCardOut[];
+  problem?: LearnerProblemOut | null;
   questions: QuestionOut[];
   region: RegionOut;
   related: SideCardOut[];
