@@ -4,10 +4,10 @@
 // preview keeps the last drawing that checked.
 import { useMemo, useRef, useState } from "react";
 import type { FigureOut } from "../../api/schema";
-import { apply, type Op, openFile } from "../../figures/document";
 import { derive } from "../../figures/kits";
 import { readFigure } from "../../figures/read";
 import type { Component } from "../../figures/schemas";
+import { apply, type Op, openFile } from "../../yaml/document";
 
 export function useWorkingCopy(stem: string, initial: string | null) {
   const [text, setTyped] = useState(initial ?? "");

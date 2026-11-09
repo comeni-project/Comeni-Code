@@ -1,8 +1,9 @@
 // A figure's arrays of records as sheets (M6.5 spec, M6CO.4): a row per item, a column per key,
 // each column's cell decided by its key's schema. Which arrays are sheets is said once per kit;
 // everything else is the form (SchemaForm.tsx).
-import { type Op, type Path, pathText, type Value } from "../../figures/document";
+
 import { type Component, SCHEMAS } from "../../figures/schemas";
+import { type Op, type Path, pathText, type Value } from "../../yaml/document";
 import { isFasta, parseFasta } from "./fasta";
 import { parsePaste } from "./paste";
 

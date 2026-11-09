@@ -2,10 +2,10 @@
 // file as `interact`, its fields a form from the task's schema, and what is computed from it named,
 // never typed: the right answer, a wrong one, and how it is drawn while asked.
 import { useId } from "react";
-import type { Op } from "../../figures/document";
 import { TASKS } from "../../figures/kits";
 import type { Component } from "../../figures/schemas";
 import type { Task } from "../../figures/tasks";
+import type { Op } from "../../yaml/document";
 import type { WorkingCopy } from "./useWorkingCopy";
 
 const LABELS: Record<string, string> = { spells: "The path spells", artifact: "A k-mer of a" };

@@ -1,4 +1,5 @@
-// A figure's file as a YAML document (M6.5 spec, M6CO.3). The composer never regenerates a file:
+// A content file as a YAML document (M6.5 spec, M6CO.3): a figure's, and a problem's (M6.8b spec,
+// M6PB.2). Studio never regenerates a file:
 // it parses the text with the yaml package's Document API, changes the nodes an edit touches and
 // writes the document back, so comments, key order, quoting and every other line stay as written.
 // What it writes reads one way on the server too: numbers in plain decimal, and a string quoted
@@ -19,12 +20,12 @@ import {
   type YAMLMap,
   type YAMLSeq,
 } from "yaml";
-import { CHARACTERS, TWO_READINGS } from "./schemas";
+import { CHARACTERS, TWO_READINGS } from "../figures/schemas";
 
 export type Path = (string | number)[];
 export type Value = string | number | boolean | null;
 
-export interface FigureDocument {
+export interface YamlDocument {
   doc: Document;
   text: string;
   /** The document written back: the text itself whenever it parses and nothing was edited. */
@@ -105,8 +106,8 @@ export function pathParts(text: string): Path {
 function walkOf(
   doc: Document,
   text: string,
-): Pick<FigureDocument, "plain" | "twice" | "aliased" | "tagged"> {
-  const plain: FigureDocument["plain"] = [];
+): Pick<YamlDocument, "plain" | "twice" | "aliased" | "tagged"> {
+  const plain: YamlDocument["plain"] = [];
   const twice: Path[] = [];
   let aliased = false;
   let tagged: string | null = null;
@@ -144,7 +145,7 @@ function walkOf(
   return { plain, twice, aliased, tagged };
 }
 
-export function openFile(text: string): FigureDocument {
+export function openFile(text: string): YamlDocument {
   const doc = parseDocument(text, PARSE);
   const errors = doc.errors.map((error) => ({
     message: error.message.split("\n")[0] ?? error.message,
@@ -178,6 +179,12 @@ function scalarFor(value: Value, was?: Scalar): Scalar {
   if (typeof value === "number") return new Decimal(value);
   const node = new Scalar(value);
   if (typeof value === "string") {
+    // A block scalar stays one: `statement: |` is not rewritten as a quoted line (M6PB.2).
+    const kept = was?.type;
+    if ((kept === Scalar.BLOCK_LITERAL || kept === Scalar.BLOCK_FOLDED) && value.includes("\n")) {
+      node.type = kept;
+      return node;
+    }
     // Quoted only when its plain form would read otherwise, in the old quote's style if it had one.
     if (!readsAsItself(value)) {
       node.type = was?.type === Scalar.QUOTE_SINGLE ? Scalar.QUOTE_SINGLE : Scalar.QUOTE_DOUBLE;
@@ -249,7 +256,7 @@ function run(doc: Document, change: Op): void {
 
 /** The changes made in order on a copy of the document, written back: every line they do not
  * touch stays as it was. */
-export function apply(fd: FigureDocument, changes: Op[]): string {
+export function apply(fd: YamlDocument, changes: Op[]): string {
   const doc = fd.doc.clone();
   for (const change of changes) run(doc, change);
   return kept(fd, doc.toString(WRITE));
@@ -258,7 +265,7 @@ export function apply(fd: FigureDocument, changes: Op[]): string {
 /** Whether the document writes the file back line for line, differing at most in the spaces
  * between tokens, as before a comment (`}  # note` is written `} # note`): then an edit can keep every line it does
  * not touch as the file has it. */
-export function linesKept(fd: FigureDocument): boolean {
+export function linesKept(fd: YamlDocument): boolean {
   const text = fd.text.split("\n");
   const written = fd.written.split("\n");
   // Indentation is meaning in YAML: only the spaces after a line's first character may differ.
@@ -271,7 +278,7 @@ export function linesKept(fd: FigureDocument): boolean {
 
 /** The edited document's text, with each line it did not change taken from the file as written:
  * the changed lines are those between the common head and tail of the old and new writings. */
-function kept(fd: FigureDocument, next: string): string {
+function kept(fd: YamlDocument, next: string): string {
   if (!linesKept(fd)) return next;
   const text = fd.text.split("\n");
   const old = fd.written.split("\n");
@@ -296,16 +303,16 @@ function kept(fd: FigureDocument, next: string): string {
   return [...text.slice(0, head), ...lines, ...text.slice(text.length - tail)].join("\n");
 }
 
-export const setAt = (fd: FigureDocument, path: Path, value: Value) =>
+export const setAt = (fd: YamlDocument, path: Path, value: Value) =>
   apply(fd, [{ op: "set", path, value }]);
-export const insertAt = (fd: FigureDocument, path: Path, at: number, item: unknown) =>
+export const insertAt = (fd: YamlDocument, path: Path, at: number, item: unknown) =>
   apply(fd, [{ op: "insert", path, at, item }]);
-export const removeAt = (fd: FigureDocument, path: Path) => apply(fd, [{ op: "remove", path }]);
-export const moveAt = (fd: FigureDocument, path: Path, from: number, to: number) =>
+export const removeAt = (fd: YamlDocument, path: Path) => apply(fd, [{ op: "remove", path }]);
+export const moveAt = (fd: YamlDocument, path: Path, from: number, to: number) =>
   apply(fd, [{ op: "move", path, from, to }]);
 
 /** The 1-based line a path's node starts on, or null when the file has no such node. */
-export function lineOf(fd: FigureDocument, path: Path): number | null {
+export function lineOf(fd: YamlDocument, path: Path): number | null {
   const node = fd.doc.getIn(path, true);
   const start = isPair(node) || isAlias(node) ? undefined : (node as Node | undefined)?.range?.[0];
   if (start === undefined) return null;

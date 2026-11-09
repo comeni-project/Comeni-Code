@@ -2,8 +2,9 @@
 // that does not parse, reads two ways, would be laid out anew, is a layered chart, or holds a key
 // or a list the form does not show opens in Edit as YAML with this line. A short list of numbers
 // of a fixed length (a path, a range) the form shows (isPair).
-import { type FigureDocument, linesKept, type Path, pathText } from "../../figures/document";
+
 import { type Component, SCHEMAS, TWO_READINGS } from "../../figures/schemas";
+import { linesKept, type Path, pathText, type YamlDocument } from "../../yaml/document";
 import { isPair, resolve, sheetPaths } from "./sheets";
 
 // biome-ignore lint/suspicious/noExplicitAny: a schema is JSON, walked by key
@@ -75,7 +76,7 @@ function unshown(
   return null;
 }
 
-export function formable(fd: FigureDocument): string | null {
+export function formable(fd: YamlDocument): string | null {
   const error = fd.errors[0];
   if (error !== undefined)
     return `It does not parse as YAML: ${error.message} (line ${error.line}).`;

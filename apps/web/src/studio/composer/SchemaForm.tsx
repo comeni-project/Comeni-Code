@@ -4,9 +4,10 @@
 // them, and a short list of numbers of a fixed length (a path, a range) its inputs side by side.
 // Only what the schema takes is offered, so the form cannot write a key it refuses. A
 // chart's field is offered from its values' columns; letters marked `format: dna` take FASTA.
-import { type Op, type Path, pathText, type Value } from "../../figures/document";
+
 import { type Component, SCHEMAS } from "../../figures/schemas";
 import type { Finding } from "../../figures/validate";
+import { type Op, type Path, pathText, type Value } from "../../yaml/document";
 import { fastaLetters } from "./fasta";
 import { isPair, resolve, sheetPaths } from "./sheets";
 import { TypedInput } from "./TypedInput";

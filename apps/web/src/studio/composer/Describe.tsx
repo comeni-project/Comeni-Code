@@ -1,7 +1,7 @@
 // Describe (M6.5 spec, M6CO.4): the caption (the block's, when the figure was opened from one, or
 // the new block's), and the file's alt text and optional source, which edit the working copy.
 import { useId } from "react";
-import { linesKept } from "../../figures/document";
+import { linesKept } from "../../yaml/document";
 import { HINT, INPUT, LABEL } from "../workbench/bench";
 import { MarkdownField } from "../workbench/MarkdownField";
 import type { WorkingCopy } from "./useWorkingCopy";
