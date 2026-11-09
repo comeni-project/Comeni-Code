@@ -1,7 +1,7 @@
 // The learner's problem (M6.8a spec, M6LP.5), as the NodeProblem board draws it: ready, wrong
 // with a mapped mistake, wrong with none, right; a draft's preview with neither Download nor answer.
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { forgetSeed, SEED_KEY } from "../api/problem";
@@ -162,11 +162,28 @@ describe("answering", () => {
   it("refuses an answer over 1 MB before any request", async () => {
     const fake = answering({});
     const { region } = draw();
-    const file = new File(["x".repeat(1_000_001)], "answer.txt", { type: "text/plain" });
-    await userEvent.upload(within(region).getByLabelText("Choose a file"), file);
+    const area = within(region).getByRole("textbox", { name: "Your answer" });
+    fireEvent.change(area, { target: { value: "x".repeat(1_000_001) } });
     await userEvent.click(within(region).getByRole("button", { name: "Submit answer" }));
     expect(within(region).getByText(/at most 1 MB/)).toBeTruthy();
     expect(fake).not.toHaveBeenCalled();
+  });
+
+  it("refuses a chosen file over 1 MB without reading it (#430)", async () => {
+    answering({});
+    const { region } = draw();
+    const file = new File(["x"], "huge.txt", { type: "text/plain" });
+    Object.defineProperty(file, "size", { value: 200_000_000 });
+    const read = vi.spyOn(file, "text");
+    await userEvent.upload(within(region).getByLabelText("Choose a file"), file);
+    expect(within(region).getByText(/at most 1 MB/)).toBeTruthy();
+    expect(read).not.toHaveBeenCalled();
+  });
+
+  it("puts the file input inside its label, so focus shows on it (#432)", () => {
+    const { region } = draw();
+    const input = within(region).getByLabelText("Choose a file");
+    expect(input.closest("label")?.textContent).toContain("Choose a file");
   });
 
   it("reads a chosen file into the answer", async () => {
@@ -217,12 +234,20 @@ describe("answering", () => {
       URL.createObjectURL = createObjectURL;
       URL.revokeObjectURL = revokeObjectURL;
     });
-    const clicked = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    let attached = false;
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      attached = document.body.contains(this);
+      expect(revoked).not.toHaveBeenCalled();
+    });
     const { region } = draw();
     await userEvent.click(within(region).getByRole("button", { name: "Download" }));
     await vi.waitFor(() => expect(clicked).toHaveBeenCalled());
     expect(fake.mock.calls[0]?.[0]).toBe(DATASET);
-    expect(revoked).toHaveBeenCalledWith("blob:made");
+    expect(attached).toBe(true);
+    await vi.waitFor(() => expect(revoked).toHaveBeenCalledWith("blob:made"));
+    expect(document.querySelector("a[download]")).toBeNull();
   });
 });
 

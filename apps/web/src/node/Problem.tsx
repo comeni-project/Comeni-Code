@@ -5,7 +5,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { type ChangeEvent, useId, useState } from "react";
 import { ApiUnreachable, sentenceOf } from "../api/client";
-import { browserSeed, fetchDataset, sendAnswer, tooLong } from "../api/problem";
+import { ANSWER_BYTES, browserSeed, fetchDataset, sendAnswer, tooLong } from "../api/problem";
 import { queryKeys } from "../api/queries";
 import type { AnswerOut, CalloutBlockOut, LearnerProblemOut } from "../api/schema";
 import { componentsFor, Prose } from "./prose";
@@ -147,7 +147,6 @@ function Answering({
 }) {
   const client = useQueryClient();
   const field = useId();
-  const picker = useId();
   const seed = browserSeed();
   const [answer, setAnswer] = useState("");
   const [sending, setSending] = useState(false);
@@ -171,8 +170,11 @@ function Answering({
       const link = document.createElement("a");
       link.href = url;
       link.download = `${problem.kit}-${seed}.txt`;
+      // Attached while clicked, revoked on a later task: Safari cancels a download otherwise (#431).
+      document.body.append(link);
       link.click();
-      URL.revokeObjectURL(url);
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (error) {
       failed(error);
     }
@@ -180,7 +182,15 @@ function Answering({
 
   const choose = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file !== undefined) setAnswer(await file.text());
+    event.target.value = ""; // the same file can be chosen again
+    if (file === undefined) return;
+    // Sized before it is read: a wrong large file would freeze the tab (#430).
+    if (file.size > ANSWER_BYTES) {
+      setTrouble(TOO_LONG);
+      return;
+    }
+    setTrouble(null);
+    setAnswer(await file.text());
   };
 
   const submit = async () => {
@@ -233,10 +243,13 @@ function Answering({
           {found !== null ? <Verdict found={found} named={named} /> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          <label htmlFor={picker} className={`${BUTTON} cursor-pointer`}>
+          {/* The input sits in its label, so the label shows the focus (#432). */}
+          <label
+            className={`${BUTTON} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sel`}
+          >
             Choose a file
+            <input type="file" onChange={choose} className="sr-only" />
           </label>
-          <input id={picker} type="file" onChange={choose} className="sr-only" />
           <span className="min-w-0 flex-1 text-[12px] text-ink-3">
             Only your answer is sent. Your code stays on your computer.
           </span>
