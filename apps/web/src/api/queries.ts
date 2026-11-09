@@ -11,6 +11,7 @@ import { fetchProviders } from "./auth";
 import { getJson } from "./client";
 import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
 import { fetchHealth } from "./health";
+import { fetchKits } from "./kits";
 import { fetchLanding, fetchLandings, fetchReady, moving } from "./landing";
 import { fetchNode } from "./nodes";
 import { fetchQueue, fetchReview } from "./review";
@@ -51,6 +52,7 @@ export const queryKeys = {
   landReady: ["land", "ready"] as const,
   landings: ["land", "landings"] as const,
   landing: (id: string) => ["land", "landing", id] as const,
+  problemKits: ["problem-kits"] as const,
 };
 
 export const useNode = (id: string) =>
@@ -322,3 +324,11 @@ export function useLanding(listed: LandingOut) {
   }, [query.data, client]);
   return query;
 }
+
+/** The problem kits: fixed for a deploy, so asked once (M6PB.4). */
+export const useProblemKits = () =>
+  useQuery({
+    queryKey: queryKeys.problemKits,
+    queryFn: ({ signal }) => fetchKits(signal),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
