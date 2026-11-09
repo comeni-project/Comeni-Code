@@ -84,7 +84,6 @@ jobs:
         run: uv run mypy
 
       - name: Tests
-        timeout-minutes: 10  # TEMPORARY: find the test that hangs in CI
         run: uv run pytest -v
         # Includes both purity guards and their self-tests, the link check, and the API's
         # environment and database tests.
