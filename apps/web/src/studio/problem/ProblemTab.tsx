@@ -224,6 +224,13 @@ function Builder({
             )
           ))}
         <span className="flex-1" />
+        {edit.isSuccess &&
+          edit.variables?.method === "PUT" &&
+          edit.variables.path === "problem" && (
+            <span role="status" className="text-[12.5px] font-medium text-ink-2">
+              Self-test · passed on the sample and seeds 0–19.
+            </span>
+          )}
         {editable && (
           <>
             <span className="text-[12.5px] text-ink-3">

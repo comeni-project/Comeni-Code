@@ -94,6 +94,9 @@ describe("a problem", () => {
     expect(after.filter((line, at) => line !== before[at])).toEqual([
       "title: Build a de Bruijn graph",
     ]);
+    expect(
+      await screen.findByText("Self-test · passed on the sample and seeds 0–19."),
+    ).toBeTruthy();
   });
 
   it("flags a param out of bounds under it, and holds Save", async () => {
