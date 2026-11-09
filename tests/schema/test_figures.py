@@ -254,6 +254,7 @@ FLOW = (
             "yes: `yes` reads two ways (a YAML 1.1 boolean); quote it",
         ),
     ],
+    ids=["on", "1e3", "012", "yes-key"],
 )
 def test_two_readings_refused(tmp_path: Path, text: str, message: str) -> None:
     """M6CO.3: a plain value the server and the browser read apart is refused, with its path."""

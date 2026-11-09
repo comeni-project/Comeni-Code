@@ -307,6 +307,7 @@ def test_a_composed_message_keeps_the_code_of_the_check_that_failed() -> None:
             "the part must not be empty",
         ),
     ],
+    ids=["CS0206", "CS0209", "CS0008"],
 )
 def test_each_resource_code_labels_its_message(text: str, code: str, said: str) -> None:
     _, problems = parse(text)

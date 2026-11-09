@@ -9,6 +9,7 @@ from uuid import UUID
 from ninja import Schema
 
 from code_api.accounts.api import MemberOut
+from code_api.content.problems import shown
 from code_api.content.schemas import (
     AnyBlockOut,
     BlockOut,
@@ -21,6 +22,7 @@ from code_api.content.schemas import (
     ImageRecordOut,
     MathBlockOut,
     ProblemBlockOut,
+    ProblemShownOut,
     SequenceBlockOut,
     TextBlockOut,
     TryBlockOut,
@@ -127,28 +129,18 @@ class StudioExamQuestionOut(Schema):
     rationale: str
 
 
-class NodeProblemOut(Schema):
-    """A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed
-    from its seed, as the page will show it."""
+class NodeProblemOut(ProblemShownOut):
+    """A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows
+    of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index."""
 
     text: str
-    title: str
-    rung: int
-    kit: str
-    sample_dataset: str
-    sample_output: str
 
 
 def problem_out(problem: ProblemFile | None) -> NodeProblemOut | None:
-    if problem is None:
-        return None
-    return NodeProblemOut(
-        text=problem.text,
-        title=problem.title,
-        rung=problem.rung,
-        kit=problem.kit,
-        sample_dataset=problem.sample.dataset.text,
-        sample_output=problem.sample.answer,
+    return (
+        None
+        if problem is None
+        else NodeProblemOut(**shown(problem).model_dump(), text=problem.text)
     )
 
 

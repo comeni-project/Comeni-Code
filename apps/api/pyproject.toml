@@ -13,6 +13,7 @@ dependencies = [
     "celery[redis]>=5.6,<5.7",
     "gunicorn>=26.2,<27",
     "code-figures",
+    "code-problems",
     "code-schema",
     "code-weaver",
     "django-allauth[headless,socialaccount]>=65.19,<65.20",
@@ -24,6 +25,7 @@ dependencies = [
 # /api/routes weaves from the index. Both must be installed in the image, not only in the dev sync.
 [tool.uv.sources]
 code-figures = { workspace = true }
+code-problems = { workspace = true }
 code-schema = { workspace = true }
 code-weaver = { workspace = true }
 

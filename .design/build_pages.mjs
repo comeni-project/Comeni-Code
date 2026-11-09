@@ -1340,7 +1340,7 @@ function workbench(view) {
         </div>`}
       </div>
     </div>
-    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${(m4 ? ['Content', 'Resources', 'Exam pool', 'Links', 'Settings'].map((t) => [t, t === view.tab]) : [['Content', 1], ['Resources'], ['Exam pool'], ['Links'], ['Problem'], ['Settings']]).map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid ${c.border}">${(m4 ? (view.tab === 'Problem' ? ['Content', 'Resources', 'Exam pool', 'Links', 'Problem', 'Settings'] : ['Content', 'Resources', 'Exam pool', 'Links', 'Settings']).map((t) => [t, t === view.tab]) : [['Content', 1], ['Resources'], ['Exam pool'], ['Links'], ['Problem'], ['Settings']]).map(([t, on]) => `<span style="padding:8px 16px;font-size:13.5px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}</span>`).join('')}</div>
     <div style="flex:1;display:grid;grid-template-columns:${m4 ? 'minmax(0, 1fr) 520px' : '230px minmax(0, 1fr) 520px'};gap:18px;min-height:0">
       ${m4 ? view.body : `<aside style="display:flex;flex-direction:column;gap:2px;min-height:0;overflow:hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:6px"><span style="font-size:13px;font-weight:600">Outline</span><span style="font-size:11.5px;color:${c.ink3}">16 blocks · score</span></div>
@@ -1392,7 +1392,7 @@ function workbench(view) {
       </section>`}
 
       <aside style="${panel(c)};display:flex;flex-direction:column;min-height:0;overflow:hidden">
-        <div style="display:flex;border-bottom:1px solid ${c.border}">${(m4 ? [['Preview', 0, 1], ['Checks', 3]] : [['Preview', 0, 1], ['Checks', 3], ['Score', 0], ['Sources', 2], ['History'], ['Comments', 1]]).map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
+        <div style="display:flex;border-bottom:1px solid ${c.border}">${(m4 ? [['Preview', 0, 1], ['Checks', view.checks ?? 3]] : [['Preview', 0, 1], ['Checks', 3], ['Score', 0], ['Sources', 2], ['History'], ['Comments', 1]]).map(([t, n, on]) => `<span style="display:flex;align-items:center;gap:6px;padding:10px 14px;font-size:13px;${on ? `font-weight:600;box-shadow:inset 0 -2px 0 ${c.ink}` : `color:${c.ink2}`}">${t}${n ? `<span style="font-size:11px;padding:0 6px;border-radius:999px;background:${t === 'Checks' ? c.openSoft : c.bg};color:${t === 'Checks' ? c.open : c.ink3}">${n}</span>` : ''}</span>`).join('')}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
           ${seg(c, ['Desktop', 'Phone'], 0)}
           ${m4 ? '' : `<span style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:${c.ink2}"><span style="width:30px;height:18px;border-radius:9px;background:${c.sel};position:relative"><span style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF"></span></span>Click to edit</span>`}
@@ -1401,7 +1401,7 @@ function workbench(view) {
         <div style="margin-top:auto;padding:10px 14px;border-top:1px solid ${c.border};font-size:12px;color:${c.ink3};line-height:1.45">${m4 ? 'Drawn in your browser from the saved draft; it changes with each save.' : `Updates as you type. Clicking a block in the preview opens it in the editor. <b style="color:${c.ink2};font-weight:500">History</b> compares this draft with the live version; <b style="color:${c.ink2};font-weight:500">Sources</b> shows which links resolve.`}</div>
       </aside>
     </div>`;
-  return studio('Graph', inner, 1680, 1060, { collapsed: true });
+  return studio('Graph', inner, 1680, view?.h ?? 1060, { collapsed: true });
 }
 // ── S4 Figure composer — choose · data · interaction · describe ─
 function composer() {
@@ -3054,6 +3054,135 @@ const benchExamFigurePreview = () => `<div style="border-radius:10px;border:1px 
   ${figBox(pickFig({ marks: PICK_MARKS, sel: ['TCA'], tone: 'line' }), '4px 6px')}
 </div>`;
 
+// ── M6.8 · L6 the learner's problem, and S5 the problem builder ──
+const PB = {
+  title: 'Construct a de Bruijn graph',
+  statement: 'Given a set of reads and an integer k, return the edges of the de Bruijn graph that uses k-mers as nodes: one line per pair of k-mers where the second follows the first in a read.',
+  given: 'k on the first line, then the reads,\none per line',
+  ret: 'edges as "A -> B", one per line,\nsorted, no duplicates',
+  sample: '3\nACGTT\nCGTTA\nGTTAG',
+  output: 'ACG -> CGT\nCGT -> GTT\nGTT -> TTA\nTTA -> TAG',
+  file: 'de-bruijn-edges-8410392853179046261.txt',
+  hints: ['The same k-mer can come from many reads.', 'Each read adds one edge for every pair of k-mers next to each other in it.'],
+  rationale: 'Each read adds the edges between its consecutive k-mers, and the graph keeps each edge once, sorted.',
+  callout: ['Every edge appears once', 'Two reads that overlap hold the same pair of k-mers, so they add the same edge. The graph is a set of edges: an edge many reads hold is still one edge.'],
+};
+const pbBox = (t, body, extra = '') => `<div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:13px;font-weight:600">${t}</span><pre style="margin:0;padding:10px 12px;border-radius:9px;background:${c.bg};border:1px solid ${c.border};font-family:${MONO};font-size:12.5px;line-height:1.65;color:${c.ink};overflow-x:auto;${extra}">${body}</pre></div>`;
+const pbAnswer = (text) => `<div style="min-height:84px;border-radius:10px;border:1.5px solid ${c.border2};background:${c.surface};padding:10px 12px;font-family:${MONO};font-size:12.5px;line-height:1.6;color:${text ? c.ink : c.ink3};white-space:${text ? 'pre' : 'normal'};${text ? '' : `font-family:inherit;font-size:13.5px`}">${text || 'Paste your answer here, or choose the file your code wrote.'}</div>`;
+const pbSend = (again = false) => `<div style="display:flex;align-items:center;gap:10px">${secondary(c, 'Choose a file')}<span style="font-size:12px;color:${c.ink3};flex:1">Only your answer is sent. Your code stays on your computer.</span>${primary(c, again ? 'Submit again' : 'Submit answer', '')}</div>`;
+const pbDataset = `<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:10px;background:${c.bg};border:1px solid ${c.border}">
+  <div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span style="font-size:14px;font-weight:600">Your dataset</span><span style="font-size:12.5px;color:${c.ink2}">${mono(PB.file, 'font-size:12px')} · 81 lines · made for this browser, so its answer is yours alone</span></div>
+  ${secondary(c, 'Download')}</div>`;
+const pbHints = (shown) => shown
+  ? `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;border:1px solid ${c.border};font-size:13.5px;line-height:1.5"><span><b style="font-weight:600">Hint 1 of 2</b> · ${PB.hints[0]}</span><a style="font-size:12.5px">Show the next hint</a></div>`
+  : `<a style="font-size:13px;font-weight:500">Show a hint (2)</a>`;
+const pbShell = (inner, { tag = true, pad = '20px 22px', narrow = false } = {}) => `<div style="display:flex;flex-direction:column;gap:6px">${tag ? blockTag(':::{problem}').replace('{{ tags }}', 'inline-flex') : ''}
+  <div style="display:flex;flex-direction:column;gap:14px;padding:${pad};border-radius:14px;border:1.5px solid ${c.ink};background:${c.surface}">
+    <div style="display:flex;${narrow ? 'flex-direction:column;gap:8px' : 'justify-content:space-between;align-items:flex-start;gap:14px'}">
+      <div style="display:flex;flex-direction:column;gap:3px"><span style="${label(c)}">Proves this node</span><span style="font-size:19px;font-weight:600">${PB.title}</span></div>
+      <span style="display:flex">${greyTag('Rung 3 · a few lines of code')}</span>
+    </div>${inner}</div></div>`;
+const pbLine = (t, body) => `<div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:13px;font-weight:600">${t}</span><span style="font-size:14px;line-height:1.5;color:${c.ink}">${body}</span></div>`;
+const pbStatement = (cols = 2) => `${p(PB.statement, 'max-width:none;font-size:14.5px;color:' + c.ink)}
+  <div style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:12px">${pbLine('Given', PB.given.replace('\n', ' '))}${pbLine('Return', PB.ret.replace('\n', ' ').replace(/"A -> B"/, mono('A -&gt; B', 'font-size:13px')))}${pbBox('Sample dataset', PB.sample)}${pbBox('Sample output', PB.output)}</div>`;
+const pbCalloutQuote = `<div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:10px;border:1px solid ${c.border};background:${c.surface}">
+  <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${greyTag('Misconception')}<span style="font-size:14px;font-weight:600">${PB.callout[0]}</span><span style="flex:1"></span><a style="font-size:12.5px">Read it in the page ↑</a></span>
+  <span style="font-size:13.5px;line-height:1.55;color:${c.ink2}">${PB.callout[1]}</span></div>`;
+const pbVerdict = (tone, head, body) => `<div aria-live="polite" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${tone === 'right' ? c.lineSoft : c.openSoft}"><span style="font-size:14px;font-weight:600;color:${tone === 'right' ? c.btn : c.open}">${head}</span><span style="font-size:13.5px;line-height:1.55">${body}</span></div>`;
+const WRONG = 'ACG -> CGT\nACG -> CGT\nCGT -> GTT\n…';
+
+function nodeProblem() {
+  const states = [
+    ['1', 'ready', 'as the page draws it: the sample computed, the dataset made for this browser', pbShell(`${pbStatement()}${pbHints(false)}${pbDataset}
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Your answer</span>${pbAnswer('')}${pbSend()}</div>`)],
+    ['2', 'wrong, a mapped mistake', 'the checker’s sentence, then the callout the mistake points to', pbShell(`${pbDataset}
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Your answer</span>${pbAnswer(WRONG)}
+      ${pbVerdict('wrong', 'Not yet', 'Your list has 214 lines; the answer has 187. Some edges appear more than once.')}
+      ${pbCalloutQuote}${pbHints(true)}
+      <span style="font-size:12.5px;color:${c.ink3}">Your dataset stays the same: fix your answer and send it again.</span>${pbSend(true)}</div>`)],
+    ['3', 'wrong, no mapped mistake', 'the checker’s sentence alone: counts, never the answer', pbShell(`${pbDataset}
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Your answer</span>${pbAnswer('ACG -> CGT\nCGT -> GTT\n…')}
+      ${pbVerdict('wrong', 'Not yet', 'Your list has 162 lines; the answer has 187. Some edges are missing.')}${pbHints(false)}${pbSend(true)}</div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;border:1.5px dashed ${c.border2};font-size:13px;line-height:1.5"><span style="font-weight:600">If the problem changed since your download</span><span style="color:${c.ink2}">This problem was updated after you downloaded your dataset. Download it again; your answer to the old one can’t be checked.</span></div>`)],
+    ['4', 'right', 'why it is right, from the rationale, shown only now', pbShell(`${pbDataset}
+      <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Your answer</span>${pbAnswer('AAC -> ACG\nACA -> CAT\n…')}
+      ${pbVerdict('right', 'Right — 187 edges, each once, in order.', `<span style="font-weight:500;color:${c.ink2}">Why:</span> ${PB.rationale}`)}</div>`)],
+  ];
+  const phone = `<div style="width:390px;flex:none;border-radius:28px;border:1px solid ${c.border2};background:${c.bg};overflow:hidden;display:flex;flex-direction:column">
+    <div style="height:52px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid ${c.border};background:${c.surface}">${logo(c, '')}<span style="margin-left:10px;font-size:13px;color:${c.ink2}">de Bruijn graphs</span></div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">${pbShell(`${pbStatement(1)}${pbHints(false)}
+      <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;background:${c.bg};border:1px solid ${c.border}"><span style="font-size:14px;font-weight:600">Your dataset</span><span style="font-size:12px;color:${c.ink2};overflow-wrap:anywhere">${mono(PB.file)}</span><span style="font-size:12px;color:${c.ink2}">81 lines · made for this browser</span><div>${secondary(c, 'Download')}</div></div>
+      ${pbAnswer('')}<div style="display:flex;gap:8px">${secondary(c, 'Choose a file')}<span style="flex:1"></span>${primary(c, 'Submit', '')}</div>`, { tag: false, pad: '16px', narrow: true })}</div></div>`;
+  return page(1440, 2760, `${learnBar()}
+  <main style="flex:1;display:flex;flex-direction:column;gap:28px;padding:28px 36px;min-height:0">
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:${c.ink3}">Learn Salmon › de Bruijn graphs › Problem</span>${h1('The problem — a dataset of your own, one answer', 26)}</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:28px 32px;align-items:start">${states.map(([n, t, d, body]) => `<div style="display:flex;flex-direction:column;gap:10px">${stateLabel(n, t, d)}${body}</div>`).join('')}</div>
+    <div style="display:flex;gap:32px;align-items:flex-start">${phone}
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:600px;padding-top:12px">
+        ${stateLabel('390', 'phone', 'ready, as a phone draws it')}
+        ${p('The problem sits where its block is in the body, like any other block. The sample’s dataset and output are computed by the kit from the sample’s seed, never typed; on a phone the four boxes stack and scroll sideways inside themselves.')}
+        ${p('Your dataset is made on the server from a seed this browser keeps, so the same browser always downloads the same file, and the answer is worthless to anyone else. Nothing about you is stored: not the seed, not the answer, not whether you solved it.')}
+        ${p('A submit sends the seed, the problem’s version and the answer, and gets back right or not, the checker’s one sentence, the misconception callouts its mistakes point to, and the rationale only when it is right. The answer itself is never sent to the page.')}
+        ${p('Not here yet: % solved and the solutions, which need learner records (M8), and the step back from a misconception to a page it needs.')}
+      </div></div>
+  </main>`);
+}
+
+// S5 · the workbench's Problem tab
+const pbParam = (name, value, range) => `<label style="${benchLabel}">${mono(name, 'font-size:12.5px')}<input value="${value}" style="${benchMono}"><span style="${benchHint}">${range}</span></label>`;
+const pbMistake = (name, says, to) => `<div style="display:grid;grid-template-columns:110px minmax(0, 1fr) 250px;gap:12px;align-items:center;padding:8px 0;border-top:1px solid ${c.border}">
+  ${mono(name, 'font-size:12.5px;font-weight:600')}<span style="font-size:12.5px;color:${c.ink2};line-height:1.4">${says}</span>
+  <select style="${benchInput};padding:0 10px;font-size:13px;${to ? '' : `color:${c.ink3}`}"><option>${to || 'the checker’s sentence only'}</option></select></div>`;
+function benchProblem() {
+  return benchBody(`
+    <div style="${benchCard}">
+      <div style="display:grid;grid-template-columns:minmax(0, 1fr) 260px;gap:14px">${benchField('Title', PB.title)}${benchSelect('Rung', ['3 · a few lines they write'], 'the kit’s rung; change it only with a reason')}</div>
+      ${benchArea('Statement', PB.statement)}
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px">${benchField('Given', 'k on the first line, then the reads, one per line', { hint: 'one line' })}${benchField('Return', 'edges as &quot;A -&gt; B&quot;, one per line, sorted, no duplicates', { hint: 'one line' })}</div>
+    </div>
+    <div style="${benchCard}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">The dataset</span><span style="${benchHint}">each learner’s file is made from these, with a seed of their own</span></div>
+      ${benchSelect('Kit', ['de-bruijn-edges · the edges of a de Bruijn graph'], 'a kit generates, solves and checks; there is never code per problem')}
+      <div style="display:grid;grid-template-columns:repeat(5, minmax(0, 1fr));gap:12px">${pbParam('k', 4, '3–12')}${pbParam('genome', 300, '7–5,000 bases')}${pbParam('read', 30, 'k + 1 to 150')}${pbParam('coverage', 8, '1–30')}${pbParam('errors', 0, '0–0.02 a base')}</div>
+      <div style="display:flex;align-items:baseline;gap:12px;padding-top:4px;border-top:1px solid ${c.border}"><span style="font-size:13px;font-weight:600">Sample</span><span style="${benchHint};flex:1">smaller, so it reads on the page; computed, never typed</span></div>
+      <div style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:12px">${pbParam('seed', 1, 'any whole number')}${pbParam('k', 3, '')}${pbParam('genome', 7, '')}${pbParam('read', 5, '')}${pbParam('coverage', 2, '')}${pbParam('errors', 0, '')}</div>
+    </div>
+    <div style="${benchCard}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">Hints</span><span style="${benchHint}">one to three; none may hold the sample’s answer</span></div>
+      ${PB.hints.map((h, i) => benchField(`Hint ${i + 1}`, h)).join('')}<span style="font-size:12.5px;color:${c.sel}">+ Hint</span>
+    </div>
+    <div style="${benchCard}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">Mistakes the checker names</span><span style="${benchHint}">the kit declares them; you point one at a misconception callout in Content</span></div>
+      <div style="display:flex;flex-direction:column">
+        ${pbMistake('duplicates', 'an edge listed more than once', PB.callout[0])}${pbMistake('missing', 'edges left out')}${pbMistake('extra', 'an edge no read holds')}${pbMistake('unsorted', 'the right edges, out of order')}${pbMistake('reversed', 'B -> A for A -> B')}
+      </div>
+      <span style="${benchHint}">A learner whose answer makes a mapped mistake is shown that callout. Only the body’s misconception callouts are offered; the self-test checks each mapped mistake is caught as itself.</span>
+    </div>
+    <div style="${benchCard}">${benchArea('Rationale', PB.rationale)}<span style="${benchHint}">shown to a learner only once they are right</span></div>
+    <div style="display:flex;align-items:center;gap:12px;padding-bottom:8px"><a style="font-size:13px;font-weight:500">Edit as YAML</a><a style="font-size:13px;font-weight:500;color:${c.open}">Remove the problem</a><span style="flex:1"></span><span style="font-size:12.5px;color:${c.ink3}">Saved files are checked by the server, with 20 seeds.</span>${primary(c, 'Save problem', '')}</div>`);
+}
+const benchProblemPreview = () => `<div style="display:flex;flex-direction:column;gap:10px">
+  <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;border:1px solid ${c.border};background:${c.surface};font-size:12.5px">
+    <span style="font-weight:600">Self-test · passed</span>
+    <span style="color:${c.ink2};line-height:1.45">The sample and seeds 0–19: the solver’s answer is accepted, <span style="font-family:${MONO}">duplicates</span> is caught as itself, and 20 answers differ. A learner’s file at these params: about 2.5 KB, 81 lines.</span>
+  </div>
+  <div style="border-radius:10px;border:1px solid ${c.border};background:${c.bg};padding:12px;zoom:.8">${pbShell(`${pbStatement()}${pbHints(false)}<div style="display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:10px;background:${c.bg};border:1px dashed ${c.border2}"><span style="font-size:14px;font-weight:600">Your dataset</span><span style="font-size:12.5px;color:${c.ink2}">Each learner downloads their own here: about 81 lines at these params. Studio shows the sample only.</span></div>`, { tag: false, pad: '16px' })}</div>
+</div>`;
+function benchProblemNew() {
+  const kit = (name, rung, what, sample, out) => `<div style="${benchCard}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">${mono(name, 'font-size:14px;font-weight:600')}${greyTag(rung)}</div>
+    <span style="font-size:13.5px;line-height:1.5;color:${c.ink2}">${what}</span>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:10px">${pbBox('Sample dataset', sample)}${pbBox('Sample output', out)}</div>
+    <div>${secondary(c, 'Start from this kit')}</div></div>`;
+  return benchBody(`
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:16px;font-weight:600">This node has no problem yet</span>${p('A problem proves a node: each learner downloads a dataset of their own, made from a seed, and sends one answer, which a kit checks. Pick the kit that computes what the problem asks; you fill in the words and the parameters next.', 'font-size:14px')}</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px">
+      ${kit('de-bruijn-edges', 'Rung 3 · a few lines of code', 'k and some reads; the learner returns every edge of the de Bruijn graph, sorted, once each.', PB.sample, PB.output)}
+      ${kit('count-kmers', 'Rung 1 · read it off the file', 'k and some reads; the learner returns how many distinct k-mers the reads hold.', '3\nACGTT\nCGTTA\nGTTAG', '5')}
+    </div>
+    <span style="${benchHint}">A new kit is a reviewed change to code-problems, never code in a problem file. The problem’s block goes at the body’s end; move it in Content.</span>`);
+}
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -3064,6 +3193,7 @@ const LEARN = [
   ['NodeFirstSteps', 'L5 · Node at First steps — design-round draft', firstStepsNode(), 1440, 1940, 'Reached from: a route that starts at First steps, search.\nTutor spec T10.2: First steps is in the MVP, and its pages get their own design round before M3. This draft keeps the identity, the route strip, provenance and the tutor loop, and changes only what the level needs: one column, larger type (19–21 px body), short numbered sections, one idea each, big answer buttons, Read / Watch, and the next stop with its level. No points, no mascots, no streaks — the same rules as every level.'],
   ['ExamSetup', 'L13 · Exam — set up', examSetup('setup'), 1440, 860, 'Reached from: Test yourself on Route and Home.\nLeads to: results.\nTutor spec T7.1: choose a scope (what I’ve done so far, the whole route, one line) and a length; questions come from each page’s reviewed exam pool, mixed across pages, seeded so retakes differ. No hints or answers until the end; stop and resume. Pages without a reviewed pool are left out and named.'],
   ['NodeTrace', 'L5 · Node, M6.6b — a try answered by tracing the figure', nodeTrace(), 1440, 1640, 'M6.6b: a try whose answer is a path the learner traces in a kmer-graph, in its four states (start, midway, wrong answer, answered) and at 390 px. The figure file holds the task (interact: trace, spells); the right path is computed from the reads. Nothing is highlighted or spelled until the path is checked.'],
+  ['NodeProblem', 'L6 · Problem, M6.8 — a dataset of your own, one answer', nodeProblem(), 1440, 2760, 'M6.8: the node\u2019s problem where its block sits, in four states (ready, wrong with a mapped mistake, wrong with none, right) and at 390 px. The dataset comes from a seed the browser keeps; the server makes it, checks the answer and never sends the answer. No % solved or solutions until learner records (M8).'],
   ['ExamPick', 'L13 · Exam, M6.6b — a question answered by picking in the figure', examPick(), 1440, 900, 'M6.6b: a test question answered by clicking a k-mer of the bubble in a graph-artifacts figure. The tips and bubbles are drawn unmarked until the results; any k-mer of the run is right.'],
   ['ExamOptions', 'L13 · Exam, M6.6b — a choice whose options are figures', examOptions(), 1440, 980, 'M6.6b: a choice question whose options are figures, each drawn by its component with the marks hidden, read aloud by its alt text. Graded as any choice: the option’s index.'],
   ['ExamTest', 'L13 · Exam — a test in progress', examSetup('test'), 1440, 760, 'Reached from: Start the test.\nLeads to: results.\nNo hints and no answers until the end; stop and save keeps your place. The page a question comes from is shown only with the results.'],
@@ -3102,6 +3232,8 @@ const STUDIO = [
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
   ['WorkbenchResources', 'S3 · Workbench — Resources', workbench({ tab: 'Resources', body: benchResources() }), 1680, 1060, 'M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.'],
   ['WorkbenchFigure', 'S3 · Workbench — a figure block (M6.4)', workbench({ tab: 'Content', body: benchFigure(), preview: benchFigurePreview() }), 1680, 1060, 'M6.4: a figure block open in Content. Component and file, caption, and the figure\u2019s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block\u2019s Edit now opens the figure composer (S4), and this editor is gone.'],
+  ['WorkbenchProblem', 'S5 · Workbench — Problem, M6.8: the problem builder', workbench({ tab: 'Problem', body: benchProblem(), preview: benchProblemPreview(), h: 1860, checks: 0 }), 1680, 1860, 'M6.8: the node\u2019s problem.yaml as a form: the words, the kit and its params (fields from the kit\u2019s schema), the sample, hints, the kit\u2019s mistakes each pointed at a misconception callout or left to the checker, and the rationale. Edit as YAML opens the file itself. Save sends the whole file; the server runs the 20-seed self-test and refuses it with the problems shown in Checks.'],
+  ['WorkbenchProblemNew', 'S5 · Workbench — Problem, M6.8: a node with none', workbench({ tab: 'Problem', body: benchProblemNew(), preview: `<div style="font-size:13px;color:${c.ink3};padding:20px 4px">No problem to preview.</div>`, checks: 0 }), 1680, 1060, 'M6.8: a node without a problem. Each kit is shown with its sample; starting from one writes a first file from the kit\u2019s example params and adds the block at the body\u2019s end.'],
   ['WorkbenchExamFigure', 'S3 · Workbench — Exam pool, M6.6b: a figure answer and figure options', workbench({ tab: 'Exam pool', body: benchExamFigure(), preview: benchExamFigurePreview() }), 1680, 1060, 'M6.6b: the answer kind Figure takes a figure whose file has a task, made in the composer; its right answers are computed and named. A choice option holds text or a figure. The preview answers it as a learner would, then shows the results view with the marks.'],
   ['Team', 'S14 · Team — members, roles and invites', team(), 1680, 1060, 'Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).'],
 ];

@@ -1926,6 +1926,38 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A node's images are served by the names its record gives them (M6.3 spec, M6IM.3).
 
+#### CA0009 — a node has no problem
+
+*Refuses.*
+
+**Fix.** Ask for the problem of a node whose page shows one.
+
+**Why.** Only a node with a problem.yaml has a dataset and an answer (M6.8a spec, M6LP.3).
+
+#### CA0010 — the problem changed since your dataset was made
+
+*Refuses.*
+
+**Fix.** Reload the page and download your dataset again, then solve that one.
+
+**Why.** A dataset is made from the problem's version: its text and its kit (M6LP.2). An answer to an older version can't be checked against today's, so it is refused, never marked wrong.
+
+#### CA0011 — a seed is not a whole number below 2**64
+
+*Refuses.*
+
+**Fix.** Send the seed as decimal digits, as the page does.
+
+**Why.** A seed travels as a string of digits, since a JSON number past 2**53 loses digits in JavaScript (M6LP.1).
+
+#### CA0012 — an answer is over 1 MB
+
+*Refuses.*
+
+**Fix.** Send only the answer the Return line asks for.
+
+**Why.** The largest problem's answer is about 660 KB, so 1 MB holds any right answer (M6LP.4).
+
 ### CA0100–CA0199 · accounts
 
 #### CA0101 — a Studio route was asked by nobody signed in

@@ -143,6 +143,11 @@ export function FirstSteps({
           big
           pictures={{ records: node.images ?? [], url: (file) => imageUrl(node.id, file) }}
           figures={node.figures ?? []}
+          problem={
+            node.problem
+              ? { shown: node.problem, live: { node: node.id, version: node.problem.version } }
+              : undefined
+          }
         />
 
         {next !== undefined ? <Next stop={next} goals={goals} known={known} /> : null}

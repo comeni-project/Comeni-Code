@@ -71,7 +71,11 @@ def check(case: Case, given: str) -> Verdict:
     # ASCII digits only, commas only between groups of three (#418): str.isdigit takes ².
     if not _WHOLE.fullmatch(said):
         return Verdict(False, (), "Write one whole number.")
-    value = int(said.replace(",", ""))
+    digits = said.replace(",", "")
+    # A count has at most 20 digits; int() refuses past 4,300 (#427).
+    if len(digits) > 20:
+        return Verdict(False, (), "Write one whole number.")
+    value = int(digits)
     if value == int(case.answer):
         return Verdict(True, (), "")
     told = f"Your count is {value:,}."

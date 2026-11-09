@@ -88,7 +88,9 @@ def test_count_mistakes_are_named_in_order(mistake: str) -> None:
     assert not kit.check(case, "seven").right
 
 
-@pytest.mark.parametrize("given", ["12²", "١٢", "1,2", "", "\x00", "-3", "3.0"])
+@pytest.mark.parametrize(
+    "given", ["12²", "١٢", "1,2", "", "\x00", "-3", "3.0", "1" * 5000, "\ud800"], ids=range(9)
+)
 def test_a_count_is_ascii_digits_only_and_never_crashes(given: str) -> None:
     """#418: never a crash; commas only as thousands separators."""
     kit = KITS["count-kmers"]

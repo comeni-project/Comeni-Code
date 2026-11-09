@@ -169,7 +169,7 @@ class ImageRecordOut(Schema):
 
 
 class ProblemBlockOut(Schema):
-    """Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem."""
+    """Where the node's problem sits (M6PR.3); the problem itself is the node's `problem`."""
 
     kind: Literal["problem"]
 
@@ -186,6 +186,47 @@ AnyBlockOut = (
     | ProblemBlockOut
 )
 BlockOut = Annotated[AnyBlockOut, Field(discriminator="kind")]
+
+
+class ProblemShownOut(Schema):
+    """What a page shows of a node's problem (M6LP.2): never its params, its mistakes' names, its
+    rationale or an answer. `callouts` are the titles a wrong answer may name; `size` the kit's
+    cost at the problem's params, in bytes."""
+
+    title: str
+    rung: int
+    statement: str
+    given: str
+    returns: str
+    sample_dataset: str
+    sample_output: str
+    hints: list[str]
+    callouts: list[str]
+    kit: str
+    size: int
+
+
+class LearnerProblemOut(ProblemShownOut):
+    """The problem on a learner's page, with the version its datasets are made from (M6LP.2)."""
+
+    version: str
+
+
+class AnswerIn(Schema):
+    """A learner's answer (M6LP.4). The seed is digits, as a JSON number loses them past 2**53."""
+
+    seed: str
+    version: str
+    answer: str
+
+
+class AnswerOut(Schema):
+    """The kit's verdict: never the answer; the rationale only when right (M6LP.4)."""
+
+    right: bool
+    said: str
+    callouts: list[str]
+    rationale: str | None
 
 
 class NodeOut(Schema):
@@ -205,6 +246,7 @@ class NodeOut(Schema):
     questions: list[QuestionOut]
     images: list[ImageRecordOut] = []  # each file's credit; the file at /images/{file} (M6IM.5)
     figures: list[FigureOut] = []  # each figure, read; a figure block names one by stem (M6FG.5)
+    problem: LearnerProblemOut | None = None  # where its block sits in `blocks` (M6LP.2)
 
 
 class Message(Schema):

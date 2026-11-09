@@ -5,12 +5,23 @@ count whatever the content's size. M4.4's drafts read through here too, so a nod
 draft or from the index in one place.
 """
 
+import logging
 from collections.abc import Sequence
 from typing import Any
 
 from ninja import Status
 
-from code_api.content.models import IndexBuild, Link, Node, NodeImage, Question, Region, Resource
+from code_api.content import problems
+from code_api.content.models import (
+    IndexBuild,
+    Link,
+    Node,
+    NodeImage,
+    NodeProblem,
+    Question,
+    Region,
+    Resource,
+)
 from code_api.content.numbers import number_from
 from code_api.content.schemas import (
     AnyBlockOut,
@@ -21,11 +32,13 @@ from code_api.content.schemas import (
     FigureSourceOut,
     ImageBlockOut,
     ImageRecordOut,
+    LearnerProblemOut,
     MathBlockOut,
     Message,
     NeighbourOut,
     NodeOut,
     OptionOut,
+    ProblemBlockOut,
     ProviderOut,
     QuestionOut,
     RegionOut,
@@ -52,6 +65,7 @@ from code_schema import (
     Try,
     block_from_json,
 )
+from code_schema.blocks import ProblemBlock
 from code_weaver.find import Target, find
 from code_weaver.graph import Graph, Need, Topic
 from code_weaver.weave import weave
@@ -97,6 +111,9 @@ def _resource(resource: Resource) -> ResourceOut:
     )
 
 
+log = logging.getLogger(__name__)
+
+
 def _block(stored: dict[str, Any]) -> AnyBlockOut:
     match block_from_json(stored):
         case Text(markdown=markdown):
@@ -115,7 +132,9 @@ def _block(stored: dict[str, Any]) -> AnyBlockOut:
             return ImageBlockOut(kind="image", file=file, caption=caption)
         case Figure(file=file, caption=caption):
             return FigureBlockOut(kind="figure", file=file, caption=caption)
-    raise AssertionError("the problem's block is left out of the learner's page (M6PR.6)")
+        case ProblemBlock():
+            return ProblemBlockOut(kind="problem")
+    raise AssertionError(f"a block kind the page cannot send: {stored['kind']}")
 
 
 def _question(question: Question) -> QuestionOut:
@@ -147,7 +166,7 @@ def _question(question: Question) -> QuestionOut:
 def node(node_id: str) -> NodeOut | None:
     """One node with its neighbours, resources, questions, image records and figures, in seven
     queries; None on a miss. The image files are served apart, by `image`."""
-    found = Node.objects.select_related("region").filter(id=node_id).first()
+    found = Node.objects.select_related("region", "problem").filter(id=node_id).first()
     if found is None:
         return None
     out: dict[str, list[SideCardOut]] = {kind: [] for kind in Link.Kind.values}
@@ -175,8 +194,7 @@ def node(node_id: str) -> NodeOut | None:
         region=_region(found.region),
         level=found.level,
         minutes=found.minutes,
-        # The problem's block waits for M6.8's learner problem (M6PR.6).
-        blocks=[_block(block) for block in found.blocks if block["kind"] != "problem"],
+        blocks=[_block(block) for block in found.blocks],
         folder=found.folder,
         needs=out[Link.Kind.NEEDS],
         goes_deeper=out[Link.Kind.GOES_DEEPER],
@@ -207,7 +225,23 @@ def node(node_id: str) -> NodeOut | None:
             for figure in found.figures.defer("text").order_by("position")
             if figure.stem in drawn
         ],
+        problem=_problem(found),
     )
+
+
+def _problem(found: Node) -> LearnerProblemOut | None:
+    """The node's problem for its page, read as stored (M6LP.2); None for a node with none."""
+    try:
+        row = found.problem
+    except NodeProblem.DoesNotExist:
+        return None
+    try:
+        problem = problems.stored(row)
+        shown = problems.shown(problem).model_dump()
+        return LearnerProblemOut(**shown, version=problems.version(problem))
+    except Exception:  # noqa: BLE001 — the page reads without its problem (#428)
+        log.exception("the problem of %s cannot run; its page goes without it", found.id)
+        return None
 
 
 def image(node_id: str, file: str) -> tuple[bytes, str] | None:

@@ -2550,6 +2550,48 @@ codes:
     explanation: |
       A node's images are served by the names its record gives them (M6.3 spec, M6IM.3).
 
+  CA0009:
+    emitted_by: api
+    concern: index
+    says: a node has no problem
+    refuses: true
+    fix: |
+      Ask for the problem of a node whose page shows one.
+    explanation: |
+      Only a node with a problem.yaml has a dataset and an answer (M6.8a spec, M6LP.3).
+
+  CA0010:
+    emitted_by: api
+    concern: index
+    says: the problem changed since your dataset was made
+    refuses: true
+    fix: |
+      Reload the page and download your dataset again, then solve that one.
+    explanation: |
+      A dataset is made from the problem's version: its text and its kit (M6LP.2). An answer to
+      an older version can't be checked against today's, so it is refused, never marked wrong.
+
+  CA0011:
+    emitted_by: api
+    concern: index
+    says: a seed is not a whole number below 2**64
+    refuses: true
+    fix: |
+      Send the seed as decimal digits, as the page does.
+    explanation: |
+      A seed travels as a string of digits, since a JSON number past 2**53 loses digits in
+      JavaScript (M6LP.1).
+
+  CA0012:
+    emitted_by: api
+    concern: index
+    says: an answer is over 1 MB
+    refuses: true
+    fix: |
+      Send only the answer the Return line asks for.
+    explanation: |
+      The largest problem's answer is about 660 KB, so 1 MB holds any right answer (M6LP.4).
+
   # ── CA0100–CA0199 · accounts and access ────────────────────────────────────────────────────
 
   CA0101:

@@ -75,6 +75,69 @@
         "title": "AddFigureIn",
         "type": "object"
       },
+      "AnswerIn": {
+        "description": "A learner's answer (M6LP.4). The seed is digits, as a JSON number loses them past 2**53.",
+        "properties": {
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seed",
+          "version",
+          "answer"
+        ],
+        "title": "AnswerIn",
+        "type": "object"
+      },
+      "AnswerOut": {
+        "description": "The kit's verdict: never the answer; the rationale only when right (M6LP.4).",
+        "properties": {
+          "callouts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Callouts",
+            "type": "array"
+          },
+          "rationale": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rationale"
+          },
+          "right": {
+            "title": "Right",
+            "type": "boolean"
+          },
+          "said": {
+            "title": "Said",
+            "type": "string"
+          }
+        },
+        "required": [
+          "right",
+          "said",
+          "callouts",
+          "rationale"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
       "ApproveIn": {
         "properties": {
           "reason": {
@@ -1646,6 +1709,81 @@
         "title": "LandingOut",
         "type": "object"
       },
+      "LearnerProblemOut": {
+        "description": "The problem on a learner's page, with the version its datasets are made from (M6LP.2).",
+        "properties": {
+          "callouts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Callouts",
+            "type": "array"
+          },
+          "given": {
+            "title": "Given",
+            "type": "string"
+          },
+          "hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hints",
+            "type": "array"
+          },
+          "kit": {
+            "title": "Kit",
+            "type": "string"
+          },
+          "returns": {
+            "title": "Returns",
+            "type": "string"
+          },
+          "rung": {
+            "title": "Rung",
+            "type": "integer"
+          },
+          "sample_dataset": {
+            "title": "Sample Dataset",
+            "type": "string"
+          },
+          "sample_output": {
+            "title": "Sample Output",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "rung",
+          "statement",
+          "given",
+          "returns",
+          "sample_dataset",
+          "sample_output",
+          "hints",
+          "callouts",
+          "kit",
+          "size",
+          "version"
+        ],
+        "title": "LearnerProblemOut",
+        "type": "object"
+      },
       "Level": {
         "description": "T10.1's five. A level describes a node, never a learner.",
         "enum": [
@@ -2014,6 +2152,16 @@
             "title": "Needs",
             "type": "array"
           },
+          "problem": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LearnerProblemOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "questions": {
             "items": {
               "$ref": "#/components/schemas/QuestionOut"
@@ -2063,10 +2211,32 @@
         "type": "object"
       },
       "NodeProblemOut": {
-        "description": "A node's problem as Studio edits it (M6PR.6): its file as written, and the sample computed\nfrom its seed, as the page will show it.",
+        "description": "A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows\nof it (M6LP.5), the sample computed from its seed. No version: a draft is in no index.",
         "properties": {
+          "callouts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Callouts",
+            "type": "array"
+          },
+          "given": {
+            "title": "Given",
+            "type": "string"
+          },
+          "hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Hints",
+            "type": "array"
+          },
           "kit": {
             "title": "Kit",
+            "type": "string"
+          },
+          "returns": {
+            "title": "Returns",
             "type": "string"
           },
           "rung": {
@@ -2081,6 +2251,14 @@
             "title": "Sample Output",
             "type": "string"
           },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
           "text": {
             "title": "Text",
             "type": "string"
@@ -2091,12 +2269,18 @@
           }
         },
         "required": [
-          "text",
           "title",
           "rung",
-          "kit",
+          "statement",
+          "given",
+          "returns",
           "sample_dataset",
-          "sample_output"
+          "sample_output",
+          "hints",
+          "callouts",
+          "kit",
+          "size",
+          "text"
         ],
         "title": "NodeProblemOut",
         "type": "object"
@@ -2223,7 +2407,7 @@
         "type": "object"
       },
       "ProblemBlockOut": {
-        "description": "Where the node's problem sits (M6PR.3); Studio's only until M6.8's learner problem.",
+        "description": "Where the node's problem sits (M6PR.3); the problem itself is the node's `problem`.",
         "properties": {
           "kind": {
             "const": "problem",
@@ -4981,6 +5165,175 @@
           }
         },
         "summary": "A node's image file",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/nodes/{node_id}/problem/answer": {
+      "post": {
+        "description": "Right or not, the kit's sentence, the callouts its mistakes point to; nothing is kept.",
+        "operationId": "code_api_content_api_answer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "A learner's answer to the node's problem, checked by its kit",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/nodes/{node_id}/problem/dataset": {
+      "get": {
+        "description": "The file made from the seed: the same URL always gives the same bytes (M6LP.3).",
+        "operationId": "code_api_content_api_dataset",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "seed",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Seed",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "A learner's dataset for the node's problem",
         "tags": [
           "content"
         ]

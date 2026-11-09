@@ -1,10 +1,9 @@
 """A node's problem in the index (M6.7 spec, M6PR.6): stored with its computed sample, read back
-whole by the snapshot, and kept off the learner's page until M6.8. Needs Compose's Postgres."""
+whole by the snapshot. The learner's page is test_learner_problem.py's. Needs Compose's Postgres."""
 
 from pathlib import Path
 
 import pytest
-from django.test import Client
 
 from code_api.content.index import rebuild_index
 from code_api.content.models import NodeProblem
@@ -32,13 +31,6 @@ def test_the_snapshot_gives_the_problem_back() -> None:
     node = node_from_index("de-bruijn-graphs")
     assert node is not None
     assert node.problem == read_content(FIXTURES).nodes["de-bruijn-graphs"].problem
-
-
-def test_the_learner_page_leaves_the_problem_out() -> None:
-    rebuild_index(FIXTURES)
-    page = Client().get("/api/nodes/de-bruijn-graphs").json()
-    assert all(block["kind"] != "problem" for block in page["blocks"])
-    assert "problem" not in page
 
 
 def test_a_problem_a_tightened_kit_refuses_still_reads_back(

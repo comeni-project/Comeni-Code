@@ -9,7 +9,10 @@ export function Callout({
   title,
   markdown,
   components = componentsFor(false),
+  anchor,
 }: {
+  /** Where a problem's verdict scrolls to (M6LP.5). */
+  anchor?: string | undefined;
   kind: string;
   title: string;
   markdown: string;
@@ -18,6 +21,7 @@ export function Callout({
   const named = kind.charAt(0).toUpperCase() + kind.slice(1);
   return (
     <aside
+      id={anchor}
       role="note"
       aria-label={title === "" ? named : `${named}: ${title}`}
       className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3.5"

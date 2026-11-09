@@ -65,6 +65,7 @@ export function NodePreview({
         questions={node.questions}
         pictures={pictures}
         figures={node.figures ?? []}
+        problem={node.problem ? { shown: node.problem } : undefined}
       />
     </div>
   );
