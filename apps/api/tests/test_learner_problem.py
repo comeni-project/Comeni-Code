@@ -195,3 +195,23 @@ def test_an_answer_needs_no_csrf_token(page: dict[str, Any]) -> None:
 
 def test_the_largest_seed_is_taken(page: dict[str, Any]) -> None:
     assert download(Client(), page["problem"]["version"], str(2**64 - 1)).status_code == 200
+
+
+def test_a_lone_surrogate_is_a_sentence(page: dict[str, Any]) -> None:
+    """#429: a JSON escape no UTF-8 holds is garbage like any other."""
+    version = page["problem"]["version"]
+    body = '{"seed": "42", "version": "' + version + '", "answer": "\\ud800"}'
+    sent = Client().post(f"/api/nodes/{NODE}/problem/answer", body, content_type="application/json")
+    assert sent.status_code == 200
+    assert sent.json()["right"] is False
+
+
+def test_a_kit_that_cannot_run_leaves_the_page_readable(
+    page: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#428: the node reads without its problem when its kit is gone or refuses its params."""
+    monkeypatch.delitem(registry.KITS, "de-bruijn-edges")
+    problems.forget()
+    after = Client().get(f"/api/nodes/{NODE}")
+    assert after.status_code == 200
+    assert after.json()["problem"] is None

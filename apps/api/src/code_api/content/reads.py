@@ -5,6 +5,7 @@ count whatever the content's size. M4.4's drafts read through here too, so a nod
 draft or from the index in one place.
 """
 
+import logging
 from collections.abc import Sequence
 from typing import Any
 
@@ -108,6 +109,9 @@ def _resource(resource: Resource) -> ResourceOut:
         display=resource.display,
         level=resource.level,
     )
+
+
+log = logging.getLogger(__name__)
 
 
 def _block(stored: dict[str, Any]) -> AnyBlockOut:
@@ -231,10 +235,13 @@ def _problem(found: Node) -> LearnerProblemOut | None:
         row = found.problem
     except NodeProblem.DoesNotExist:
         return None
-    problem = problems.stored(row)
-    return LearnerProblemOut(
-        **problems.shown(problem).model_dump(), version=problems.version(problem)
-    )
+    try:
+        problem = problems.stored(row)
+        shown = problems.shown(problem).model_dump()
+        return LearnerProblemOut(**shown, version=problems.version(problem))
+    except Exception:  # noqa: BLE001 — the page reads without its problem (#428)
+        log.exception("the problem of %s cannot run; its page goes without it", found.id)
+        return None
 
 
 def image(node_id: str, file: str) -> tuple[bytes, str] | None:

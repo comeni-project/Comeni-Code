@@ -62,7 +62,7 @@ def _problem(
     if found is None:
         said = "A seed is a whole number below 2**64, written in digits."
         return Status(422, Message(detail=said, code="CA0011"))
-    if answer is not None and len(answer.encode()) > ANSWER_BYTES:
+    if answer is not None and len(answer.encode("utf-8", "surrogatepass")) > ANSWER_BYTES:
         said = "An answer can be at most 1 MB."
         return Status(422, Message(detail=said, code="CA0012"))
     problem = problems.stored(row)
