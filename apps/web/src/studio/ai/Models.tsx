@@ -1,0 +1,349 @@
+// The AI page's Models (M5G.3, M5G.5, M5G.7): the connections, adding one, and a model, cap and
+// call settings per call site. A key is never shown: only that one is set.
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { addConnection, removeConnection, setSite, testConnection } from "../../api/ai";
+import { sentenceOf } from "../../api/client";
+import { queryKeys, useAISettings } from "../../api/queries";
+import type { AISettingsOut, SiteOut } from "../../api/schema";
+import { ErrorNotice } from "../../layout/ErrorNotice";
+import { ChatGPTSignIn } from "./ChatGPTSignIn";
+import { Segmented } from "./Segmented";
+
+const PANEL = "flex flex-col overflow-hidden rounded-panel border border-border bg-surface";
+const BUTTON =
+  "rounded-control border border-border-2 bg-surface px-3 py-1.5 text-[13px] font-medium hover:border-sel disabled:opacity-60";
+const INPUT =
+  "h-9 rounded-control border border-border-2 bg-surface px-2.5 text-[13.5px] outline-none focus:border-sel";
+const KINDS = {
+  chatgpt: "ChatGPT plan",
+  "self-hosted": "Self-hosted",
+  hosted: "A hosted provider",
+  env: "A hosted provider",
+} as const;
+
+function useWrite() {
+  const client = useQueryClient();
+  const [trouble, setTrouble] = useState<string | null>(null);
+  const run = async (write: () => Promise<AISettingsOut>) => {
+    setTrouble(null);
+    try {
+      client.setQueryData(queryKeys.ai, await write());
+      return true;
+    } catch (error) {
+      setTrouble(error instanceof Error ? sentenceOf(error) : String(error));
+      return false;
+    }
+  };
+  return { run, trouble };
+}
+
+export function Models() {
+  const settings = useAISettings();
+  const { run, trouble } = useWrite();
+  if (settings.isPending) return <p className="text-[14px] text-ink-2">Loading the AI settings…</p>;
+  if (settings.isError) return <ErrorNotice error={settings.error} />;
+  const state = settings.data;
+  return (
+    <>
+      {trouble !== null && (
+        <p
+          role="alert"
+          className="m-0 rounded-control bg-open-soft px-4 py-2.5 text-[13.5px] text-open"
+        >
+          {trouble}
+        </p>
+      )}
+      <Connections state={state} run={run} />
+      <Sites state={state} run={run} />
+      {state.connections.length === 0 && (
+        <p className="m-0 text-[13px] text-ink-2">
+          With no connection, nothing calls a model. Every page still works: routes are computed,
+          learners get search instead of suggestions, and authors write by hand.
+        </p>
+      )}
+    </>
+  );
+}
+
+type Run = (write: () => Promise<AISettingsOut>) => Promise<boolean>;
+
+function Connections({ state, run }: { state: AISettingsOut; run: Run }) {
+  const [adding, setAdding] = useState(false);
+  return (
+    <section className={PANEL} aria-labelledby="ai-connections">
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <div className="flex flex-col gap-0.5">
+          <h2 id="ai-connections" className="m-0 text-[15px] font-semibold">
+            Connections
+          </h2>
+          <span className="text-[12.5px] text-ink-3">
+            Keys are kept encrypted and never sent back: you see that one is set, and its last four
+            characters.
+          </span>
+        </div>
+        <button type="button" className={BUTTON} onClick={() => setAdding(!adding)}>
+          + Add a connection
+        </button>
+      </div>
+      {adding && <AddConnection state={state} run={run} onDone={() => setAdding(false)} />}
+      {state.connections.length > 0 && (
+        <table className="w-full border-collapse text-left text-[13.5px]">
+          <tbody>
+            {state.connections.map((c) => (
+              <tr
+                key={`${c.id}:${c.name}`}
+                className={`border-t border-border ${c.locked ? "bg-bg" : ""}`}
+              >
+                <td className="px-4 py-3 font-semibold">
+                  {c.name}
+                  {c.locked && (
+                    <span className="block text-[12px] font-normal text-ink-3">
+                      locked: .env wins over this page
+                    </span>
+                  )}
+                </td>
+                <td className="px-2 py-3 text-ink-2">{KINDS[c.kind]}</td>
+                <td className="px-2 py-3 font-mono text-[12.5px] text-ink-2">
+                  {c.key ?? (c.endpoint || (c.kind === "chatgpt" ? "chatgpt/ · no key" : ""))}
+                </td>
+                <td className="px-2 py-3">
+                  <span
+                    className={`rounded-pill px-2 py-0.5 text-[12px] font-medium ${
+                      c.status === "ok"
+                        ? "bg-line-soft text-btn"
+                        : c.status === "untested" || c.locked
+                          ? "border border-border-2 text-ink-2"
+                          : "bg-open-soft text-open"
+                    }`}
+                  >
+                    {c.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {c.locked ? (
+                    <span className="text-[12.5px] text-ink-3">change it in .env</span>
+                  ) : (
+                    <span className="inline-flex gap-2">
+                      <button
+                        type="button"
+                        className={BUTTON}
+                        onClick={() => run(() => testConnection(c.id))}
+                      >
+                        Test
+                      </button>
+                      <button
+                        type="button"
+                        className={BUTTON}
+                        onClick={() => run(() => removeConnection(c.id))}
+                      >
+                        Remove
+                      </button>
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
+
+function AddConnection({
+  state,
+  run,
+  onDone,
+}: {
+  state: AISettingsOut;
+  run: Run;
+  onDone: () => void;
+}) {
+  const [kind, setKind] = useState<"self-hosted" | "hosted" | "chatgpt">("self-hosted");
+  const [name, setName] = useState("");
+  const [endpoint, setEndpoint] = useState("");
+  const [key, setKey] = useState("");
+  const add = async () => {
+    const done = await run(() =>
+      addConnection({
+        name,
+        kind: kind === "chatgpt" ? "hosted" : kind,
+        endpoint: kind === "self-hosted" ? endpoint : "",
+        key: kind === "hosted" ? key : null,
+      }),
+    );
+    if (done) onDone();
+  };
+  return (
+    <div className="flex flex-col gap-3 border-t border-border bg-bg px-4 py-4">
+      <Segmented
+        label="Kind"
+        options={(["self-hosted", "hosted", "chatgpt"] as const).map((k) => ({
+          key: k,
+          label: KINDS[k],
+        }))}
+        value={kind}
+        onChange={setKind}
+        disabled={(k) => k === "chatgpt" && !state.chatgpt_ready}
+      />
+      {kind === "chatgpt" ? (
+        <ChatGPTSignIn />
+      ) : (
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-[13px] font-medium">
+            Name
+            <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} />
+          </label>
+          {kind === "self-hosted" ? (
+            <label className="flex min-w-[280px] flex-1 flex-col gap-1 text-[13px] font-medium">
+              Endpoint
+              <input
+                value={endpoint}
+                onChange={(e) => setEndpoint(e.target.value)}
+                placeholder="http://ollama:11434"
+                className={`${INPUT} font-mono`}
+              />
+            </label>
+          ) : (
+            <label className="flex min-w-[280px] flex-1 flex-col gap-1 text-[13px] font-medium">
+              Key
+              <input
+                type="password"
+                autoComplete="off"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                disabled={!state.settings_key_ready}
+                className={`${INPUT} font-mono`}
+              />
+              {!state.settings_key_ready && (
+                <span className="text-[12px] font-normal text-ink-3">
+                  Keeping a key needs CODE_SETTINGS_KEY in .env.
+                </span>
+              )}
+            </label>
+          )}
+          <button type="button" className={BUTTON} onClick={add} disabled={name.trim() === ""}>
+            Add
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Sites({ state, run }: { state: AISettingsOut; run: Run }) {
+  return (
+    <section className={PANEL} aria-labelledby="ai-sites">
+      <div className="flex flex-col gap-0.5 px-4 py-3">
+        <h2 id="ai-sites" className="m-0 text-[15px] font-semibold">
+          Where Code calls a model
+        </h2>
+        <span className="text-[12.5px] text-ink-3">
+          The list is fixed: adding a call site is a reviewed code change. Choosing a model chooses
+          its connection.
+        </span>
+      </div>
+      <table className="w-full border-collapse text-left text-[13px]">
+        <thead>
+          <tr className="border-t border-border text-[11.5px] text-ink-3">
+            <th className="px-4 py-2 font-normal">Call site</th>
+            <th className="px-2 py-2 font-normal">Who calls it</th>
+            <th className="px-2 py-2 font-normal">Model</th>
+            <th className="px-2 py-2 font-normal">If it is refused</th>
+            <th className="px-4 py-2 font-normal">Cap, calls a day</th>
+          </tr>
+        </thead>
+        <tbody>
+          {state.sites.map((s) => (
+            <SiteRow key={s.key} site={s} state={state} run={run} />
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; run: Run }) {
+  const [cap, setCap] = useState(site.cap === null ? "" : String(site.cap));
+  const later = site.wired === "M7";
+  const current = site.same_as_default ? "same" : `${site.connection ?? 0}|${site.model}`;
+  const save = (change: Partial<SiteOut>) => {
+    const next = { ...site, ...change };
+    return run(() =>
+      setSite(site.key, {
+        same_as_default: next.same_as_default,
+        connection: next.connection,
+        model: next.model,
+        cap: next.cap,
+        temperature: next.temperature,
+        reasoning_effort: next.reasoning_effort,
+        timeout: next.timeout,
+      }),
+    );
+  };
+  const choose = (value: string) => {
+    if (value === "same") return save({ same_as_default: true, connection: null, model: "" });
+    const [id, ...rest] = value.split("|");
+    return save({ same_as_default: false, connection: Number(id) || null, model: rest.join("|") });
+  };
+  return (
+    <tr className={`border-t border-border ${later ? "text-ink-3" : ""}`}>
+      <td className="px-4 py-2.5">
+        <span className="font-semibold">{site.label}</span>
+        {site.problem && (
+          <span className="block text-[12px] font-normal text-open">{site.problem}</span>
+        )}
+      </td>
+      <td className="px-2 py-2.5 text-ink-2">{site.who}</td>
+      <td className="px-2 py-2.5">
+        {later ? (
+          <span className="text-[12.5px]">arrives with its screen (M7)</span>
+        ) : site.locked ? (
+          <span className="font-mono text-[12.5px]">{site.model} · set in .env</span>
+        ) : (
+          <select
+            aria-label={`Model for ${site.label}`}
+            value={current}
+            onChange={(e) => choose(e.target.value)}
+            className={`${INPUT} max-w-[320px]`}
+          >
+            {site.key !== "default" && <option value="same">same as default</option>}
+            {site.key === "default" && !site.model && <option value="0|">choose a model</option>}
+            {state.connections
+              .filter((c) => !c.locked)
+              .flatMap((c) =>
+                c.models.map((m) => (
+                  <option key={`${c.id}|${m}`} value={`${c.id}|${m}`}>
+                    {`${c.name} · ${m}`}
+                  </option>
+                )),
+              )}
+            {!site.same_as_default &&
+              site.model &&
+              !state.connections.some((c) => c.models.includes(site.model)) && (
+                <option value={current}>{site.model}</option>
+              )}
+          </select>
+        )}
+      </td>
+      <td className="px-2 py-2.5 text-ink-2">{site.refused}</td>
+      <td className="px-4 py-2.5">
+        {!later && (
+          <input
+            aria-label={`Cap for ${site.label}`}
+            inputMode="numeric"
+            value={cap}
+            placeholder={site.default_cap === null ? "none" : String(site.default_cap)}
+            onChange={(e) => setCap(e.target.value.replace(/\D/g, ""))}
+            onBlur={() => {
+              const next = cap === "" ? null : Number(cap);
+              if (next !== site.cap) void save({ cap: next });
+            }}
+            className={`${INPUT} w-24`}
+          />
+        )}
+      </td>
+    </tr>
+  );
+}

@@ -10,6 +10,7 @@ import { TopBar } from "./layout/TopBar";
 import { NodePage } from "./node/NodePage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
+import { AIPage } from "./studio/ai/AIPage";
 import { ComposerPage } from "./studio/composer/ComposerPage";
 import { DraftsPage } from "./studio/drafts/DraftsPage";
 import { LandPage } from "./studio/land/LandPage";
@@ -59,6 +60,7 @@ export function App() {
         <Route path="drafts/:id/figures/:stem" element={<ComposerPage />} />
         <Route path="review" element={<ReviewPage />} />
         <Route path="land" element={<LandPage />} />
+        <Route path="ai" element={<AIPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="*" element={<p className="text-[15px] text-ink-2">Nothing lives here.</p>} />
       </Route>
