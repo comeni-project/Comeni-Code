@@ -8,6 +8,7 @@ from ninja import NinjaAPI
 
 from code_api.accounts.access import install_access_handlers
 from code_api.accounts.api import router as accounts_router
+from code_api.ai.settings_api import router as ai_router
 from code_api.content.api import router as content_router
 from code_api.content.routes import router as routes_router
 from code_api.content.search import router as search_router
@@ -29,4 +30,5 @@ api.add_router("/studio/drafts", studio_router)
 api.add_router("/studio/landings", landing_router)
 api.add_router("/studio/index", index_router)
 api.add_router("/studio/problem-kits", kits_router)
+api.add_router("/studio/ai", ai_router)
 api.add_router("/studio/review", review_router)

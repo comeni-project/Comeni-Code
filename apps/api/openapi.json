@@ -1,6 +1,40 @@
 {
   "components": {
     "schemas": {
+      "AISettingsOut": {
+        "properties": {
+          "chatgpt_ready": {
+            "title": "Chatgpt Ready",
+            "type": "boolean"
+          },
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectionOut"
+            },
+            "title": "Connections",
+            "type": "array"
+          },
+          "settings_key_ready": {
+            "title": "Settings Key Ready",
+            "type": "boolean"
+          },
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/SiteOut"
+            },
+            "title": "Sites",
+            "type": "array"
+          }
+        },
+        "required": [
+          "connections",
+          "sites",
+          "chatgpt_ready",
+          "settings_key_ready"
+        ],
+        "title": "AISettingsOut",
+        "type": "object"
+      },
       "AddFigureIn": {
         "description": "A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and\n`alt` for its starter; never both. Its block's caption either way. Placed at `at` in the\nbody, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).",
         "properties": {
@@ -262,6 +296,55 @@
         "title": "BuildOut",
         "type": "object"
       },
+      "CallOut": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "who": {
+            "title": "Who",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "site",
+          "who",
+          "model",
+          "tokens",
+          "duration_ms",
+          "outcome",
+          "code"
+        ],
+        "title": "CallOut",
+        "type": "object"
+      },
       "CalloutBlockOut": {
         "properties": {
           "callout": {
@@ -392,6 +475,160 @@
           "alt"
         ],
         "title": "CommonsIn",
+        "type": "object"
+      },
+      "ConnectionChangeIn": {
+        "properties": {
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "ConnectionChangeIn",
+        "type": "object"
+      },
+      "ConnectionIn": {
+        "properties": {
+          "endpoint": {
+            "default": "",
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "self-hosted",
+              "hosted"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "ConnectionIn",
+        "type": "object"
+      },
+      "ConnectionOut": {
+        "properties": {
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "chatgpt",
+              "self-hosted",
+              "hosted",
+              "env"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tested_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tested At"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "endpoint",
+          "key",
+          "status",
+          "tested_at",
+          "models",
+          "locked"
+        ],
+        "title": "ConnectionOut",
         "type": "object"
       },
       "CreditOut": {
@@ -1280,6 +1517,15 @@
       },
       "HealthOut": {
         "properties": {
+          "ai": {
+            "default": "not configured",
+            "enum": [
+              "configured",
+              "not configured"
+            ],
+            "title": "Ai",
+            "type": "string"
+          },
           "checks": {
             "items": {
               "$ref": "#/components/schemas/CheckOut"
@@ -2453,6 +2699,24 @@
           "expires_at"
         ],
         "title": "PendingInviteOut",
+        "type": "object"
+      },
+      "PersonUsageOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "calls"
+        ],
+        "title": "PersonUsageOut",
         "type": "object"
       },
       "ProblemBlockOut": {
@@ -4119,6 +4383,275 @@
         "title": "SideCardOut",
         "type": "object"
       },
+      "SignInOut": {
+        "properties": {
+          "expires_at": {
+            "title": "Expires At",
+            "type": "number"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "user_code": {
+            "title": "User Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_code",
+          "link",
+          "expires_at"
+        ],
+        "title": "SignInOut",
+        "type": "object"
+      },
+      "SignInStateOut": {
+        "properties": {
+          "state": {
+            "enum": [
+              "waiting",
+              "signed-in"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "SignInStateOut",
+        "type": "object"
+      },
+      "SiteIn": {
+        "properties": {
+          "cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
+          },
+          "model": {
+            "default": "",
+            "title": "Model",
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "default": "",
+            "title": "Reasoning Effort",
+            "type": "string"
+          },
+          "same_as_default": {
+            "default": true,
+            "title": "Same As Default",
+            "type": "boolean"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout"
+          }
+        },
+        "title": "SiteIn",
+        "type": "object"
+      },
+      "SiteOut": {
+        "properties": {
+          "cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
+          },
+          "default_cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Cap"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          },
+          "reasoning_effort": {
+            "title": "Reasoning Effort",
+            "type": "string"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "string"
+          },
+          "same_as_default": {
+            "title": "Same As Default",
+            "type": "boolean"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout"
+          },
+          "who": {
+            "title": "Who",
+            "type": "string"
+          },
+          "wired": {
+            "enum": [
+              "M5",
+              "M7"
+            ],
+            "title": "Wired",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "who",
+          "refused",
+          "wired",
+          "same_as_default",
+          "connection",
+          "model",
+          "cap",
+          "default_cap",
+          "temperature",
+          "reasoning_effort",
+          "timeout",
+          "locked",
+          "problem"
+        ],
+        "title": "SiteOut",
+        "type": "object"
+      },
+      "SiteUsageOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          }
+        },
+        "required": [
+          "site",
+          "label",
+          "calls",
+          "cost"
+        ],
+        "title": "SiteUsageOut",
+        "type": "object"
+      },
       "SpanOut": {
         "properties": {
           "highest": {
@@ -4903,6 +5436,80 @@
         "title": "UpdateBlockIn",
         "type": "object"
       },
+      "UsageOut": {
+        "properties": {
+          "by_person": {
+            "items": {
+              "$ref": "#/components/schemas/PersonUsageOut"
+            },
+            "title": "By Person",
+            "type": "array"
+          },
+          "by_site": {
+            "items": {
+              "$ref": "#/components/schemas/SiteUsageOut"
+            },
+            "title": "By Site",
+            "type": "array"
+          },
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "plan_calls": {
+            "title": "Plan Calls",
+            "type": "integer"
+          },
+          "range": {
+            "enum": [
+              "today",
+              "week",
+              "month"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/CallOut"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "integer"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "range",
+          "calls",
+          "tokens",
+          "cost",
+          "plan_calls",
+          "refused",
+          "by_site",
+          "by_person",
+          "recent"
+        ],
+        "title": "UsageOut",
+        "type": "object"
+      },
       "VerdictIn": {
         "properties": {
           "key": {
@@ -5577,6 +6184,397 @@
         "summary": "Topics matching the words someone types",
         "tags": [
           "content"
+        ]
+      }
+    },
+    "/api/studio/ai/chatgpt/sign-in": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_poll_sign_in",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Ask once whether the code was approved",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_ai_settings_api_start_sign_in",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Start a ChatGPT sign-in",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections": {
+      "post": {
+        "operationId": "code_api_ai_settings_api_add_connection",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Add a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections/{connection_id}": {
+      "delete": {
+        "operationId": "code_api_ai_settings_api_remove_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Remove a connection",
+        "tags": [
+          "studio"
+        ]
+      },
+      "put": {
+        "operationId": "code_api_ai_settings_api_change_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Change a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections/{connection_id}/test": {
+      "post": {
+        "description": "One short call through the connection's first model, recorded (M5G.3).",
+        "operationId": "code_api_ai_settings_api_test_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Test a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/settings": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_read_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The AI page's state",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/sites/{key}": {
+      "put": {
+        "operationId": "code_api_ai_settings_api_set_site",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Set a call site's model, cap and call settings",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/usage": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_usage",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "month",
+              "title": "Range",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "What the call sites used",
+        "tags": [
+          "studio"
         ]
       }
     },

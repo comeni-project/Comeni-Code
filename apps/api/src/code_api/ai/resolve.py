@@ -49,7 +49,8 @@ def env_route() -> Route | None:
     )
 
 
-def _from(connection: Connection, model: str) -> Route | Refused:
+def route_for(connection: Connection, model: str) -> Route | Refused:
+    """A connection and a model as a route, or why it cannot be one."""
     if connection.kind == "chatgpt":
         return Route(connection.name, "chatgpt", model, None, None)
     if connection.kind == "self-hosted":
@@ -94,7 +95,7 @@ def resolve(key: str) -> Route | Refused:
         return NO_MODEL
     if setting.connection is None:
         return Refused("CA0400", f"{site(key).label}'s connection was removed: choose a model.")
-    route = _from(setting.connection, setting.model)
+    route = route_for(setting.connection, setting.model)
     return route if isinstance(route, Refused) else _tuned(route, setting)
 
 
@@ -103,3 +104,14 @@ def cap_of(key: str) -> int | None:
     if setting is not None and setting.cap is not None:
         return setting.cap
     return site(key).default_cap
+
+
+def ai_configured() -> bool:
+    """Whether any model can be reached: .env's, or a connection. False when the database cannot
+    say: the health page's other checks report that."""
+    if env_route() is not None:
+        return True
+    try:
+        return Connection.objects.exists()
+    except Exception:  # noqa: BLE001 — the database check says why
+        return False

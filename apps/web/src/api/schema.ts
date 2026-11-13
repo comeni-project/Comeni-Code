@@ -9,16 +9,21 @@ export type Level = "first-steps" | "foundations" | "introductory" | "intermedia
 export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  AISettingsOut: AISettingsOut;
   AddFigureIn: AddFigureIn;
   AnswerIn: AnswerIn;
   AnswerOut: AnswerOut;
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
+  CallOut: CallOut;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   ChecklistOut: ChecklistOut;
   CommonsIn: CommonsIn;
+  ConnectionChangeIn: ConnectionChangeIn;
+  ConnectionIn: ConnectionIn;
+  ConnectionOut: ConnectionOut;
   CreditOut: CreditOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
@@ -68,6 +73,7 @@ export interface ApiSchemas {
   OptionIn: OptionIn;
   OptionOut: OptionOut;
   PendingInviteOut: PendingInviteOut;
+  PersonUsageOut: PersonUsageOut;
   ProblemBlockOut: ProblemBlockOut;
   ProblemIn: ProblemIn;
   ProblemKitOut: ProblemKitOut;
@@ -101,6 +107,11 @@ export interface ApiSchemas {
   SendBackIn: SendBackIn;
   SequenceBlockOut: SequenceBlockOut;
   SideCardOut: SideCardOut;
+  SignInOut: SignInOut;
+  SignInStateOut: SignInStateOut;
+  SiteIn: SiteIn;
+  SiteOut: SiteOut;
+  SiteUsageOut: SiteUsageOut;
   SpanOut: SpanOut;
   StopOut: StopOut;
   StudioExamQuestionOut: StudioExamQuestionOut;
@@ -114,9 +125,44 @@ export interface ApiSchemas {
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
+  UsageOut: UsageOut;
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+}
+export interface AISettingsOut {
+  chatgpt_ready: boolean;
+  connections: ConnectionOut[];
+  settings_key_ready: boolean;
+  sites: SiteOut[];
+}
+export interface ConnectionOut {
+  endpoint: string;
+  id: number;
+  key: string | null;
+  kind: "chatgpt" | "self-hosted" | "hosted" | "env";
+  locked: boolean;
+  models: string[];
+  name: string;
+  status: string;
+  tested_at: string | null;
+}
+export interface SiteOut {
+  cap: number | null;
+  connection: number | null;
+  default_cap: number | null;
+  key: string;
+  label: string;
+  locked: boolean;
+  model: string;
+  problem: string | null;
+  reasoning_effort: string;
+  refused: string;
+  same_as_default: boolean;
+  temperature: number | null;
+  timeout: number | null;
+  who: string;
+  wired: "M5" | "M7";
 }
 /**
  * A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
@@ -177,6 +223,16 @@ export interface BuildOut {
   outcome: string;
   problems: string[];
 }
+export interface CallOut {
+  at: string;
+  code: string;
+  duration_ms: number;
+  model: string;
+  outcome: string;
+  site: string;
+  tokens: number;
+  who: string;
+}
 export interface CalloutBlockOut {
   callout: "misconception" | "caveat" | "convention";
   kind: "callout";
@@ -228,6 +284,17 @@ export interface CommonsIn {
   caption: string;
   link: string;
   revision: number;
+}
+export interface ConnectionChangeIn {
+  endpoint?: string | null;
+  key?: string | null;
+  name?: string | null;
+}
+export interface ConnectionIn {
+  endpoint?: string;
+  key?: string | null;
+  kind: "self-hosted" | "hosted";
+  name: string;
 }
 /**
  * A Commons file's credit, before it is kept (M6IM.4).
@@ -605,6 +672,7 @@ export interface GivenIn {
   given: unknown;
 }
 export interface HealthOut {
+  ai?: "configured" | "not configured";
   checks: CheckOut[];
   status: "ok" | "down";
 }
@@ -853,6 +921,10 @@ export interface PendingInviteOut {
   public_id: string;
   role: string;
 }
+export interface PersonUsageOut {
+  calls: number;
+  name: string;
+}
 export interface ProblemIn {
   revision: number;
   text: string;
@@ -1096,6 +1168,29 @@ export interface SendBackIn {
   reason?: string;
   revision?: number | null;
 }
+export interface SignInOut {
+  expires_at: number;
+  link: string;
+  user_code: string;
+}
+export interface SignInStateOut {
+  state: "waiting" | "signed-in";
+}
+export interface SiteIn {
+  cap?: number | null;
+  connection?: number | null;
+  model?: string;
+  reasoning_effort?: string;
+  same_as_default?: boolean;
+  temperature?: number | null;
+  timeout?: number | null;
+}
+export interface SiteUsageOut {
+  calls: number;
+  cost: string | null;
+  label: string;
+  site: string;
+}
 export interface SubmitIn {
   revision: number;
 }
@@ -1110,6 +1205,17 @@ export interface UpdateBlockIn {
   block: BlockIn;
   question?: TryQuestionIn | null;
   revision: number;
+}
+export interface UsageOut {
+  by_person: PersonUsageOut[];
+  by_site: SiteUsageOut[];
+  calls: number;
+  cost: string | null;
+  plan_calls: number;
+  range: "today" | "week" | "month";
+  recent: CallOut[];
+  refused: number;
+  tokens: number;
 }
 export interface VerdictIn {
   key: string;
