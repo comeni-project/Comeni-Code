@@ -15,6 +15,7 @@ from uuid import UUID
 from pydantic import BaseModel, ValidationError
 
 from code_api.accounts.models import User
+from code_api.ai import chatgpt
 from code_api.ai.models import AICall
 from code_api.ai.resolve import Refused, Route, cap_of, resolve
 
@@ -125,6 +126,12 @@ def call(
         if used >= cap:
             _record(site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft)
             return Refused("CA0404", f"{site} reached its cap of {cap} calls today.")
+    if route.kind == "chatgpt" or route.model.startswith("chatgpt/"):
+        # The gateway owns the plan's token, so LiteLLM never signs in inside a call (M5G.4).
+        token = chatgpt.fresh_token()
+        if isinstance(token, Refused):
+            _record(site, by, route, prompt_id, outcome="refused", code=token.code, draft=draft)
+            return token
     started = time.monotonic()
     try:
         done = transport(route, messages)

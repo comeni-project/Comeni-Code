@@ -103,8 +103,9 @@ process-wide variable.
 
 **The gateway owns the token, so LiteLLM never starts a sign-in inside a call.** Before any
 `chatgpt/` call the gateway reads `auth.json`: no token, `Refused(CA0403)` at once, without calling
-LiteLLM. An expired access token is refreshed by the gateway (`_refresh_tokens`, then the atomic
-write) under the same Redis lock, so `api` and `worker` never refresh at once; a refresh that fails
+LiteLLM. An expired access token is refreshed by the gateway (the refresh request made by Code with
+LiteLLM's token URL and client id, since LiteLLM's `_refresh_tokens` writes the file itself, in
+place; then the atomic write) under the same Redis lock, so `api` and `worker` never refresh at once; a refresh that fails
 marks the connection *sign-in ran out* and refuses CA0403. LiteLLM then always finds a fresh token
 and never reaches its own device-code login or its cooldown wait. *My calls, after the builder
 check: left alone, a missing token made LiteLLM block a call for up to 20 minutes.*
@@ -115,8 +116,8 @@ that by itself, so it says nothing about the sign-in. *(The board's "8 days left
 answered 2 min ago".)*
 
 - **This drives LiteLLM's private methods and constants** (`_request_device_code`,
-  `_exchange_code_for_tokens`, `_refresh_tokens`, `_build_auth_record`, `CHATGPT_DEVICE_VERIFY_URL`,
-  `CHATGPT_DEVICE_TOKEN_URL`), which any release could change. Hence the exact pin, and a test that
+  `_exchange_code_for_tokens`, `_build_auth_record`, `CHATGPT_DEVICE_VERIFY_URL`,
+  `CHATGPT_DEVICE_TOKEN_URL`, `CHATGPT_OAUTH_TOKEN_URL`, `CHATGPT_CLIENT_ID`), which any release could change. Hence the exact pin, and a test that
   fails when one is gone or changes its shape, so an upgrade is a reviewed change. If they go, the
   card falls back to Labs' command.
 - **Where the token lives:** `CODE_AI_CHATGPT_DIR`, read by `env.py`, which sets LiteLLM's

@@ -5,6 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DOOR = ROOT / "apps" / "api" / "src" / "code_api" / "ai"
+# Tests may name LiteLLM: one pins the private methods the ChatGPT sign-in drives (M5G.4).
+TESTS = ROOT / "apps" / "api" / "tests"
 SOURCES = [ROOT / "apps", ROOT / "packages"]
 
 
@@ -30,5 +32,9 @@ def importers_of(module: str) -> list[Path]:
 
 
 def test_only_the_ai_app_imports_litellm() -> None:
-    outside = [path for path in importers_of("litellm") if DOOR not in path.parents]
+    outside = [
+        path
+        for path in importers_of("litellm")
+        if DOOR not in path.parents and TESTS not in path.parents
+    ]
     assert outside == [], f"LiteLLM imported outside code_api.ai: {outside}"
