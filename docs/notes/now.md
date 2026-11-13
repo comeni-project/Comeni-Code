@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-11-06** (M4.9a–c, M6.1–M6.6). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-11-13** (M4.9a–c, M6). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
@@ -13,9 +13,8 @@ line is in [the archive](journal/archive/).
   M4.9's screens: verdicts per block (#272), Review (#281), Land (#306). (2026-09-29 to 10-15)
 - **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
   first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
-- **M6 (#325) is nine parts, #328–#336**: M6.1–M6.6 are done (linked drafts, math and examples,
-  images, figures, the composer, domain figures with answering by the figure: PR #415);
-  **M6.7, problems: the ground (#334), is next**. (2026-10-21 to 11-06)
+- **M6 is done** (#325): blocks, figures, the composer, problems (#422, #434, #443). **Seeded
+  variants moved to M8** (R4). **M5, the AI gateway, is next**: its parts list first. (to 11-13)
 
 ## How work is done now
 
@@ -37,7 +36,7 @@ line is in [the archive](journal/archive/).
   and an optional `exam.yaml`; the writer round-trips all three byte for byte. (2026-09-18 to 10-05)
 - **The body is blocks** between top-level fences: text, `:::{try} <id>`, callouts, `sequence`,
   `math` (TeX), `example <title>` (Markdown, never run), `image <file>` and `figure <stem>`;
-  `problem` is refused until M6.7; a body that would not write back is CS0415. (09-29 to 10-21)
+  and one `problem`; a body that would not write back is CS0415. (09-29 to 11-07)
 - **Images** (CS09xx): files in the folder's images (PNG, JPEG, WebP, ≤ 2 MB, read by their bytes), each
   recorded in `node.yaml` with alt, author, licence (CC0, PD, CC BY, CC BY-SA) and an optional
   source (#360). Adding or removing one is one save of file, record and block. (2026-10-16, 10-21)
@@ -47,8 +46,10 @@ line is in [the archive](journal/archive/).
   reads (`derived`; an edge is a step a read takes, #408). **One reading**: a form PyYAML and YAML
   1.2 read apart, a key twice, a raw control character or a tag is CS1023 (`readings.json`). Kept
   as written; refused at save; a figure goes with its last placement (`placements()`). (10-21 to 11-05)
-- **Tasks** (M6FA): `interact: {task: trace|pick, …}` makes a figure a question's only (CS1029); its
-  kit computes `answer: {accept, wrong}`. `graph-artifacts` has `marks: hidden`. (2026-11-06)
+- **Tasks**: `interact: {task: trace|pick}` makes a figure a question's (CS1029); computed answers. (11-06)
+- **Problems** (CS11xx): `problem.yaml` names a **kit** of the pure `code-problems` (a Strategy:
+  generate, solve, check, its mistakes; splitmix64), params and a sample from a seed (≤ 2,000 B); a
+  20-seed self-test at validation; each problem names its `field`. Kits are Python (#425). (11-07 to 11-13)
 - **Formulas** (`code_schema.math`): `$…$` in text, callouts, examples and stems, found as
   remark-math finds them (`tests/fixtures/math-cases.json`, run by pytest and vitest); refused when
   unbalanced, linking, colouring or defining macros (CS0419–CS0425). (2026-10-16)
@@ -57,20 +58,16 @@ line is in [the archive](journal/archive/).
 - **Three link kinds, each with a reason**: *needs*, *goes deeper*, *related* (both ways, at most
   four); *helps* and *any-of* refused until needed. **A need is what understanding the claim
   requires**, never a tool: *de Bruijn graphs* sits below *Salmon*, not on its route. (09-18, 09-19)
-- `code-schema validate <root>` exits 0/1/2, `--format github` annotates. **Edits are pure**
-  (`code_schema.edits`, `Node` in, `Node` out). (2026-09-18, 2026-10-05)
-- **A text block ends its last line** (#173); side by side they are one, a blank line between (#258).
-  A try option has no `misconception` (#257). (10-09)
-- **Registries are content**: `regions.yaml`, `providers.yaml` (licences, embeds, `players`); a
-  video resource names its video (`video: youtube:<id>`). The master's-class seeds come later. (09-18 to 09-21)
+- `code-schema validate` exits 0/1/2; **edits are pure** (`code_schema.edits`). (09-18, 10-05)
+- **A text block ends its last line** (#173); two side by side are one (#258). (10-09)
+- **Registries are content**: `regions.yaml`, `providers.yaml`; a video names `youtube:<id>`. (09-21)
 - **A question composes an answer** (choice, number, sequence, order, figure) in a `TryQuestion`
   (ask, hints, optional `figure:`) or an `ExamQuestion` (title, claim, a stem of blocks). A figure
   answer is a try's figure or a stem's one figure (CS0338, CS0824), right when the k-mers picked are
   one of `accept`, filled at read (`compare=False`). An option is text or a figure. (09-20 to 11-06)
 - **An exam pool** (`code_schema.exam`, CS08xx): at most 40, ids apart from try questions; under 4
   is a *warning* (left out of self-tests). **Exam answers are not a secret in v1** (M4E.6). (10-05)
-- **Warnings never refuse** (M4E.4): only `Content.errors` refuse. One block codec
-  (`block_json` / `block_from_json`). (2026-10-05)
+- **Warnings never refuse** (M4E.4); one block codec (`block_json` / `block_from_json`). (10-05)
 - `tests/fixtures/salmon/`: 26 real nodes, a 17-stop route to *Salmon*; TPM and de Bruijn hold pools.
   Tests never read the real content repository. (2026-09-19, 2026-10-05)
 
@@ -87,6 +84,8 @@ line is in [the archive](journal/archive/).
   and figures (`NodeFigure`: data, derived, interact) are served; a learner gets only the figures its
   page draws (#411); Studio alone sends a file's text; Review holds a key until answered (#414).
   **Each request loads the whole index**: fine at 26 nodes; later cached per digest. (09-20 to 10-21)
+- **The learner's problem** (`code_api/content/problems.py`): `NodeOut.problem` with a `version`; `…/problem/
+  dataset` and `…/problem/answer` run the kit, keep nothing, never send the answer (CA0009–12). (11-09)
 
 ## Accounts (`code_api.accounts`)
 
@@ -156,6 +155,9 @@ line is in [the archive](journal/archive/).
 - **Review (S6)**: the queue, the open block as read or changed (a colourless word diff), a verdict
   per key, bulk approval; requests show in the workbench. **Land (S10)**: Ready to land, the
   landings (a moving one asked every 15 s), a failed one's Close, main and the index. (10-14 to 10-16)
+- **Problems on the web**: `node/Problem.tsx` (a seed per browser, one answer); the **Problem tab**
+  (S5): a form over `problem.yaml` (`yaml/document.ts`), an explicit Save, a tab hold; Review draws
+  the problem key. (11-09 to 11-13)
 - **Formulas** (`node/Formula.tsx`): KaTeX 0.19.0 strict in a `try`, untrusted commands throwing,
   bounded; unreadable shows as source, marked only in Studio; its CSS in the base layer. (10-16)
 - **The exam pool's builder**: the list, `ExamEditor`, `ExamSidePanel` (as `TestQuestion` asks it,
@@ -183,6 +185,7 @@ line is in [the archive](journal/archive/).
 - CI runs `python`, `web` and `stack`; `main` here and in `comeni-code-content` takes only green
   pull requests, with no bypass. There, `review` passes Studio's app and `MAINTAINERS`; anyone
   else needs a maintainer's approval (#102). (2026-09-17, 2026-10-06)
+- **No test name over 300 characters** (root `conftest.py`): a 1 MB one hung CI with no log (#435).
 
 ## Decided, and not to reopen
 
@@ -196,22 +199,21 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **The first landing** (#324) comes after M6 and M5. The GitHub App is installed on every
-  repository of the organisation: the operator narrows it to `comeni-code-content`. (2026-10-16)
+- **The first landing** (#324) comes after M5; the operator narrows the GitHub App to
+  `comeni-code-content`. (2026-10-16)
 - **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
-  M8, the Graph screen (S2), a learner's own problem dataset before accounts (M6.8). (2026-10-16)
+  M8, the Graph screen (S2). A rate limit on the problem routes before the site is public. (to 11-13)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176, #188, #189, #203, #204, #216, #217, #234, #235, PR #139's minors;
-  **#260, #265, #269, #279, #299, #322, #339, #347, #351, #370, #394, #407 at the end of the MVP's
-  first loop**; the composer's Ask box waits for M5 (#383). (to 11-06)
-- **The fixtures' Khan videos** are linked (#89). Pruning `IndexBuild` rows; three light chip pairs
-  under 4.5 : 1, kept; R8: search, institutional sign-in, the consent spec. (09-17 to 09-29)
+  **#260 … #407, #421, #426, #433, #442 at the end of the MVP's first loop**; the composer's Ask
+  box waits for M5 (#383). (to 11-13)
+- Pruning `IndexBuild` rows; three light chip pairs under 4.5 : 1; R8's open questions. (09-29)
 
 ## Known traps
 
-- **Never pipe a check into `tail` or `grep`** and trust the chain: the exit status is the pipe's.
-  Run the suite with CI's `env:` before pushing; `ruff format --check` on docs too. **The link
+- **Never pipe a check into `tail` or `grep`** and trust the chain (nor `&& git commit` after it):
+  the status is the pipe's. Run the suite with CI's `env:` before pushing. **The link
   check reads tracked files only**: `git add` a new document first. (09-17 to 10-21)
 - **Compose rebuilds nothing by itself**: rebuild the index after a fixture change, `--build` after
   a code change, reload the browser. Migrations 0007 and 0009 need `rebuild_index`. (09-21, 10-09)
@@ -221,9 +223,8 @@ line is in [the archive](journal/archive/).
   moved only by a pull request there. (2026-09-18, 2026-10-05)
 - **After a reboot**, or when tests cannot connect (:5433, :6380): `docker compose up -d --wait
   postgres redis`. Two pytest runs on one Postgres break each other. Merged branches are kept:
-  retarget a stacked pull request first. The canvas is the Design artifact in CLAUDE.md; M6's
-  boards: https://claude.ai/artifact/JL1PkAjBQKv6o493XDgCoR, on the operator's other account (a
-  session elsewhere sees "not found"); M6.6b's: https://claude.ai/artifact/GPnS518CbkYA3ox29G6Ree. (to 11-06)
+  retarget a stacked pull request first. Canvases live on one account; another sees "not found".
+  M6.8's: https://claude.ai/artifact/XBAFuB5b2X7WKG8SdAgx3i. (to 11-13)
 - **Node 24 is `/usr/bin/node`** (v24.18). **Ports 8000, 5173 and others are other sessions'**:
   check with `ss -ltnp` before trusting one; a remote-debugging Chrome must take port 0 and read
   `DevToolsActivePort`, or it drives another session's browser. (2026-10-16, 10-21)
@@ -236,10 +237,9 @@ line is in [the archive](journal/archive/).
   keeps a test's folder off the path**. tarfile's `data` filter strips a leading `/`. `on_commit`
   needs `robust=True` for a nudge. **Dark Reader whitens the Chrome**: compare colours headless.
   **`vite preview` serves 404 after a rebuild**. React Router moves inside a transition. (10-06, 10-07)
-- **Stubbed web tests never meet code-schema's rules**: walk in headless Chrome over the DevTools
-  protocol (Node 24's `WebSocket`), a fresh profile per user, a session from `force_login`; CDP's
-  Enter needs `text: "\r"`; accept `beforeunload`. Walk drafts hold several nodes (409 CA0202):
-  walk on another. The fixture copy in `api` is root's; `python apps/api/manage.py`. (10-09 to 11-06)
+- **Stubbed web tests never meet code-schema's rules**: walk in headless Chrome over CDP (Node 24's
+  `WebSocket`), a session from `force_login` (a container `Client` needs `SERVER_NAME="localhost"`);
+  Enter is `text: "\r"`; walk drafts hold several nodes (CA0202). (10-09 to 11-13)
 - **`useBlocker` needs the data router**: page tests go through `renderAt`. **`userEvent.type`**
   takes `[`, `{` as keys: double them. zsh never splits an unquoted `$var`. (10-22 to 11-06)
 - **A migration test pinning one app** gets the others' models at any state: pin `accounts` too.

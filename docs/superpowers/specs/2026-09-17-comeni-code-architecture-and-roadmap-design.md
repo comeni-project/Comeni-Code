@@ -188,6 +188,11 @@ decided part by part (R5).
   options, and as **figure-interaction answers** computed by the component. **Seeded variants**
   are checked across 20 seeds. **Done when** also includes: the de Bruijn exam question with
   figure options passes its 20-seed check.*
+- *2026-11-13 (operator): **seeded variants move to M8.** They matter only when a learner meets a
+  question again, which first happens in M8's self-tests; exam pools reach no learner before
+  then. M6's done when is the de Bruijn page end to end with its problem, and the figure question
+  passing its checks. Rejected: building seeds in M6, designed before their consumer (a learner's
+  seed, exam assembly, grading) exists.*
 
 ### M7 — Requests and weave review
 - Missing nodes and unknown goals become requests that a person decides; connecting text is
@@ -203,6 +208,10 @@ decided part by part (R5).
 - *2026-09-17 (tutor spec T7.1): self-tests (L13) on the same engine as review. **Done when** also
   includes: an exam over "what I've done so far" is built from exam pools, graded automatically,
   and its per-node results change what the route shows.*
+- *2026-11-13 (from M6): **seeded variants** of exam questions and figures (tutor spec T7.1): a
+  figure's reads drawn from a seed, a choice's right option computed from what its figure shows,
+  and a 20-seed check that every variant renders and has one right answer. **Done when** also
+  includes: the de Bruijn exam question with figure options passes its 20-seed check.*
 - *2026-09-17 (tutor spec T6.1, T10.1): **step backs** (a wrong answer offers a detour and
   returns to the same question), placement's **"you told us" hint** (asks lower levels first,
   never marks known), and the **level filter** in Explore. **Done when** also includes: a step
