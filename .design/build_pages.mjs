@@ -3251,7 +3251,7 @@ function aiSettings() {
         <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Connections</span><span style="font-size:12.5px;color:${c.ink3}">Keys are kept encrypted and never sent back: you see that one is set, and its last four characters.</span></div>
         ${secondary(c, '+ Add a connection')}
       </div>
-      ${AI_CONN('ChatGPT plan', 'ChatGPT sign-in', 'chatgpt/ · no key', greenTag('signed in · 8 days left'), `${secondary(c, 'Test')}${secondary(c, 'Sign in again')}`, { note: 'calls count against the plan’s limits' })}
+      ${AI_CONN('ChatGPT plan', 'ChatGPT sign-in', 'chatgpt/ · no key', greenTag('signed in · last answered 2 min ago'), `${secondary(c, 'Test')}${secondary(c, 'Sign in again')}`, { note: 'calls count against the plan’s limits' })}
       ${AI_CONN('Local Ollama', 'Self-hosted', 'http://ollama:11434 · 3 models', greenTag('answering'), `${secondary(c, 'Test')}${secondary(c, 'Edit')}`)}
       ${AI_CONN('Anthropic', 'A hosted provider', 'key ····7f2a', redTag('refused: key not valid'), `${secondary(c, 'Test')}${secondary(c, 'Edit')}`)}
       ${AI_CONN('From .env', 'A hosted provider', 'CODE_AI_MODEL · CODE_AI_API_KEY', greyTag(`${ic.lock} set in .env`), '<span style="font-size:12.5px;color:' + c.ink3 + '">change it in .env</span>', { locked: true, note: 'locked: .env wins over this page' })}
@@ -3293,7 +3293,7 @@ function aiSignIn() {
         <span style="flex:1"></span><a style="font-size:13.5px;font-weight:500">auth.openai.com/codex/device ↗</a></div>
       <span style="font-size:12.5px;color:${c.ink3}">Waiting for you to approve · the code lasts 15 minutes · ${'<a>Cancel</a>'}</span>`),
     box('3', 'signed in', 'the connection is added and tested', `${head}
-      <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.lineSoft}"><span style="font-size:14px;font-weight:600;color:${c.btn}">Signed in. Test passed: ${mono('chatgpt/gpt-6.1-sol', 'font-size:13px')} answered.</span><span style="font-size:13px">The sign-in lasts about ten days; this page says when it runs out.</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.lineSoft}"><span style="font-size:14px;font-weight:600;color:${c.btn}">Signed in. Test passed: ${mono('chatgpt/gpt-6.1-sol', 'font-size:13px')} answered.</span><span style="font-size:13px">LiteLLM keeps it fresh by itself; this page says if a refresh ever fails.</span></div>
       <div style="display:flex;gap:10px">${primary(c, 'Use it as the default', '')}${secondary(c, 'Done')}</div>`),
     box('4', 'expired', 'calls fail; the call sites say why', `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">ChatGPT plan</span>${redTag('sign-in ran out')}</div>
       ${p('Calls through this connection are refused until you sign in again. Call sites that use it fall back as their row says, or stop and say so.', 'font-size:14px')}
