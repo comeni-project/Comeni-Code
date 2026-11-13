@@ -44,8 +44,11 @@ an exception the caller must know about.
   provider is resolved, and its token read, before the mock is checked); a guard test fails if a
   test reaches the network through the gateway.
 - **LiteLLM never reads the host's environment for a call:** the gateway always passes `api_key`
-  and `api_base` itself (`None` where the connection has none), so a provider key in the host's
-  environment is never picked up; a test pins it. *My call, after the builder check: settings come
+  and `api_base` itself. LiteLLM fills a `None` key from the host (`api_key or …
+  get_secret("OPENAI_API_KEY")`), so a hosted connection without a key is refused before LiteLLM
+  (CA0400), and any other route without one is given the placeholder `none` (a ChatGPT plan, which
+  answers by its token, takes no key); tests pin both. *(Corrected during the build: `None` was not
+  enough.)* *My call, after the builder check: settings come
   only from `CODE_*` (CLAUDE.md), and LiteLLM would otherwise read `<PROVIDER>_API_KEY`.*
 - **Only `code_api.ai` imports `litellm`**, checked by a repository test as `test_app_dependencies`
   checks imports today.

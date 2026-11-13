@@ -39,7 +39,7 @@ def seal(text: str) -> bytes:
 
 
 def open_(sealed: bytes) -> str | None:
-    """The key, or None when it cannot be read: no settings key, or it changed since (re-enter it)."""
+    """The key, or None when it cannot be read: no settings key, or it changed (re-enter it)."""
     fernet = _fernet()
     if fernet is None:
         return None
