@@ -99,6 +99,7 @@ export function ProblemForm({
               ))}
             </select>
             <span className={HINT}>the kit’s rung; change it only with a reason</span>
+            <Said findings={findings} path="rung" />
           </label>
         </div>
         {disabled ? (
@@ -150,7 +151,10 @@ export function ProblemForm({
           <span className={HINT}>{kit.about}</span>
         </label>
         {nextKit !== null && nextKit.name !== kit.name && (
-          <div className="flex flex-wrap items-center gap-3 rounded-control bg-open-soft px-3.5 py-2.5 text-[13px]">
+          <div
+            role="status"
+            className="flex flex-wrap items-center gap-3 rounded-control bg-open-soft px-3.5 py-2.5 text-[13px]"
+          >
             <span>
               Change the kit? Its params, sample and mistakes become {nextKit.name}’s example.
             </span>
@@ -170,6 +174,7 @@ export function ProblemForm({
           findings={findings}
           disabled={disabled}
         />
+        <Said findings={findings} path="params" />
         <div className="flex items-baseline gap-3 border-t border-border pt-3">
           <span className="text-[13px] font-semibold">Sample</span>
           <span className={HINT}>smaller, so it reads on the page; computed, never typed</span>
@@ -194,6 +199,7 @@ export function ProblemForm({
           disabled={disabled}
         />
         <Said findings={findings} path="sample" />
+        <Said findings={findings} path="sample.params" />
       </div>
 
       <div className={CARD}>
@@ -312,6 +318,7 @@ export function ProblemForm({
               {f.message}
             </span>
           ))}
+        <Said findings={findings} path="mistakes" />
         <span className={HINT}>
           A learner whose answer makes a mapped mistake is shown that callout. Only the body’s
           misconception callouts are offered; the self-test checks each mapped mistake is caught as

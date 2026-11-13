@@ -32,6 +32,11 @@ export function useTabAsk(): { ask: (go: () => void) => void; confirm: ReactNode
   const holder = useContext(HoldContext);
   const [pending, setPending] = useState<(() => void) | null>(null);
   const [saving, setSaving] = useState(false);
+  const first = useRef<HTMLButtonElement>(null);
+  // The confirm takes the focus, so a keyboard or screen reader meets it (#441).
+  useEffect(() => {
+    if (pending !== null) first.current?.focus();
+  }, [pending]);
   const ask = (go: () => void) => {
     if (holder.current === null) go();
     else setPending(() => go);
@@ -39,12 +44,13 @@ export function useTabAsk(): { ask: (go: () => void) => void; confirm: ReactNode
   const confirm =
     pending === null ? null : (
       <div
-        role="dialog"
+        role="alertdialog"
         aria-label="Unsaved changes"
         className="flex flex-wrap items-center gap-3 rounded-control bg-open-soft px-4 py-2.5 text-[13.5px]"
       >
         <span className="font-semibold">Save the problem first?</span>
         <button
+          ref={first}
           type="button"
           disabled={saving}
           onClick={async () => {

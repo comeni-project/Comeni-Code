@@ -65,6 +65,13 @@ const sent = (fake: ReturnType<typeof answering>) =>
 const saved = (node: DraftNodeOut): Answer => ({
   body: { draft: { ...DRAFT, revision: 4, node }, warnings: [] },
 });
+/** As the server answers a save: the draft holding the file it was sent. */
+const echoed =
+  (node: DraftNodeOut) =>
+  (init?: RequestInit): Answer => {
+    const text = (JSON.parse(String(init?.body)) as { text: string }).text;
+    return saved({ ...node, problem: { ...(node.problem as NodeProblemOut), text } });
+  };
 
 describe("a node with no problem", () => {
   it("offers each kit with its sample, and starts a problem from one", async () => {
@@ -80,7 +87,7 @@ describe("a node with no problem", () => {
 
 describe("a problem", () => {
   it("saves the file with only the edited line changed", async () => {
-    const fake = bench(WITH_PROBLEM, { [PUT]: saved(WITH_PROBLEM) });
+    const fake = bench(WITH_PROBLEM, { [PUT]: echoed(WITH_PROBLEM) });
     const title = await screen.findByLabelText("Title");
     await userEvent.clear(title);
     await userEvent.type(title, "Build a de Bruijn graph");
@@ -283,5 +290,64 @@ describe("unsaved edits (M6PB.5)", () => {
     // The workbench's own breadcrumb back to Drafts.
     await userEvent.click(screen.getByRole("link", { name: "Drafts" }));
     expect(ask).toHaveBeenCalledWith("Leave the problem? What you changed here is not saved.");
+  });
+});
+
+describe("the review's fixes", () => {
+  it("shows a refusal on params, which no field draws, above the form (#437)", async () => {
+    bench(WITH_PROBLEM, {
+      [PUT]: {
+        status: 422,
+        body: {
+          detail: "The problem would not validate.",
+          code: "CA0208",
+          problems: [
+            {
+              file: "p/problem.yaml",
+              line: null,
+              field: "params",
+              code: "CS1105",
+              message: "params: seeds 0–19 give 3 different answers; at least 18 are needed",
+              text: "CS1105 …",
+            },
+          ],
+        },
+      },
+    });
+    await userEvent.type(await screen.findByLabelText("Title"), "!");
+    await userEvent.click(screen.getByRole("button", { name: "Save problem" }));
+    // Drawn under the dataset's params, which it is about.
+    expect(await screen.findByText(/at least 18 are needed/)).toBeTruthy();
+  });
+
+  it("shows a browser finding no field draws above the form, and names it (#437)", async () => {
+    bench({
+      ...WITH_PROBLEM,
+      problem: {
+        ...(WITH_PROBLEM.problem as NodeProblemOut),
+        text: PROBLEM_TEXT.replace("errors: 0}\nsample", "errors: 0, depth: 2}\nsample"),
+      },
+    });
+    expect(await screen.findByText(/depth/)).toBeTruthy();
+  });
+
+  it("says nothing passed once the text changes after a save (#440)", async () => {
+    bench(WITH_PROBLEM, { [PUT]: echoed(WITH_PROBLEM) });
+    const title = await screen.findByLabelText("Title");
+    await userEvent.type(title, "!");
+    await userEvent.click(screen.getByRole("button", { name: "Save problem" }));
+    expect(await screen.findByText(/Self-test · passed/)).toBeTruthy();
+    await userEvent.type(title, "?");
+    expect(screen.queryByText(/Self-test · passed/)).toBeNull();
+  });
+
+  it("puts the focus in the tab confirm, and the inline confirms are announced (#441)", async () => {
+    bench(WITH_PROBLEM);
+    await userEvent.type(await screen.findByLabelText("Title"), "!");
+    await userEvent.click(screen.getByRole("tab", { name: "Settings" }));
+    expect(document.activeElement).toHaveTextContent("Save");
+    await userEvent.click(screen.getByRole("button", { name: "Stay" }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove the problem" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Remove the problem and its block?");
   });
 });

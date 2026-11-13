@@ -3,7 +3,7 @@
 // Save that the server's 20-seed self-test accepts or refuses. The working text lives here until
 // it is saved; a refused save keeps it, with each problem under the field it names.
 import { useQueryClient } from "@tanstack/react-query";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { queryKeys, useProblemKits } from "../../api/queries";
 import type { DraftNodeOut, ProblemKitOut, ProblemOut } from "../../api/schema";
 import type { Finding } from "../../figures/validate";
@@ -23,7 +23,15 @@ import { ProblemForm } from "./ProblemForm";
 const BUTTON =
   "rounded-control border border-border-2 bg-surface px-3 py-1.5 text-[13px] font-medium hover:border-sel";
 export const LEAVE_PROBLEM = "Leave the problem? What you changed here is not saved.";
-const ON_FORM = /^(title|rung|statement|given|return|rationale|hints|params|sample|mistakes)\b/;
+/** Whether the form draws a finding at `path`: a field of its own, or a param of the kit's (#437). */
+export function onForm(path: string, kit: ProblemKitOut | undefined): boolean {
+  const fields = ["title", "rung", "statement", "given", "return", "rationale", "hints", "sample"];
+  fields.push("params", "sample.params", "mistakes");
+  const names = Object.keys((kit?.params_schema.properties ?? {}) as Record<string, unknown>);
+  for (const name of names) fields.push(`params.${name}`, `sample.params.${name}`);
+  for (const mistake of kit?.mistakes ?? []) fields.push(`mistakes.${mistake.name}`);
+  return fields.some((field) => path === field || path.startsWith(`${field}[`));
+}
 
 /** The first file of a problem started from a kit: empty words, the kit's example (M6PB.2). */
 export const starterText = (kit: ProblemKitOut): string =>
@@ -78,6 +86,17 @@ function Builder({
   const yamlId = useId();
   const saved = node.problem?.text ?? null;
   const [text, setText] = useState<string | null>(saved);
+  // The saved text this text began from: a save made elsewhere is taken when nothing was changed
+  // here, else said, and Save held until it is taken (#439).
+  const [base, setBase] = useState<string | null>(saved);
+  useEffect(() => {
+    if (saved === base) return;
+    if (text === base || text === saved) {
+      setBase(saved);
+      setText(saved);
+    }
+  }, [saved, base, text]);
+  const theirs = saved !== base && text !== base && text !== saved;
   const [asYaml, setAsYaml] = useState(false);
   const [removing, setRemoving] = useState(false);
   const callouts = useMemo(
@@ -88,7 +107,7 @@ function Builder({
     [node.blocks],
   );
   const fd = useMemo(() => (text === null ? null : openFile(text)), [text]);
-  const unsaved = text !== saved;
+  const unsaved = text !== saved && !theirs;
   // Unsaved work holds the tab bar and asks before leaving the draft (M6PB.5).
   const hold = useMemo(
     () =>
@@ -116,9 +135,14 @@ function Builder({
   const kit = file === null ? undefined : kits.find((k) => k.name === file.kit);
   const found = file !== null && kit !== undefined ? problemFindings(file, kit, callouts) : [];
   const refusal = refusalOf(edit.error);
-  const fromServer = (refusal?.problems ?? []).filter((p) => p.field && ON_FORM.test(p.field));
-  const elsewhere = (refusal?.problems ?? []).filter((p) => !fromServer.includes(p));
   const showForm = why === null && !asYaml && file !== null && kit !== undefined;
+  // A problem goes under the field that draws it; any other, the server's or the browser's, above.
+  const drawn = (path: string | null | undefined) => showForm && !!path && onForm(path, kit);
+  const fromServer = (refusal?.problems ?? []).filter((p) => drawn(p.field));
+  const elsewhere = [
+    ...(refusal?.problems ?? []).filter((p) => !fromServer.includes(p)).map((p) => p.message),
+    ...found.filter((f) => showForm && !drawn(f.path)).map((f) => `${f.path}: ${f.message}`),
+  ];
   const save = () => edit.mutate(setProblem(text));
   const remove = () =>
     edit.mutate(removeProblem(), {
@@ -131,6 +155,37 @@ function Builder({
 
   return (
     <section className="flex flex-col gap-4">
+      {theirs && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-3 rounded-control bg-open-soft px-4 py-3 text-[13.5px] text-open"
+        >
+          <span>
+            This problem was saved elsewhere since you began editing it. Take the saved one to go
+            on; your changes here are dropped.
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setBase(saved);
+              setText(saved);
+            }}
+            className="rounded-control border border-border-2 bg-surface px-3 py-1.5 text-[13px] font-medium text-ink"
+          >
+            Take the saved one
+          </button>
+        </div>
+      )}
+      {refusal === null && elsewhere.length > 0 && (
+        <div
+          role="alert"
+          className="flex flex-col gap-1 rounded-control bg-open-soft px-4 py-3 text-[13.5px] text-open"
+        >
+          {elsewhere.map((said) => (
+            <span key={said}>{said}</span>
+          ))}
+        </div>
+      )}
       {refusal !== null &&
         (refusal.stale ? (
           <RefusalNotice
@@ -143,8 +198,8 @@ function Builder({
             className="flex flex-col gap-1 rounded-control bg-open-soft px-4 py-3 text-[13.5px] text-open"
           >
             <span className="font-semibold">{refusal.sentence}</span>
-            {elsewhere.map((problem) => (
-              <span key={`${problem.code}:${problem.message}`}>{problem.message}</span>
+            {elsewhere.map((said) => (
+              <span key={said}>{said}</span>
             ))}
           </div>
         ))}
@@ -197,7 +252,7 @@ function Builder({
         )}
         {editable &&
           (removing ? (
-            <span className="flex flex-wrap items-center gap-2 text-[13px]">
+            <span role="status" className="flex flex-wrap items-center gap-2 text-[13px]">
               <span className="text-open">
                 Remove the problem and its block? This can’t be undone in the draft.
               </span>
@@ -224,7 +279,8 @@ function Builder({
             )
           ))}
         <span className="flex-1" />
-        {edit.isSuccess &&
+        {!unsaved &&
+          edit.isSuccess &&
           edit.variables?.method === "PUT" &&
           edit.variables.path === "problem" && (
             <span role="status" className="text-[12.5px] font-medium text-ink-2">
@@ -239,7 +295,9 @@ function Builder({
             <button
               type="button"
               onClick={save}
-              disabled={edit.isPending || (why === null && found.length > 0) || text === saved}
+              disabled={
+                edit.isPending || theirs || (why === null && found.length > 0) || text === saved
+              }
               className="rounded-control bg-btn px-5 py-2.5 text-[14px] font-semibold text-btn-ink shadow-[0_3px_0_0_var(--btn-sh)] hover:brightness-110 disabled:opacity-60"
             >
               {edit.isPending ? "Checking with 20 seeds…" : "Save problem"}
