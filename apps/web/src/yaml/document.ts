@@ -181,7 +181,9 @@ function scalarFor(value: Value, was?: Scalar): Scalar {
   if (typeof value === "string") {
     // A block scalar stays one: `statement: |` is not rewritten as a quoted line (M6PB.2).
     const kept = was?.type;
-    if ((kept === Scalar.BLOCK_LITERAL || kept === Scalar.BLOCK_FOLDED) && value.includes("\n")) {
+    // Only when it reads one way: a character one reader refuses raw is quoted instead (#438).
+    const block = kept === Scalar.BLOCK_LITERAL || kept === Scalar.BLOCK_FOLDED;
+    if (block && value.includes("\n") && !ODD.test(value)) {
       node.type = kept;
       return node;
     }

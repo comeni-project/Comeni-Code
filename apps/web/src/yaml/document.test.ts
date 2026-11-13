@@ -228,3 +228,12 @@ describe("block scalars (M6.8b spec, M6PB.2)", () => {
     expect(setAt(openFile("title: one\n"), ["title"], "two")).toBe("title: two\n");
   });
 });
+
+describe("a block scalar with a character one reader refuses (#438)", () => {
+  it("is quoted, not written raw in the block", () => {
+    const fd = openFile("statement: |\n  one\n");
+    const written = setAt(fd, ["statement"], "one two\nthree\n");
+    // Quoted, which PyYAML reads; a raw U+2028 in a block is a ScannerError there.
+    expect(written.startsWith('statement: "')).toBe(true);
+  });
+});
