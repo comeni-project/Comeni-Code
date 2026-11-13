@@ -11,6 +11,13 @@ from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 ENV = Env()
 export_for_libraries(ENV)
 
+# AI (M5.1 spec, M5G.3): `.env`'s locked connection, and the key that seals the page's keys.
+CODE_AI_MODEL = ENV.ai_model
+CODE_AI_API_KEY = None if ENV.ai_api_key is None else ENV.ai_api_key.get_secret_value()
+CODE_AI_BASE_URL = ENV.ai_base_url
+CODE_SETTINGS_KEY = None if ENV.settings_key is None else ENV.settings_key.get_secret_value()
+CODE_AI_CHATGPT_DIR = ENV.ai_chatgpt_dir
+
 SECRET_KEY = ENV.secret_key.get_secret_value()
 DEBUG = ENV.debug
 ALLOWED_HOSTS = ENV.allowed_hosts
