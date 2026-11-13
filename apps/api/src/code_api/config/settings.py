@@ -4,11 +4,12 @@ M0 part 2 spec, P2.3.
 """
 
 from code_api.config.auth import caches, mailers, social_providers
-from code_api.config.env import Env, database_from_url
+from code_api.config.env import Env, database_from_url, export_for_libraries
 from code_api.config.landing import github_app
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
 ENV = Env()
+export_for_libraries(ENV)
 
 SECRET_KEY = ENV.secret_key.get_secret_value()
 DEBUG = ENV.debug
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "code_api.accounts",
     "code_api.content",
     "code_api.studio",
+    "code_api.ai",
 ]
 
 MIDDLEWARE = [

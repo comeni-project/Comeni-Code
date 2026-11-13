@@ -17,6 +17,10 @@ x-api-settings: &api-settings
     CODE_ALLOWED_HOSTS: localhost,127.0.0.1
     # Invite links and sign-in redirects point at this stack's own web app (M4.3, #163).
     CODE_WEB_ORIGIN: http://127.0.0.1:8090
+    # The ChatGPT plan's token, one folder the API and the worker share (M5.1 spec, M5G.4).
+    CODE_AI_CHATGPT_DIR: /var/lib/code/chatgpt
+  volumes:
+    - ai-chatgpt:/var/lib/code/chatgpt
 
 x-after-migrate: &after-migrate
   postgres:
@@ -116,3 +120,4 @@ services:
 
 volumes:
   postgres-data:
+  ai-chatgpt:

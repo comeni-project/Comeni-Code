@@ -4,6 +4,7 @@ This is the only module that reads environment variables. Every name starts with
 developer's shell cannot leak another project's `DATABASE_URL` into Code.
 """
 
+import os
 import re
 from pathlib import Path
 from typing import Annotated, Any, Self
@@ -55,6 +56,22 @@ class Env(BaseSettings):
     github_app_private_key: SecretStr | None = None
     content_repository: str = "comeni-project/comeni-code-content"
     github_api_url: str = "https://api.github.com"
+    # AI (M5.1 spec, M5G.3, M5G.4). `.env`'s model, key and endpoint appear locked on the AI page;
+    # the settings key encrypts the page's stored keys; the ChatGPT folder holds the plan's token,
+    # shared by the API and the worker. Each is optional: with none, no model is ever called.
+    ai_model: str | None = None
+    ai_api_key: SecretStr | None = None
+    ai_base_url: str | None = None
+    settings_key: SecretStr | None = None
+    ai_chatgpt_dir: Path | None = None
+
+    @field_validator(
+        "ai_model", "ai_api_key", "ai_base_url", "settings_key", "ai_chatgpt_dir", mode="before"
+    )
+    @classmethod
+    def _empty_is_unset(cls, value: object) -> object:
+        """`CODE_AI_MODEL=` exported empty means unset, as in Labs."""
+        return None if isinstance(value, str) and value.strip() == "" else value
 
     @field_validator("database_url")
     @classmethod
@@ -132,3 +149,10 @@ def database_from_url(url: str) -> dict[str, Any]:
         # A dead database must fail fast, so /api/health answers 503 instead of hanging.
         "OPTIONS": {"connect_timeout": 3},
     }
+
+
+def export_for_libraries(env: Env) -> None:
+    """The one place Code writes a library's variable (M5G.4): LiteLLM reads its ChatGPT token
+    folder from `CHATGPT_TOKEN_DIR`, so `CODE_AI_CHATGPT_DIR` is handed to it at start."""
+    if env.ai_chatgpt_dir is not None:
+        os.environ["CHATGPT_TOKEN_DIR"] = str(env.ai_chatgpt_dir)

@@ -172,3 +172,4 @@ Thumbs.db
 
 # collectstatic output (CODE_STATIC_ROOT)
 staticfiles/
+.run/
