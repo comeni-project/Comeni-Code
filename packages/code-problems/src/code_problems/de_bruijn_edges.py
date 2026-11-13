@@ -129,4 +129,19 @@ KIT = Kit(
         "reversed": _reversed,
     },
     max_bytes=120_000,
+    about="k and some reads; the learner returns every edge of their de Bruijn graph, once each.",
+    says={
+        "duplicates": "an edge listed more than once",
+        "missing": "edges left out",
+        "extra": "an edge no read holds",
+        "unsorted": "the right edges, out of order",
+        "reversed": "B -> A for A -> B",
+    },
+    example={
+        "params": {"k": 4, "genome": 300, "read": 30, "coverage": 8, "errors": 0},
+        "sample": {
+            "seed": 1,
+            "params": {"k": 3, "genome": 7, "read": 5, "coverage": 2, "errors": 0},
+        },
+    },
 )

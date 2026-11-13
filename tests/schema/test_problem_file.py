@@ -141,3 +141,33 @@ def test_a_cached_problem_names_the_file_it_was_found_in() -> None:
     _, second = read_problem(bad, file="b/problem.yaml", misconceptions=set())
     assert [p.file for p in first] == ["a/problem.yaml"]
     assert [p.file for p in second] == ["b/problem.yaml"]
+
+
+@pytest.mark.parametrize(
+    ("change", "code", "field"),
+    [
+        (("{k: 3, genome: 400", "{k: 2, genome: 400"), "CS1101", "params.k"),
+        (
+            ("genome: 7, read: 5, coverage: 2", "genome: 400, read: 40, coverage: 10"),
+            "CS1102",
+            "sample.params",
+        ),
+        (("kit: de-bruijn-edges", "kit: walk"), "CS1106", "kit"),
+        (("rung: 3", "rung: 5"), "CS1107", "rung"),
+        (("Every edge appears once", "No such callout"), "CS1110", "mistakes.duplicates"),
+        (("  duplicates: Every", "  doubled: Every"), "CS1110", "mistakes.doubled"),
+    ],
+    ids=["CS1101", "CS1102", "CS1106", "CS1107", "CS1110-callout", "CS1110-undeclared"],
+)
+def test_each_problem_names_its_field(change: tuple[str, str], code: str, field: str) -> None:
+    """M6PB.5: the builder puts a refusal under the field it is about."""
+    found = read(PROBLEM.replace(*change))[1]
+    assert [(p.code, p.field) for p in found if p.code == code][:1] == [(code, field)]
+
+
+def test_a_hint_problem_names_its_hint() -> None:
+    node, _ = read()
+    assert node is not None and node.problem is not None
+    first = node.problem.sample.answer.splitlines()[0]
+    hinted = PROBLEM.replace("The same k-mer can come from many reads.", f"Start with {first}.")
+    assert [(p.code, p.field) for p in read(hinted)[1]] == [("CS1111", "hints[0]")]

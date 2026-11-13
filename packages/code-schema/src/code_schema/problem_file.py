@@ -69,9 +69,11 @@ def _read(
     if data is None:
         return None, problems
 
-    def wrong(code: str, message: str, key: str | None = None) -> None:
+    def wrong(code: str, message: str, key: str | None = None, field: str | None = None) -> None:
+        # `field` is what the builder puts the problem under; its key's line by default (M6PB.5).
         line = None if key is None else lines.get(key)
-        problems.append(Problem(file=file, line=line, code=code, message=message))
+        named = field if field is not None else key
+        problems.append(Problem(file=file, line=line, code=code, message=message, field=named))
 
     for name in data:
         if name not in _KEYS:
@@ -122,22 +124,24 @@ def _read(
     for mistake, title in mistakes.items():
         if mistake not in KITS[kit].mistakes:
             known = ", ".join(KITS[kit].mistakes)
-            wrong("CS1110", f"{kit} names no mistake {mistake} ({known})", "mistakes")
+            said = f"{kit} names no mistake {mistake} ({known})"
+            wrong("CS1110", said, "mistakes", f"mistakes.{mistake}")
         elif title not in misconceptions:
-            wrong("CS1110", f"no misconception callout in the body is titled {title}", "mistakes")
+            said = f"no misconception callout in the body is titled {title}"
+            wrong("CS1110", said, "mistakes", f"mistakes.{mistake}")
     if problems:
         return None, problems
     params = data["params"]
     assert isinstance(params, dict)
     tested: SelfTest = self_test(kit, params, sample, list(mistakes))
     for found in tested.findings:
-        wrong(found.code, f"{found.path}: {found.message}")
+        wrong(found.code, f"{found.path}: {found.message}", field=found.path)
     if tested.sample is None:
         return None, problems
     answer = [line for line in tested.sample.answer.splitlines() if line.strip()]
-    for hint in hints:
+    for at, hint in enumerate(hints):
         if any(line in hint for line in answer):
-            wrong("CS1111", "a hint holds the sample's answer", "hints")
+            wrong("CS1111", "a hint holds the sample's answer", "hints", f"hints[{at}]")
             return None, problems
     return (
         ProblemFile(

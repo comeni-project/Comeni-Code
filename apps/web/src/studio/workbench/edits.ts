@@ -147,3 +147,13 @@ export function sendEdit(id: string, revision: number, edit: Edit): Promise<Save
   }
   return sendJson<SavedOut>(edit.method, url, { ...edit.body, revision });
 }
+
+/** problem.yaml whole, kept as written; its block is added at the body's end when missing (M6PR.6). */
+export const setProblem = (text: string): Edit => ({
+  method: "PUT",
+  path: "problem",
+  body: { text },
+});
+
+/** problem.yaml and its block, gone together (M6PR.6). */
+export const removeProblem = (): Edit => ({ method: "DELETE", path: "problem" });

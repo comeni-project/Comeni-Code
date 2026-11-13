@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
+import { TWO_READINGS } from "../figures/schemas";
 import {
   apply,
   insertAt,
@@ -18,7 +19,6 @@ import {
   setAt,
   writeFile,
 } from "./document";
-import { TWO_READINGS } from "./schemas";
 
 const ROOT = fileURLToPath(new URL("../../../../tests/fixtures/", import.meta.url));
 const FIXTURES = ["algorithms/de-bruijn-graphs", "transcriptomics/tpm"].flatMap((node) => {
@@ -210,5 +210,30 @@ describe("a figure's file as a document", () => {
     expect(pathText(["data", "rows", 3, 1])).toBe("data.rows[3][1]");
     expect(pathParts("data.rows[3][1]")).toEqual(["data", "rows", 3, 1]);
     expect(pathParts("alt")).toEqual(["alt"]);
+  });
+});
+
+describe("block scalars (M6.8b spec, M6PB.2)", () => {
+  it("keeps a literal block a literal block when its text changes", () => {
+    const fd = openFile("statement: |\n  one\n  two\nkit: x\n");
+    expect(setAt(fd, ["statement"], "one\nthree\n")).toBe("statement: |\n  one\n  three\nkit: x\n");
+  });
+
+  it("keeps a folded block folded", () => {
+    const fd = openFile("statement: >\n  one two\n");
+    expect(setAt(fd, ["statement"], "one three\n")).toBe("statement: >\n  one three\n");
+  });
+
+  it("leaves a plain one-line value plain", () => {
+    expect(setAt(openFile("title: one\n"), ["title"], "two")).toBe("title: two\n");
+  });
+});
+
+describe("a block scalar with a character one reader refuses (#438)", () => {
+  it("is quoted, not written raw in the block", () => {
+    const fd = openFile("statement: |\n  one\n");
+    const written = setAt(fd, ["statement"], "one two\nthree\n");
+    // Quoted, which PyYAML reads; a raw U+2028 in a block is a ScannerError there.
+    expect(written.startsWith('statement: "')).toBe(true);
   });
 });

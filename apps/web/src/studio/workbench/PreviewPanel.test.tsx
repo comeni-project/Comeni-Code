@@ -23,6 +23,8 @@ const WITH_PROBLEM: DraftNodeOut = {
     callouts: [],
     kit: "de-bruijn-edges",
     size: 2482,
+    rationale: "Each edge once.",
+    mistakes: [],
   },
 };
 

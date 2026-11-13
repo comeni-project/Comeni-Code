@@ -2,16 +2,16 @@
 // that does not parse, reads two ways, would be laid out anew, is a layered chart, or holds a key
 // or a list the form does not show opens in Edit as YAML with this line. A short list of numbers
 // of a fixed length (a path, a range) the form shows (isPair).
-import { type FigureDocument, linesKept, type Path, pathText } from "../../figures/document";
-import { type Component, SCHEMAS, TWO_READINGS } from "../../figures/schemas";
+
+import { type Component, SCHEMAS } from "../../figures/schemas";
+import { type Path, pathText, type YamlDocument } from "../../yaml/document";
+import { AS_YAML, readsOneWay } from "../../yaml/formable";
 import { isPair, resolve, sheetPaths } from "./sheets";
 
 // biome-ignore lint/suspicious/noExplicitAny: a schema is JSON, walked by key
 type Schema = { readonly [key: string]: any };
 
-const FORMS = TWO_READINGS.map((form) => new RegExp(form.pattern));
 const KEYS = ["component", "alt", "data", "source"];
-const AS_YAML = "edit it as YAML.";
 
 const isMapping = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -75,15 +75,9 @@ function unshown(
   return null;
 }
 
-export function formable(fd: FigureDocument): string | null {
-  const error = fd.errors[0];
-  if (error !== undefined)
-    return `It does not parse as YAML: ${error.message} (line ${error.line}).`;
-  if (fd.aliased) return `It uses a YAML alias: write the data out in full, as YAML.`;
-  if (fd.twice.length > 0 || fd.plain.some((p) => FORMS.some((form) => form.test(p.text)))) {
-    return "It reads two ways: quote the values Checks names.";
-  }
-  if (!linesKept(fd)) return `The form would lay this file out anew: ${AS_YAML}`;
+export function formable(fd: YamlDocument): string | null {
+  const general = readsOneWay(fd);
+  if (general !== null) return general;
   const file: unknown = fd.doc.toJS();
   if (!isMapping(file) || !isMapping(file.data)) {
     return `It is not a figure the form can hold: ${AS_YAML}`;

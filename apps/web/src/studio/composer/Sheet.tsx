@@ -1,8 +1,9 @@
 // One array of records as a grid (M6.5 spec, M6CO.4; the boards' sheets): a row per item, a cell
 // per key, rows added, moved and removed, and a paste filling rows from the cell pasted into. Each
 // cell carries its path, so a check can go to it.
-import { type Op, pathText } from "../../figures/document";
+
 import type { Finding } from "../../figures/validate";
+import { type Op, pathText } from "../../yaml/document";
 import { type Column, cellValue, pasteOps, type SheetSpec } from "./sheets";
 import { TypedInput } from "./TypedInput";
 

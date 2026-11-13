@@ -7,7 +7,7 @@ import { useLeaveWarning } from "../workbench/useLeaveWarning";
 
 export const LEAVE = "Leave the composer? What you changed here is not saved.";
 
-export function useLeaveGuard(unsaved: boolean): () => void {
+export function useLeaveGuard(unsaved: boolean, sentence: string = LEAVE): () => void {
   const allowed = useRef(false);
   useLeaveWarning(unsaved);
   const blocker = useBlocker(
@@ -16,9 +16,9 @@ export function useLeaveGuard(unsaved: boolean): () => void {
   );
   useEffect(() => {
     if (blocker.state !== "blocked") return;
-    if (window.confirm(LEAVE)) blocker.proceed();
+    if (window.confirm(sentence)) blocker.proceed();
     else blocker.reset();
-  }, [blocker]);
+  }, [blocker, sentence]);
   return () => {
     allowed.current = true;
   };

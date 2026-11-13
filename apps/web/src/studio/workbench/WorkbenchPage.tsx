@@ -7,6 +7,7 @@ import { useParams, useSearchParams } from "react-router";
 import { useDraft } from "../../api/queries";
 import type { DraftNodeOut, DraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { ProblemTab } from "../problem/ProblemTab";
 import { ChecksPanel } from "./ChecksPanel";
 import { ContentTab } from "./ContentTab";
 import { ExamPoolTab } from "./ExamPoolTab";
@@ -17,6 +18,7 @@ import { RequestsBanner } from "./Requests";
 import { ResourcesTab } from "./ResourcesTab";
 import { SettingsTab } from "./SettingsTab";
 import { StateLine } from "./StateLine";
+import { TabHoldProvider, useTabAsk } from "./tabHold";
 import { useAfterSaves } from "./useDraftEdit";
 import { useLeaveWarning } from "./useLeaveWarning";
 
@@ -78,6 +80,13 @@ const TABS: readonly Tab[] = [
     ),
   },
   {
+    key: "problem",
+    label: "Problem",
+    body: (draft, node) => (
+      <ProblemTab draftId={draft.public_id} node={node} editable={editable(draft)} />
+    ),
+  },
+  {
     key: "settings",
     label: "Settings",
     body: (draft, node) => <SettingsTab draft={draft} node={node} editable={editable(draft)} />,
@@ -91,12 +100,17 @@ export function WorkbenchPage() {
   if (draft.isError) return <ErrorNotice error={draft.error} />;
   const node = draft.data.node;
   if (node === null) return <Unreadable draft={draft.data} />;
-  return <Bench draft={draft.data} node={node} />;
+  return (
+    <TabHoldProvider>
+      <Bench draft={draft.data} node={node} />
+    </TabHoldProvider>
+  );
 }
 
 function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
   const [params, setParams] = useSearchParams();
   const after = useAfterSaves(draft.public_id);
+  const { ask, confirm } = useTabAsk();
   useLeaveWarning(useIsMutating({ mutationKey: ["draft-edit", draft.public_id] }) > 0);
   const tab = TABS.find((t) => t.key === params.get("tab")) ?? (TABS[0] as Tab);
   return (
@@ -112,8 +126,13 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
             role="tab"
             aria-selected={t === tab}
             // Another tab waits for a save in flight, and stays here if it is refused (#255).
+            // A tab with unsaved work asks first (M6PB.5).
             onClick={() =>
-              after(() => setParams(t.key === "content" ? {} : { tab: t.key }, { replace: true }))
+              ask(() =>
+                after(() =>
+                  setParams(t.key === "content" ? {} : { tab: t.key }, { replace: true }),
+                ),
+              )
             }
             className={`px-4 py-2 text-[13.5px] ${
               t === tab ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--ink)]" : "text-ink-2"
@@ -123,6 +142,7 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
           </button>
         ))}
       </div>
+      {confirm}
       {tab.aside === false ? (
         <section role="tabpanel" aria-label={tab.label} className="flex min-w-0 flex-col gap-3">
           {tab.body(draft, node)}

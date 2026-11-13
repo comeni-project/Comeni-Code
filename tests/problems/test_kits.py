@@ -104,3 +104,21 @@ def test_a_count_takes_thousands_separators() -> None:
     case = case_of("count-kmers", {**COUNT, "k": 8, "genome": [3000, 3000], "read": 40}, 5)
     shown = f"{int(case.answer):,}"
     assert "," in shown and kit.check(case, shown).right
+
+
+@pytest.mark.parametrize("name", list(KITS), ids=list(KITS))
+def test_each_kit_describes_itself(name: str) -> None:
+    """M6PB.4: a line for the kit, one per mistake, and an example that passes its self-test."""
+    from code_problems import self_test
+    from code_problems.self_test import SAMPLE_BYTES
+
+    kit = KITS[name]
+    assert kit.about.strip() and "\n" not in kit.about
+    assert set(kit.says) == set(kit.mistakes)
+    assert all(line.strip() for line in kit.says.values())
+    example = kit.example
+    tested = self_test(name, example["params"], example["sample"], list(kit.mistakes))
+    assert tested.findings == []
+    small = example["sample"]["params"]
+    assert isinstance(small, dict)
+    assert kit.cost(small) <= SAMPLE_BYTES

@@ -593,7 +593,13 @@ def _edit(
         # A figure that would not validate says why, as a save's files do (M6FG.5).
         if isinstance(wrong, FigureRefused | ProblemRefused) and wrong.problems:
             return Status(
-                422, refused(list(wrong.problems), "The figure's file would not validate.")
+                422,
+                refused(
+                    list(wrong.problems),
+                    "The problem would not validate."
+                    if isinstance(wrong, ProblemRefused)
+                    else "The figure's file would not validate.",
+                ),
             )
         return Status(
             422,

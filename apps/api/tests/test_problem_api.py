@@ -49,6 +49,10 @@ def test_a_draft_starts_with_its_problem_and_sends_it(client: Client, ada: User)
     assert node["problem"]["text"] == PROBLEM
     assert node["problem"]["sample_dataset"].startswith("3\n")
     assert {"kind": "problem"} in node["blocks"]
+    assert node["problem"]["rationale"].startswith("Each read adds the edges")
+    assert node["problem"]["mistakes"] == [
+        {"name": "duplicates", "callout": "Every edge appears once"}
+    ]
 
 
 def test_a_problem_is_saved_whole_and_reads_back(client: Client, ada: User) -> None:
@@ -76,6 +80,8 @@ def test_a_failing_problem_is_refused_with_its_codes(client: Client, ada: User) 
     assert refused.status_code == 422
     assert refused.json()["code"] == "CA0208"
     assert [p["code"] for p in refused.json()["problems"]] == ["CS1106"]
+    assert refused.json()["problems"][0]["field"] == "kit"
+    assert refused.json()["detail"] == "The problem would not validate."
 
 
 def test_a_problem_is_removed_with_its_block(client: Client, ada: User) -> None:

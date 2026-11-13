@@ -45,6 +45,11 @@ class Kit:
     check: Callable[[Case, str], Verdict]
     mistakes: Mapping[str, Callable[[Case], str]]
     max_bytes: int
+    # What the builder shows (M6.8b spec, M6PB.4): one line on the kit, one per mistake, and an
+    # example a new problem starts from (its params and its sample, which pass the self-test).
+    about: str
+    says: Mapping[str, str]
+    example: Mapping[str, Mapping[str, object]]
 
 
 def lines_of(text: str) -> list[str]:

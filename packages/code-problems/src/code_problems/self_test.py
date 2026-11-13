@@ -86,7 +86,9 @@ def self_test(
     cases: list[Case] = []
     for what, at in [(small, seed)] + [(params, s) for s in SEEDS]:
         case, seen = _seed(kit, what, at, names)
-        found += seen
+        # A mapping the checker misses is one problem, at its first seed (M6PB.5).
+        caught = {f.path for f in found if f.code == UNCAUGHT}
+        found += [f for f in seen if not (f.code == UNCAUGHT and f.path in caught)]
         if case is not None:
             cases.append(case)
     answers = {case.answer for case in cases[1:]}

@@ -2,7 +2,7 @@
 // (M6.4 spec, M6FG.1; M6.5 spec, M6CO.5), in the same order and with the same codes, held to the
 // `files` of tests/fixtures/figures/cases.json by both suites. The composer runs it on every
 // change, so Save waits until the server would take the file.
-import { openFile, type Path, pathText } from "./document";
+import { openFile, type Path, pathText } from "../yaml/document";
 import { figureFindings } from "./kits";
 import { CHARACTERS, type Component, TWO_READINGS } from "./schemas";
 import type { Finding } from "./validate";

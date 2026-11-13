@@ -129,19 +129,51 @@ class StudioExamQuestionOut(Schema):
     rationale: str
 
 
+class MappedMistakeOut(Schema):
+    name: str
+    callout: str
+
+
 class NodeProblemOut(ProblemShownOut):
     """A node's problem as Studio edits it (M6PR.6): its file as written, and what the page shows
-    of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index."""
+    of it (M6LP.5), the sample computed from its seed. No version: a draft is in no index. The
+    rationale and which mistake names which callout are for Review (M6PB.6), never a learner."""
 
     text: str
+    rationale: str
+    mistakes: list[MappedMistakeOut]
 
 
 def problem_out(problem: ProblemFile | None) -> NodeProblemOut | None:
-    return (
-        None
-        if problem is None
-        else NodeProblemOut(**shown(problem).model_dump(), text=problem.text)
+    if problem is None:
+        return None
+    return NodeProblemOut(
+        **shown(problem).model_dump(),
+        text=problem.text,
+        rationale=problem.rationale,
+        mistakes=[
+            MappedMistakeOut(name=name, callout=callout)
+            for name, callout in problem.mistakes.items()
+        ],
     )
+
+
+class KitMistakeOut(Schema):
+    name: str
+    says: str
+
+
+class ProblemKitOut(Schema):
+    """A problem kit as the builder offers it (M6PB.4)."""
+
+    name: str
+    rung: int
+    about: str
+    params_schema: dict[str, Any]  # `schema` would shadow pydantic's own
+    mistakes: list[KitMistakeOut]
+    example: dict[str, Any]
+    sample_dataset: str
+    sample_output: str
 
 
 class DraftNodeOut(Schema):

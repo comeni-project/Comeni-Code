@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { parse, stringify } from "yaml";
-import { apply, openFile } from "../../figures/document";
 import { STARTERS } from "../../figures/kits";
+import { apply, openFile } from "../../yaml/document";
 import { formable } from "./formable";
 import { cellValue, pasteOps, sheetsOf } from "./sheets";
 
