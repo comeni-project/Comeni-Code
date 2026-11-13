@@ -175,6 +175,66 @@ describe("Models", () => {
     );
   });
 
+  it("clears a site's call settings when its model changes", async () => {
+    const tuned = {
+      ...SETTINGS,
+      sites: SETTINGS.sites.map((s) =>
+        s.key === "page-drafting" ? { ...s, temperature: 1, reasoning_effort: "high" } : s,
+      ),
+    };
+    const fake = open({
+      "GET /api/studio/ai/settings": { body: tuned },
+      "PUT /api/studio/ai/sites/page-drafting": { body: tuned },
+    });
+    const row = await screen.findByRole("row", { name: /^Page drafting/ });
+    await userEvent.selectOptions(
+      within(row).getByLabelText("Model for Page drafting"),
+      "1|openai/qwen2.5:7b",
+    );
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/sites/page-drafting")[0]).toMatchObject({
+        temperature: null,
+        reasoning_effort: "",
+        timeout: null,
+      }),
+    );
+  });
+
+  it("types a hosted provider's model, as provider/model", async () => {
+    const fake = open({ "PUT /api/studio/ai/sites/page-drafting": { body: SETTINGS } });
+    const row = await screen.findByRole("row", { name: /^Page drafting/ });
+    await userEvent.selectOptions(within(row).getByLabelText("Model for Page drafting"), "2|");
+    const typed = within(row).getByLabelText("Anthropic model for Page drafting");
+    await userEvent.type(typed, "anthropic/claude-sonnet-5");
+    await userEvent.tab();
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/sites/page-drafting").at(-1)).toMatchObject({
+        same_as_default: false,
+        connection: 2,
+        model: "anthropic/claude-sonnet-5",
+      }),
+    );
+  });
+
+  it("sets a site's call settings", async () => {
+    const fake = open({ "PUT /api/studio/ai/sites/page-drafting": { body: SETTINGS } });
+    const row = await screen.findByRole("row", { name: /^Page drafting/ });
+    await userEvent.click(within(row).getByText("Call settings"));
+    await userEvent.type(within(row).getByLabelText("Temperature"), "1");
+    await userEvent.selectOptions(within(row).getByLabelText("Reasoning effort"), "high");
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/sites/page-drafting").at(-1)).toMatchObject({
+        reasoning_effort: "high",
+      }),
+    );
+    await userEvent.click(within(row).getByLabelText("Timeout, seconds"));
+    await vi.waitFor(() =>
+      expect(
+        bodyOf(fake, "PUT", "/api/studio/ai/sites/page-drafting").some((b) => b.temperature === 1),
+      ).toBe(true),
+    );
+  });
+
   it("says why a site has no model, and greys the M7 sites", async () => {
     open();
     expect(await screen.findByText(/connection was removed: choose a model/)).toBeTruthy();

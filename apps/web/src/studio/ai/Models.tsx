@@ -282,11 +282,35 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
       }),
     );
   };
+  const hosted = state.connections.filter((c) => c.kind === "hosted" && !c.locked);
+  const onHosted = hosted.find((c) => c.id === site.connection && !site.same_as_default);
+  // A hosted provider lists no models, so its model is typed, as provider/model (M5G.3).
+  const [typing, setTyping] = useState<number | null>(onHosted?.id ?? null);
+  const [typed, setTyped] = useState(onHosted ? site.model : "");
   const choose = (value: string) => {
-    if (value === "same") return save({ same_as_default: true, connection: null, model: "" });
+    if (value === "same") {
+      setTyping(null);
+      return save({ same_as_default: true, connection: null, model: "" });
+    }
     const [id, ...rest] = value.split("|");
-    return save({ same_as_default: false, connection: Number(id) || null, model: rest.join("|") });
+    const model = rest.join("|");
+    if (model === "" && hosted.some((c) => c.id === Number(id))) {
+      setTyping(Number(id));
+      setTyped("");
+      return Promise.resolve(true);
+    }
+    setTyping(null);
+    // A setting one model takes, another may refuse: a new model starts from the defaults (M5G.5).
+    return save({
+      same_as_default: false,
+      connection: Number(id) || null,
+      model,
+      temperature: null,
+      reasoning_effort: "",
+      timeout: null,
+    });
   };
+  const typingName = hosted.find((c) => c.id === typing)?.name;
   return (
     <tr className={`border-t border-border ${later ? "text-ink-3" : ""}`}>
       <td className="px-4 py-2.5">
@@ -319,6 +343,11 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
                   </option>
                 )),
               )}
+            {hosted.map((c) => (
+              <option key={`${c.id}|`} value={`${c.id}|`}>
+                {`${c.name} · type a model…`}
+              </option>
+            ))}
             {!site.same_as_default &&
               site.model &&
               !state.connections.some((c) => c.models.includes(site.model)) && (
@@ -326,6 +355,21 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
               )}
           </select>
         )}
+        {!later && !site.locked && typing !== null && (
+          <input
+            aria-label={`${typingName} model for ${site.label}`}
+            value={typed}
+            placeholder="provider/model"
+            onChange={(e) => setTyped(e.target.value)}
+            onBlur={() => {
+              if (typed.trim() !== "" && typed !== site.model) {
+                void save({ same_as_default: false, connection: typing, model: typed.trim() });
+              }
+            }}
+            className={`${INPUT} mt-1.5 block w-full max-w-[320px] font-mono text-[12.5px]`}
+          />
+        )}
+        {!later && <CallSettings site={site} save={save} />}
       </td>
       <td className="px-2 py-2.5 text-ink-2">{site.refused}</td>
       <td className="px-4 py-2.5">
@@ -345,5 +389,71 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
         )}
       </td>
     </tr>
+  );
+}
+
+function CallSettings({
+  site,
+  save,
+}: {
+  site: SiteOut;
+  save: (change: Partial<SiteOut>) => Promise<boolean>;
+}) {
+  const [temperature, setTemperature] = useState(
+    site.temperature === null ? "" : String(site.temperature),
+  );
+  const [timeout, setTimeoutText] = useState(site.timeout === null ? "" : String(site.timeout));
+  const numberOf = (text: string) => (text.trim() === "" ? null : Number(text));
+  return (
+    <details className="mt-1.5 text-[12.5px]">
+      <summary className="cursor-pointer text-sel">Call settings</summary>
+      <div className="mt-2 flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          Temperature
+          <input
+            inputMode="decimal"
+            value={temperature}
+            placeholder="default"
+            onChange={(e) => setTemperature(e.target.value)}
+            onBlur={() => {
+              const next = numberOf(temperature);
+              if (next !== site.temperature && !Number.isNaN(next))
+                void save({ temperature: next });
+            }}
+            className={`${INPUT} w-24`}
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          Reasoning effort
+          <select
+            value={site.reasoning_effort}
+            onChange={(e) => void save({ reasoning_effort: e.target.value })}
+            className={INPUT}
+          >
+            <option value="">default</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1">
+          Timeout, seconds
+          <input
+            inputMode="numeric"
+            value={timeout}
+            placeholder="60"
+            onChange={(e) => setTimeoutText(e.target.value.replace(/\D/g, ""))}
+            onBlur={() => {
+              const next = numberOf(timeout);
+              if (next !== site.timeout) void save({ timeout: next });
+            }}
+            className={`${INPUT} w-24`}
+          />
+        </label>
+      </div>
+      <span className="mt-1 block text-ink-3">
+        Empty keeps the installation’s. Choosing another model clears these.
+      </span>
+    </details>
   );
 }
