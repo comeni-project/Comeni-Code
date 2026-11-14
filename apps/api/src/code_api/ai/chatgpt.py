@@ -24,6 +24,7 @@ import httpx
 from django.conf import settings
 from litellm.llms.chatgpt import authenticator as litellm_auth
 from litellm.llms.chatgpt import common_utils as litellm_chatgpt
+from redis.exceptions import RedisError
 
 from code_api.ai.models import Connection
 from code_api.ai.resolve import Refused
@@ -122,6 +123,13 @@ def fresh_token() -> str | Refused:
         return NO_SIGN_IN
     if not _expired(data):
         return str(data["access_token"])
+    try:
+        return _refreshed_under_lock()
+    except RedisError as error:  # the lock not had in time, or Redis down: refused, not raised
+        return Refused("CA0403", f"The ChatGPT sign-in could not be refreshed now: {error}"[:300])
+
+
+def _refreshed_under_lock() -> str | Refused:
     with redis_client().lock(LOCK, timeout=30, blocking_timeout=30):
         data = _read()  # another process may have refreshed while this one waited
         if data is not None and not _expired(data):

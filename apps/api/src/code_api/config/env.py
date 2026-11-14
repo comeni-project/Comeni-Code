@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Annotated, Any, Self
 from urllib.parse import unquote, urlsplit
 
+from cryptography.fernet import Fernet
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
@@ -72,6 +73,18 @@ class Env(BaseSettings):
     def _empty_is_unset(cls, value: object) -> object:
         """`CODE_AI_MODEL=` exported empty means unset, as in Labs."""
         return None if isinstance(value, str) and value.strip() == "" else value
+
+    @field_validator("settings_key")
+    @classmethod
+    def _a_fernet_key(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None:
+            try:
+                Fernet(value.get_secret_value())
+            except ValueError, TypeError:
+                raise ValueError(
+                    "must be a Fernet key: urlsafe base64 of 32 bytes (Fernet.generate_key())"
+                ) from None
+        return value
 
     @field_validator("database_url")
     @classmethod

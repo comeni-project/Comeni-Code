@@ -265,3 +265,10 @@ def test_the_chatgpt_folder_is_handed_to_litellm(monkeypatch: pytest.MonkeyPatch
     assert "CHATGPT_TOKEN_DIR" not in os.environ
     export_for_libraries(make_env(monkeypatch, **base, ai_chatgpt_dir="/tmp/chatgpt"))
     assert os.environ["CHATGPT_TOKEN_DIR"] == "/tmp/chatgpt"
+
+
+def test_the_settings_key_is_a_fernet_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#454: a malformed key would fail every call site's resolve, so it fails at start."""
+    base = {"secret_key": KEY, "database_url": URL, "redis_url": REDIS}
+    with pytest.raises(ValidationError, match="Fernet"):
+        make_env(monkeypatch, **base, settings_key="not-a-key")

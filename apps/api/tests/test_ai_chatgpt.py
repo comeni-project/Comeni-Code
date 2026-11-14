@@ -169,3 +169,30 @@ def test_no_folder_greys_the_plan(settings: Any) -> None:
     settings.CODE_AI_CHATGPT_DIR = None
     out = chatgpt.start()
     assert isinstance(out, Refused) and "CODE_AI_CHATGPT_DIR" in out.sentence
+
+
+def test_a_lock_or_redis_failure_is_refused_not_raised(
+    _folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#454: call never raises; a token it cannot get is the plan's refusal."""
+    import redis
+
+    plan = Connection.objects.create(name="ChatGPT plan", kind="chatgpt")
+    SiteSetting.objects.create(
+        site="default", same_as_default=False, connection=plan, model="chatgpt/gpt-6.1-sol"
+    )
+    write_token(_folder, expires_in=-10)
+    errors: list[Exception] = [
+        redis.exceptions.LockError(),  # type: ignore[no-untyped-call]
+        redis.exceptions.ConnectionError("down"),
+    ]
+    for error in errors:
+
+        class Failing:
+            def lock(self, *args: Any, error: Exception = error, **kwargs: Any) -> Any:
+                raise error
+
+        monkeypatch.setattr(chatgpt, "redis_client", Failing)
+        out = gateway.call("page-drafting", ASK, by=None, prompt_id="p@1")
+        assert isinstance(out, Refused) and out.code == "CA0403"
+    assert AICall.objects.filter(outcome="refused").count() == 2
