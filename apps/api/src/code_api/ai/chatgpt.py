@@ -34,6 +34,7 @@ from code_api.redis import client as redis_client
 ATTEMPT = "ai:chatgpt:attempt"
 LOCK = "ai:chatgpt:token"
 POLL_LOCK = "ai:chatgpt:poll"
+MODEL = "chatgpt/gpt-6.1-sol"  # what the plan answers with, listed on sign-in (#457)
 ATTEMPT_SECONDS = 15 * 60
 EXPIRY_SKEW_SECONDS = 60
 NAME = "ChatGPT plan"
@@ -201,5 +202,7 @@ def _ask() -> Literal["waiting", "signed-in"] | Refused:
         return Refused("CA0405", f"The sign-in failed: {error}"[:500])
     with redis_client().lock(LOCK, timeout=30, blocking_timeout=30):
         write_atomically(path, record)
-    Connection.objects.update_or_create(kind="chatgpt", defaults={"name": NAME, "ran_out": False})
+    Connection.objects.update_or_create(
+        kind="chatgpt", defaults={"name": NAME, "ran_out": False, "models_listed": [MODEL]}
+    )
     return "signed-in"

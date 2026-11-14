@@ -182,3 +182,26 @@ def test_a_chatgpt_connection_takes_only_chatgpt_models(operator: Client) -> Non
         {"same_as_default": False, "connection": plan.pk, "model": "openai/gpt-4o"},
     )
     assert (refused.status_code, refused.json()["code"]) == (422, "CA0401")
+
+
+def test_a_hosted_connection_is_tested_through_a_model_a_site_chose(
+    operator: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#456: a hosted provider lists no models; its Test tries the one a site typed."""
+    hosted = post(operator, "connections", {"name": "H", "kind": "hosted", "key": "sk-1234"})
+    connection = hosted.json()["connections"][0]["id"]
+    put(
+        operator,
+        "sites/page-drafting",
+        {"same_as_default": False, "connection": connection, "model": "anthropic/claude-sonnet-5"},
+    )
+    asked: list[Route] = []
+
+    def fake(route: Route, messages: list[dict[str, str]]) -> Completion:
+        asked.append(route)
+        return Completion("ok", 2, 1, None)
+
+    monkeypatch.setattr(gateway, "transport", fake)
+    tested = post(operator, f"connections/{connection}/test", {})
+    assert tested.json()["connections"][0]["status"] == "ok"
+    assert [r.model for r in asked] == ["anthropic/claude-sonnet-5"]

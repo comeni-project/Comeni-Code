@@ -138,6 +138,7 @@ def test_the_sign_in_starts_waits_and_signs_in(
     assert json.loads((_folder / "auth.json").read_text())["access_token"] == "tok-9"
     plan = Connection.objects.get(kind="chatgpt")
     assert (plan.name, plan.ran_out) == ("ChatGPT plan", False)
+    assert plan.models_listed == ["chatgpt/gpt-6.1-sol"]  # #457: there to choose at once
 
 
 def test_an_attempt_left_behind_ends_and_a_new_one_starts(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -218,9 +218,13 @@ def test_connection(request: HttpRequest, connection_id: int) -> AISettingsOut:
     try:
         if row.kind == "self-hosted":
             row.models_listed = [f"openai/{m}" for m in listed_models(row.endpoint)]
-        model = row.models_listed[0] if row.models_listed else ""
+        # A hosted provider lists no models: try the one a site chose on it (#456).
+        chosen = (
+            SiteSetting.objects.filter(connection=row).exclude(model="").order_by("site").first()
+        )
+        model = row.models_listed[0] if row.models_listed else chosen.model if chosen else ""
         if row.kind == "chatgpt" and not model:
-            model = "chatgpt/gpt-6.1-sol"
+            model = chatgpt.MODEL
         if not model:
             outcome = "no model to try: choose one for a call site"
         else:
