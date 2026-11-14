@@ -17,7 +17,7 @@ from pydantic import BaseModel, ValidationError
 from code_api.accounts.models import User
 from code_api.ai import chatgpt
 from code_api.ai.models import AICall
-from code_api.ai.resolve import Refused, Route, cap_of, resolve
+from code_api.ai.resolve import CHATGPT_PREFIX, Refused, Route, cap_of, resolve
 
 DEFAULT_TIMEOUT = 60
 # LiteLLM fills a missing key from the host (`api_key or … get_secret("OPENAI_API_KEY")`), so a
@@ -56,7 +56,7 @@ def litellm_transport(route: Route, messages: list[dict[str, str]]) -> Completio
             route.api_key.reveal()
             if route.api_key is not None
             else None
-            if route.kind == "chatgpt"
+            if route.model.startswith(CHATGPT_PREFIX)
             else NO_KEY
         ),
         "api_base": route.api_base,
@@ -127,7 +127,7 @@ def call(
             _record(site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft)
             calls = "call" if cap == 1 else "calls"
             return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.")
-    if route.kind == "chatgpt" or route.model.startswith("chatgpt/"):
+    if route.model.startswith(CHATGPT_PREFIX):
         # The gateway owns the plan's token, so LiteLLM never signs in inside a call (M5G.4).
         token = chatgpt.fresh_token()
         if isinstance(token, Refused):

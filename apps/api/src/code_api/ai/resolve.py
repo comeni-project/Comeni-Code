@@ -10,6 +10,7 @@ from code_api.ai import secrets
 from code_api.ai.models import Connection, SiteSetting
 from code_api.ai.sites import site
 
+CHATGPT_PREFIX = "chatgpt/"
 ENV_NAME = "From .env"
 
 
@@ -52,6 +53,9 @@ def env_route() -> Route | None:
 def route_for(connection: Connection, model: str) -> Route | Refused:
     """A connection and a model as a route, or why it cannot be one."""
     if connection.kind == "chatgpt":
+        if not model.startswith(CHATGPT_PREFIX):
+            # Any other provider would be sent with no key, and LiteLLM fills one from the host.
+            return Refused("CA0401", f"The ChatGPT plan answers only {CHATGPT_PREFIX}… models.")
         return Route(connection.name, "chatgpt", model, None, None)
     if connection.kind == "self-hosted":
         return Route(connection.name, "self-hosted", model, None, connection.endpoint or None)

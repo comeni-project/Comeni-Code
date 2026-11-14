@@ -18,7 +18,15 @@ from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.ai import chatgpt, gateway, secrets
 from code_api.ai.models import AICall, Connection, SiteSetting
-from code_api.ai.resolve import ENV_NAME, Refused, Route, env_route, resolve, route_for
+from code_api.ai.resolve import (
+    CHATGPT_PREFIX,
+    ENV_NAME,
+    Refused,
+    Route,
+    env_route,
+    resolve,
+    route_for,
+)
 from code_api.ai.schemas import (
     AISettingsOut,
     CallOut,
@@ -231,7 +239,7 @@ def _try(row: Connection, model: str, request: HttpRequest) -> str:
     route = route_for(row, model)
     if isinstance(route, Refused):
         return route.sentence
-    if route.kind == "chatgpt":
+    if route.model.startswith(CHATGPT_PREFIX):
         token = chatgpt.fresh_token()
         if isinstance(token, Refused):
             return token.sentence
@@ -288,6 +296,10 @@ def set_site(request: HttpRequest, key: str, body: SiteIn) -> AISettingsOut | St
             return _refused(
                 422, Refused("CA0401", f"{body.model} is not written as provider/model.")
             )
+        if connection is not None and connection.kind == "chatgpt":
+            refused = route_for(connection, body.model)
+            if isinstance(refused, Refused):
+                return _refused(422, refused)
     SiteSetting.objects.update_or_create(
         site=key,
         defaults={

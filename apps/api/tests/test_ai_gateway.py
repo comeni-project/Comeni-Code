@@ -202,3 +202,36 @@ def test_a_key_that_cannot_be_read_asks_for_it_again(settings: Any) -> None:
     out = resolve("page-drafting")
     assert isinstance(out, Refused) and out.code == "CA0402"
     assert "enter it again" in out.sentence
+
+
+def test_a_chatgpt_connection_calls_only_chatgpt_models(
+    monkeypatch: pytest.MonkeyPatch, sent: list[Route]
+) -> None:
+    """#453: a ChatGPT connection with another provider's model would leave the key to LiteLLM,
+    which reads the host's OPENAI_API_KEY; it is refused before any call."""
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-from-the-host")
+    plan = Connection.objects.create(name="ChatGPT plan", kind="chatgpt")
+    default_to(plan, "openai/gpt-4o")
+    out = gateway.call("page-drafting", ASK, by=None, prompt_id="p@1")
+    assert isinstance(out, Refused) and out.code == "CA0401"
+    assert sent == []
+
+
+def test_only_a_chatgpt_model_is_sent_without_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#453: the key is left out by the model's provider, not by the connection's kind."""
+    asked: dict[str, Any] = {}
+    import litellm
+
+    def completion(**kwargs: Any) -> Any:
+        asked.update(kwargs)
+        raise RuntimeError("stop here")
+
+    monkeypatch.setattr(litellm, "completion", completion)
+    for kind, model, key in [
+        ("chatgpt", "openai/gpt-4o", "none"),
+        ("env", "chatgpt/gpt-6.1-sol", None),
+        ("chatgpt", "chatgpt/gpt-6.1-sol", None),
+    ]:
+        with pytest.raises(RuntimeError):
+            gateway.litellm_transport(Route("C", kind, model, None, None), ASK)
+        assert asked["api_key"] == key, (kind, model)

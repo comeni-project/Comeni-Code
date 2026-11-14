@@ -171,3 +171,14 @@ def test_usage_says_how_each_site_is_priced(operator: Client) -> None:
         "figure-data": "billed",
         "resource-suggestion": "local",
     }
+
+
+def test_a_chatgpt_connection_takes_only_chatgpt_models(operator: Client) -> None:
+    """#453: any other model on the plan's connection would be sent with the host's key."""
+    plan = Connection.objects.create(name="ChatGPT plan", kind="chatgpt")
+    refused = put(
+        operator,
+        "sites/page-drafting",
+        {"same_as_default": False, "connection": plan.pk, "model": "openai/gpt-4o"},
+    )
+    assert (refused.status_code, refused.json()["code"]) == (422, "CA0401")
