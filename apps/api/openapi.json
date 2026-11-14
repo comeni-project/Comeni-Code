@@ -4638,6 +4638,15 @@
             "title": "Label",
             "type": "string"
           },
+          "priced": {
+            "enum": [
+              "billed",
+              "plan",
+              "local"
+            ],
+            "title": "Priced",
+            "type": "string"
+          },
           "site": {
             "title": "Site",
             "type": "string"
@@ -4647,7 +4656,8 @@
           "site",
           "label",
           "calls",
-          "cost"
+          "cost",
+          "priced"
         ],
         "title": "SiteUsageOut",
         "type": "object"

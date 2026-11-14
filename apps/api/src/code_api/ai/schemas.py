@@ -82,6 +82,8 @@ class SiteUsageOut(Schema):
     label: str
     calls: int
     cost: str | None
+    # billed where a cost was recorded; a ChatGPT plan; or local (a self-hosted server)
+    priced: Literal["billed", "plan", "local"]
 
 
 class PersonUsageOut(Schema):

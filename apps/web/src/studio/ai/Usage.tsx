@@ -13,6 +13,7 @@ const RANGES: { key: UsageRange; label: string }[] = [
 ];
 const PANEL = "flex flex-col overflow-hidden rounded-panel border border-border bg-surface";
 const count = (n: number) => n.toLocaleString("en");
+const calls = (n: number) => `${count(n)} ${n === 1 ? "call" : "calls"}`;
 
 export function Usage() {
   const [range, setRange] = useState<UsageRange>("month");
@@ -56,9 +57,9 @@ export function Usage() {
                   {usage.data.by_site.map((s) => (
                     <tr key={s.site} className="border-t border-border">
                       <td className="px-4 py-2">{s.label}</td>
-                      <td className="px-2 py-2 text-right font-mono">{count(s.calls)} calls</td>
+                      <td className="px-2 py-2 text-right font-mono">{calls(s.calls)}</td>
                       <td className="px-4 py-2 text-right font-mono text-ink-3">
-                        {s.cost === null ? "plan" : `$${s.cost}`}
+                        {s.priced === "billed" ? `$${s.cost}` : s.priced}
                       </td>
                     </tr>
                   ))}
@@ -72,7 +73,7 @@ export function Usage() {
                   {usage.data.by_person.map((p) => (
                     <tr key={p.name} className="border-t border-border">
                       <td className="px-4 py-2">{p.name}</td>
-                      <td className="px-4 py-2 text-right font-mono">{count(p.calls)} calls</td>
+                      <td className="px-4 py-2 text-right font-mono">{calls(p.calls)}</td>
                     </tr>
                   ))}
                 </tbody>

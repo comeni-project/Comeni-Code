@@ -157,3 +157,17 @@ def test_health_says_whether_ai_is_configured_and_stays_ok(
     assert body["ai"] == "not configured" and body["status"] == "ok"
     Connection.objects.create(name="Local", kind="self-hosted", endpoint="http://x/v1")
     assert client.get("/api/health").json()["ai"] == "configured"
+
+
+def test_usage_says_how_each_site_is_priced(operator: Client) -> None:
+    """Billed where a cost was recorded, a plan for chatgpt/ models, local otherwise."""
+    AICall.objects.create(site="page-drafting", model="chatgpt/gpt-6.1-sol", outcome="answered")
+    AICall.objects.create(site="figure-data", model="openai/gpt-6.1", outcome="answered", cost=1)
+    AICall.objects.create(site="resource-suggestion", model="openai/stub", outcome="answered")
+    body = operator.get(f"{BASE}/usage?range=today").json()
+    priced = {s["site"]: s["priced"] for s in body["by_site"]}
+    assert priced == {
+        "page-drafting": "plan",
+        "figure-data": "billed",
+        "resource-suggestion": "local",
+    }

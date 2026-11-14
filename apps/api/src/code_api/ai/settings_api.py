@@ -7,7 +7,7 @@ from decimal import Decimal
 
 import httpx
 from django.conf import settings
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -345,8 +345,15 @@ def usage(request: HttpRequest, range: str = "month") -> UsageOut:  # noqa: A002
             label=site(row["site"]).label if row["site"] in {s.key for s in SITES} else row["site"],
             calls=row["n"],
             cost=None if row["cost"] is None else f"{row['cost']:.2f}",
+            priced="billed" if row["cost"] is not None else "plan" if row["plan"] else "local",
         )
-        for row in calls.values("site").annotate(n=Count("id"), cost=Sum("cost")).order_by("-n")
+        for row in calls.values("site")
+        .annotate(
+            n=Count("id"),
+            cost=Sum("cost"),
+            plan=Count("id", filter=Q(model__startswith="chatgpt/")),
+        )
+        .order_by("-n")
     ]
     by_person = [
         PersonUsageOut(

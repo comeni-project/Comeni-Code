@@ -125,7 +125,8 @@ def call(
         used = AICall.objects.filter(site=site, outcome="answered", at__gte=_today()).count()
         if used >= cap:
             _record(site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft)
-            return Refused("CA0404", f"{site} reached its cap of {cap} calls today.")
+            calls = "call" if cap == 1 else "calls"
+            return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.")
     if route.kind == "chatgpt" or route.model.startswith("chatgpt/"):
         # The gateway owns the plan's token, so LiteLLM never signs in inside a call (M5G.4).
         token = chatgpt.fresh_token()

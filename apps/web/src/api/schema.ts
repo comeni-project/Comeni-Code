@@ -1189,6 +1189,7 @@ export interface SiteUsageOut {
   calls: number;
   cost: string | null;
   label: string;
+  priced: "billed" | "plan" | "local";
   site: string;
 }
 export interface SubmitIn {

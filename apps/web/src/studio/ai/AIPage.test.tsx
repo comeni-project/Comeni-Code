@@ -82,8 +82,27 @@ const USAGE: UsageOut = {
   plan_calls: 1190,
   refused: 6,
   by_site: [
-    { site: "block-evaluation", label: "Block evaluation (judge)", calls: 610, cost: null },
-    { site: "figure-data", label: "Figure data and problems", calls: 10, cost: "4.20" },
+    {
+      site: "block-evaluation",
+      label: "Block evaluation (judge)",
+      calls: 610,
+      cost: null,
+      priced: "plan",
+    },
+    {
+      site: "figure-data",
+      label: "Figure data and problems",
+      calls: 10,
+      cost: "4.20",
+      priced: "billed",
+    },
+    {
+      site: "resource-suggestion",
+      label: "Resource suggestion",
+      calls: 1,
+      cost: null,
+      priced: "local",
+    },
   ],
   by_person: [{ name: "ada@example.org", calls: 520 }],
   recent: [
@@ -295,6 +314,9 @@ describe("Usage", () => {
     expect(
       within(screen.getByRole("row", { name: /Figure data/ })).getByText("$4.20"),
     ).toBeTruthy();
+    const local = screen.getByRole("row", { name: /Resource suggestion/ });
+    expect(within(local).getByText("local")).toBeTruthy();
+    expect(within(local).getByText("1 call")).toBeTruthy();
     await userEvent.click(screen.getByRole("radio", { name: "Today" }));
     expect(await screen.findByText("7")).toBeTruthy();
     const asked = fake.mock.calls.filter(([u]) => String(u).startsWith("/api/studio/ai/usage"));
