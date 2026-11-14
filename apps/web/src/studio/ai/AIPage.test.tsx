@@ -254,6 +254,66 @@ describe("Models", () => {
     );
   });
 
+  it("edits a connection: a new key, the old one kept when left empty (#458)", async () => {
+    const fake = open({ "PUT /api/studio/ai/connections/2": { body: SETTINGS } });
+    const row = await screen.findByRole("row", { name: /^Anthropic/ });
+    await userEvent.click(within(row).getByRole("button", { name: "Edit" }));
+    const form = screen.getByRole("group", { name: "Edit Anthropic" });
+    expect((within(form).getByLabelText("Name") as HTMLInputElement).value).toBe("Anthropic");
+    await userEvent.type(within(form).getByLabelText(/^New key/), "sk-new-9876");
+    await userEvent.click(within(form).getByRole("button", { name: "Save" }));
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/connections/2")[0]).toEqual({
+        name: "Anthropic",
+        key: "sk-new-9876",
+      }),
+    );
+    expect(screen.queryByRole("group", { name: "Edit Anthropic" })).toBeNull();
+    await userEvent.click(within(row).getByRole("button", { name: "Edit" }));
+    await userEvent.click(
+      within(screen.getByRole("group", { name: "Edit Anthropic" })).getByRole("button", {
+        name: "Save",
+      }),
+    );
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/connections/2")[1]).toEqual({
+        name: "Anthropic",
+      }),
+    );
+  });
+
+  it("shows call settings as saved after a new model clears them (#459)", async () => {
+    const tuned = {
+      ...SETTINGS,
+      sites: SETTINGS.sites.map((s) =>
+        s.key === "page-drafting" ? { ...s, temperature: 0.7, timeout: 30 } : s,
+      ),
+    };
+    const cleared = {
+      ...SETTINGS,
+      sites: SETTINGS.sites.map((s) =>
+        s.key === "page-drafting"
+          ? { ...s, same_as_default: false, connection: 1, model: "openai/qwen2.5:7b" }
+          : s,
+      ),
+    };
+    open({
+      "GET /api/studio/ai/settings": { body: tuned },
+      "PUT /api/studio/ai/sites/page-drafting": { body: cleared },
+    });
+    const row = await screen.findByRole("row", { name: /^Page drafting/ });
+    await userEvent.click(within(row).getByText("Call settings"));
+    expect((within(row).getByLabelText("Temperature") as HTMLInputElement).value).toBe("0.7");
+    await userEvent.selectOptions(
+      within(row).getByLabelText("Model for Page drafting"),
+      "1|openai/qwen2.5:7b",
+    );
+    await vi.waitFor(() =>
+      expect((within(row).getByLabelText("Temperature") as HTMLInputElement).value).toBe(""),
+    );
+    expect((within(row).getByLabelText("Timeout, seconds") as HTMLInputElement).value).toBe("");
+  });
+
   it("says why a site has no model, and greys the M7 sites", async () => {
     open();
     expect(await screen.findByText(/connection was removed: choose a model/)).toBeTruthy();

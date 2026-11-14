@@ -2,6 +2,7 @@
 import { getJson, sendJson } from "./client";
 import type {
   AISettingsOut,
+  ConnectionChangeIn,
   ConnectionIn,
   SignInOut,
   SignInStateOut,
@@ -16,6 +17,8 @@ export const fetchAISettings = (signal?: AbortSignal) =>
   getJson<AISettingsOut>(`${BASE}/settings`, signal);
 export const addConnection = (body: ConnectionIn) =>
   sendJson<AISettingsOut>("POST", `${BASE}/connections`, body);
+export const changeConnection = (id: number, body: ConnectionChangeIn) =>
+  sendJson<AISettingsOut>("PUT", `${BASE}/connections/${id}`, body);
 export const removeConnection = (id: number) =>
   sendJson<AISettingsOut>("DELETE", `${BASE}/connections/${id}`);
 export const testConnection = (id: number) =>

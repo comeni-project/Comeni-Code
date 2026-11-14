@@ -2,10 +2,16 @@
 // call settings per call site. A key is never shown: only that one is set.
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { addConnection, removeConnection, setSite, testConnection } from "../../api/ai";
+import {
+  addConnection,
+  changeConnection,
+  removeConnection,
+  setSite,
+  testConnection,
+} from "../../api/ai";
 import { sentenceOf } from "../../api/client";
 import { queryKeys, useAISettings } from "../../api/queries";
-import type { AISettingsOut, SiteOut } from "../../api/schema";
+import type { AISettingsOut, ConnectionOut, SiteOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { ChatGPTSignIn } from "./ChatGPTSignIn";
 import { Segmented } from "./Segmented";
@@ -70,6 +76,7 @@ type Run = (write: () => Promise<AISettingsOut>) => Promise<boolean>;
 
 function Connections({ state, run }: { state: AISettingsOut; run: Run }) {
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);
   return (
     <section className={PANEL} aria-labelledby="ai-connections">
       <div className="flex items-center justify-between gap-3 px-4 py-3">
@@ -90,7 +97,7 @@ function Connections({ state, run }: { state: AISettingsOut; run: Run }) {
       {state.connections.length > 0 && (
         <table className="w-full border-collapse text-left text-[13.5px]">
           <tbody>
-            {state.connections.map((c) => (
+            {state.connections.flatMap((c) => [
               <tr
                 key={`${c.id}:${c.name}`}
                 className={`border-t border-border ${c.locked ? "bg-bg" : ""}`}
@@ -132,6 +139,16 @@ function Connections({ state, run }: { state: AISettingsOut; run: Run }) {
                       >
                         Test
                       </button>
+                      {c.kind !== "chatgpt" && (
+                        <button
+                          type="button"
+                          className={BUTTON}
+                          aria-expanded={editing === c.id}
+                          onClick={() => setEditing(editing === c.id ? null : c.id)}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         type="button"
                         className={BUTTON}
@@ -142,12 +159,91 @@ function Connections({ state, run }: { state: AISettingsOut; run: Run }) {
                     </span>
                   )}
                 </td>
-              </tr>
-            ))}
+              </tr>,
+              editing === c.id && (
+                <tr key={`${c.id}:edit`} className="border-t border-border">
+                  <td colSpan={5} className="p-0">
+                    <EditConnection
+                      connection={c}
+                      state={state}
+                      run={run}
+                      onDone={() => setEditing(null)}
+                    />
+                  </td>
+                </tr>
+              ),
+            ])}
           </tbody>
         </table>
       )}
     </section>
+  );
+}
+
+/** A connection's name, endpoint or key changed (#458): a key that cannot be read is entered
+ * again here, and the sites that use the connection keep it. An empty key keeps the old one. */
+function EditConnection({
+  connection,
+  state,
+  run,
+  onDone,
+}: {
+  connection: ConnectionOut;
+  state: AISettingsOut;
+  run: Run;
+  onDone: () => void;
+}) {
+  const [name, setName] = useState(connection.name);
+  const [endpoint, setEndpoint] = useState(connection.endpoint);
+  const [key, setKey] = useState("");
+  const save = async () => {
+    const done = await run(() =>
+      changeConnection(connection.id, {
+        name,
+        ...(connection.kind === "self-hosted" ? { endpoint } : {}),
+        ...(key.trim() !== "" ? { key } : {}),
+      }),
+    );
+    if (done) onDone();
+  };
+  return (
+    <fieldset
+      aria-label={`Edit ${connection.name}`}
+      className="m-0 flex flex-wrap items-end gap-3 border-0 bg-bg px-4 py-4"
+    >
+      <label className="flex flex-col gap-1 text-[13px] font-medium">
+        Name
+        <input value={name} onChange={(e) => setName(e.target.value)} className={INPUT} />
+      </label>
+      {connection.kind === "self-hosted" ? (
+        <label className="flex min-w-[280px] flex-1 flex-col gap-1 text-[13px] font-medium">
+          Endpoint
+          <input
+            value={endpoint}
+            onChange={(e) => setEndpoint(e.target.value)}
+            className={`${INPUT} font-mono`}
+          />
+        </label>
+      ) : (
+        <label className="flex min-w-[280px] flex-1 flex-col gap-1 text-[13px] font-medium">
+          New key, or empty to keep {connection.key ?? "none"}
+          <input
+            type="password"
+            autoComplete="off"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            disabled={!state.settings_key_ready}
+            className={`${INPUT} font-mono`}
+          />
+        </label>
+      )}
+      <button type="button" className={BUTTON} onClick={save} disabled={name.trim() === ""}>
+        Save
+      </button>
+      <button type="button" className={BUTTON} onClick={onDone}>
+        Cancel
+      </button>
+    </fieldset>
   );
 }
 
@@ -369,7 +465,10 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
             className={`${INPUT} mt-1.5 block w-full max-w-[320px] font-mono text-[12.5px]`}
           />
         )}
-        {!later && <CallSettings site={site} save={save} />}
+        {/* keyed by the model: a new one clears its settings, and the fields start again (#459) */}
+        {!later && (
+          <CallSettings key={`${site.connection}|${site.model}`} site={site} save={save} />
+        )}
       </td>
       <td className="px-2 py-2.5 text-ink-2">{site.refused}</td>
       <td className="px-4 py-2.5">
