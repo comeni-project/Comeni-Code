@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AISettingsOut, UsageOut } from "../../api/schema";
-import { answering, renderAt, signedInAs } from "../../test-kit";
+import { answering, holding, renderAt, signedInAs } from "../../test-kit";
 import { pagesFor } from "../pages";
 import { AIPage } from "./AIPage";
 
@@ -296,6 +296,37 @@ describe("Sign in with ChatGPT", () => {
     const settled = polls();
     await act(() => vi.advanceTimersByTimeAsync(15000));
     expect(polls()).toBe(settled);
+  });
+
+  it("asks once at a time: the next ask waits for the last answer (#455)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const fake = open({
+      "POST /api/studio/ai/chatgpt/sign-in": {
+        body: {
+          user_code: "K7QF-9MZD",
+          link: "https://auth.openai.com/codex/device",
+          expires_at: 0,
+        },
+      },
+      "GET /api/studio/ai/chatgpt/sign-in": { body: { state: "signed-in" } },
+    });
+    const answer = holding(fake, "GET /api/studio/ai/chatgpt/sign-in");
+    await userEvent.click(await screen.findByRole("button", { name: "+ Add a connection" }));
+    await userEvent.click(screen.getByRole("radio", { name: "ChatGPT plan" }));
+    await userEvent.click(screen.getByRole("button", { name: "Sign in with ChatGPT" }));
+    await screen.findByText("K7QF-9MZD");
+    const polls = () =>
+      fake.mock.calls.filter(
+        ([u, init]) => u === "/api/studio/ai/chatgpt/sign-in" && (init?.method ?? "GET") === "GET",
+      ).length;
+    await act(() => vi.advanceTimersByTimeAsync(5000));
+    expect(polls()).toBe(1);
+    await act(() => vi.advanceTimersByTimeAsync(15000)); // the first ask is still out
+    expect(polls()).toBe(1);
+    await act(async () => answer({ body: { state: "signed-in" } }));
+    expect(await screen.findByText(/Signed in/)).toBeTruthy();
+    await act(() => vi.advanceTimersByTimeAsync(15000));
+    expect(polls()).toBe(1);
   });
 });
 

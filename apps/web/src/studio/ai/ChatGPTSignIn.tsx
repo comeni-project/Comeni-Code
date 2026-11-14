@@ -18,19 +18,32 @@ export function ChatGPTSignIn() {
 
   useEffect(() => {
     if (step.at !== "waiting") return;
-    const timer = window.setInterval(async () => {
+    // One ask at a time: the next is set only once the last has answered, and an answer that
+    // arrives after the page has moved on is ignored (#455).
+    let left = false;
+    let timer = 0;
+    const ask = async () => {
       try {
         const answer = await pollSignIn();
+        if (left) return;
         if (answer.state === "signed-in") {
           setStep({ at: "signed-in" });
           void client.invalidateQueries({ queryKey: queryKeys.ai });
+          return;
         }
       } catch (error) {
+        if (left) return;
         setTrouble(error instanceof Error ? sentenceOf(error) : String(error));
         setStep({ at: "start" });
+        return;
       }
-    }, POLL_MS);
-    return () => window.clearInterval(timer);
+      timer = window.setTimeout(ask, POLL_MS);
+    };
+    timer = window.setTimeout(ask, POLL_MS);
+    return () => {
+      left = true;
+      window.clearTimeout(timer);
+    };
   }, [step, client]);
 
   const begin = async () => {

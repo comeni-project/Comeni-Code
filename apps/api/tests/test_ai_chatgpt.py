@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from django import db
 
 from code_api.ai import chatgpt, gateway
 from code_api.ai.models import AICall, Connection, SiteSetting
@@ -23,7 +24,7 @@ ASK = [{"role": "user", "content": "say ok"}]
 def _folder(settings: Any, tmp_path: Path) -> Path:
     settings.CODE_AI_MODEL = None
     settings.CODE_AI_CHATGPT_DIR = tmp_path
-    redis_client().delete(chatgpt.ATTEMPT, chatgpt.LOCK)
+    redis_client().delete(chatgpt.ATTEMPT, chatgpt.LOCK, chatgpt.POLL_LOCK)
     return tmp_path
 
 
@@ -196,3 +197,76 @@ def test_a_lock_or_redis_failure_is_refused_not_raised(
         out = gateway.call("page-drafting", ASK, by=None, prompt_id="p@1")
         assert isinstance(out, Refused) and out.code == "CA0403"
     assert AICall.objects.filter(outcome="refused").count() == 2
+
+
+APPROVED = {"authorization_code": "auth-1", "code_challenge": "c", "code_verifier": "v"}
+
+
+def _waiting_attempt(monkeypatch: pytest.MonkeyPatch, auth: type) -> None:
+    monkeypatch.setattr(chatgpt, "_authenticator", auth)
+    assert not isinstance(chatgpt.start(), Refused)
+
+
+class Asks:
+    def _request_device_code(self) -> dict[str, str]:
+        return {"device_auth_id": "dev-1", "user_code": "K7QF-9MZD", "interval": "5"}
+
+
+def test_a_failed_exchange_or_a_reply_not_json_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#455: the poll answers in Code's words, never a 500."""
+
+    class Refuses(Asks):
+        def _exchange_code_for_tokens(self, code: dict[str, str]) -> dict[str, str]:
+            raise RuntimeError("Failed to exchange authorization code")
+
+    _waiting_attempt(monkeypatch, Refuses)
+    monkeypatch.setattr(chatgpt, "_post", lambda url, body: FakeResponse(200, APPROVED))
+    out = chatgpt.poll()
+    assert isinstance(out, Refused) and out.code == "CA0405"
+    assert redis_client().get(chatgpt.ATTEMPT) is None  # the code is spent: start again
+
+    class NotJson(FakeResponse):
+        def json(self) -> dict[str, Any]:
+            raise ValueError("Expecting value")
+
+    _waiting_attempt(monkeypatch, Refuses)
+    monkeypatch.setattr(chatgpt, "_post", lambda url, body: NotJson(200, {}))
+    out = chatgpt.poll()
+    assert isinstance(out, Refused) and out.code == "CA0405"
+
+
+@pytest.mark.django_db(transaction=True)  # the threads write the connection
+def test_a_poll_while_another_is_asking_waits(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#455: two polls at once exchange the code once; the other one says waiting."""
+    exchanged: list[str] = []
+
+    class Approves(Asks):
+        def _exchange_code_for_tokens(self, code: dict[str, str]) -> dict[str, str]:
+            exchanged.append(code["authorization_code"])
+            return {"access_token": "tok-9", "refresh_token": "ref-9", "id_token": "id-9"}
+
+        def _build_auth_record(self, tokens: dict[str, str]) -> dict[str, object]:
+            return {**tokens, "expires_at": time.time() + 3600}
+
+    _waiting_attempt(monkeypatch, Approves)
+
+    def slow(url: str, body: dict[str, Any]) -> FakeResponse:
+        time.sleep(0.3)
+        return FakeResponse(200, APPROVED)
+
+    monkeypatch.setattr(chatgpt, "_post", slow)
+    got: list[object] = []
+
+    def one_poll() -> None:
+        try:
+            got.append(chatgpt.poll())
+        finally:
+            db.connection.close()  # a thread's own connection, or the test database stays open
+
+    threads = [threading.Thread(target=one_poll) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert sorted(map(str, got)) == ["signed-in", "waiting"]
+    assert exchanged == ["auth-1"]

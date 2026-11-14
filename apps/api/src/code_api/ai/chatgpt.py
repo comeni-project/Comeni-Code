@@ -12,6 +12,7 @@ blocking loop, so no worker is held. Approved, the code is exchanged and the tok
 LiteLLM's private methods and constants are pinned with LiteLLM (test_ai_litellm_private.py).
 """
 
+import contextlib
 import json
 import os
 import tempfile
@@ -32,6 +33,7 @@ from code_api.redis import client as redis_client
 
 ATTEMPT = "ai:chatgpt:attempt"
 LOCK = "ai:chatgpt:token"
+POLL_LOCK = "ai:chatgpt:poll"
 ATTEMPT_SECONDS = 15 * 60
 EXPIRY_SKEW_SECONDS = 60
 NAME = "ChatGPT plan"
@@ -157,6 +159,22 @@ def start() -> SignIn | Refused:
 
 
 def poll() -> Literal["waiting", "signed-in"] | Refused:
+    """One ask whether the code was approved. Polls overlap (the page's, or two tabs'), so one
+    asks at a time and the others say waiting: a code is exchanged once (#455)."""
+    try:
+        asking = redis_client().lock(POLL_LOCK, timeout=60, blocking=False)
+        if not asking.acquire():
+            return "waiting"
+    except RedisError as error:
+        return Refused("CA0405", f"The sign-in could not be asked about now: {error}"[:300])
+    try:
+        return _ask()
+    finally:
+        with contextlib.suppress(RedisError):  # it expires on its own
+            asking.release()
+
+
+def _ask() -> Literal["waiting", "signed-in"] | Refused:
     raw = cast(bytes | None, redis_client().get(ATTEMPT))
     path = _auth_file()
     if raw is None or path is None:
@@ -171,14 +189,17 @@ def poll() -> Literal["waiting", "signed-in"] | Refused:
         return Refused("CA0405", str(error)[:500])
     if answer.status_code in (403, 404):
         return "waiting"  # the provider cannot tell "not yet" from "declined"
-    body = answer.json() if answer.status_code == 200 else {}
-    code = {k: body.get(k) for k in ("authorization_code", "code_challenge", "code_verifier")}
-    if not all(isinstance(value, str) and value for value in code.values()):
-        return Refused("CA0405", f"The sign-in answered {answer.status_code}.")
-    auth = _authenticator()
-    record = auth._build_auth_record(auth._exchange_code_for_tokens(code))
+    redis_client().delete(ATTEMPT)  # approved or refused, the code is spent
+    try:
+        body = answer.json() if answer.status_code == 200 else {}
+        code = {k: body.get(k) for k in ("authorization_code", "code_challenge", "code_verifier")}
+        if not all(isinstance(value, str) and value for value in code.values()):
+            return Refused("CA0405", f"The sign-in answered {answer.status_code}.")
+        auth = _authenticator()
+        record = auth._build_auth_record(auth._exchange_code_for_tokens(code))
+    except Exception as error:  # noqa: BLE001 — LiteLLM's or the provider's words
+        return Refused("CA0405", f"The sign-in failed: {error}"[:500])
     with redis_client().lock(LOCK, timeout=30, blocking_timeout=30):
         write_atomically(path, record)
-    redis_client().delete(ATTEMPT)
     Connection.objects.update_or_create(kind="chatgpt", defaults={"name": NAME, "ran_out": False})
     return "signed-in"
