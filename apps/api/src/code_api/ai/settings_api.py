@@ -2,6 +2,7 @@
 state, so a save needs no second read."""
 
 import re
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
@@ -243,6 +244,7 @@ def _try(row: Connection, model: str, request: HttpRequest) -> str:
     route = route_for(row, model)
     if isinstance(route, Refused):
         return route.sentence
+    route = replace(route, timeout=TEST_TIMEOUT)
     if route.model.startswith(CHATGPT_PREFIX):
         token = chatgpt.fresh_token()
         if isinstance(token, Refused):

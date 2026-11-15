@@ -124,6 +124,7 @@ def test_test_lists_models_and_records_a_call(
     shown = tested.json()["connections"][0]
     assert shown["models"] == ["openai/qwen2.5:7b"] and shown["status"] == "ok"
     assert asked[0].model == "openai/qwen2.5:7b"
+    assert asked[0].timeout == 20  # #462: Test has its own bounded timeout
     assert AICall.objects.get().prompt_id == "connection-test"
 
 
@@ -205,3 +206,4 @@ def test_a_hosted_connection_is_tested_through_a_model_a_site_chose(
     tested = post(operator, f"connections/{connection}/test", {})
     assert tested.json()["connections"][0]["status"] == "ok"
     assert [r.model for r in asked] == ["anthropic/claude-sonnet-5"]
+    assert asked[0].timeout == 20
