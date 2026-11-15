@@ -89,6 +89,15 @@ def _today() -> datetime:
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+def call_settings(route: Route) -> dict[str, Any]:
+    """The actual non-secret parameters sent; historical calls without this remain unknown."""
+    return {
+        "temperature": route.temperature,
+        "reasoning_effort": route.reasoning_effort,
+        "timeout": route.timeout or DEFAULT_TIMEOUT,
+    }
+
+
 def _record(site: str, by: User | None, route: Route, prompt_id: str, **fields: Any) -> AICall:
     return AICall.objects.create(
         site=site,
@@ -96,6 +105,7 @@ def _record(site: str, by: User | None, route: Route, prompt_id: str, **fields: 
         connection_name=route.connection_name,
         model=route.model,
         prompt_id=prompt_id,
+        call_settings=call_settings(route),
         **fields,
     )
 
