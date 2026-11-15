@@ -177,6 +177,8 @@ class ProblemKitOut(Schema):
 
 
 class DraftNodeOut(Schema):
+    provenance: dict[str, Any] | None = None
+
     title: str
     claim: str
     region: str
@@ -424,6 +426,7 @@ def _resource_out(r: Resource) -> StudioResourceOut:
 
 def node_out(node: Node, live: Mapping[str, ExamQuestion] | None = None) -> DraftNodeOut:
     return DraftNodeOut(
+        provenance=node.provenance,
         title=node.title,
         claim=node.claim,
         region=node.region,
@@ -617,6 +620,7 @@ class QueuedDraftOut(Schema):
 
 
 class ReviewOut(Schema):
+    provenance: dict[str, Any] | None = None
     revision: int
     items: list[ReviewItemOut]
 
@@ -687,7 +691,12 @@ def _review_item_out(item: Reviewed) -> ReviewItemOut:
 
 
 def review_out(sheet: Sheet) -> ReviewOut:
-    return ReviewOut(revision=sheet.revision, items=[_review_item_out(i) for i in sheet.items])
+    node = next((i.key.content for i in sheet.items if isinstance(i.key.content, Node)), None)
+    return ReviewOut(
+        revision=sheet.revision,
+        items=[_review_item_out(i) for i in sheet.items],
+        provenance=None if node is None else node.provenance,
+    )
 
 
 class EventOut(Schema):

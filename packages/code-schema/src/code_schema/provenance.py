@@ -6,7 +6,7 @@ import hashlib
 import json
 import re
 from collections.abc import Callable
-from dataclasses import asdict, is_dataclass, replace
+from dataclasses import fields, is_dataclass, replace
 from typing import TYPE_CHECKING, Any
 
 from code_schema.blocks import Figure, Image, ProblemBlock, Text, Try
@@ -33,7 +33,9 @@ def digest(value: Any) -> str:
 
 def _plain(value: Any) -> Any:
     if is_dataclass(value) and not isinstance(value, type):
-        return asdict(value)
+        return {f.name: _plain(getattr(value, f.name)) for f in fields(value) if f.compare}
+    if isinstance(value, dict):
+        return {k: _plain(v) for k, v in value.items()}
     if isinstance(value, tuple | list):
         return [_plain(v) for v in value]
     return value

@@ -88,6 +88,7 @@ def test_a_node_comes_with_the_three_kinds_of_link(client: Client) -> None:
     body = response.json()
     assert body == {
         "id": "salmon",
+        "provenance": None,
         "title": "Salmon",
         "claim": salmon.claim,
         "region": {"id": "transcriptomics", "name": "Transcriptomics"},

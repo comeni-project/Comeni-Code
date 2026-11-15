@@ -89,6 +89,7 @@ def _node_rows(content: Content) -> list[Node]:
             minutes=node.minutes,
             blocks=[block_json(block) for block in node.blocks],
             folder=content.folders[node.id],
+            provenance=node.provenance,
         )
         for node in content.nodes.values()
     ]

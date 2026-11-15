@@ -188,6 +188,7 @@ def node(node_id: str) -> NodeOut | None:
         if option.get("figure")
     }
     return NodeOut(
+        provenance=found.provenance,
         id=found.id,
         title=found.title,
         claim=found.claim,
