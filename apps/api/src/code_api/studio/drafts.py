@@ -10,6 +10,7 @@ a stale one is refused (optimistic concurrency, M4W.0).
 import hashlib
 from collections.abc import Callable, Container, Mapping
 from dataclasses import dataclass, field
+from typing import Any
 
 from django.db import IntegrityError, connection, transaction
 
@@ -24,6 +25,8 @@ from code_api.content.snapshot import (
     providers_from_index,
     regions_from_index,
 )
+from code_api.studio.ai_origins import require_mapping
+from code_api.studio.ai_origins import snapshot as origin_snapshot
 from code_api.studio.log import record
 from code_api.studio.models import LIVE_STATES, Asset, Draft, DraftEvent, Revision
 from code_schema import Level, Node, Problem, parse_node_files
@@ -33,6 +36,7 @@ from code_schema.graph import graph_problems
 from code_schema.images import sniff
 from code_schema.links import locate_links
 from code_schema.node import NODE_FILE
+from code_schema.provenance import write_provenance
 from code_schema.question_rules import question_checks
 from code_schema.writer import write_exam_yaml, write_node_yaml
 
@@ -106,6 +110,7 @@ def _read(
     images: Mapping[str, bytes] | None = None,
     figures: Mapping[str, str] | None = None,
     problem: str = "",
+    provenance: dict[str, Any] | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """The draft's files read as CI reads a node folder, against the index's registries."""
     return parse_node_files(
@@ -119,6 +124,7 @@ def _read(
         images={} if images is None else images,
         figures=figures,
         problem_yaml=problem or None,
+        provenance_json=None if provenance is None else write_provenance(provenance),
     )
 
 
@@ -170,6 +176,7 @@ def node_of(draft: Draft, revision: Revision | None = None) -> tuple[Node | None
         images_of(shown),
         shown.figures,
         shown.problem_yaml,
+        shown.provenance,
     )
 
 
@@ -193,7 +200,9 @@ def _start(
     node_yaml, body, exam = _files(node)
     figures = figure_texts(node.figures)
     problem = _problem_text(node)
-    _, problems = _read(node.id, folder, node_yaml, body, exam, images or {}, figures, problem)
+    _, problems = _read(
+        node.id, folder, node_yaml, body, exam, images or {}, figures, problem, node.provenance
+    )
     if any(problem.refuses for problem in problems):
         raise Refused(problems)
     try:
@@ -210,6 +219,8 @@ def _start(
                 problem_yaml=problem,
                 images=_stored(images or {}),
                 figures=figures,
+                provenance=node.provenance,
+                origins=origin_snapshot(node),
                 saved_by=by,
                 change=change,
             )
@@ -299,7 +310,9 @@ def save(
         node, problems = node_of(locked, current)
         if node is None:
             raise Refused(problems)  # it no longer reads against today's registries
-        edited = without_unplaced_figures(edit(node))
+        edited = edit(node)
+        require_mapping(node, edited)
+        edited = without_unplaced_figures(edited)
         node_yaml, body, exam = _files(edited)
         files = images_of(current)
         for name, data in (images or {}).items():
@@ -310,7 +323,15 @@ def save(
         figures = figure_texts(edited.figures)
         problem = _problem_text(edited)
         again, problems = _read(
-            locked.node_id, locked.folder, node_yaml, body, exam, files, figures, problem
+            locked.node_id,
+            locked.folder,
+            node_yaml,
+            body,
+            exam,
+            files,
+            figures,
+            problem,
+            edited.provenance,
         )
         if any(problem.refuses for problem in problems):
             raise Refused(problems)
@@ -327,6 +348,8 @@ def save(
             problem_yaml=problem,
             images=_stored(files),
             figures=figures,
+            provenance=edited.provenance,
+            origins=origin_snapshot(edited),
             saved_by=by,
             change=change,
         )

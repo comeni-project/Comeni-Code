@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -73,6 +73,7 @@ class Node:
     problem: ProblemFile | None = None  # problem.yaml, placed by one :::{problem} (M6PR.3)
 
     provenance: dict[str, Any] | None = None
+    origin_mapped: bool = field(default=False, compare=False, repr=False)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
