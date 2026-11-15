@@ -32,7 +32,11 @@ def digest(value: Any) -> str:
 
 
 def _plain(value: Any) -> Any:
-    return asdict(value) if is_dataclass(value) and not isinstance(value, type) else value
+    if is_dataclass(value) and not isinstance(value, type):
+        return asdict(value)
+    if isinstance(value, tuple | list):
+        return [_plain(v) for v in value]
+    return value
 
 
 def items(node: Node) -> dict[str, Any]:
@@ -45,7 +49,17 @@ def items(node: Node) -> dict[str, Any]:
     questions = {q.id: q for q in node.questions}
     result: dict[str, Any] = {
         "node": {
-            k: _plain(getattr(node, k)) for k in ("title", "claim", "region", "level", "minutes")
+            k: _plain(getattr(node, k))
+            for k in (
+                "title",
+                "claim",
+                "region",
+                "level",
+                "minutes",
+                "needs",
+                "goes_deeper",
+                "related",
+            )
         }
     }
     for at, block in enumerate(node.blocks):
