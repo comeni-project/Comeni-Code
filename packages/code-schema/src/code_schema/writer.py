@@ -17,6 +17,7 @@ from code_schema.images import IMAGE_FIELD, ImageRecord
 from code_schema.links import Link
 from code_schema.node import BODY_FILE, NODE_FILE, SCHEMA, Node
 from code_schema.problem_file import PROBLEM_FILE
+from code_schema.provenance import PROVENANCE_FILE, write_provenance
 from code_schema.questions import (
     TRY_FIELD,
     Answer,
@@ -191,6 +192,11 @@ def write_node_folder(node: Node, folder: Path) -> None:
     its pool, and writing it would delete a reviewed one (#150).
     """
     folder.mkdir(parents=True, exist_ok=True)
+    receipt = folder / PROVENANCE_FILE
+    if node.provenance is None:
+        receipt.unlink(missing_ok=True)
+    else:
+        receipt.write_text(write_provenance(node.provenance), encoding="utf-8", newline="\n")
     (folder / NODE_FILE).write_text(write_node_yaml(node), encoding="utf-8", newline="\n")
     (folder / BODY_FILE).write_text(node.body, encoding="utf-8", newline="")
     exam = folder / EXAM_FILE

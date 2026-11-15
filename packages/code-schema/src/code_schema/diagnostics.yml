@@ -29,6 +29,7 @@ bands:
   - {first: CS0900, last: CS0999, concern: images}
   - {first: CS1000, last: CS1099, concern: figures}
   - {first: CS1100, last: CS1199, concern: problems}
+  - {first: CS1200, last: CS1299, concern: provenance}
   - {first: CW0001, last: CW0099, concern: routes}
   - {first: CW0100, last: CW0199, concern: find}
   - {first: CA0001, last: CA0099, concern: index}
@@ -3199,3 +3200,43 @@ codes:
       Change it in .env and restart, or remove it there to set it on the AI page.
     explanation: |
       .env's model, key and endpoint win over the page (M5G.3), as in Labs: a lock, not a seed.
+
+  CS1200:
+    emitted_by: schema
+    concern: provenance
+    says: invalid provenance JSON
+    refuses: true
+    fix: |
+      Use JSON without duplicate keys or non-finite numbers.
+    explanation: |
+      Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+  CS1201:
+    emitted_by: schema
+    concern: provenance
+    says: invalid public provenance format
+    refuses: true
+    fix: |
+      Use version 1 and only the public receipt fields; keep private draft evidence in Studio.
+    explanation: |
+      Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+  CS1202:
+    emitted_by: schema
+    concern: provenance
+    says: provenance does not match its content
+    refuses: true
+    fix: |
+      Update the receipt binding with the content edit, or remove the stale origin.
+    explanation: |
+      Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+  CS1203:
+    emitted_by: schema
+    concern: provenance
+    says: invalid receipt or source reference
+    refuses: true
+    fix: |
+      Reference an existing receipt UUID and a valid source hash.
+    explanation: |
+      Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).

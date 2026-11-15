@@ -1780,6 +1780,40 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A hint leaves work for the learner (T6.2); the sample's answer in a hint gives it away.
 
+### CS1200–CS1299 · provenance
+
+#### CS1200 — invalid provenance JSON
+
+*Refuses.*
+
+**Fix.** Use JSON without duplicate keys or non-finite numbers.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1201 — invalid public provenance format
+
+*Refuses.*
+
+**Fix.** Use version 1 and only the public receipt fields; keep private draft evidence in Studio.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1202 — provenance does not match its content
+
+*Refuses.*
+
+**Fix.** Update the receipt binding with the content edit, or remove the stale origin.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1203 — invalid receipt or source reference
+
+*Refuses.*
+
+**Fix.** Reference an existing receipt UUID and a valid source hash.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes
