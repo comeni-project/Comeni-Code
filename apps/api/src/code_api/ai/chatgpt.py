@@ -81,9 +81,13 @@ def write_atomically(path: Path, data: dict[str, Any]) -> None:
     """A temporary file in the same folder, renamed over the old one: a reader never sees half."""
     path.parent.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=".auth-")
-    with os.fdopen(handle, "w", encoding="utf-8") as out:
-        json.dump(data, out)
-    os.replace(temporary, path)
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as out:
+            json.dump(data, out)
+        os.replace(temporary, path)
+    finally:
+        with contextlib.suppress(OSError):
+            Path(temporary).unlink(missing_ok=True)
 
 
 def _expired(data: dict[str, Any]) -> bool:
@@ -128,7 +132,10 @@ def fresh_token() -> str | Refused:
         return str(data["access_token"])
     try:
         return _refreshed_under_lock()
-    except RedisError as error:  # the lock not had in time, or Redis down: refused, not raised
+    except (
+        RedisError,
+        OSError,
+    ) as error:  # the token cannot be locked or kept: refused, not raised
         return Refused("CA0403", f"The ChatGPT sign-in could not be refreshed now: {error}"[:300])
 
 
@@ -151,11 +158,11 @@ def start() -> SignIn | Refused:
         return NO_FOLDER
     try:
         code = _authenticator()._request_device_code()
+        expires_at = time.time() + ATTEMPT_SECONDS
+        attempt = {**code, "expires_at": expires_at}
+        redis_client().set(ATTEMPT, json.dumps(attempt), ex=ATTEMPT_SECONDS)
     except Exception as error:  # noqa: BLE001 — LiteLLM's own error, in its words
         return Refused("CA0405", str(error)[:500])
-    expires_at = time.time() + ATTEMPT_SECONDS
-    attempt = {**code, "expires_at": expires_at}
-    redis_client().set(ATTEMPT, json.dumps(attempt), ex=ATTEMPT_SECONDS)
     return SignIn(code["user_code"], litellm_chatgpt.CHATGPT_DEVICE_VERIFY_URL, expires_at)
 
 
@@ -170,6 +177,8 @@ def poll() -> Literal["waiting", "signed-in"] | Refused:
         return Refused("CA0405", f"The sign-in could not be asked about now: {error}"[:300])
     try:
         return _ask()
+    except (RedisError, OSError) as error:
+        return Refused("CA0405", f"The sign-in could not be kept now: {error}"[:300])
     finally:
         with contextlib.suppress(RedisError):  # it expires on its own
             asking.release()

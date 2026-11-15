@@ -3,6 +3,7 @@ never signs in inside a call; the page drives the sign-in one poll at a time; th
 atomically under a lock. HTTP is faked; Redis is Compose's."""
 
 import json
+import os
 import threading
 import time
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any, cast
 
 import pytest
 from django import db
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from code_api.ai import chatgpt, gateway
 from code_api.ai.models import AICall, Connection, SiteSetting
@@ -271,3 +273,96 @@ def test_a_poll_while_another_is_asking_waits(monkeypatch: pytest.MonkeyPatch) -
         thread.join()
     assert sorted(map(str, got)) == ["signed-in", "waiting"]
     assert exchanged == ["auth-1"]
+
+
+def test_start_refuses_when_redis_cannot_keep_the_attempt(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#464: a requested code without stored state must not be presented as usable."""
+    monkeypatch.setattr(chatgpt, "_authenticator", Asks)
+
+    class Down:
+        def set(self, *args: Any, **kwargs: Any) -> None:
+            raise RedisConnectionError("down")
+
+    monkeypatch.setattr(chatgpt, "redis_client", Down)
+    out = chatgpt.start()
+    assert isinstance(out, Refused) and out.code == "CA0405"
+
+
+@pytest.mark.parametrize("at", ["get", "delete", "lock", "write"])
+def test_poll_refuses_when_sign_in_cannot_be_kept(monkeypatch: pytest.MonkeyPatch, at: str) -> None:
+    """#464: Redis loss and an unwritable token folder are refusals, never server errors."""
+
+    class Approves(Asks):
+        def _exchange_code_for_tokens(self, code: dict[str, str]) -> dict[str, str]:
+            return {"access_token": "tok-9"}
+
+        def _build_auth_record(self, tokens: dict[str, str]) -> dict[str, object]:
+            return {**tokens, "expires_at": time.time() + 3600}
+
+    _waiting_attempt(monkeypatch, Approves)
+    monkeypatch.setattr(chatgpt, "_post", lambda url, body: FakeResponse(200, APPROVED))
+    client = redis_client()
+
+    def down(*args: Any, **kwargs: Any) -> Any:
+        raise RedisConnectionError("down")
+
+    if at in ("get", "delete"):
+        monkeypatch.setattr(client, at, down)
+    elif at == "lock":
+        lock = client.lock
+
+        def token_lock(name: str, **kwargs: Any) -> Any:
+            return down() if name == chatgpt.LOCK else lock(name, **kwargs)
+
+        monkeypatch.setattr(client, "lock", token_lock)
+    else:
+
+        def unwritable(*args: Any, **kwargs: Any) -> None:
+            raise PermissionError("read-only folder")
+
+        monkeypatch.setattr(chatgpt, "write_atomically", unwritable)
+    out = chatgpt.poll()
+    assert isinstance(out, Refused) and out.code == "CA0405"
+    assert not Connection.objects.filter(kind="chatgpt").exists()
+
+
+def test_refresh_refuses_when_the_token_cannot_be_written(
+    _folder: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#464: gateway callers need no file-system exception handling."""
+    write_token(_folder, expires_in=-10)
+    monkeypatch.setattr(
+        chatgpt,
+        "_post",
+        lambda url, body: FakeResponse(
+            200,
+            {
+                "access_token": "tok-2",
+                "id_token": "id-2",
+            },
+        ),
+    )
+
+    def unwritable(*args: Any, **kwargs: Any) -> None:
+        raise PermissionError("read-only folder")
+
+    monkeypatch.setattr(chatgpt, "write_atomically", unwritable)
+    out = chatgpt.fresh_token()
+    assert isinstance(out, Refused) and out.code == "CA0403"
+
+
+def test_a_failed_atomic_replace_leaves_no_temporary_token(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """#464: a failed replacement leaves the previous complete token and no secret temp file."""
+    target = tmp_path / "auth.json"
+    target.write_text('{"access_token": "old"}')
+
+    def unwritable(*args: Any, **kwargs: Any) -> None:
+        raise PermissionError("read-only folder")
+
+    monkeypatch.setattr(os, "replace", unwritable)
+    with pytest.raises(PermissionError):
+        chatgpt.write_atomically(target, {"access_token": "new"})
+    assert json.loads(target.read_text()) == {"access_token": "old"}
+    assert list(tmp_path.iterdir()) == [target]
