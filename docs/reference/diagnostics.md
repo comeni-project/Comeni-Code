@@ -2449,3 +2449,77 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Change it in .env and restart, or remove it there to set it on the AI page.
 
 **Why.** .env's model, key and endpoint win over the page (M5G.3), as in Labs: a lock, not a seed.
+
+### CA0500–CA0599 · drafting
+
+#### CA0500 — unsupported drafting target or operation
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0501 — invalid drafting source or candidate reference
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0502 — invalid proposed content
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0503 — unresolved human-edit conflicts
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0504 — missing or ambiguous AI baseline
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0505 — drafting interrupted
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0506 — figure working copy changed
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0507 — invalid proposal transition
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0508 — prompt version unavailable
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).

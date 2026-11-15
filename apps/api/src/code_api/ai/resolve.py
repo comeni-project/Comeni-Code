@@ -18,6 +18,7 @@ ENV_NAME = "From .env"
 class Refused:
     code: str  # CA04xx
     sentence: str
+    call_id: int | None = None
 
 
 @dataclass(frozen=True)

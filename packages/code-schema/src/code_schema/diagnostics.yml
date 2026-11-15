@@ -37,6 +37,7 @@ bands:
   - {first: CA0200, last: CA0299, concern: drafts}
   - {first: CA0300, last: CA0399, concern: landing}
   - {first: CA0400, last: CA0499, concern: ai}
+  - {first: CA0500, last: CA0599, concern: drafting}
 
 codes:
 
@@ -3240,3 +3241,93 @@ codes:
       Reference an existing receipt UUID and a valid source hash.
     explanation: |
       Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+  CA0500:
+    emitted_by: api
+    concern: drafting
+    says: unsupported drafting target or operation
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0501:
+    emitted_by: api
+    concern: drafting
+    says: invalid drafting source or candidate reference
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0502:
+    emitted_by: api
+    concern: drafting
+    says: invalid proposed content
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0503:
+    emitted_by: api
+    concern: drafting
+    says: unresolved human-edit conflicts
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0504:
+    emitted_by: api
+    concern: drafting
+    says: missing or ambiguous AI baseline
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0505:
+    emitted_by: api
+    concern: drafting
+    says: drafting interrupted
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0506:
+    emitted_by: api
+    concern: drafting
+    says: figure working copy changed
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0507:
+    emitted_by: api
+    concern: drafting
+    says: invalid proposal transition
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+  CA0508:
+    emitted_by: api
+    concern: drafting
+    says: prompt version unavailable
+    refuses: true
+    fix: |
+      Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+    explanation: |
+      AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).

@@ -47,3 +47,17 @@ def follow_main() -> None:
     source = follow.configured_source()
     if source is not None:
         follow.follow(source)
+
+
+@shared_task(name="code_api.studio.tasks.draft_with_ai")
+def draft_with_ai(public_id: str) -> None:
+    from code_api.studio.ai_drafting import run
+
+    run(public_id)
+
+
+@shared_task(name="code_api.studio.tasks.expire_ai_proposals")
+def expire_ai_proposals() -> None:
+    from code_api.studio.ai_drafting import expire
+
+    expire()

@@ -137,22 +137,26 @@ def call(
     if cap is not None:
         used = AICall.objects.filter(site=site, outcome="answered", at__gte=_today()).count()
         if used >= cap:
-            _record(site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft)
+            record = _record(
+                site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft
+            )
             calls = "call" if cap == 1 else "calls"
-            return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.")
+            return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.", record.pk)
     if route.model.startswith(CHATGPT_PREFIX):
         # The gateway owns the plan's token, so LiteLLM never signs in inside a call (M5G.4).
         token = chatgpt.fresh_token()
         if isinstance(token, Refused):
-            _record(site, by, route, prompt_id, outcome="refused", code=token.code, draft=draft)
-            return token
+            record = _record(
+                site, by, route, prompt_id, outcome="refused", code=token.code, draft=draft
+            )
+            return Refused(token.code, token.sentence, record.pk)
     started = time.monotonic()
     try:
         done = transport(route, messages)
     except Exception as error:  # noqa: BLE001 — the provider's refusal, in its words
         took = round((time.monotonic() - started) * 1000)
         said = str(error)[:500] or type(error).__name__
-        _record(
+        record = _record(
             site,
             by,
             route,
@@ -162,13 +166,13 @@ def call(
             duration_ms=took,
             draft=draft,
         )
-        return Refused("CA0405", said)
+        return Refused("CA0405", said, record.pk)
     took = round((time.monotonic() - started) * 1000)
     value = None
     if reply is not None:
         value = _parsed(done.text, reply)
         if value is None:
-            _record(
+            record = _record(
                 site,
                 by,
                 route,
@@ -181,7 +185,7 @@ def call(
                 cost=done.cost,
                 draft=draft,
             )
-            return Refused("CA0406", "The reply was not in the shape asked for.")
+            return Refused("CA0406", "The reply was not in the shape asked for.", record.pk)
     record = _record(
         site,
         by,

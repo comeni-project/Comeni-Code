@@ -163,6 +163,10 @@ WATCH_LANDINGS_SECONDS = 120
 # Seconds between looks at the content repository's main (M4F.4).
 FOLLOW_SECONDS = 300
 CELERY_BEAT_SCHEDULE = {
+    "studio-expire-ai-proposals": {
+        "task": "code_api.studio.tasks.expire_ai_proposals",
+        "schedule": 60,
+    },
     "health-heartbeat": {
         "task": "code_api.health.tasks.heartbeat",
         "schedule": HEARTBEAT_INTERVAL_SECONDS,
