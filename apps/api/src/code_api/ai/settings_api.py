@@ -306,16 +306,25 @@ def set_site(request: HttpRequest, key: str, body: SiteIn) -> AISettingsOut | St
             refused = route_for(connection, body.model)
             if isinstance(refused, Refused):
                 return _refused(422, refused)
+    same_as_default = body.same_as_default and key != "default"
+    model = "" if same_as_default else body.model
+    previous = SiteSetting.objects.filter(site=key).first()
+    changed_model = previous is not None and (
+        previous.same_as_default,
+        previous.connection_id,
+        previous.model,
+    ) != (same_as_default, None if connection is None else connection.pk, model)
     SiteSetting.objects.update_or_create(
         site=key,
         defaults={
-            "same_as_default": body.same_as_default and key != "default",
+            "same_as_default": same_as_default,
             "connection": connection,
-            "model": body.model,
+            "model": model,
             "cap": body.cap,
-            "temperature": body.temperature,
-            "reasoning_effort": body.reasoning_effort,
-            "timeout": body.timeout,
+            # Settings belong to the selected model, including typed hosted models (#463).
+            "temperature": None if changed_model else body.temperature,
+            "reasoning_effort": "" if changed_model else body.reasoning_effort,
+            "timeout": None if changed_model else body.timeout,
         },
     )
     return state()

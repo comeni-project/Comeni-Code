@@ -366,6 +366,16 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
   const current = site.same_as_default ? "same" : `${site.connection ?? 0}|${site.model}`;
   const save = (change: Partial<SiteOut>) => {
     const next = { ...site, ...change };
+    // Each way of choosing another model starts from its defaults (M5G.5, issue 463).
+    if (
+      next.same_as_default !== site.same_as_default ||
+      next.connection !== site.connection ||
+      next.model !== site.model
+    ) {
+      next.temperature = null;
+      next.reasoning_effort = "";
+      next.timeout = null;
+    }
     return run(() =>
       setSite(site.key, {
         same_as_default: next.same_as_default,
@@ -396,14 +406,10 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
       return Promise.resolve(true);
     }
     setTyping(null);
-    // A setting one model takes, another may refuse: a new model starts from the defaults (M5G.5).
     return save({
       same_as_default: false,
       connection: Number(id) || null,
       model,
-      temperature: null,
-      reasoning_effort: "",
-      timeout: null,
     });
   };
   const typingName = hosted.find((c) => c.id === typing)?.name;
@@ -458,7 +464,10 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
             placeholder="provider/model"
             onChange={(e) => setTyped(e.target.value)}
             onBlur={() => {
-              if (typed.trim() !== "" && typed !== site.model) {
+              if (
+                typed.trim() !== "" &&
+                (typed.trim() !== site.model || typing !== site.connection || site.same_as_default)
+              ) {
                 void save({ same_as_default: false, connection: typing, model: typed.trim() });
               }
             }}
@@ -467,7 +476,11 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
         )}
         {/* keyed by the model: a new one clears its settings, and the fields start again (#459) */}
         {!later && (
-          <CallSettings key={`${site.connection}|${site.model}`} site={site} save={save} />
+          <CallSettings
+            key={`${site.same_as_default}|${site.connection}|${site.model}`}
+            site={site}
+            save={save}
+          />
         )}
       </td>
       <td className="px-2 py-2.5 text-ink-2">{site.refused}</td>

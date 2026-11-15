@@ -254,6 +254,65 @@ describe("Models", () => {
     );
   });
 
+  it.each(["hosted", "default"])("clears call settings when switching to %s (#463)", async (to) => {
+    const tuned = {
+      ...SETTINGS,
+      sites: SETTINGS.sites.map((s) =>
+        s.key === "page-drafting"
+          ? {
+              ...s,
+              same_as_default: false,
+              connection: 1,
+              model: "openai/qwen2.5:7b",
+              temperature: 0.7,
+              reasoning_effort: "high",
+              timeout: 30,
+            }
+          : s,
+      ),
+    };
+    const cleared = {
+      ...SETTINGS,
+      sites: SETTINGS.sites.map((s) =>
+        s.key !== "page-drafting"
+          ? s
+          : {
+              ...s,
+              same_as_default: to === "default",
+              connection: to === "default" ? null : 2,
+              model: to === "default" ? "" : "anthropic/claude-sonnet-5",
+            },
+      ),
+    };
+    const fake = open({
+      "GET /api/studio/ai/settings": { body: tuned },
+      "PUT /api/studio/ai/sites/page-drafting": { body: cleared },
+    });
+    const row = await screen.findByRole("row", { name: /^Page drafting/ });
+    await userEvent.click(within(row).getByText("Call settings"));
+    await userEvent.selectOptions(
+      within(row).getByLabelText("Model for Page drafting"),
+      to === "default" ? "same" : "2|",
+    );
+    if (to === "hosted") {
+      await userEvent.type(
+        within(row).getByLabelText("Anthropic model for Page drafting"),
+        "anthropic/claude-sonnet-5",
+      );
+      await userEvent.tab();
+    }
+    await vi.waitFor(() =>
+      expect(bodyOf(fake, "PUT", "/api/studio/ai/sites/page-drafting").at(-1)).toMatchObject({
+        temperature: null,
+        reasoning_effort: "",
+        timeout: null,
+      }),
+    );
+    await vi.waitFor(() =>
+      expect((within(row).getByLabelText("Temperature") as HTMLInputElement).value).toBe(""),
+    );
+  });
+
   it("edits a connection: a new key, the old one kept when left empty (#458)", async () => {
     const fake = open({ "PUT /api/studio/ai/connections/2": { body: SETTINGS } });
     const row = await screen.findByRole("row", { name: /^Anthropic/ });

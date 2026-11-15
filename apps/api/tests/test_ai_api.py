@@ -10,7 +10,7 @@ from django.test import Client
 from code_api.accounts.models import User
 from code_api.ai import gateway, settings_api
 from code_api.ai.gateway import Completion
-from code_api.ai.models import AICall, Connection
+from code_api.ai.models import AICall, Connection, SiteSetting
 from code_api.ai.resolve import Route
 
 pytestmark = pytest.mark.django_db
@@ -207,3 +207,41 @@ def test_a_hosted_connection_is_tested_through_a_model_a_site_chose(
     assert tested.json()["connections"][0]["status"] == "ok"
     assert [r.model for r in asked] == ["anthropic/claude-sonnet-5"]
     assert asked[0].timeout == 20
+
+
+@pytest.mark.parametrize("change", ["model", "connection", "same_as_default", "cap"])
+def test_changing_the_model_clears_settings_but_a_cap_change_keeps_them(
+    operator: Client, change: str
+) -> None:
+    """#463: settings belong to the chosen model, including a typed hosted model or default."""
+    first = Connection.objects.create(name="One", kind="hosted", key_sealed=b"unused")
+    second = Connection.objects.create(name="Two", kind="hosted", key_sealed=b"unused")
+    SiteSetting.objects.create(
+        site="page-drafting",
+        same_as_default=False,
+        connection=first,
+        model="openai/one",
+        temperature=0.7,
+        reasoning_effort="high",
+        timeout=30,
+    )
+    body: dict[str, Any] = {
+        "same_as_default": False,
+        "connection": first.pk,
+        "model": "openai/one",
+        "temperature": 0.7,
+        "reasoning_effort": "high",
+        "timeout": 30,
+    }
+    changes: dict[str, dict[str, Any]] = {
+        "model": {"model": "openai/two"},
+        "connection": {"connection": second.pk},
+        "same_as_default": {"same_as_default": True, "connection": None, "model": ""},
+        "cap": {"cap": 8},
+    }
+    body.update(changes[change])
+    answer = put(operator, "sites/page-drafting", body)
+    assert answer.status_code == 200, answer.content
+    kept = SiteSetting.objects.get(site="page-drafting")
+    tuning = (kept.temperature, kept.reasoning_effort, kept.timeout)
+    assert tuning == ((0.7, "high", 30) if change == "cap" else (None, "", None))
