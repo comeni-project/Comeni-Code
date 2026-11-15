@@ -1,7 +1,7 @@
 # M5.1 — The gateway and the AI settings
 
-**Status: implemented; reviewed 2026-11-15. The operator's real ChatGPT sign-in (M5G.9.5)
-and publication remain.** Part of M5 (#445), issue #446. Designed with the operator on
+**Status: implemented; reviewed 2026-11-15. Publication approved; live ChatGPT sign-in is not an
+acceptance gate (operator decision, 2026-11-15).** Part of M5 (#445), issue #446. Designed with the operator on
 2026-11-13, from Labs' way of connecting models (read at `73f0052`, not imported: its settings
 spec `docs/superpowers/specs/2026-10-01-settings-design.md` §3, §6, §8, and
 `packages/comeni-ai`) and the boards at https://claude.ai/artifact/5zvkHY3awfkW9CCimEn1GS
@@ -187,13 +187,17 @@ for · CA0407 a locked setting. Each in `diagnostics.yml` with `explain` and a t
    model shows as *From .env*, locked.
 4. A site at its cap refuses CA0404 and the refusal is recorded; Usage shows the counts.
 5. The ChatGPT sign-in: the code and link shown, approval polled one ask at a time, the token written
-   atomically, the connection added and tested (walked by the operator with a real plan; the steps
-   unit-tested with HTTP faked). A missing token refuses CA0403 without calling LiteLLM; a failed
+   atomically, the connection added and tested (the steps unit-tested with HTTP faked; a live plan
+   sign-in is not required for acceptance). A missing token refuses CA0403 without calling LiteLLM; a failed
    refresh marks *Sign-in ran out*. The private-method test passes on the pinned version.
 6. The AI page matches the boards, walked at 1440 light and dark.
 
 ## Decisions, and the alternatives rejected
 
+- **Live ChatGPT sign-in is not an acceptance gate** (operator, 2026-11-15). Keep the automated
+  HTTP-faked sign-in, refresh and refusal tests; proceed without signing in to a real plan now.
+  Rejected: holding M5.1 for a manual live sign-in. The operator judged that a live failure would
+  be apparent when the feature is used. No live sign-in result is claimed.
 - **LiteLLM in process, in one module.** Rejected: the LiteLLM proxy as a Compose service, which
   duplicates the page's records and adds a database and keys to run.
 - **Caps in calls.** Rejected: caps in money now: a plan or a self-hosted server has no price.
