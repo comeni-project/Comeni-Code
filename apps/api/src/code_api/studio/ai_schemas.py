@@ -1,5 +1,6 @@
 """Closed drafting input/output shapes; they grant no tool or publication authority."""
 
+from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
@@ -47,3 +48,31 @@ class CreateProposalIn(Schema):
 class AcceptProposalIn(Schema):
     based_on: int = Field(ge=1)
     resolutions: dict[str, Any] = Field(default_factory=dict)
+
+
+class ProposalOut(Schema):
+    public_id: UUID
+    kind: Literal["block", "resource", "figure"]
+    target: str
+    base_revision: int
+    state: Literal["queued", "running", "ready", "refused", "failed", "accepted", "discarded"]
+    instruction: str
+    current: dict[str, Any]
+    raw: dict[str, Any] | None
+    candidate: dict[str, Any] | None
+    sources: list[dict[str, Any]]
+    candidates: list[dict[str, Any]]
+    conflicts: list[dict[str, Any]]
+    findings: list[dict[str, Any]]
+    code: str
+    detail: str
+    receipt: dict[str, Any] | None
+    copy_digest: str
+    accepted_revision: int | None
+    created_at: datetime
+
+
+class DraftingFailure(Schema):
+    detail: str
+    code: str
+    findings: list[dict[str, Any]] = Field(default_factory=list)
