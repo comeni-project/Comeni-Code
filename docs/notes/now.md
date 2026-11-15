@@ -5,7 +5,7 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-11-13** (M4.9a–c, M6). The old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-11-15** (M5.1 review and acceptance). Old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
@@ -14,8 +14,7 @@ line is in [the archive](journal/archive/).
 - **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
   first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
 - **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
-- **M5.1 is implemented and reviewed** (#446); live sign-in waived; push and PR creation approved.
-  **M5.2 is next:** drafting with provenance. Review minors: #461. (11-15)
+- **M5.1's PR #465 is green**, awaiting merge approval; live sign-in waived. **M5.2 design approved; plan ready** (#447, #466–#475). (11-15)
 
 ## How work is done now
 
@@ -38,15 +37,13 @@ line is in [the archive](journal/archive/).
 - **The body is blocks** between top-level fences: text, `:::{try} <id>`, callouts, `sequence`,
   `math` (TeX), `example <title>` (Markdown, never run), `image <file>` and `figure <stem>`;
   and one `problem`; a body that would not write back is CS0415. (09-29 to 11-07)
-- **Images** (CS09xx): files in the folder's images (PNG, JPEG, WebP, ≤ 2 MB, read by their bytes), each
-  recorded in `node.yaml` with alt, author, licence (CC0, PD, CC BY, CC BY-SA) and an optional
-  source (#360). Adding or removing one is one save of file, record and block. (2026-10-16, 10-21)
-- **Figures** (CS10xx): `figures/<stem>.yaml` (component, alt, data, optional source and
-  `interact`), checked by the pure `code-figures`: `table`, `chart` (allowlisted Vega-Lite, ≤ 3
-  series), `flow`, `sequence-track`, and five de Bruijn kits whose values are **computed** from the
-  reads (`derived`; an edge is a step a read takes, #408). **One reading**: a form PyYAML and YAML
-  1.2 read apart, a key twice, a raw control character or a tag is CS1023 (`readings.json`). Kept
-  as written; refused at save; a figure goes with its last placement (`placements()`). (10-21 to 11-05)
+- **Images** (CS09xx): byte-sniffed PNG/JPEG/WebP ≤ 2 MB; `node.yaml` records alt, author, licence
+  (CC0, PD, CC BY, CC BY-SA), optional source. File, record and block save together (#360). (10-21)
+- **Figures** (CS10xx): `figures/<stem>.yaml` holds component, alt, data, optional source/interact.
+  Pure `code-figures`: table, chart (allowlisted Vega-Lite, ≤ 3 series), flow, sequence-track,
+  five de Bruijn kits computed from reads (`derived`; an edge is one read's step, #408).
+  Ambiguous YAML, duplicate keys, controls/tags: CS1023 (`readings.json`). Files stay as written;
+  invalid saves refuse; files follow their last placement (`placements()`). (10-21 to 11-05)
 - **Tasks**: `interact: {task: trace|pick}` makes a figure a question's (CS1029); computed answers. (11-06)
 - **Problems** (CS11xx): `problem.yaml` names a **kit** of the pure `code-problems` (a Strategy:
   generate, solve, check, its mistakes; splitmix64), params and a sample from a seed (≤ 2,000 B); a
@@ -138,6 +135,17 @@ line is in [the archive](journal/archive/).
 - **`GET /api/studio/index`**: the live build, the latest attempt, `main`'s head, `behind`; `/nodes`
   lists nodes and live drafts for links. (2026-10-16)
 
+## AI (`code_api.ai`, M5.1)
+
+- **One in-process LiteLLM door**, pinned 1.105.1; only this app imports it. Declared sites,
+  per-site models/caps/settings, encrypted connection keys, operator Models/Usage page. (11-15)
+- `.env` locks the default. Keyless hosted calls refuse; other non-plan calls send `none` so
+  LiteLLM cannot borrow a host key. Learner records discard identity; no prompt/reply logs. (11-15)
+- **ChatGPT tokens belong to Code**: shared folder, atomic writes, Redis refresh/poll locks;
+  the page polls once at a time. Tests pin private library methods and prohibit model calls. (11-15)
+- **#461 stays deferred; live sign-in unverified, not a gate.** Stub/Chrome walk and CI passed:
+  1,883 Python / 962 web tests. (11-15)
+
 ## The weaver and search (`code-weaver`, pure)
 
 - `weave` walks *needs* back from the goals, by region then first-reached, byte-identical; levels
@@ -190,6 +198,7 @@ line is in [the archive](journal/archive/).
 
 ## Decided, and not to reopen
 
+- **#451: same judge model, fresh conversation**; record settings/agreement. M5.3 updates T8.2/invariant 5. (11-13)
 - Code organises existing teaching, pointing outward, and never scrapes; skeletons come from open
   outlines. **Khan Academy is linked, never embedded** (#76). (2026-09-17, 2026-09-29)
 - **Five content levels** describe nodes, never learners; accounts 13+ until a consent spec; First
@@ -212,39 +221,30 @@ line is in [the archive](journal/archive/).
 
 ## Known traps
 
-- **Never pipe a check into `tail` or `grep`** and trust the chain (nor `&& git commit` after it):
-  the status is the pipe's. Run the suite with CI's `env:` before pushing. **The link
-  check reads tracked files only**: `git add` a new document first. (09-17 to 10-21)
+- **Trust a check's exit code**, not a pipe's; use CI's env. Link checks read tracked files only:
+  stage new documents first. (09-17 to 10-21)
 - **Compose rebuilds nothing by itself**: rebuild the index after a fixture change, `--build` after
   a code change, reload the browser. Migrations 0007 and 0009 need `rebuild_index`. (09-21, 10-09)
 - **An app must declare every workspace package it imports**; the image installs only those. **Stop
   a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17, 09-20)
 - **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at `38d09dc`,
   moved only by a pull request there. (2026-09-18, 2026-10-05)
-- **After a reboot**, or when tests cannot connect (:5433, :6380): `docker compose up -d --wait
-  postgres redis`. Two pytest runs on one Postgres break each other. Merged branches are kept:
-  retarget a stacked pull request first. Canvases live on one account; another sees "not found".
-  M6.8's: https://claude.ai/artifact/XBAFuB5b2X7WKG8SdAgx3i. (to 11-13)
-- **Node 24 is `/usr/bin/node`** (v24.18). **Ports 8000, 5173 and others are other sessions'**:
-  check with `ss -ltnp` before trusting one; a remote-debugging Chrome must take port 0 and read
-  `DevToolsActivePort`, or it drives another session's browser. (2026-10-16, 10-21)
+- Restart Postgres/Redis after reboot; concurrent pytest runs collide. Retarget stacked PRs before
+  merging. Canvas links are account-bound; M6.8: https://claude.ai/artifact/XBAFuB5b2X7WKG8SdAgx3i. (11-13)
+- **Node 24**: `/usr/bin/node` v24.18. Check occupied ports with `ss -ltnp`; CDP uses port 0
+  and `DevToolsActivePort` to avoid controlling another browser. (10-16, 10-21)
 - **A walk that must not reach GitHub**: `runserver` with an `.env` leaving the app out, Compose's
   worker and beat stopped. Tests turn the app off unless one sets it (#337). (10-16)
-- **zsh's `echo` turns `\n` in JSON into newlines**: parse a saved file. **ruff re-wraps calls**.
-  **`Closes #1, #2` closes only #1**. CI may not start on open: close and reopen. **nginx must pass
-  `Host $http_host`**, or Django's CSRF check refuses every write. (2026-10-05, 10-06)
-- **GitHub's compare lists at most 300 files**. **Celery acknowledges on delivery**. **importlib mode
-  keeps a test's folder off the path**. tarfile's `data` filter strips a leading `/`. `on_commit`
-  needs `robust=True` for a nudge. **Dark Reader whitens the Chrome**: compare colours headless.
-  **`vite preview` serves 404 after a rebuild**. React Router moves inside a transition. (10-06, 10-07)
-- **Stubbed web tests never meet code-schema's rules**: walk in headless Chrome over CDP (Node 24's
-  `WebSocket`), a session from `force_login` (a container `Client` needs `SERVER_NAME="localhost"`);
-  Enter is `text: "\r"`; walk drafts hold several nodes (CA0202). (10-09 to 11-13)
+- zsh `echo` interprets `\n`: parse saved JSON. Ruff re-wraps calls. `Closes #1, #2` closes only #1.
+  CI may need PR reopen; nginx must forward `Host $http_host` for CSRF. (10-05, 10-06)
+- GitHub compares ≤ 300 files; Celery acknowledges delivery; importlib mode omits test folders.
+  tarfile `data` drops leading `/`; `on_commit` needs `robust=True`. Dark Reader alters colours;
+  screenshot headless. Rebuild breaks `vite preview`; React Router moves in a transition. (10-06, 10-07)
+- **Browser walks**: CDP + Node 24 `WebSocket`; `force_login` (container `SERVER_NAME="localhost"`).
+  Enter is `text: "\r"`; use multi-node drafts (CA0202). Stubbed web tests miss schema errors. (11-13)
 - **`useBlocker` needs the data router**: page tests go through `renderAt`. **`userEvent.type`**
   takes `[`, `{` as keys: double them. zsh never splits an unquoted `$var`. (10-22 to 11-06)
-- **A migration test pinning one app** gets the others' models at any state: pin `accounts` too.
-  **`code_schema`'s messages, codes, lines and order are pinned by tests**; no `functools`; the
-  API's source may not name a `CS` code (ownership guard). (10-05, 10-16)
-- **Tailwind 4's utilities sit in a layer**: an unlayered third-party sheet beats them; import it
-  `layer(base)`. Biome leaves the generated `schema.ts` and `figures/schemas.ts` alone. **Ninja
-  matches routes in order**: a fixed path goes before a `{param}` one. (2026-10-16, 10-21)
+- Pin `accounts` in migration tests. Schema codes/messages/lines/order are pinned; no `functools`.
+  API source may not name CS codes (ownership guard). (10-05, 10-16)
+- Tailwind 4: third-party CSS goes in `layer(base)`. Biome ignores generated API/figure schemas.
+  Ninja fixed routes precede `{param}` routes. (10-16, 10-21)
