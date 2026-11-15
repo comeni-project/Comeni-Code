@@ -235,3 +235,21 @@ def test_only_a_chatgpt_model_is_sent_without_a_key(monkeypatch: pytest.MonkeyPa
         with pytest.raises(RuntimeError):
             gateway.litellm_transport(Route("C", kind, model, None, None), ASK)
         assert asked["api_key"] == key, (kind, model)
+
+
+def test_a_learners_call_keeps_no_person(sent: list[Route], django_user_model: Any) -> None:
+    """#460, M5G.6: whoever the caller passes, a learner's call is recorded without them."""
+    default_to(local(), "openai/qwen2.5:7b")
+    learner = django_user_model.objects.create_user(email="lin@example.org", password="x")
+    gateway.call("goal-suggestions", ASK, by=learner, prompt_id="goals@1")
+    gateway.call("page-drafting", ASK, by=learner, prompt_id="p@1")
+    kept = dict(AICall.objects.values_list("site", "user"))
+    assert kept == {"goal-suggestions": None, "page-drafting": learner.pk}
+
+
+def test_a_test_that_reaches_the_network_fails() -> None:
+    """#460, M5G.1: with no fake transport, the gateway fails the test instead of calling out."""
+    Connection.objects.create(name="Closed", kind="self-hosted", endpoint="http://127.0.0.1:9/v1")
+    default_to(Connection.objects.get(name="Closed"), "openai/x")
+    with pytest.raises(pytest.fail.Exception, match="reached the network"):
+        gateway.call("page-drafting", ASK, by=None, prompt_id="p@1")

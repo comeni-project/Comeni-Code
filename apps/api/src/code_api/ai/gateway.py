@@ -18,6 +18,7 @@ from code_api.accounts.models import User
 from code_api.ai import chatgpt
 from code_api.ai.models import AICall
 from code_api.ai.resolve import CHATGPT_PREFIX, Refused, Route, cap_of, resolve
+from code_api.ai.sites import site as declared
 
 DEFAULT_TIMEOUT = 60
 # LiteLLM fills a missing key from the host (`api_key or … get_secret("OPENAI_API_KEY")`), so a
@@ -120,6 +121,8 @@ def call(
     route = resolve(site)
     if isinstance(route, Refused):
         return route
+    if declared(site).who == "learners":
+        by = None  # a learner's call keeps no identity (M5G.6, #460)
     cap = cap_of(site)
     if cap is not None:
         used = AICall.objects.filter(site=site, outcome="answered", at__gte=_today()).count()
