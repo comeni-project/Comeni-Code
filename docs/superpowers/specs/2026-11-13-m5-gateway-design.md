@@ -1,6 +1,7 @@
 # M5.1 — The gateway and the AI settings
 
-**Status: draft 2026-11-13.** Part of M5 (#445), issue #446. Designed with the operator on
+**Status: implemented; reviewed 2026-11-15. The operator's real ChatGPT sign-in (M5G.9.5)
+and publication remain.** Part of M5 (#445), issue #446. Designed with the operator on
 2026-11-13, from Labs' way of connecting models (read at `73f0052`, not imported: its settings
 spec `docs/superpowers/specs/2026-10-01-settings-design.md` §3, §6, §8, and
 `packages/comeni-ai`) and the boards at https://claude.ai/artifact/5zvkHY3awfkW9CCimEn1GS

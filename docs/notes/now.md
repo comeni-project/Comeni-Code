@@ -13,8 +13,9 @@ line is in [the archive](journal/archive/).
   M4.9's screens: verdicts per block (#272), Review (#281), Land (#306). (2026-09-29 to 10-15)
 - **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
   first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
-- **M6 is done** (#325): blocks, figures, the composer, problems (#422, #434, #443). **Seeded
-  variants moved to M8** (R4). **M5, the AI gateway, is next**: its parts list first. (to 11-13)
+- **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
+- **M5.1 is implemented and reviewed** (#446); operator ChatGPT sign-in and publication remain.
+  **M5.2 is next:** drafting with provenance. Review minors: #461. (11-15)
 
 ## How work is done now
 
@@ -185,7 +186,7 @@ line is in [the archive](journal/archive/).
 - CI runs `python`, `web` and `stack`; `main` here and in `comeni-code-content` takes only green
   pull requests, with no bypass. There, `review` passes Studio's app and `MAINTAINERS`; anyone
   else needs a maintainer's approval (#102). (2026-09-17, 2026-10-06)
-- **No test name over 300 characters** (root `conftest.py`): a 1 MB one hung CI with no log (#435).
+- **Test names stop at 300 characters** (root `conftest.py`); a 1 MB name hung CI (#435). (11-13)
 
 ## Decided, and not to reopen
 
@@ -199,8 +200,7 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **The first landing** (#324) comes after M5; the operator narrows the GitHub App to
-  `comeni-code-content`. (2026-10-16)
+- **First landing** (#324) follows M5; operator narrows the app to `comeni-code-content`. (10-16)
 - **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
   M8, the Graph screen (S2). A rate limit on the problem routes before the site is public. (to 11-13)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
