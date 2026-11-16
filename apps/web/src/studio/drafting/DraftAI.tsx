@@ -386,7 +386,7 @@ function Panel({
                 ].map(([label, value]) => (
                   <div
                     key={String(label)}
-                    className="min-w-0 rounded-control border border-border bg-bg p-3"
+                    className="max-h-[360px] min-w-0 overflow-auto rounded-control border border-border bg-bg p-3"
                   >
                     <h4 className="mb-2 text-[13px] font-semibold">{String(label)}</h4>
                     <pre className="whitespace-pre-wrap break-words font-sans text-[13px] leading-relaxed">

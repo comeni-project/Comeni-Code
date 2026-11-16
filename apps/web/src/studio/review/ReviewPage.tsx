@@ -145,6 +145,7 @@ function OpenedBlock({ queue, open }: { queue: QueuedDraftOut[]; open: Opened | 
       {/* Keyed by block, so nothing typed or picked for one carries to the next (#296); each
           panel's key its own, as siblings' must be (#373). */}
       <Origin
+        draftId={open.draft}
         provenance={review.data?.provenance}
         target={open.key}
         reviewed={item.verdict === "approved"}

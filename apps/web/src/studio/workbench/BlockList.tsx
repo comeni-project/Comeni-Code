@@ -284,6 +284,7 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
                 />
               )}
             <Origin
+              draftId={draftId}
               provenance={node.provenance}
               target={block.kind === "try" ? `try/${block.question}` : `block/${at}`}
             />

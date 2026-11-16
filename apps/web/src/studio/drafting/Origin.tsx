@@ -1,12 +1,17 @@
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { fetchProposal } from "../../api/drafting";
 /** Public receipts survive reindexing; private proposal history is optional. */
 export function Origin({
   provenance,
   target,
   reviewed = false,
+  draftId,
 }: {
   provenance: unknown;
   target?: string;
   reviewed?: boolean;
+  draftId?: string;
 }) {
   const p = provenance as {
     receipts?: Record<
@@ -21,6 +26,14 @@ export function Origin({
   } | null;
   const ids =
     target === undefined ? Object.keys(p?.receipts ?? {}) : (p?.items?.[target]?.receipts ?? []);
+  const [selected, setSelected] = useState<string | null>(null);
+  const privateReceipt = useQuery({
+    queryKey: ["draft", draftId, "proposal", selected],
+    queryFn: ({ signal }) => fetchProposal(draftId ?? "", selected ?? "", signal),
+    enabled: draftId !== undefined && selected !== null,
+    retry: false,
+    staleTime: Infinity,
+  });
   if (ids.length === 0) return null;
   return (
     <details className="rounded-control border border-border bg-bg px-3 py-2 text-[12px] text-ink-2">
@@ -51,9 +64,38 @@ export function Origin({
                 {source.licence && ` · ${source.licence}`}
               </span>
             ))}
+            {draftId && (
+              <button
+                type="button"
+                className="self-start text-sel underline"
+                onClick={() => setSelected(id)}
+              >
+                View full drafting receipt
+              </button>
+            )}
           </div>
         );
       })}
+      {privateReceipt.data && (
+        <section
+          aria-label="Full drafting receipt"
+          className="mt-3 rounded-control border border-border p-3"
+        >
+          <h3 className="font-semibold">Private Studio receipt</h3>
+          <p>{privateReceipt.data.instruction}</p>
+          <p className="whitespace-pre-wrap">
+            {privateReceipt.data.sources
+              .map((s) => String(s.excerpt ?? ""))
+              .filter(Boolean)
+              .join("\n\n")}
+          </p>
+          <p>
+            {privateReceipt.data.receipt
+              ? JSON.stringify(privateReceipt.data.receipt)
+              : "No call details are available."}
+          </p>
+        </section>
+      )}
     </details>
   );
 }

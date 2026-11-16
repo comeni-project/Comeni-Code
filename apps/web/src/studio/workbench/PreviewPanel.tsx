@@ -71,7 +71,7 @@ export function NodePreview({
       <p className="rounded-[9px] border-[1.5px] border-ink bg-surface px-3 py-2.5 text-[14px] leading-[1.45]">
         {node.claim}
       </p>
-      <Origin provenance={node.provenance} reviewed={reviewed} />
+      <Origin draftId={draftId} provenance={node.provenance} reviewed={reviewed} />
       <Body
         blocks={node.blocks}
         questions={node.questions}

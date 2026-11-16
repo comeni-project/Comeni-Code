@@ -90,7 +90,7 @@ export function ResourcesTab({
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[14px] font-semibold">{titleOf(r)}</span>
               <span className="truncate text-[12.5px] text-ink-2">{r.covers}</span>
-              <Origin provenance={node.provenance} target={`resource/${at}`} />
+              <Origin draftId={draftId} provenance={node.provenance} target={`resource/${at}`} />
               <RequestNote draftId={draftId} keyNow={`resource/${at}`} />
             </div>
             {editable && (

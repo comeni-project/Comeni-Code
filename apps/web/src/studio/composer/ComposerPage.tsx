@@ -365,7 +365,7 @@ function Composer({
           </aside>
         </div>
       ) : (
-        <div className="grid gap-[18px] lg:grid-cols-[420px_minmax(0,1fr)_320px]">
+        <div className="grid items-start gap-[18px] lg:grid-cols-[minmax(260px,420px)_minmax(0,1fr)_minmax(260px,320px)]">
           {step === "interaction" && component !== null && tasks ? (
             <Interaction copy={copy} component={component} />
           ) : (
