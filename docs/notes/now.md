@@ -208,7 +208,7 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **M7 starts** with request records and human triage; parts are in `journal/2026-11-16-m7-parts.md`. First landing (#324) follows M7, M8 and the operator walkthrough; operator narrows the app to `comeni-code-content`. (11-16)
+- **M7 starts** with request records and human triage; parts are in `docs/notes/journal/2026-11-16-m7-parts.md`. First landing (#324) follows M7, M8 and the operator walkthrough; operator narrows the app to `comeni-code-content`. (11-16)
 - **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
   M8, the Graph screen (S2). A rate limit on the problem routes before the site is public. (to 11-13)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
