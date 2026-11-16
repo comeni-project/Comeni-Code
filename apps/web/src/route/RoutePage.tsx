@@ -10,6 +10,7 @@ import { ErrorNotice } from "../layout/ErrorNotice";
 import { TopBar } from "../layout/TopBar";
 import { shownLevel, shownStops, shownTime } from "../start/format";
 import { useRouteParams } from "../url";
+import { RouteWords } from "./ConnectingWords";
 import { layout } from "./layout";
 import { NextUp } from "./NextUp";
 import { RouteList } from "./RouteList";
@@ -190,6 +191,7 @@ export function RoutePage() {
               </div>
             </section>
 
+            <RouteWords goals={goals} known={known} />
             <Facts route={route} />
 
             <div

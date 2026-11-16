@@ -61,3 +61,10 @@ def expire_ai_proposals() -> None:
     from code_api.studio.ai_drafting import expire
 
     expire()
+
+
+@shared_task(name="code_api.studio.tasks.connect_route", soft_time_limit=90, time_limit=100)
+def connect_route(identity: str) -> None:
+    from code_api.studio.connecting import generate
+
+    generate(identity)

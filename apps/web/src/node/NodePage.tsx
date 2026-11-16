@@ -1,3 +1,4 @@
+import { GoalWords } from "../route/ConnectingWords";
 // The Node page (L5, spec M3P5): one node, its Learn it resources and its try questions, with
 // the links around it and, when it was opened from a route, where it sits on that route.
 //
@@ -238,6 +239,9 @@ export function NodePage() {
           big={node.data?.level === FIRST_STEPS}
         />
       ) : null}
+      {node.data && goals.length > 0 && (
+        <GoalWords goals={goals} known={known} node={node.data.id} />
+      )}
       {node.isPending ? (
         <main className="px-4 py-6 sm:px-9">
           <p className="text-[15px] text-ink-2">Loading the page…</p>

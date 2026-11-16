@@ -42,6 +42,17 @@ bands:
 
 codes:
 
+  CA0602:
+    emitted_by: api
+    concern: requests
+    says: connecting text is unavailable or no longer matches the current route
+    refuses: true
+    fix: |
+      Continue with the deterministic route; refresh its text or ask a reviewer to inspect it.
+    explanation: |
+      Optional model text is bound to the woven route and claims. It cannot change a route or
+      reuse approvals after the underlying graph changes (M7.4).
+
   CA0600:
     emitted_by: api
     concern: requests

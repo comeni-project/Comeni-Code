@@ -854,6 +854,32 @@
         "title": "CommonsIn",
         "type": "object"
       },
+      "ConnectIn": {
+        "properties": {
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Goals",
+            "type": "array"
+          },
+          "known": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Known",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goals"
+        ],
+        "title": "ConnectIn",
+        "type": "object"
+      },
       "ConnectionChangeIn": {
         "properties": {
           "endpoint": {
@@ -5428,6 +5454,54 @@
         "title": "RoleIn",
         "type": "object"
       },
+      "RouteBundleOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "known": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Known",
+            "type": "array"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "texts": {
+            "items": {
+              "$ref": "#/components/schemas/RouteTextOut"
+            },
+            "title": "Texts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "public_id",
+          "state",
+          "code",
+          "goals",
+          "known",
+          "texts"
+        ],
+        "title": "RouteBundleOut",
+        "type": "object"
+      },
       "RouteOut": {
         "properties": {
           "goals": {
@@ -5467,6 +5541,53 @@
           "minutes"
         ],
         "title": "RouteOut",
+        "type": "object"
+      },
+      "RouteTextOut": {
+        "properties": {
+          "context": {
+            "additionalProperties": true,
+            "title": "Context",
+            "type": "object"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "text",
+          "state",
+          "version",
+          "flags",
+          "context"
+        ],
+        "title": "RouteTextOut",
         "type": "object"
       },
       "SavedOut": {
@@ -7726,6 +7847,101 @@
           }
         },
         "summary": "A route to one or more goals",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/routes/text": {
+      "post": {
+        "operationId": "code_api_studio_connecting_api_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteBundleOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "content"
+        ]
+      }
+    },
+    "/api/routes/text/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_connecting_api_read",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteBundleOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Read",
         "tags": [
           "content"
         ]
