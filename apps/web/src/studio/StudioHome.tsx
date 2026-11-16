@@ -4,6 +4,8 @@ import { useMe } from "../api/queries";
 import { pagesFor } from "./pages";
 
 export function StudioHome() {
-  const first = pagesFor(useMe().data?.user?.role ?? "").find(page => page.path === "/studio/drafts");
+  const first = pagesFor(useMe().data?.user?.role ?? "").find(
+    (page) => page.path === "/studio/drafts",
+  );
   return first === undefined ? null : <Navigate to={first.path} replace />;
 }
