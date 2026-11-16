@@ -243,6 +243,56 @@
         "title": "ApproveIn",
         "type": "object"
       },
+      "AssignWorkIn": {
+        "properties": {
+          "assignee": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentIn"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AssignWorkIn",
+        "type": "object"
+      },
+      "AssignmentIn": {
+        "properties": {
+          "identity": {
+            "format": "uuid",
+            "title": "Identity",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "identity",
+          "version"
+        ],
+        "title": "AssignmentIn",
+        "type": "object"
+      },
       "AssistantActionOut": {
         "properties": {
           "code": {
@@ -5910,6 +5960,56 @@
         "title": "SpanOut",
         "type": "object"
       },
+      "StartWorkIn": {
+        "properties": {
+          "claim": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Claim",
+            "type": "string"
+          },
+          "level": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Level"
+              }
+            ],
+            "default": "introductory"
+          },
+          "minutes": {
+            "maximum": 480,
+            "minimum": 1,
+            "title": "Minutes",
+            "type": "integer"
+          },
+          "node_id": {
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Node Id",
+            "type": "string"
+          },
+          "region": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Region",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "node_id",
+          "claim",
+          "region",
+          "minutes"
+        ],
+        "title": "StartWorkIn",
+        "type": "object"
+      },
       "StopOut": {
         "description": "A stop as the Route board draws it (L4), with why it is on this route (M2P2.2).",
         "properties": {
@@ -6836,6 +6936,116 @@
           "problems"
         ],
         "title": "VerifyOut",
+        "type": "object"
+      },
+      "WorkItemOut": {
+        "properties": {
+          "asked": {
+            "title": "Asked",
+            "type": "integer"
+          },
+          "assignee": {
+            "title": "Assignee",
+            "type": "string"
+          },
+          "assignee_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Id"
+          },
+          "draft_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Id"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "stalled": {
+            "title": "Stalled",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "public_id",
+          "title",
+          "version",
+          "stage",
+          "assignee_id",
+          "assignee",
+          "draft_id",
+          "node_id",
+          "asked",
+          "stalled",
+          "updated_at"
+        ],
+        "title": "WorkItemOut",
+        "type": "object"
+      },
+      "WorkerOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "reviewing": {
+            "title": "Reviewing",
+            "type": "integer"
+          },
+          "writing": {
+            "title": "Writing",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "public_id",
+          "name",
+          "writing",
+          "reviewing"
+        ],
+        "title": "WorkerOut",
         "type": "object"
       }
     },
@@ -11515,6 +11725,177 @@
           }
         ],
         "summary": "Withdraw from review",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/implementing": {
+      "get": {
+        "operationId": "code_api_studio_implementing_api_queue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkItemOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Queue",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/implementing/assign": {
+      "post": {
+        "operationId": "code_api_studio_implementing_api_assign",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignWorkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkItemOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Assign",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/implementing/team": {
+      "get": {
+        "operationId": "code_api_studio_implementing_api_team",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkerOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Team",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/implementing/{identity}/start": {
+      "post": {
+        "operationId": "code_api_studio_implementing_api_start",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Start",
         "tags": [
           "studio"
         ]

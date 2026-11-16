@@ -172,6 +172,15 @@ class ContentRequest(models.Model):
     state = models.CharField(max_length=16, default="requested")
     version = models.PositiveIntegerField(default=1)
     merged_node_id = models.TextField(blank=True)
+    assignee = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_requests",
+    )
+    draft = models.ForeignKey(
+        Draft, null=True, on_delete=models.PROTECT, related_name="content_requests"
+    )
     snoozed_until = models.DateTimeField(null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)

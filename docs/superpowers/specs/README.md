@@ -15,6 +15,7 @@ decision records.
 | [2026-11-16 — M5.5 author assistant](2026-11-16-m5-author-assistant-design.md) | part design | private draft chat that creates bounded M5.2 proposals for author review |
 | [2026-11-16 — M7.1 request foundation](2026-11-16-m7-request-foundation-design.md) | part design | persistent intake, explicit human decisions, version checks and per-person audit |
 | [2026-11-16 — M7.2 Requests](2026-11-16-m7-requests-design.md) | part design | bounded learner intake, private receipts and staff triage |
+| [2026-11-16 — M7.3 Implementing](2026-11-16-m7-implementing-design.md) | part design | assignment, draft handoff and stages derived from the existing workflow |
 
 **Finished specs** (the parts of M0–M3 and of M4, one per part, and the docs compaction of
 2026-09-29) are in [`archive/`](archive/). Each records what it decided and rejected;
