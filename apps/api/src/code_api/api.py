@@ -15,8 +15,8 @@ from code_api.content.routes import router as routes_router
 from code_api.content.search import router as search_router
 from code_api.health.api import router as health_router
 from code_api.studio.ai_api import router as drafting_router
-from code_api.studio.assistant_api import router as assistant_router
 from code_api.studio.api import router as studio_router
+from code_api.studio.assistant_api import router as assistant_router
 from code_api.studio.index_api import router as index_router
 from code_api.studio.kits_api import router as kits_router
 from code_api.studio.landing_api import router as landing_router
