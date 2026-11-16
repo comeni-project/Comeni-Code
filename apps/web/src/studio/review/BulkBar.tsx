@@ -22,14 +22,23 @@ export function BulkBar({
       .map((key) => ({ draft, key })),
   );
   const skipped = chosen.filter(({ key }) => key.answered === false);
-  const sent = chosen.filter(({ key }) => key.answered !== false);
+  const needsScoreAnswer = chosen.filter(
+    ({ key }) => key.score !== null && key.score_agreement === null,
+  );
+  const sent = chosen.filter(
+    ({ key }) => key.answered !== false && !(key.score !== null && key.score_agreement === null),
+  );
   const approve = useMutation({
     mutationFn: async () => {
       // One PUT per draft; a refused one leaves the others' approvals standing (Review Focus 3).
       for (const draft of queue) {
         const keys = sent
           .filter((one) => one.draft === draft)
-          .map(({ key }) => ({ key: key.key, verdict: "approved" as const }));
+          .map(({ key }) => ({
+            key: key.key,
+            verdict: "approved" as const,
+            ...(key.score === null ? {} : { score_agreement: key.score_agreement }),
+          }));
         if (keys.length === 0) continue;
         reviewed(client, draft.public_id, await putVerdicts(draft.public_id, draft.revision, keys));
       }
@@ -59,6 +68,11 @@ export function BulkBar({
       {skipped.map(({ key }) => (
         <span key={key.key} className="text-[11.5px] opacity-75">
           {`${key.label} is skipped: answer it first.`}
+        </span>
+      ))}
+      {needsScoreAnswer.map(({ key }) => (
+        <span key={key.key} className="text-[11.5px] opacity-75">
+          {`${key.label} is skipped: open it and answer whether you agree with its score.`}
         </span>
       ))}
       {approve.error !== null && <ErrorNotice error={approve.error} />}

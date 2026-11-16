@@ -14,7 +14,7 @@ from code_api.ai.models import AICall, Connection, SiteSetting
 from code_api.content.index import rebuild_index
 from code_api.studio import ai_drafting, drafts
 from code_api.studio.ai_schemas import CreateProposalIn, DraftingError
-from code_api.studio.models import Draft, DraftProposal
+from code_api.studio.models import Draft, DraftProposal, DraftScore
 from code_schema import Text
 from code_schema.edits import update_block
 
@@ -41,6 +41,16 @@ def configured(settings: Any, monkeypatch: pytest.MonkeyPatch) -> list[object]:
 
     def answer(route: Any, messages: Any) -> Completion:
         calls.append(messages)
+        request_body = json.loads(messages[-1]["content"])
+        if "rubric" in request_body:
+            value = {
+                "parts": {
+                    part["name"]: {"score": 5, "reason": "Supported by the supplied evidence."}
+                    for part in request_body["rubric"]["parts"]
+                },
+                "overall": 5,
+            }
+            return Completion(json.dumps(value), 10, 5, None)
         return Completion(
             json.dumps(
                 {
@@ -87,7 +97,8 @@ def test_generation_duplicate_delivery_and_acceptance_are_distinct(
     ai_drafting.run(str(proposal.public_id))
     ai_drafting.run(str(proposal.public_id))
     proposal.refresh_from_db()
-    assert proposal.state == "ready" and len(configured) == 1
+    assert proposal.state == "ready" and len(configured) == 2
+    assert len(proposal.evaluations) == 1 and proposal.evaluations[0]["score"]["overall"] == 5
     assert draft.revisions.count() == 1
     ai_drafting.accept(proposal, by=ada, based_on=1, resolutions={})
     ai_drafting.accept(proposal, by=ada, based_on=1, resolutions={})
@@ -95,6 +106,75 @@ def test_generation_duplicate_delivery_and_acceptance_are_distinct(
     latest = drafts.latest(draft)
     assert latest.provenance is not None
     assert latest.provenance["items"][body.target]["baseline"] == str(proposal.public_id)
+
+
+def test_low_scores_trigger_only_the_configured_redrafts_and_keep_exact_score(
+    draft: Draft,
+    ada: User,
+    configured: list[object],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import json
+
+    from code_api.studio import review
+    from code_schema import Text
+    from code_schema.edits import update_block
+
+    body = request(draft)
+    SiteSetting.objects.create(site="block-evaluation", minimum_score=3, max_redrafts=1)
+    draft_calls, judge_calls = 0, 0
+
+    def sequence(route: Any, messages: Any) -> Completion:
+        nonlocal draft_calls, judge_calls
+        context = json.loads(messages[-1]["content"])
+        if "rubric" in context:
+            judge_calls += 1
+            overall = 2 if judge_calls == 1 else 4
+            result = {
+                "overall": overall,
+                "parts": {
+                    part["name"]: {
+                        "score": overall,
+                        "reason": "Add evidence from the supplied source.",
+                    }
+                    for part in context["rubric"]["parts"]
+                },
+            }
+        else:
+            draft_calls += 1
+            result = {
+                "value": {
+                    "kind": "text",
+                    "markdown": "First draft.\n" if draft_calls == 1 else "Improved draft.\n",
+                },
+                "source_ids": [],
+            }
+        return Completion(json.dumps(result), 12, 7, None)
+
+    monkeypatch.setattr(gateway, "transport", sequence)
+    proposal = ai_drafting.create(draft, body, by=ada)
+    ai_drafting.run(str(proposal.public_id))
+    proposal.refresh_from_db()
+    assert proposal.state == "ready"
+    assert (draft_calls, judge_calls) == (2, 2)
+    assert [attempt["score"]["overall"] for attempt in proposal.evaluations] == [2, 4]
+    assert all(
+        attempt["draft_call_id"] != attempt["judge_call_id"] for attempt in proposal.evaluations
+    )
+
+    ai_drafting.accept(proposal, by=ada, based_on=1, resolutions={})
+    saved = DraftScore.objects.get(proposal=proposal)
+    assert (saved.overall, saved.rubric_version) == (4, "block@1")
+    key = next(key for key in review.keys_of(draft) if key.key == body.target)
+    assert review._current_score(draft, key)["overall"] == 4  # type: ignore[index]
+    drafts.save(
+        draft,
+        based_on=2,
+        edit=lambda node: update_block(node, int(body.target[6:]), Text("Human changed it.\n")),
+        by=ada,
+        change="manual correction",
+    )
+    assert review._current_score(draft, key) is None
 
 
 def test_a_late_reply_cannot_overwrite_a_manual_save(
@@ -183,7 +263,7 @@ def test_two_workers_claim_one_call_without_holding_a_transaction(
         finally:
             release.set()
         first.result(timeout=5)
-    assert len(configured) == 1
+    assert len(configured) == 2
 
 
 def test_discard_during_a_call_keeps_its_evidence_without_reviving_it(

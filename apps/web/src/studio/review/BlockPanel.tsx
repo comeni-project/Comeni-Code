@@ -218,13 +218,19 @@ export function BlockPanel({ draft, item }: { draft: QueuedDraftOut; item: Revie
       ) : (
         <Content content={item} url={now} />
       )}
-      <div className="flex flex-col gap-1 rounded-[10px] border-[1.5px] border-dashed border-border-2 px-3.5 py-3 text-[12.5px] text-ink-3">
-        <span className="font-semibold text-ink-2">Judge’s score · arrives with M5</span>
-        <span>
-          A model from another family scores each block against its rubric; its named parts, reasons
-          and redraft history go here.
-        </span>
-      </div>
+      {item.score && (
+        <div className="flex flex-col gap-1 rounded-[10px] border border-border bg-bg px-3.5 py-3 text-[12.5px]">
+          <span className="font-semibold">
+            Judge · {item.score.overall}/5 · {item.score.version}
+          </span>
+          <span className="text-ink-3">{item.score.model}</span>
+          {Object.entries(item.score.parts).map(([name, part]) => (
+            <p key={name} className="text-ink-2">
+              <b>{`${name} · ${part.score}/5:`}</b> {part.reason}
+            </p>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

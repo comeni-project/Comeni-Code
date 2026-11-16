@@ -44,6 +44,8 @@ class SiteSetting(models.Model):
     temperature = models.FloatField(null=True, blank=True)
     reasoning_effort = models.TextField(blank=True, default="")
     timeout = models.PositiveIntegerField(null=True, blank=True)  # seconds
+    minimum_score = models.PositiveSmallIntegerField(default=3)
+    max_redrafts = models.PositiveSmallIntegerField(default=1)
 
 
 class AICall(models.Model):

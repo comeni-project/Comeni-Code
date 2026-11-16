@@ -1,7 +1,7 @@
 """One captured target to one validated edit; model output never selects a tool or path."""
 
 import re
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from pydantic import BaseModel
@@ -51,6 +51,11 @@ def payload(node: Node, target: str) -> dict[str, Any]:
         return value
     if target.startswith("try/"):
         return next(q for q in shown["questions"] if q["id"] == target[4:])
+    if target.startswith("resource/"):
+        at = int(target[9:])
+        if at < 0 or at >= len(shown["resources"]):
+            raise DraftingError("CA0500", "Choose an existing resource by its canonical key.")
+        return cast(dict[str, Any], shown["resources"][at])
     if target.startswith("exam/"):
         question = next(q for q in shown["exam"] if q["id"] == target[5:])
         return {k: v for k, v in question.items() if k in ExamQuestionIn.model_fields}

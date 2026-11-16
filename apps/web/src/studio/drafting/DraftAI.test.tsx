@@ -64,6 +64,7 @@ const proposal: ProposalOut = {
   copy_digest: "",
   accepted_revision: null,
   created_at: "2026-11-15T12:00:00Z",
+  evaluations: [],
 };
 function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

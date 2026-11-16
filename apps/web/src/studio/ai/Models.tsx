@@ -385,6 +385,8 @@ function SiteRow({ site, state, run }: { site: SiteOut; state: AISettingsOut; ru
         temperature: next.temperature,
         reasoning_effort: next.reasoning_effort,
         timeout: next.timeout,
+        minimum_score: next.minimum_score,
+        max_redrafts: next.max_redrafts,
       }),
     );
   };
@@ -520,6 +522,52 @@ function CallSettings({
     <details className="mt-1.5 text-[12.5px]">
       <summary className="cursor-pointer text-sel">Call settings</summary>
       <div className="mt-2 flex flex-wrap items-end gap-3">
+        {site.key === "block-evaluation" && (
+          <>
+            <label className="flex flex-col gap-1">
+              Redraft below
+              <input
+                type="number"
+                min={1}
+                max={5}
+                aria-label="Minimum score before redrafting"
+                defaultValue={site.minimum_score}
+                onBlur={(event) => {
+                  const value = Number(event.currentTarget.value);
+                  if (
+                    Number.isInteger(value) &&
+                    value >= 1 &&
+                    value <= 5 &&
+                    value !== site.minimum_score
+                  )
+                    void save({ minimum_score: value });
+                }}
+                className={`${INPUT} w-20`}
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              Maximum redrafts
+              <input
+                type="number"
+                min={0}
+                max={3}
+                aria-label="Maximum redrafts"
+                defaultValue={site.max_redrafts}
+                onBlur={(event) => {
+                  const value = Number(event.currentTarget.value);
+                  if (
+                    Number.isInteger(value) &&
+                    value >= 0 &&
+                    value <= 3 &&
+                    value !== site.max_redrafts
+                  )
+                    void save({ max_redrafts: value });
+                }}
+                className={`${INPUT} w-20`}
+              />
+            </label>
+          </>
+        )}
         <label className="flex flex-col gap-1">
           Temperature
           <input

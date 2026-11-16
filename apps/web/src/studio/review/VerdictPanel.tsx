@@ -29,9 +29,18 @@ export function VerdictPanel({ draft, item }: { draft: QueuedDraftOut; item: Rev
   const [asking, setAsking] = useState(false);
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
+  const [scoreAgreement, setScoreAgreement] = useState<boolean | null>(
+    item.score_agreement ?? null,
+  );
   const verdict = useMutation({
     mutationFn: (given: { verdict: "approved" | "changes"; note?: string }) =>
-      putVerdicts(draft.public_id, draft.revision, [{ key: item.key, ...given }]),
+      putVerdicts(draft.public_id, draft.revision, [
+        {
+          key: item.key,
+          ...given,
+          ...(item.score ? { score_agreement: scoreAgreement } : {}),
+        },
+      ]),
     onSuccess: (answer) => {
       reviewed(client, draft.public_id, answer);
       setAsking(false);
@@ -47,7 +56,7 @@ export function VerdictPanel({ draft, item }: { draft: QueuedDraftOut; item: Rev
   });
   const own = draft.contributors.some((c) => c.public_id === me.data?.user?.public_id);
   const answered = item.question === null || item.question.given !== null;
-  const canApprove = answered && !verdict.isPending;
+  const canApprove = answered && (!item.score || scoreAgreement !== null) && !verdict.isPending;
   // The page's keys: A approves, R asks for changes (M4RS.4); typing in a field never reaches here.
   useEffect(() => {
     const approve = () => {
@@ -159,10 +168,25 @@ export function VerdictPanel({ draft, item }: { draft: QueuedDraftOut; item: Rev
         </button>
         {decide.error !== null && <ErrorNotice error={decide.error} />}
       </div>
-      <div className="flex flex-col gap-1 rounded-[10px] border-[1.5px] border-dashed border-border-2 px-3.5 py-3 text-[12.5px] text-ink-3">
-        <span className="font-semibold text-ink-2">Was the score right? · M5</span>
-        <span>Your answer will measure the judge in Quality.</span>
-      </div>
+      {item.score && (
+        <fieldset className="flex flex-col gap-2 rounded-[10px] border border-border px-3.5 py-3 text-[12.5px]">
+          <legend className="font-semibold">Was the score right?</legend>
+          <p className="text-ink-2">Your answer measures judge–human agreement.</p>
+          <div className="flex gap-3">
+            {([true, false] as const).map((answer) => (
+              <label key={String(answer)} className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  name={`score-agreement-${item.key}`}
+                  checked={scoreAgreement === answer}
+                  onChange={() => setScoreAgreement(answer)}
+                />
+                {answer ? "Agree" : "Disagree"}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       <div className="flex flex-wrap gap-2.5 text-[11.5px] text-ink-3">
         <span>
           <kbd className={KEY}>A</kbd> approve

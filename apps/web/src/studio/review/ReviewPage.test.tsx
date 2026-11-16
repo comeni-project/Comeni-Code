@@ -8,12 +8,12 @@ afterEach(() => vi.unstubAllGlobals());
 const row = (label: RegExp) => screen.getByRole("button", { name: label });
 
 describe("ReviewPage — the queue", () => {
-  it("groups each draft's blocks, with a placeholder score and nothing reviewed yet", async () => {
+  it("groups each draft's blocks, with no score and nothing reviewed yet", async () => {
     renderReview();
     expect(await screen.findByText("What TPM measures", { selector: "b" })).toBeInTheDocument();
     expect(screen.getByText("0 of 4")).toBeInTheDocument();
     expect(row(/^TPM is not a count of reads, callout/)).toBeInTheDocument();
-    expect(screen.getAllByTitle("Scores arrive with the judge in M5")).toHaveLength(4);
+    expect(screen.getAllByText("—")).toHaveLength(4);
   });
 
   it("filters by your verdict", async () => {

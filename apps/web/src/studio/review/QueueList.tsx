@@ -122,11 +122,8 @@ export function QueueList({
                     {key.label}
                   </button>
                   <span className="font-mono text-[11.5px] text-ink-2">{key.kind}</span>
-                  <span
-                    title="Scores arrive with the judge in M5"
-                    className="font-mono text-[12.5px] text-border-2"
-                  >
-                    —
+                  <span className="font-mono text-[12.5px] text-ink-2">
+                    {key.score === null ? "—" : `${key.score}/5`}
                   </span>
                   <span className="flex justify-end">
                     <Verdict verdict={key.verdict} />

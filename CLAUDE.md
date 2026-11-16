@@ -139,9 +139,9 @@ spec, not in code.
    they may not accept, merge or decline them.
 5. **AI drafts, people approve.** Model-written text that reaches a learner unreviewed carries a
    *not yet reviewed* label. Nobody approves what they drafted — except an operator, with a stated
-   reason, logged and marked *self-approved*, so a team of one can land (M4.5) — and a judge model
-   is never from the drafter's model family. Automatic deployment of high-scoring blocks is
-   deferred until judge–human agreement is measured (tutor spec T8.4).
+   reason, logged and marked *self-approved*, so a team of one can land (M4.5). A block judge is a
+   fresh call with no drafting conversation; it may use the drafter's model (#451). Automatic
+   deployment of high-scoring blocks is deferred until judge–human agreement is measured (T8.4).
 6. **Content is validated blocks.** No free HTML, script or styling from an author or a model;
    figures are library components filled with data; images carry author and licence or are
    refused; outside resources are `resource` blocks with a recorded licence, embedded only from
