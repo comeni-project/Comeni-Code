@@ -3,8 +3,17 @@
 import { useState } from "react";
 import type { DraftNodeOut } from "../../api/schema";
 import { Body } from "../../node/Body";
+import { Origin } from "../drafting/Origin";
 
-export function PreviewPanel({ node, draftId }: { node: DraftNodeOut; draftId: string }) {
+export function PreviewPanel({
+  node,
+  draftId,
+  reviewed = false,
+}: {
+  node: DraftNodeOut;
+  draftId: string;
+  reviewed?: boolean;
+}) {
   const [phone, setPhone] = useState(false);
   return (
     <div className="flex flex-col gap-3">
@@ -27,7 +36,7 @@ export function PreviewPanel({ node, draftId }: { node: DraftNodeOut; draftId: s
         })}
       </div>
       <div className="rounded-[10px] border border-border bg-bg">
-        <NodePreview node={node} draftId={draftId} phone={phone} />
+        <NodePreview node={node} draftId={draftId} phone={phone} reviewed={reviewed} />
       </div>
       <p className="text-[12px] leading-[1.45] text-ink-3">
         Drawn in your browser from the saved draft; it changes with each save.
@@ -41,10 +50,12 @@ export function NodePreview({
   node,
   draftId,
   phone = false,
+  reviewed = false,
 }: {
   node: DraftNodeOut;
   draftId: string;
   phone?: boolean;
+  reviewed?: boolean;
 }) {
   // The draft's own files, as Studio serves them (M6IM.3).
   const pictures = {
@@ -60,6 +71,7 @@ export function NodePreview({
       <p className="rounded-[9px] border-[1.5px] border-ink bg-surface px-3 py-2.5 text-[14px] leading-[1.45]">
         {node.claim}
       </p>
+      <Origin provenance={node.provenance} reviewed={reviewed} />
       <Body
         blocks={node.blocks}
         questions={node.questions}
