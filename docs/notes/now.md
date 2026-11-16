@@ -11,10 +11,9 @@ line is in [the archive](journal/archive/).
 
 - **M0–M3 are done** (#79). **M4, the Studio core** (#74): M4.1–M4.8 are done (#119–#126), and
   M4.9's screens: verdicts per block (#272), Review (#281), Land (#306). (2026-09-29 to 10-15)
-- **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
-  first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
+- **The order is now M7 → M8 → operator walkthrough and fixes → M4.9d real landing → M9** (operator, 11-16). DNA is the first content candidate. M7's real request-to-landed acceptance waits for M4.9d; local authoring and approval come first.
 - **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
-- **M5.1 PR #465 remains open**; live sign-in waived. **M5.2 PR #476 is merged into #465's head branch**, not `main`. **M5.3 PR #477 is open against #465's head branch; all three CI jobs pass. M5.4 PR #478 is open against #477 and all three CI jobs pass. M5.5 PR #479 is open against #478; CI is queued.** M5 has five parts, with no part after M5.5. The end-of-M5 suites pass: Python 1,973, web 973. (11-16)
+- **M5.1 PR #465 remains open**; live sign-in waived. **M5.2 PR #476 is merged into #465's head branch**, not `main`. **M5.3 PR #477 is open against #465's head branch; all three CI jobs pass. M5.4 PR #478 is open against #477 and all three CI jobs pass. M5.5 PR #479 is open against #478; all three CI jobs pass.** M5 has five parts, with no part after M5.5. The end-of-M5 suites pass: Python 1,973, web 973. (11-16)
 
 ## How work is done now
 
@@ -209,7 +208,7 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **First landing** (#324) follows M5; operator narrows the app to `comeni-code-content`. (10-16)
+- **M7 starts** with request records and human triage; parts are in `journal/2026-11-16-m7-parts.md`. First landing (#324) follows M7, M8 and the operator walkthrough; operator narrows the app to `comeni-code-content`. (11-16)
 - **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
   M8, the Graph screen (S2). A rate limit on the problem routes before the site is public. (to 11-13)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading

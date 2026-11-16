@@ -196,6 +196,7 @@ decided part by part (R5).
   seed, exam assembly, grading) exists.*
 
 ### M7 — Requests and weave review
+- *2026-11-16 (operator): build M7 and M8 before the first real landing. Verify the request-to-approved-draft path locally; defer the real request-to-landed acceptance to M4.9d after the operator walkthrough.*
 - Missing nodes and unknown goals become requests that a person decides; connecting text is
   reviewed; routes become named tracks.
 - **Done when** a missing node goes from request to landed, and a route becomes a named track.
@@ -219,6 +220,7 @@ decided part by part (R5).
   back returns the learner to the question it came from.*
 
 ### M9 — The Salmon demo
+- *2026-11-16 (operator): starts after the operator walkthrough, its fixes and M4.9d's real landing.*
 - The whole Salmon route authored, reviewed and landed, ending in a Labs pipeline.
 - **Done when** a new learner goes from *learn Salmon* to a pipeline they can run. *Against W12.*
 - *2026-09-17 (tutor spec T10, T10.2): the Salmon route spans **First steps → Advanced**, and a
@@ -247,6 +249,8 @@ accepted: the GitHub side of landing (the App, the pull request, auto-merge, `re
 goes unexercised against real GitHub until the first landing.*
 
 ---
+
+*Revised 2026-11-16 (operator): **M7 → M8 → operator walkthrough and fixes → M4.9d real landing → M9**. Complete the author and learner workflows before reviewing the whole tool against the original design. Real GitHub publication remains deferred; local approval does not satisfy the real-landing acceptance. DNA is the first content candidate.*
 
 ## R5. How a phase is built
 
