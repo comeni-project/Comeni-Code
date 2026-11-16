@@ -14,7 +14,7 @@ line is in [the archive](journal/archive/).
 - **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
   first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
 - **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
-- **M5.1 PR #465 remains open**, awaiting merge approval; live sign-in waived. **M5.2 is implemented and locally verified** on `docs/m5-2-drafting`; publication awaits approval. (11-16)
+- **M5.1 PR #465 remains open**, awaiting merge approval; live sign-in waived. **M5.2 is implemented and locally verified** on the M5.2 drafting branch; publication awaits approval. (11-16)
 
 ## How work is done now
 
