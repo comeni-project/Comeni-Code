@@ -259,6 +259,7 @@ def _try(row: Connection, model: str, request: HttpRequest) -> str:
             connection_name=row.name,
             model=model,
             prompt_id="connection-test",
+            call_settings=gateway.call_settings(route),
             outcome="failed",
             code="CA0405",
         )
@@ -270,6 +271,7 @@ def _try(row: Connection, model: str, request: HttpRequest) -> str:
         connection_name=row.name,
         model=model,
         prompt_id="connection-test",
+        call_settings=gateway.call_settings(route),
         outcome="answered",
         tokens_in=done.tokens_in,
         tokens_out=done.tokens_out,

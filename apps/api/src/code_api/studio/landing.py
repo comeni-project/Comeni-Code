@@ -29,6 +29,7 @@ from code_schema.figures import FIGURE_FOLDER
 from code_schema.images import IMAGE_FOLDER
 from code_schema.node import BODY_FILE, NODE_FILE
 from code_schema.problem_file import PROBLEM_FILE
+from code_schema.provenance import PROVENANCE_FILE, write_provenance
 
 
 class NotConfigured(Exception):
@@ -221,6 +222,11 @@ def _files(entry: LandingDraft, head: str, client: GitHub) -> dict[str, str | by
         f"{folder}/{NODE_FILE}": revision.node_yaml,
         f"{folder}/{BODY_FILE}": revision.body_md,
     }
+    public_path = f"{folder}/{PROVENANCE_FILE}"
+    if revision.provenance is not None:
+        files[public_path] = write_provenance(revision.provenance)
+    elif client.exists(public_path, head):
+        files[public_path] = None
     if revision.exam_yaml:
         files[f"{folder}/{EXAM_FILE}"] = revision.exam_yaml
     elif client.exists(f"{folder}/{EXAM_FILE}", head):
@@ -259,6 +265,7 @@ _FILES = (
     ("body", "body_md"),
     ("exam", "exam_yaml"),
     ("problem", "problem_yaml"),
+    ("provenance", "provenance"),
 )
 
 
@@ -350,6 +357,15 @@ def provenance(made: Landing, entries: list[LandingDraft]) -> str:
             f"- Drafted by {drafted}",
             f"- Approved by {person(approval.by)}, at revision {approval.revision}",
         ]
+        revision = draft.revisions.get(number=entry.revision)
+        if revision.provenance:
+            lines.append(
+                f"- AI provenance: {len(revision.provenance['items'])} items; "
+                f"public receipt in {PROVENANCE_FILE}"
+            )
+            lines.append(
+                f"- Studio receipt: {settings.CODE_WEB_ORIGIN}/studio/drafts/{draft.public_id}"
+            )
         if approval.answered is not None:
             lines.append(
                 f"- Review: {approval.answered} questions answered, {approval.wrong or 0} wrong"

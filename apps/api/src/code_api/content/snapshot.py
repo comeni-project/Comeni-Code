@@ -126,6 +126,7 @@ def node_from_index(node_id: str) -> Node | None:
         links[link.kind].append(Link(node=link.target_id, reason=link.reason))
     return Node(
         id=row.id,
+        provenance=row.provenance,
         title=row.title,
         claim=row.claim,
         region=row.region_id,

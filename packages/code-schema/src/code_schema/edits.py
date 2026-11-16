@@ -36,6 +36,7 @@ from code_schema.math import FORMULA_CODES
 from code_schema.node import Node
 from code_schema.problem_file import PROBLEM_FILE, read_problem
 from code_schema.problems import Problem
+from code_schema.provenance import tracked
 from code_schema.questions import FigureAnswer, TryQuestion
 from code_schema.resources import Resource
 
@@ -49,6 +50,7 @@ class Unfaithful(EditError):
     block's text. Storing them would store something else than the edit (#174)."""
 
 
+@tracked
 def set_fields(
     node: Node,
     *,
@@ -69,6 +71,7 @@ def set_fields(
     )
 
 
+@tracked
 def set_links(node: Node, kind: str, links: Sequence[Link]) -> Node:
     """One kind of link replaced whole: the lists are short, and CS0111 reads across kinds."""
     match kind:
@@ -81,10 +84,12 @@ def set_links(node: Node, kind: str, links: Sequence[Link]) -> Node:
     raise EditError(f"{kind} is not a kind of link (needs, goes-deeper, related)")
 
 
+@tracked
 def set_resources(node: Node, resources: Sequence[Resource]) -> Node:
     return replace(node, resources=tuple(resources))
 
 
+@tracked
 def set_image_record(node: Node, record: ImageRecord) -> Node:
     """An image's record added, or replaced where its file is already recorded (M6IM.1)."""
     kept = [each for each in node.images if each.file != record.file]
@@ -111,6 +116,7 @@ def _stems_without(
     )
 
 
+@tracked
 def remove_image(node: Node, file: str) -> Node:
     """An image gone whole: its record and every block that places it, on the page and in each
     exam stem (M6IM.3, #356)."""
@@ -137,6 +143,7 @@ def _figure_file(stem: str) -> str:
     return f"{FIGURE_FOLDER}/{file_name(stem)}"
 
 
+@tracked
 def add_figure(
     node: Node,
     at: int | None,
@@ -214,6 +221,7 @@ def _answered_by(node: Node, question_id: str, stem: str, caption: str) -> Node:
     raise EditError(f"this node has no question {question_id}")
 
 
+@tracked
 def set_figure(node: Node, stem: str, text: str) -> Node:
     """A figure's file replaced by `text`, kept as written; refused unless it validates."""
     if not any(figure.stem == stem for figure in node.figures):
@@ -225,6 +233,7 @@ def set_figure(node: Node, stem: str, text: str) -> Node:
     return replace(node, figures=figures)
 
 
+@tracked
 def remove_figure(node: Node, stem: str) -> Node:
     """A figure gone whole: its file, every block that places it on the page and in each exam
     stem, and every try question's `figure` naming it (M6FG.5; #356's lesson)."""
@@ -243,6 +252,7 @@ def placed_figures(node: Node) -> set[str]:
     return placements(node.blocks, node.questions, node.exam)
 
 
+@tracked
 def without_unplaced_figures(node: Node) -> Node:
     """A figure goes with its last placement: an edit that removes it, a block or an exam
     question deleted, leaves no file nothing places (CS1021). A draft's save applies this after
@@ -260,6 +270,7 @@ class ProblemRefused(EditError):
         self.problems = list(problems)
 
 
+@tracked
 def set_problem(node: Node, text: str) -> Node:
     """The node's problem replaced by `text`, kept as written; its block added at the body's end
     when it has none. Refused unless the file validates against this node's callouts."""
@@ -272,6 +283,7 @@ def set_problem(node: Node, text: str) -> Node:
     return with_problem if placed else insert_block(with_problem, len(node.blocks), ProblemBlock())
 
 
+@tracked
 def remove_problem(node: Node) -> Node:
     """The node's problem gone whole: its file and its block."""
     if node.problem is None:
@@ -372,6 +384,7 @@ def _place_of(questions: Sequence[TryQuestion], question_id: str) -> int:
     raise EditError(f"the node has no question {question_id}")
 
 
+@tracked
 def insert_block(node: Node, at: int, block: Block, question: TryQuestion | None = None) -> Node:
     """`block` at position `at`; a `try` block brings its question in with it."""
     _check_position(node, at, inserting=True)
@@ -386,6 +399,7 @@ def insert_block(node: Node, at: int, block: Block, question: TryQuestion | None
     return _with_blocks(node, blocks, questions)
 
 
+@tracked
 def delete_block(node: Node, at: int) -> Node:
     """The block at `at` removed; a `try` block takes its question with it. The problem's block
     goes only with its problem (`remove_problem`), never alone (M6PR.6)."""
@@ -400,6 +414,7 @@ def delete_block(node: Node, at: int) -> Node:
     return _with_blocks(node, blocks, questions)
 
 
+@tracked
 def update_block(node: Node, at: int, block: Block, question: TryQuestion | None = None) -> Node:
     """The block at `at` replaced in place. A `try` block's question is edited through it: a try
     replacing a try replaces its question where it is listed; a try replacing another block brings
@@ -421,6 +436,7 @@ def update_block(node: Node, at: int, block: Block, question: TryQuestion | None
     return _with_blocks(node, blocks, questions)
 
 
+@tracked
 def move_block(node: Node, at: int, to: int) -> Node:
     """The block at `at` moved to position `to`. The questions list stays as it is: node.yaml's
     order is the author's, and the body's markers say where each is asked (#173)."""
@@ -438,12 +454,14 @@ def _exam_index(node: Node, question_id: str) -> int:
     raise EditError(f"the exam pool has no question {question_id}")
 
 
+@tracked
 def add_exam_question(node: Node, question: ExamQuestion) -> Node:
     if any(asked.id == question.id for asked in node.exam):
         raise EditError(f"{question.id} is already in the exam pool")
     return replace(node, exam=(*node.exam, question))
 
 
+@tracked
 def update_exam_question(node: Node, question_id: str, question: ExamQuestion) -> Node:
     index = _exam_index(node, question_id)
     exam = list(node.exam)
@@ -451,6 +469,7 @@ def update_exam_question(node: Node, question_id: str, question: ExamQuestion) -
     return replace(node, exam=tuple(exam))
 
 
+@tracked
 def delete_exam_question(node: Node, question_id: str) -> Node:
     index = _exam_index(node, question_id)
     return replace(node, exam=node.exam[:index] + node.exam[index + 1 :])

@@ -230,6 +230,8 @@ class AnswerOut(Schema):
 
 
 class NodeOut(Schema):
+    provenance: dict[str, Any] | None = None
+
     id: str
     title: str
     claim: str

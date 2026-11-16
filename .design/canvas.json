@@ -493,6 +493,51 @@
       "page": "studio"
     },
     {
+      "file": "DraftBlockAI.dc.html",
+      "title": "S3 · M5.2 — compare an AI redraft",
+      "x": 1800,
+      "y": 17100,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftBlockAIConflict.dc.html",
+      "title": "S3 · M5.2 — human correction conflicts",
+      "x": 3600,
+      "y": 17100,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftResourceAI.dc.html",
+      "title": "S3 · M5.2 — a suggested resource",
+      "x": 0,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftFigureAI.dc.html",
+      "title": "S4 · M5.2 — Ask for a figure change",
+      "x": 1800,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftBlockAIDark.dc.html",
+      "title": "S3 · M5.2 — compare, dark",
+      "x": 3600,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
       "file": "IdentityCodeLight.dc.html",
       "title": "Identity · Code light",
       "x": 0,
@@ -952,6 +997,46 @@
       "y": 16850,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockai",
+      "x": 1800,
+      "y": 16850,
+      "w": 620,
+      "text": "M5.2 draft: author-triggered redraft, before/after, preserved human corrections, provenance and explicit Keep or Discard. Keeping is a draft save, never approval.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockaiconflict",
+      "x": 3600,
+      "y": 16850,
+      "w": 620,
+      "text": "A model change overlaps a human correction. Applying stays disabled until the author resolves the passage; no human edit is silently lost.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftresourceai",
+      "x": 0,
+      "y": 18310,
+      "w": 620,
+      "text": "Suggest from supplied candidates and indexed resource records. The author checks the link, part and licence; Add still creates an unreviewed draft.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftfigureai",
+      "x": 1800,
+      "y": 18310,
+      "w": 620,
+      "text": "Ask proposes validated data for the chosen component. Use updates the working copy; Save to the page remains explicit and keeps the AI provenance.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockaidark",
+      "x": 3600,
+      "y": 18310,
+      "w": 620,
+      "text": "Same proposal in the dark identity.",
       "page": "studio"
     },
     {

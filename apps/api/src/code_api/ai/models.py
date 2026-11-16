@@ -61,6 +61,7 @@ class AICall(models.Model):
     connection_name = models.TextField(blank=True, default="")
     model = models.TextField(blank=True, default="")
     prompt_id = models.TextField(blank=True, default="")
+    call_settings = models.JSONField(default=dict)
     tokens_in = models.PositiveIntegerField(default=0)
     tokens_out = models.PositiveIntegerField(default=0)
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)

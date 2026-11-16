@@ -152,7 +152,11 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
           <section role="tabpanel" aria-label={tab.label} className="flex min-w-0 flex-col gap-3">
             {tab.body(draft, node)}
           </section>
-          <SidePanel draftId={draft.public_id} node={node} />
+          <SidePanel
+            draftId={draft.public_id}
+            node={node}
+            reviewed={draft.state === "approved" || draft.state === "landed"}
+          />
         </div>
       )}
     </>
@@ -160,7 +164,15 @@ function Bench({ draft, node }: { draft: DraftOut; node: DraftNodeOut }) {
 }
 
 /** The right panel: the preview, or Checks — which asks the API only while it is shown. */
-function SidePanel({ draftId, node }: { draftId: string; node: DraftNodeOut }) {
+function SidePanel({
+  draftId,
+  node,
+  reviewed,
+}: {
+  draftId: string;
+  node: DraftNodeOut;
+  reviewed: boolean;
+}) {
   const [checks, setChecks] = useState(false);
   return (
     <aside className="flex flex-col rounded-panel border border-border bg-surface">
@@ -187,7 +199,7 @@ function SidePanel({ draftId, node }: { draftId: string; node: DraftNodeOut }) {
         {checks ? (
           <ChecksPanel draftId={draftId} />
         ) : (
-          <PreviewPanel node={node} draftId={draftId} />
+          <PreviewPanel node={node} draftId={draftId} reviewed={reviewed} />
         )}
       </div>
     </aside>

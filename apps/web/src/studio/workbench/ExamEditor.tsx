@@ -1,3 +1,4 @@
+import { DraftAI } from "../drafting/DraftAI";
 // One exam question, open (M4.8d spec, M4P.5): its title, claim and level, the stem as blocks, the
 // answer and the rationale, held here and saved when you leave the editor — POST when new, PUT
 // otherwise, nothing when unchanged. Refused, it stays with what you typed and why.
@@ -122,6 +123,7 @@ export function ExamEditor({
 
   return (
     <LeaveToSave onLeave={commit} className="flex flex-col gap-2.5 border-0 p-0">
+      {editable && base !== null && <DraftAI draftId={draftId} target={`exam/${base.id}`} />}
       <fieldset disabled={!editable} className="m-0 flex min-w-0 flex-col gap-2.5 border-0 p-0">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 max-w-full items-center gap-1.5 text-[15px] font-semibold">

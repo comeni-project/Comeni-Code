@@ -33,6 +33,7 @@ class Node(models.Model):
     blocks = models.JSONField(default=list)
     # The node's folder, relative to the content root: for "edit on GitHub" later.
     folder = models.TextField()
+    provenance = models.JSONField(null=True, blank=True)
 
 
 class Link(models.Model):

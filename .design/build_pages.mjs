@@ -4,6 +4,7 @@
 //   node .design/build_pages.mjs
 import { writeFileSync } from 'node:fs';
 import { T, head, foot, logo, chip, primary, secondary, panel, label, seg, gridBg, labs, code, MONO, UI } from './_identity.mjs';
+import { draftingBoards } from './_m5_drafting.mjs';
 
 const D = new URL('.', import.meta.url).pathname;
 const c = T.light;
@@ -3418,7 +3419,7 @@ function layout(list, pageId, cols) {
   });
 }
 layout(LEARN, 'learn', 3);
-layout(STUDIO, 'studio', 3);
+layout([...STUDIO, ...draftingBoards()], 'studio', 3);
 layout(IDENTITY, 'identity', 2);
 annotations.push({ id: 'note-brief', x: -760, y: -250, w: 620, page: 'learn', text: 'Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: Code is the tutor on top of existing material (tutor spec). Nodes are standalone pages that also point to the best existing videos and readings; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar.' });
 writeFileSync(`${D}canvas.json`, JSON.stringify({

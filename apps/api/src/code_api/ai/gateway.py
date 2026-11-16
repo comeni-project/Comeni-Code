@@ -89,6 +89,15 @@ def _today() -> datetime:
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+def call_settings(route: Route) -> dict[str, Any]:
+    """The actual non-secret parameters sent; historical calls without this remain unknown."""
+    return {
+        "temperature": route.temperature,
+        "reasoning_effort": route.reasoning_effort,
+        "timeout": route.timeout or DEFAULT_TIMEOUT,
+    }
+
+
 def _record(site: str, by: User | None, route: Route, prompt_id: str, **fields: Any) -> AICall:
     return AICall.objects.create(
         site=site,
@@ -96,6 +105,7 @@ def _record(site: str, by: User | None, route: Route, prompt_id: str, **fields: 
         connection_name=route.connection_name,
         model=route.model,
         prompt_id=prompt_id,
+        call_settings=call_settings(route),
         **fields,
     )
 
@@ -127,22 +137,26 @@ def call(
     if cap is not None:
         used = AICall.objects.filter(site=site, outcome="answered", at__gte=_today()).count()
         if used >= cap:
-            _record(site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft)
+            record = _record(
+                site, by, route, prompt_id, outcome="capped", code="CA0404", draft=draft
+            )
             calls = "call" if cap == 1 else "calls"
-            return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.")
+            return Refused("CA0404", f"{site} reached its cap of {cap} {calls} today.", record.pk)
     if route.model.startswith(CHATGPT_PREFIX):
         # The gateway owns the plan's token, so LiteLLM never signs in inside a call (M5G.4).
         token = chatgpt.fresh_token()
         if isinstance(token, Refused):
-            _record(site, by, route, prompt_id, outcome="refused", code=token.code, draft=draft)
-            return token
+            record = _record(
+                site, by, route, prompt_id, outcome="refused", code=token.code, draft=draft
+            )
+            return Refused(token.code, token.sentence, record.pk)
     started = time.monotonic()
     try:
         done = transport(route, messages)
     except Exception as error:  # noqa: BLE001 — the provider's refusal, in its words
         took = round((time.monotonic() - started) * 1000)
         said = str(error)[:500] or type(error).__name__
-        _record(
+        record = _record(
             site,
             by,
             route,
@@ -152,13 +166,13 @@ def call(
             duration_ms=took,
             draft=draft,
         )
-        return Refused("CA0405", said)
+        return Refused("CA0405", said, record.pk)
     took = round((time.monotonic() - started) * 1000)
     value = None
     if reply is not None:
         value = _parsed(done.text, reply)
         if value is None:
-            _record(
+            record = _record(
                 site,
                 by,
                 route,
@@ -171,7 +185,7 @@ def call(
                 cost=done.cost,
                 draft=draft,
             )
-            return Refused("CA0406", "The reply was not in the shape asked for.")
+            return Refused("CA0406", "The reply was not in the shape asked for.", record.pk)
     record = _record(
         site,
         by,

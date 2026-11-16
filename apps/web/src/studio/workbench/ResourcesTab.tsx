@@ -5,6 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { DraftNodeOut, Level, ResourceIn, StudioResourceOut } from "../../api/schema";
 import { SECONDARY } from "../../layout/buttons";
+import { DraftAI } from "../drafting/DraftAI";
+import { Origin } from "../drafting/Origin";
 import { NOTE } from "./bench";
 import { resources } from "./edits";
 import { RefusalNotice } from "./RefusalNotice";
@@ -59,6 +61,7 @@ export function ResourcesTab({
           </button>
         )}
       </div>
+      {editable && <DraftAI draftId={draftId} target="resources" kind="resource" />}
       {refusal !== null && (
         <RefusalNotice
           refusal={refusal}
@@ -87,6 +90,7 @@ export function ResourcesTab({
             <div className="flex min-w-0 flex-col gap-0.5">
               <span className="text-[14px] font-semibold">{titleOf(r)}</span>
               <span className="truncate text-[12.5px] text-ink-2">{r.covers}</span>
+              <Origin draftId={draftId} provenance={node.provenance} target={`resource/${at}`} />
               <RequestNote draftId={draftId} keyNow={`resource/${at}`} />
             </div>
             {editable && (

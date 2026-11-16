@@ -8,6 +8,8 @@ import { Link } from "react-router";
 import type { DraftNodeOut, TryQuestionIn } from "../../api/schema";
 import type { Block } from "../../node/body";
 import { composerPath, useOpenComposer } from "../composer/open";
+import { DraftAI } from "../drafting/DraftAI";
+import { Origin } from "../drafting/Origin";
 import { BlockEditor } from "./BlockEditor";
 import { deleteBlock, type Edit, moveBlock, removeFigure, removeImage } from "./edits";
 import { ImageAdder } from "./ImageAdder";
@@ -274,6 +276,18 @@ export function BlockList({ draftId, nodeId, node, editable, opened, open, close
             {adder(at)}
             {freshAt(at)}
             {row}
+            {editable &&
+              ["text", "callout", "sequence", "math", "example", "try"].includes(block.kind) && (
+                <DraftAI
+                  draftId={draftId}
+                  target={block.kind === "try" ? `try/${block.question}` : `block/${at}`}
+                />
+              )}
+            <Origin
+              draftId={draftId}
+              provenance={node.provenance}
+              target={block.kind === "try" ? `try/${block.question}` : `block/${at}`}
+            />
             <RequestNote
               draftId={draftId}
               keyNow={block.kind === "try" ? `try/${block.question}` : `block/${at}`}
