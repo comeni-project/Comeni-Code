@@ -48,6 +48,7 @@ export interface ApiSchemas {
   FileChangeOut: FileChangeOut;
   FilesOut: FilesOut;
   GivenIn: GivenIn;
+  GoalSuggestIn: GoalSuggestIn;
   HealthOut: HealthOut;
   ImageBlockOut: ImageBlockOut;
   ImageRecordIn: ImageRecordIn;
@@ -816,6 +817,9 @@ export interface FilesOut {
  */
 export interface GivenIn {
   given: unknown;
+}
+export interface GoalSuggestIn {
+  query: string;
 }
 export interface HealthOut {
   ai?: "configured" | "not configured";

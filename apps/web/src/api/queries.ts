@@ -12,6 +12,7 @@ import { fetchProviders } from "./auth";
 import { getJson } from "./client";
 import { fetchProposal, fetchProposals } from "./drafting";
 import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
+import { suggestGoals } from "./goals";
 import { fetchHealth } from "./health";
 import { fetchKits } from "./kits";
 import { fetchLanding, fetchLandings, fetchReady, moving } from "./landing";
@@ -39,6 +40,7 @@ export const queryKeys = {
   route: (goals: readonly string[], known: readonly string[]) =>
     ["route", { goals: [...goals], known: [...known] }] as const,
   search: (words: string) => ["search", words] as const,
+  goalSuggestions: (words: string) => ["goal-suggestions", words] as const,
   me: ["me"] as const,
   providers: ["providers"] as const,
   invite: (token: string) => ["invite", token] as const,
@@ -78,6 +80,15 @@ export const useRoute = (goals: readonly string[], known: readonly string[]) =>
   });
 
 /** The candidates for typed words; nothing is asked for blank ones. */
+export const useGoalSuggestions = (words: string) =>
+  useQuery({
+    queryKey: queryKeys.goalSuggestions(words),
+    queryFn: () => suggestGoals(words),
+    enabled: words.trim() !== "",
+    retry: false,
+  });
+
+/** Deterministic author-side node lookup; learners use `useGoalSuggestions` on Start. */
 export const useSearch = (words: string) =>
   useQuery({
     queryKey: queryKeys.search(words),

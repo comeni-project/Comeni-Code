@@ -300,3 +300,7 @@ class SearchOut(Schema):
     # The words that matched nothing anywhere, so the page can name them (M3P2.2).
     unmatched: list[str]
     results: list[ResultOut]
+
+
+class GoalSuggestIn(Schema):
+    query: str

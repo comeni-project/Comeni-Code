@@ -1869,6 +1869,19 @@
         "title": "GivenIn",
         "type": "object"
       },
+      "GoalSuggestIn": {
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "GoalSuggestIn",
+        "type": "object"
+      },
       "HealthOut": {
         "properties": {
           "ai": {
@@ -6338,6 +6351,58 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/goals/suggest": {
+      "post": {
+        "operationId": "code_api_content_goals_goals_suggest",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoalSuggestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Suggest existing goals for a learner's words",
+        "tags": [
+          "content"
+        ]
+      }
+    },
     "/api/health": {
       "get": {
         "operationId": "code_api_health_api_health",

@@ -4,7 +4,7 @@
 
 - M5.3 is implemented on `feat/m5-3-block-scores`, stacked on `feat/m5-1-gateway`. M5.2 PR #476 is merged into #465's head branch; M5.1 PR #465 remains open. This M5.3 PR is to target that same head branch and stay open for review.
 - Python: 1,950 tests pass. Ruff lint/format, mypy (313 source files), Django system check and migration check pass. Web: 971 tests pass with Biome, TypeScript and production build.
-- Local checks do not cover the isolated stack; PR CI must still run the stack job.
+- PR #477's Python, web and stack CI jobs all pass (1,952 Python tests; web suite and isolated stack included).
 
 ## What changed
 

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Literal
 
 from ninja import Schema
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConnectionOut(Schema):
@@ -104,6 +105,14 @@ class CallOut(Schema):
     duration_ms: int
     outcome: str
     code: str
+
+
+class GoalSelection(BaseModel):
+    """Closed model reply: only IDs from the caller's candidate set can be returned."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ids: list[str] = Field(max_length=3)
 
 
 class UsageOut(Schema):

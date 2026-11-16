@@ -30,7 +30,7 @@ const json = (body: unknown, status = 200) =>
 /** One stub for both endpoints: whichever URL is asked for gets its own answer. */
 function answering(search: unknown, route?: unknown, status = 200) {
   const stub = vi.fn(async (url: string) =>
-    url.startsWith("/api/search") ? json(search, status) : json(route ?? {}, status),
+    url.startsWith("/api/goals/suggest") ? json(search, status) : json(route ?? {}, status),
   );
   vi.stubGlobal("fetch", stub);
   return stub;
@@ -88,9 +88,10 @@ describe("the Start page", () => {
     await userEvent.type(screen.getByLabelText("What do you want to learn?"), "salmon");
     await userEvent.click(screen.getByRole("button", { name: "Build my route" }));
     expect(await screen.findByText(/Is this what you mean\?/)).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/goals/suggest", expect.anything());
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/search?q=salmon"),
-      expect.anything(),
+      "/api/goals/suggest",
+      expect.objectContaining({ body: JSON.stringify({ query: "salmon" }) }),
     );
   });
 
@@ -99,6 +100,14 @@ describe("the Start page", () => {
     open("/?q=salmon");
     expect(await screen.findByRole("button", { name: "Choose Salmon" })).toBeInTheDocument();
     expect(screen.getByText(salmon.claim)).toBeInTheDocument();
+  });
+
+  it("retries suggestions when the learner explicitly submits the same query again", async () => {
+    const stub = answering(found([salmon]));
+    open("/?q=salmon");
+    await screen.findByRole("button", { name: "Choose Salmon" });
+    await userEvent.click(screen.getByRole("button", { name: "Build my route" }));
+    expect(stub.mock.calls.filter(([url]) => url === "/api/goals/suggest")).toHaveLength(2);
   });
 
   it("says it is searching while it waits", () => {
@@ -132,8 +141,8 @@ describe("the Start page", () => {
     open();
     await userEvent.click(screen.getByRole("button", { name: "Why my reads don't map" }));
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("q=Why+my+reads+don%27t+map"),
-      expect.anything(),
+      "/api/goals/suggest",
+      expect.objectContaining({ body: JSON.stringify({ query: "Why my reads don't map" }) }),
     );
   });
 
@@ -199,7 +208,7 @@ describe("the route preview", () => {
 
   it("says it is weaving while it waits", async () => {
     vi.stubGlobal("fetch", async (url: string) =>
-      url.startsWith("/api/search") ? json(found([salmon])) : new Promise(() => {}),
+      url.startsWith("/api/goals/suggest") ? json(found([salmon])) : new Promise(() => {}),
     );
     open(chosen);
     expect(await screen.findByText("Weaving your route…")).toBeInTheDocument();
@@ -216,7 +225,7 @@ describe("the route preview", () => {
 
   it("prints the API's sentence when the route cannot be woven", async () => {
     vi.stubGlobal("fetch", async (url: string) =>
-      url.startsWith("/api/search")
+      url.startsWith("/api/goals/suggest")
         ? json(found([salmon]))
         : json({ detail: "No topic with id 'salmon'. It may have been removed or renamed." }, 404),
     );

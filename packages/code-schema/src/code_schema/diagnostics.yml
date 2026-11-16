@@ -3224,6 +3224,17 @@ codes:
       The judge's threshold and redraft count are bounded operator settings, so one proposal can
       only trigger a small, predictable number of calls (M5.3 spec).
 
+  CA0409:
+    emitted_by: api
+    concern: ai
+    says: a goal query is too long
+    refuses: true
+    fix: |
+      Shorten the goal to 240 characters or fewer.
+    explanation: |
+      Goal suggestions send the learner's words to a model, so the request has a small fixed input
+      bound (M5.4 spec).
+
   CS1200:
     emitted_by: schema
     concern: provenance
