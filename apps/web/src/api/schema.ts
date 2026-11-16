@@ -37,6 +37,7 @@ export interface ApiSchemas {
   ExamQuestionIn: ExamQuestionIn;
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
+  FigureAssociationIn: FigureAssociationIn;
   FigureBlockOut: FigureBlockOut;
   FigureOut: FigureOut;
   FigureSourceOut: FigureSourceOut;
@@ -182,6 +183,7 @@ export interface AcceptProposalIn {
  * body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).
  */
 export interface AddFigureIn {
+  ai_proposal?: FigureAssociationIn | null;
   alt?: string | null;
   at?: number | null;
   caption?: string;
@@ -189,6 +191,13 @@ export interface AddFigureIn {
   question?: string | null;
   revision: number;
   text?: string | null;
+}
+export interface FigureAssociationIn {
+  copy_digest: string;
+  proposal_id: string;
+  resolutions?: {
+    [k: string]: unknown;
+  };
 }
 /**
  * A learner's answer (M6LP.4). The seed is digits, as a JSON number loses them past 2**53.
@@ -260,6 +269,9 @@ export interface DraftNodeOut {
   minutes: number;
   needs: LinkOut[];
   problem?: NodeProblemOut | null;
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   questions: StudioQuestionOut[];
   region: string;
   related: LinkOut[];
@@ -619,6 +631,8 @@ export interface CreateProposalIn {
   }[];
   copy_digest?: string;
   copy_text?: string | null;
+  figure_at?: number | null;
+  figure_question?: string | null;
   instruction: string;
   kind: "block" | "resource" | "figure";
   request_id: string;
@@ -743,6 +757,7 @@ export interface FigureOut {
   stem: string;
 }
 export interface FigureTextIn {
+  ai_proposal?: FigureAssociationIn | null;
   revision: number;
   text: string;
 }
@@ -937,6 +952,9 @@ export interface NodeOut {
   needed_by: SideCardOut[];
   needs: SideCardOut[];
   problem?: LearnerProblemOut | null;
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   questions: QuestionOut[];
   region: RegionOut;
   related: SideCardOut[];
@@ -1216,6 +1234,9 @@ export interface ReviewItemOut {
 }
 export interface ReviewOut {
   items: ReviewItemOut[];
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   revision: number;
 }
 export interface RevisionOut {

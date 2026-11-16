@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[3] / "tests/fixtures/salmon"
 
 @pytest.fixture
 def draft(ada: User) -> Draft:
-    rebuild_index(ROOT)
+    rebuild_index(ROOT, commit="base-1")
     return drafts.open_existing("dna-and-genes", by=ada)
 
 
@@ -218,3 +218,354 @@ def test_expired_work_is_not_retried(draft: Draft, ada: User, configured: list[o
     assert ai_drafting.expire() == 1
     ai_drafting.run(str(proposal.public_id))
     assert configured == []
+
+
+def test_private_source_evidence_is_not_in_landing_files_or_pr_text(
+    draft: Draft,
+    ada: User,
+    grace: User,
+    otto: User,
+    configured: list[object],
+    settings: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from fake_github import FakeGitHub
+
+    from code_api.studio import landing
+    from code_api.studio.ai_schemas import SourceIn
+    from code_api.studio.log import record
+    from code_api.studio.models import DraftEvent
+
+    body = request(draft)
+    body.sources = [
+        SourceIn(
+            id="private",
+            title="Private note",
+            url="https://private.example.org/note",
+            licence="Author permission",
+            excerpt="PRIVATE SOURCE EXCERPT",
+            public=False,
+        )
+    ]
+    proposal = ai_drafting.create(draft, body, by=ada)
+    ai_drafting.run(str(proposal.public_id))
+    ai_drafting.accept(proposal, by=ada, based_on=1, resolutions={})
+    Draft.objects.filter(pk=draft.pk).update(state=Draft.State.APPROVED)
+    record(draft, DraftEvent.Kind.APPROVED, by=grace, revision=2, answered=0, wrong=0)
+    settings.CODE_GITHUB_APP = object()
+    monkeypatch.setattr("code_api.studio.tasks.land.delay", lambda identity: None)
+    fake = FakeGitHub()
+    made = landing.start([draft.public_id], by=otto)
+    landing.run(made, fake)
+    made.refresh_from_db()
+    assert "commit-1" in fake.commits, (
+        made.reason,
+        list(made.entries.values("dropped_reason", "dropped_code")),
+        fake.calls,
+    )
+    _, files, _ = fake.commits["commit-1"]
+    public = files[f"{draft.folder}/provenance.json"]
+    assert isinstance(public, str) and proposal.prompt_id in public
+    exported = public + str(fake.pulls)
+    for secret in ("PRIVATE SOURCE EXCERPT", "private.example.org", ada.email):
+        assert secret not in exported
+    proposal.refresh_from_db()
+    assert proposal.sources[0]["excerpt"] == "PRIVATE SOURCE EXCERPT"
+
+
+def test_figure_receipt_is_consumed_only_by_successful_normal_save(
+    draft: Draft, ada: User, configured: list[object], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import yaml
+
+    from code_api.ai.gateway import Completion
+    from code_figures import COMPONENTS
+    from code_schema.edits import add_figure
+
+    component = COMPONENTS["kmer-graph"]
+    assert component is not None
+    text = yaml.safe_dump(
+        {"component": "kmer-graph", "alt": "Reads as a graph.", "data": component.starter}
+    )
+    body = CreateProposalIn(
+        request_id=uuid.uuid4(),
+        based_on=1,
+        kind="figure",
+        target="figure/new",
+        instruction="Keep these data.",
+        copy_text=text,
+        copy_digest=ai_drafting.text_digest(text),
+        figure_at=0,
+    )
+    monkeypatch.setattr(
+        gateway,
+        "transport",
+        lambda *a: Completion(
+            json.dumps({"value": yaml.safe_load(text), "source_ids": []}), 10, 5, None
+        ),
+    )
+    proposal = ai_drafting.create(draft, body, by=ada)
+    ai_drafting.run(str(proposal.public_id))
+    proposal.refresh_from_db()
+    assert proposal.state == "ready"
+    saved = ai_drafting.save_figure(
+        draft,
+        based_on=1,
+        by=ada,
+        edit=lambda n: add_figure(n, 0, text=text, caption="A graph.\n"),
+        change="added figure",
+        association={
+            "proposal_id": str(proposal.public_id),
+            "copy_digest": body.copy_digest,
+            "resolutions": {},
+        },
+        target="figure/new",
+        at=0,
+        question=None,
+    )
+    proposal.refresh_from_db()
+    assert proposal.state == "accepted" and proposal.accepted_revision_id == saved.revision.pk
+    assert saved.revision.provenance is not None
+    assert any(k.startswith("figure/") for k in saved.revision.provenance["items"])
+
+
+@pytest.mark.parametrize(
+    "reply,code",
+    [
+        ({"value": {"kind": "image", "file": "x"}}, "CA0500"),
+        ({"value": {"kind": "text", "markdown": "Fine.\n"}, "source_ids": ["invented"]}, "CA0501"),
+        ({"value": {"kind": "text", "markdown": ":::"}}, "CA0502"),
+    ],
+)
+def test_invalid_model_edits_are_visible_without_saves(
+    draft: Draft,
+    ada: User,
+    configured: list[object],
+    monkeypatch: pytest.MonkeyPatch,
+    reply: dict[str, Any],
+    code: str,
+) -> None:
+    monkeypatch.setattr(gateway, "transport", lambda *a: Completion(json.dumps(reply), 10, 5, None))
+    p = ai_drafting.create(draft, request(draft), by=ada)
+    ai_drafting.run(str(p.public_id))
+    p.refresh_from_db()
+    assert p.state == "refused" and p.code == code
+    assert p.call_id is not None and draft.revisions.count() == 1
+
+
+def test_imported_origin_needs_an_explicit_resolution_and_no_model_baseline_is_invented(
+    draft: Draft, ada: User, configured: list[object]
+) -> None:
+    from code_schema.provenance import attach
+
+    identity = str(uuid.uuid4())
+    body = request(draft)
+    public = {"model": "old/model", "prompt_id": "draft-block@1", "settings": {}, "sources": []}
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda n: attach(n, body.target, identity, public),
+        by=ada,
+        change="imported",
+    )
+    body.based_on = 2
+    p = ai_drafting.create(draft, body, by=ada)
+    ai_drafting.run(str(p.public_id))
+    p.refresh_from_db()
+    assert p.state == "ready" and p.code == "CA0504" and p.conflicts[0]["base_present"] is False
+    with pytest.raises(DraftingError) as missing:
+        ai_drafting.accept(p, by=ada, based_on=2, resolutions={})
+    assert missing.value.code == "CA0503" and draft.revisions.count() == 2
+    ai_drafting.accept(p, by=ada, based_on=2, resolutions={"": {"choice": "human"}})
+    assert draft.revisions.count() == 3
+
+
+def test_stale_figure_copy_and_not_ready_are_diagnostics(
+    draft: Draft, ada: User, configured: list[object]
+) -> None:
+    body = request(draft)
+    body.kind, body.target, body.copy_text = "figure", "figure/new", "component: kmer-graph"
+    with pytest.raises(DraftingError) as mismatch:
+        ai_drafting.create(draft, body, by=ada)
+    assert mismatch.value.code == "CA0506"
+    p = ai_drafting.create(draft, request(draft), by=ada)
+    with pytest.raises(DraftingError) as unready:
+        ai_drafting.chosen(p, {})
+    assert unready.value.code == "CA0507"
+
+
+@pytest.mark.parametrize("change", ["deactivate", "delete", "submit", "discard", "no-model"])
+def test_a_claim_refuses_a_requester_draft_or_route_that_is_no_longer_available(
+    draft: Draft, ada: User, configured: list[object], change: str
+) -> None:
+    p = ai_drafting.create(draft, request(draft), by=ada)
+    if change == "deactivate":
+        User.objects.filter(pk=ada.pk).update(is_active=False)
+    elif change == "delete":
+        ada.delete()
+    elif change in {"submit", "discard"}:
+        Draft.objects.filter(pk=draft.pk).update(
+            state="submitted" if change == "submit" else "discarded"
+        )
+    else:
+        SiteSetting.objects.all().delete()
+    ai_drafting.run(str(p.public_id))
+    p.refresh_from_db()
+    assert p.state == "refused" and p.call_id is None and configured == []
+    assert draft.revisions.count() == 1
+
+
+def test_an_invalid_figure_working_copy_is_a_diagnostic(
+    draft: Draft, ada: User, configured: list[object]
+) -> None:
+    body = request(draft)
+    body.kind, body.target, body.copy_text = "figure", "figure/new", "component: ["
+    body.copy_digest = ai_drafting.text_digest(body.copy_text)
+    with pytest.raises(DraftingError) as invalid:
+        ai_drafting.create(draft, body, by=ada)
+    assert invalid.value.code == "CA0502" and DraftProposal.objects.count() == 0
+
+
+@pytest.mark.parametrize("placement", ["body", "question"])
+def test_figure_saves_keep_receipts_on_failure_shared_files_and_human_changes(
+    draft: Draft,
+    ada: User,
+    configured: list[object],
+    monkeypatch: pytest.MonkeyPatch,
+    placement: str,
+) -> None:
+    import yaml
+    from django.test import Client
+
+    from code_api.studio.ai_edits import payload
+    from code_figures import COMPONENTS
+    from code_schema.edits import add_figure
+
+    value: dict[str, Any] = {
+        "component": "kmer-graph",
+        "alt": "Reads as a graph.",
+        "data": COMPONENTS["kmer-graph"].starter,
+    }
+    if placement == "question":
+        value["data"] = {**value["data"], "highlight": "none"}
+        value["interact"] = {"task": "trace", "spells": "ACGTTAG"}
+    text = yaml.safe_dump(value)
+    node, _ = drafts.node_of(draft)
+    assert node is not None
+    question = node.questions[0].id if placement == "question" else None
+
+    def place(n: Any) -> Any:
+        from code_schema import Figure
+        from code_schema.edits import insert_block
+
+        made = add_figure(
+            n, 0 if question is None else None, text=text, caption="Graph.\n", question=question
+        )
+        return (
+            made
+            if question
+            else insert_block(
+                made, len(made.blocks), Figure(made.figures[0].stem, "Shared graph.\n")
+            )
+        )
+
+    initial = drafts.save(draft, based_on=1, by=ada, change="placed figure", edit=place)
+    node, _ = drafts.node_of(draft)
+    assert node is not None
+    stem = node.figures[0].stem
+    body = CreateProposalIn(
+        request_id=uuid.uuid4(),
+        based_on=initial.revision.number,
+        kind="figure",
+        target=f"figure/{stem}",
+        instruction="Improve alt.",
+        copy_text=text,
+        copy_digest=ai_drafting.text_digest(text),
+    )
+    value["alt"] = "An improved graph."
+    monkeypatch.setattr(
+        gateway, "transport", lambda *a: Completion(json.dumps({"value": value}), 10, 5, None)
+    )
+    p = ai_drafting.create(draft, body, by=ada)
+    ai_drafting.run(str(p.public_id))
+    p.refresh_from_db()
+    assert p.state == "ready"
+    client = Client()
+    client.force_login(ada)
+    url = f"/api/studio/drafts/{draft.public_id}/figures/{stem}"
+    association = {
+        "proposal_id": str(p.public_id),
+        "copy_digest": body.copy_digest,
+        "resolutions": {},
+    }
+    # A malformed file makes no receipt or revision; the same association remains usable.
+    invalid = client.put(
+        url,
+        {"revision": 2, "text": "component: [", "ai_proposal": association},
+        content_type="application/json",
+    )
+    assert invalid.status_code == 422
+    p.refresh_from_db()
+    assert p.state == "ready" and draft.revisions.count() == 2
+    forged = client.put(
+        url,
+        {
+            "revision": 2,
+            "text": yaml.safe_dump(value),
+            "ai_proposal": {**association, "copy_digest": "a" * 64},
+        },
+        content_type="application/json",
+    )
+    assert forged.status_code == 422 and forged.json()["code"] == "CA0506"
+    value["alt"] = "A human correction after Use."
+    result = client.put(
+        url,
+        {"revision": 2, "text": yaml.safe_dump(value), "ai_proposal": association},
+        content_type="application/json",
+    )
+    assert result.status_code == 200, result.content
+    p.refresh_from_db()
+    assert p.state == "accepted" and draft.revisions.count() == 3
+    final, _ = drafts.node_of(draft)
+    assert final is not None
+    assert payload(final, f"figure/{stem}")["alt"] == value["alt"]
+    assert final.provenance is not None
+    placed_key = f"try/{question}" if question else "block/0"
+    assert str(p.public_id) in final.provenance["items"][placed_key]["receipts"]
+    if question is None:
+        assert (
+            str(p.public_id)
+            in final.provenance["items"][f"block/{len(final.blocks) - 1}"]["receipts"]
+        )
+    # A repeated normal Save cannot consume the association a second time.
+    again = client.put(
+        url,
+        {"revision": 3, "text": yaml.safe_dump(value), "ai_proposal": association},
+        content_type="application/json",
+    )
+    assert again.status_code == 409 and draft.revisions.count() == 3
+
+
+@pytest.mark.django_db(transaction=True)
+def test_concurrent_creation_of_one_request_enqueues_one_proposal(
+    draft: Draft, ada: User, configured: list[object]
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    from django import db
+
+    body = request(draft)
+    barrier = Barrier(2)
+
+    def one() -> str:
+        try:
+            barrier.wait(timeout=5)
+            return str(ai_drafting.create(draft, body, by=ada).public_id)
+        finally:
+            db.connections.close_all()
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        left, right = pool.submit(one), pool.submit(one)
+        assert left.result(timeout=10) == right.result(timeout=10)
+    assert DraftProposal.objects.count() == 1

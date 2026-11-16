@@ -12,6 +12,7 @@ import type { Finding } from "../../figures/validate";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { lineOf, pathParts, writeFile } from "../../yaml/document";
+import { DraftAI, type FigureUse } from "../drafting/DraftAI";
 import { addFigureFile, addFigureFor, type Edit, setFigure, updateBlock } from "../workbench/edits";
 import { refusalOf } from "../workbench/refusal";
 import { useDraftEdit } from "../workbench/useDraftEdit";
@@ -193,6 +194,7 @@ function Composer({
   const copy = useWorkingCopy(stem ?? "new", record?.text ?? null);
   const [choosing, setChoosing] = useState(stem === null);
   const [chosen, setChosen] = useState<Component | null>(null);
+  const [aiProposal, setAIProposal] = useState<FigureUse | null>(null);
   const [yamlOpen, setYamlOpen] = useState(false);
   const [step, setStep] = useState<Step>("data");
   const [drawn, setDrawn] = useState(0);
@@ -200,7 +202,7 @@ function Composer({
   void client;
 
   const captionChanged = caption !== null && caption !== (initialCaption ?? "");
-  const changed = copy.changed || (stem !== null && captionChanged);
+  const changed = copy.changed || (stem !== null && captionChanged) || aiProposal !== null;
   const allow = useLeaveGuard(changed || edit.isPending);
   const component = (copy.figure?.component ?? record?.component ?? chosen) as Component | null;
   const tasks = component !== null && TASKS[component] !== undefined;
@@ -234,13 +236,18 @@ function Composer({
         question === null
           ? addFigureFile(at, copy.text, ended(caption ?? ""))
           : addFigureFor(question, copy.text);
+      if (aiProposal) add.body = { ...add.body, ai_proposal: aiProposal };
       edit.mutate(add, { onSuccess: back });
       return;
     }
     // One after another, each sent only once the one before it is saved: a refused file keeps
     // the composer open, its caption unsent (#390).
     const saves: Edit[] = [];
-    if (copy.changed) saves.push(setFigure(stem, copy.text));
+    if (copy.changed || aiProposal) {
+      const file = setFigure(stem, copy.text);
+      if (aiProposal) file.body = { ...file.body, ai_proposal: aiProposal };
+      saves.push(file);
+    }
     if (block !== null && captionChanged) {
       saves.push(updateBlock(block, { kind: "figure", file: stem, caption: ended(caption ?? "") }));
     }
@@ -392,6 +399,26 @@ function Composer({
             />
           </div>
           <aside className="flex flex-col gap-3.5">
+            {component !== null && (
+              <DraftAI
+                draftId={draft.public_id}
+                kind="figure"
+                target={`figure/${stem ?? "new"}`}
+                copyText={copy.text}
+                {...(stem === null && question === null ? { figureAt: at } : {})}
+                {...(question === null ? {} : { figureQuestion: question })}
+                disabled={aiProposal !== null}
+                onUse={(value, receipt) => {
+                  copy.setText(writeFile(value));
+                  setAIProposal(receipt);
+                }}
+              />
+            )}
+            {aiProposal && (
+              <p className="text-[12px] text-ink-2">
+                AI data in working copy · not yet reviewed. Save to the page to keep its receipt.
+              </p>
+            )}
             <ChecksList
               problems={problems}
               lines={checkLines(

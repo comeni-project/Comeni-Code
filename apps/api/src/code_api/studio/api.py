@@ -21,6 +21,7 @@ from code_api.accounts.roles import Role
 from code_api.content.schemas import Message
 from code_api.content.snapshot import node_from_index
 from code_api.studio import commons, drafts, landing, review
+from code_api.studio.ai_schemas import FigureAssociationIn
 from code_api.studio.edit_inputs import (
     AnswerIn as AnswerIn,
 )
@@ -104,6 +105,7 @@ from code_schema import (
     ImageRecord,
     Level,
     Link,
+    Problem,
     Resource,
 )
 from code_schema.edits import (
@@ -392,6 +394,7 @@ def _edit(
     edit: drafts.Edit,
     change: str,
     images: Mapping[str, bytes | None] | None = None,
+    ai_figure: dict[str, Any] | None = None,
 ) -> SaveAnswer:
     """One save through `drafts.save`, each outcome in the API's words."""
     draft = find(public_id)
@@ -399,13 +402,36 @@ def _edit(
         return refusal
     assert draft is not None
     try:
-        saved = drafts.save(
+        from code_api.studio import ai_drafting
+        from code_api.studio.ai_schemas import DraftingError
+
+        save = drafts.save if ai_figure is None else ai_drafting.save_figure
+        extra = {"images": images} if ai_figure is None else ai_figure
+        saved = save(
             draft,
             based_on=based_on,
             edit=edit,
             by=_member(request),
             change=change,
-            images=images,
+            **extra,
+        )
+    except DraftingError as wrong_ai:
+        return Status(
+            422,
+            RefusedOut(
+                detail=wrong_ai.detail,
+                code=wrong_ai.code,
+                problems=[
+                    ProblemOut.of(
+                        Problem(
+                            file=str(f.get("file", "")),
+                            code=str(f["code"]),
+                            message=str(f["message"]),
+                        )
+                    )
+                    for f in wrong_ai.findings
+                ],
+            ),
         )
     except drafts.NotOpen as moved:
         draft.state = moved.state
@@ -679,11 +705,13 @@ class AddFigureIn(Schema):
     component: str | None = None
     alt: str | None = None
     text: str | None = None
+    ai_proposal: FigureAssociationIn | None = None
 
 
 class FigureTextIn(Schema):
     revision: int
     text: str  # the file as written, kept byte for byte (M6FG.5)
+    ai_proposal: FigureAssociationIn | None = None
 
 
 @router.post("/{public_id}/figures", response=_EDIT_RESPONSES, summary="Add a figure")
@@ -703,6 +731,14 @@ def add_a_figure(request: HttpRequest, public_id: UUID, body: AddFigureIn) -> Sa
             question=body.question,
         ),
         f"added a {body.component} figure" if body.component else "added a figure",
+        ai_figure=None
+        if body.ai_proposal is None
+        else {
+            "association": body.ai_proposal.model_dump(mode="json"),
+            "target": "figure/new",
+            "at": body.at,
+            "question": body.question,
+        },
     )
 
 
@@ -716,6 +752,14 @@ def set_a_figure(
         body.revision,
         lambda node: set_figure(node, stem, body.text),
         f"changed the figure {stem}",
+        ai_figure=None
+        if body.ai_proposal is None
+        else {
+            "association": body.ai_proposal.model_dump(mode="json"),
+            "target": f"figure/{stem}",
+            "at": None,
+            "question": None,
+        },
     )
 
 

@@ -32,6 +32,13 @@ class DraftAnswer(BaseModel):
     source_ids: list[str] = Field(default_factory=list, max_length=20)
 
 
+class FigureAssociationIn(Schema):
+    model_config = ConfigDict(extra="forbid")
+    proposal_id: UUID
+    copy_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    resolutions: dict[str, Any] = Field(default_factory=dict)
+
+
 class CreateProposalIn(Schema):
     model_config = ConfigDict(extra="forbid")
     request_id: UUID
@@ -41,6 +48,8 @@ class CreateProposalIn(Schema):
     instruction: str = Field(min_length=1, max_length=4000)
     sources: list[SourceIn] = Field(default_factory=list, max_length=6)
     candidates: list[dict[str, Any]] = Field(default_factory=list, max_length=30)
+    figure_at: int | None = Field(default=None, ge=0)
+    figure_question: str | None = None
     copy_text: str | None = Field(default=None, max_length=100000)
     copy_digest: str = Field(default="", max_length=64)
 

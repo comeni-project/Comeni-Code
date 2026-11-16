@@ -99,7 +99,10 @@ def _sources(body: CreateProposalIn) -> list[dict[str, Any]]:
             raise DraftingError(
                 "CA0501", "A source link must be an HTTP(S) URL without credentials."
             )
-        if (url.hostname or "").removeprefix("www.") in {"khanacademy.org", "khanacademy.com"}:
+        if any(
+            (url.hostname or "") == domain or (url.hostname or "").endswith("." + domain)
+            for domain in ("khanacademy.org", "khanacademy.com")
+        ):
             raise DraftingError(
                 "CA0501", "Khan Academy can be linked, but its material is not sent to a model."
             )
@@ -126,6 +129,9 @@ def _candidates(
         resource = checked(ResourceIn, {k: v for k, v in entry.items() if k != "id"}).model_dump(
             mode="json"
         )
+        url = urlsplit(resource["url"])
+        if url.scheme not in {"http", "https"} or not url.hostname or url.username or url.password:
+            raise DraftingError("CA0501", "A candidate needs an HTTP(S) URL without credentials.")
         validate(draft, base, add_candidate(node, resource))
         captured.append({"id": identity, **resource})
     if not captured or len({c["id"] for c in captured}) != len(captured):
@@ -154,6 +160,9 @@ def create(draft: Draft, body: CreateProposalIn, *, by: User) -> DraftProposal:
         locked = Draft.objects.select_for_update().get(pk=draft.pk)
         if locked.state != Draft.State.OPEN:
             raise drafts.NotOpen(locked.public_id, locked.state)
+        duplicate = DraftProposal.objects.filter(draft=locked, request_id=body.request_id).first()
+        if duplicate is not None:
+            return create(locked, body, by=by)
         base = drafts.latest(locked)
         if base.number != body.based_on:
             raise drafts.Stale(base)
@@ -171,7 +180,12 @@ def create(draft: Draft, body: CreateProposalIn, *, by: User) -> DraftProposal:
                 payload(node, body.target)
             if body.copy_text is None or body.copy_digest != text_digest(body.copy_text):
                 raise DraftingError("CA0506", "The figure working copy changed before asking.")
-            current = yaml.safe_load(body.copy_text)
+            try:
+                current = yaml.safe_load(body.copy_text)
+            except yaml.YAMLError:
+                raise DraftingError(
+                    "CA0502", "The figure working copy is not valid YAML."
+                ) from None
             if not isinstance(current, dict) or "component" not in current:
                 raise DraftingError("CA0500", "Choose a figure component first.")
         else:
@@ -198,6 +212,8 @@ def create(draft: Draft, body: CreateProposalIn, *, by: User) -> DraftProposal:
                 "current": current,
                 "messages": messages,
                 "request_hash": digest(body.model_dump(mode="json")),
+                "figure_at": body.figure_at,
+                "figure_question": body.figure_question,
             },
         )
         transaction.on_commit(lambda: _send(str(proposal.public_id)))
@@ -228,7 +244,12 @@ def replayed(proposal: DraftProposal, node: Node, value: dict[str, Any]) -> Repl
         if identity
         else None
     )
-    if parent is None or parent.raw is None:
+    if (
+        parent is None
+        or parent.raw is None
+        or parent.draft.node_id != proposal.draft.node_id
+        or parent.kind != proposal.kind
+    ):
         return Replay(
             current,
             [
@@ -306,7 +327,7 @@ def run(identity: str) -> None:
             if (
                 source
                 and source != proposal.context["current"].get("source")
-                and source.get("url") not in {s["url"] for s in proposal.sources}
+                and source.get("url") not in {s["url"] for s in proposal.sources if s.get("public")}
             ):
                 raise DraftingError("CA0501", "The figure cited an unseen source.")
         else:
@@ -431,3 +452,66 @@ def expire() -> int:
         code="CA0505",
         detail="Drafting was interrupted. Ask again to start a new proposal.",
     )
+
+
+def save_figure(
+    draft: Draft,
+    *,
+    based_on: int,
+    by: User,
+    edit: drafts.Edit,
+    change: str,
+    association: dict[str, Any],
+    target: str,
+    at: int | None,
+    question: str | None,
+) -> drafts.Saved:
+    """Consume a figure receipt in the same transaction as the ordinary file save."""
+    _author(by)
+    with transaction.atomic():
+        locked = Draft.objects.select_for_update().get(pk=draft.pk)
+        held = (
+            DraftProposal.objects.select_for_update()
+            .filter(
+                public_id=str(association.get("proposal_id", "")),
+                draft=locked,
+                kind="figure",
+                target=target,
+            )
+            .first()
+        )
+        if held is None:
+            raise DraftingError("CA0507", "This figure proposal belongs to another target.")
+        if (
+            drafts.latest(locked).pk != held.base_revision_id
+            or based_on != held.base_revision.number
+        ):
+            raise drafts.Stale(drafts.latest(locked))
+        if association.get("copy_digest") != held.copy_digest:
+            raise DraftingError("CA0506", "The figure working copy changed before Use.")
+        if target == "figure/new" and (
+            held.context.get("figure_at") != at or held.context.get("figure_question") != question
+        ):
+            raise DraftingError("CA0507", "The new figure's placement changed.")
+        value = chosen(held, association.get("resolutions", {}))
+        figure_text(value, held.context["current"]["component"])
+
+        def with_receipt(node: Node) -> Node:
+            changed = edit(node)
+            if target == "figure/new":
+                old = {f.stem for f in node.figures}
+                added = [f.stem for f in changed.figures if f.stem not in old]
+                if len(added) != 1:
+                    raise DraftingError("CA0507", "Save must add exactly this figure.")
+                key = f"figure/{added[0]}"
+            else:
+                key = target
+            actual = payload(changed, key)
+            if actual.get("component") != held.context["current"]["component"]:
+                raise DraftingError("CA0507", "The chosen figure component changed.")
+            return attach(changed, key, str(held.public_id), public_receipt(held))
+
+        saved = drafts.save(locked, based_on=based_on, by=by, edit=with_receipt, change=change)
+        held.state, held.accepted_revision, held.applied_by = "accepted", saved.revision, by
+        held.save(update_fields=["state", "accepted_revision", "applied_by"])
+        return saved

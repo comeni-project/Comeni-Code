@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('ai', '0001_initial'),
+        ("ai", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='aicall',
-            name='call_settings',
+            model_name="aicall",
+            name="call_settings",
             field=models.JSONField(default=dict),
         ),
     ]

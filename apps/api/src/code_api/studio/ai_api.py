@@ -38,6 +38,15 @@ def shown(proposal: DraftProposal) -> ProposalOut:
         if call is None
         else {
             "call_id": call.pk,
+            "requested_by": None
+            if proposal.requested_by is None
+            else str(proposal.requested_by.public_id),
+            "applied_by": None
+            if proposal.applied_by is None
+            else str(proposal.applied_by.public_id),
+            "accepted_revision": None
+            if proposal.accepted_revision is None
+            else proposal.accepted_revision.number,
             "model": call.model,
             "connection": call.connection_name,
             "prompt_id": call.prompt_id,

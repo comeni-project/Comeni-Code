@@ -1,5 +1,6 @@
 """One captured target to one validated edit; model output never selects a tool or path."""
 
+import re
 from typing import Any
 
 import yaml
@@ -36,6 +37,11 @@ def checked[T: BaseModel](schema: type[T], value: dict[str, Any]) -> T:
 
 
 def payload(node: Node, target: str) -> dict[str, Any]:
+    if target.startswith("block/") and (
+        re.fullmatch(r"block/(0|[1-9][0-9]*)", target) is None
+        or int(target[6:]) >= len(node.blocks)
+    ):
+        raise DraftingError("CA0500", "Choose an existing block by its canonical item key.")
     shown = node_out(node).model_dump(mode="json")
     if target.startswith("block/"):
         at = int(target.split("/")[1])

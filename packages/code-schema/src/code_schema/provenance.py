@@ -175,7 +175,9 @@ def _mapped(public: dict[str, Any], node: Node, mapping: dict[str, list[str]]) -
             dict.fromkeys(i for label in labels for i in old.get(label, {}).get("receipts", []))
         )
         baselines = {
-            old[label].get("baseline", old[label]["receipts"][-1])
+            old[label].get(
+                "baseline", old[label]["receipts"][0] if len(old[label]["receipts"]) == 1 else None
+            )
             for label in labels
             if label in old
         }
