@@ -10,6 +10,7 @@ describe("Studio's pages", () => {
 
   it("gives each role the pages it can open", () => {
     expect(pagesFor("operator").map((page) => page.label)).toEqual([
+      "Skeletons",
       "Tracks",
       "Implementing",
       "Requests",
@@ -21,6 +22,7 @@ describe("Studio's pages", () => {
       "Team",
     ]);
     expect(pagesFor("author").map((page) => page.label)).toEqual([
+      "Skeletons",
       "Implementing",
       "Requests",
       "Drafts",

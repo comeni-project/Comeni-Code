@@ -68,3 +68,10 @@ def connect_route(identity: str) -> None:
     from code_api.studio.connecting import generate
 
     generate(identity)
+
+
+@shared_task(name="code_api.studio.tasks.draft_skeleton", soft_time_limit=290, time_limit=300)
+def draft_skeleton(identity: str) -> None:
+    from code_api.studio.skeletons import generate
+
+    generate(identity)

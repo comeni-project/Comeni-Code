@@ -7,6 +7,8 @@ import type { ContentRequestOut, DecisionIn } from "../../api/schema";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 
+import { ProposalDetails } from "./ProposalDetails";
+
 const FIELD = "rounded-control border border-border-2 bg-bg p-2 text-sm";
 const STATES = ["requested", "snoozed", "accepted", "merged", "declined"];
 export function RequestsPage() {
@@ -168,6 +170,14 @@ export function RequestsPage() {
               <p className="text-xs text-ink-3">
                 {active.state} · revision {active.version}
               </p>
+              <ProposalDetails proposal={active.proposal} />
+              {(active.submission_notes ?? [])
+                .filter((description) => description !== active.description)
+                .map((description) => (
+                  <p key={description} className="text-sm text-ink-2">
+                    {description}
+                  </p>
+                ))}
               <h3 className="text-sm font-medium">Decision history</h3>
               <ol className="flex flex-col gap-2">
                 {active.decisions.map((d) => (

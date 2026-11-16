@@ -165,6 +165,7 @@ class ContentRequest(models.Model):
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     title = models.CharField(max_length=240)
     grouping_key = models.CharField(max_length=64, null=True, unique=True)
+    proposal = models.JSONField(default=dict)
     description = models.TextField()
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
@@ -275,6 +276,27 @@ class NamedTrack(models.Model):
     bundle = models.ForeignKey(RouteBundle, on_delete=models.PROTECT, related_name="tracks")
     published_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     published_at = models.DateTimeField(default=timezone.now)
+
+
+class SkeletonImport(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    source_kind = models.CharField(max_length=32)
+    source_url = models.TextField()
+    source_version = models.CharField(max_length=240)
+    licence = models.CharField(max_length=240)
+    outline = models.TextField()
+    state = models.CharField(max_length=16, default="queued")
+    version = models.PositiveIntegerField(default=1)
+    code = models.TextField(blank=True)
+    candidates = models.JSONField(default=dict)
+    result = models.JSONField(default=dict)
+    scores = models.JSONField(default=list)
+    calls = models.JSONField(default=list)
+    mappings = models.JSONField(default=dict)
+    sent = models.JSONField(default=dict)
+    created_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True)
 
 
 class AssistantSession(models.Model):

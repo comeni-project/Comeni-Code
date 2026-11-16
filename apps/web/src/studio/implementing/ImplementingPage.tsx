@@ -141,8 +141,10 @@ export function ImplementingPage() {
                           className={SECONDARY}
                           onClick={() => {
                             setOpening(row);
-                            setNodeId("");
-                            setClaim("");
+                            setNodeId(row.stub?.id ?? "");
+                            setClaim(row.stub?.claim ?? "");
+                            setRegion(row.stub?.region ?? "");
+                            setLevel(row.stub?.level ?? "introductory");
                           }}
                         >
                           Start writing

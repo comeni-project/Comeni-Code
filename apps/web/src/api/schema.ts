@@ -91,6 +91,7 @@ export interface ApiSchemas {
   Message: Message;
   MoveBlockIn: MoveBlockIn;
   NamedTrackOut: NamedTrackOut;
+  NeedProposal: NeedProposal;
   NeighbourOut: NeighbourOut;
   NewNodeIn: NewNodeIn;
   NodeOut: NodeOut;
@@ -98,6 +99,7 @@ export interface ApiSchemas {
   OpenIn: OpenIn;
   OptionIn: OptionIn;
   OptionOut: OptionOut;
+  PartScore: PartScore;
   PendingInviteOut: PendingInviteOut;
   PersonUsageOut: PersonUsageOut;
   ProblemBlockOut: ProblemBlockOut;
@@ -138,6 +140,7 @@ export interface ApiSchemas {
   SavedOut: SavedOut;
   SearchOut: SearchOut;
   SendBackIn: SendBackIn;
+  SendSkeletonIn: SendSkeletonIn;
   SequenceBlockOut: SequenceBlockOut;
   SideCardOut: SideCardOut;
   SignInOut: SignInOut;
@@ -145,10 +148,16 @@ export interface ApiSchemas {
   SiteIn: SiteIn;
   SiteOut: SiteOut;
   SiteUsageOut: SiteUsageOut;
+  SkeletonIn: SkeletonIn;
+  SkeletonOut: SkeletonOut;
+  SkeletonReply: SkeletonReply;
+  SkeletonScoreOut: SkeletonScoreOut;
   SourceIn: SourceIn;
   SpanOut: SpanOut;
   StartWorkIn: StartWorkIn;
   StopOut: StopOut;
+  StubMapping: StubMapping;
+  StubProposal: StubProposal;
   StudioExamQuestionOut: StudioExamQuestionOut;
   StudioFigureOut: StudioFigureOut;
   StudioOptionOut: StudioOptionOut;
@@ -775,9 +784,13 @@ export interface ContentRequestOut {
   decisions: DecisionOut[];
   description: string;
   merged_node_id: string;
+  proposal: {
+    [k: string]: unknown;
+  };
   public_id: string;
   snoozed_until: string | null;
   state: string;
+  submission_notes: string[];
   title: string;
   updated_at: string;
   version: number;
@@ -1102,6 +1115,10 @@ export interface NamedTrackOut {
   name: string;
   public_id: string;
 }
+export interface NeedProposal {
+  reason: string;
+  target: string;
+}
 /**
  * A neighbour as a card: enough for a node page's side panel (L5) without another request.
  */
@@ -1216,6 +1233,10 @@ export interface ProviderOut {
 export interface OpenIn {
   new?: NewNodeIn | null;
   node_id: string;
+}
+export interface PartScore {
+  reason: string;
+  score: number;
 }
 export interface PendingInviteOut {
   email: string;
@@ -1520,6 +1541,17 @@ export interface SendBackIn {
   reason?: string;
   revision?: number | null;
 }
+export interface SendSkeletonIn {
+  mappings: {
+    [k: string]: StubMapping;
+  };
+  note: string;
+  version: number;
+}
+export interface StubMapping {
+  action: "new" | "existing" | "merge";
+  target?: string;
+}
 export interface SignInOut {
   expires_at: number;
   link: string;
@@ -1545,6 +1577,288 @@ export interface SiteUsageOut {
   label: string;
   priced: "billed" | "plan" | "local";
   site: string;
+}
+export interface SkeletonIn {
+  kind: "college-board" | "openstax" | "galaxy-training" | "carpentries";
+  licence: string;
+  outline: string;
+  rights: boolean;
+  url: string;
+  version: string;
+}
+export interface SkeletonOut {
+  code: string;
+  licence: string;
+  mappings: {
+    [k: string]: StubMapping;
+  };
+  outline: string;
+  public_id: string;
+  result: SkeletonReply | null;
+  scores: SkeletonScoreOut[];
+  sent: {
+    [k: string]: string;
+  };
+  source_kind: string;
+  source_url: string;
+  source_version: string;
+  state: string;
+  version: number;
+}
+export interface SkeletonReply {
+  /**
+   * @minItems 1
+   * @maxItems 20
+   */
+  stubs:
+    | [StubProposal]
+    | [StubProposal, StubProposal]
+    | [StubProposal, StubProposal, StubProposal]
+    | [StubProposal, StubProposal, StubProposal, StubProposal]
+    | [StubProposal, StubProposal, StubProposal, StubProposal, StubProposal]
+    | [StubProposal, StubProposal, StubProposal, StubProposal, StubProposal, StubProposal]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ]
+    | [
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+        StubProposal,
+      ];
+}
+export interface StubProposal {
+  claim: string;
+  id: string;
+  level: Level;
+  /**
+   * @maxItems 4
+   */
+  needs?:
+    | []
+    | [NeedProposal]
+    | [NeedProposal, NeedProposal]
+    | [NeedProposal, NeedProposal, NeedProposal]
+    | [NeedProposal, NeedProposal, NeedProposal, NeedProposal];
+  region: string;
+  title: string;
+}
+export interface SkeletonScoreOut {
+  key: string;
+  parts: {
+    [k: string]: PartScore;
+  };
+  reason: string;
+  rubric: string;
+  score: number;
 }
 export interface StartWorkIn {
   claim: string;
@@ -1624,6 +1938,7 @@ export interface WorkItemOut {
   public_id: string;
   stage: string;
   stalled: boolean;
+  stub: StubProposal | null;
   title: string;
   updated_at: string;
   version: number;

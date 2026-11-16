@@ -21,6 +21,7 @@ import { RequestsPage } from "./studio/requests/RequestsPage";
 import { ReviewPage } from "./studio/review/ReviewPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
+import { SkeletonsPage } from "./studio/skeletons/SkeletonsPage";
 import { TeamPage } from "./studio/team/TeamPage";
 import { TracksPage as WeaveReviewPage } from "./studio/tracks/TracksPage";
 import { PreviewPage } from "./studio/workbench/PreviewPage";
@@ -63,6 +64,7 @@ export function App() {
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
         <Route path="drafts" element={<DraftsPage />} />
+        <Route path="skeletons" element={<SkeletonsPage />} />
         <Route path="tracks" element={<WeaveReviewPage />} />
         <Route path="implementing" element={<ImplementingPage />} />
         <Route path="requests" element={<RequestsPage />} />

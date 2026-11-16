@@ -58,6 +58,8 @@ class ContentRequestOut(Schema):
     snoozed_until: datetime | None
     merged_node_id: str
     decisions: list[DecisionOut]
+    proposal: dict[str, Any]
+    submission_notes: list[str]
 
 
 class DecisionIn(Schema):
@@ -95,6 +97,10 @@ def out(item: ContentRequest) -> ContentRequestOut:
             )
             for d in item.decisions.select_related("actor")
         ],
+        proposal=item.proposal,
+        submission_notes=list(
+            item.submissions.order_by("pk").values_list("description", flat=True)[:100]
+        ),
     )
 
 
