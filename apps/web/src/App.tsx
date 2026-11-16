@@ -22,8 +22,10 @@ import { ReviewPage } from "./studio/review/ReviewPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
 import { TeamPage } from "./studio/team/TeamPage";
+import { TracksPage as WeaveReviewPage } from "./studio/tracks/TracksPage";
 import { PreviewPage } from "./studio/workbench/PreviewPage";
 import { WorkbenchPage } from "./studio/workbench/WorkbenchPage";
+import { TracksPage as CataloguePage } from "./tracks/TracksPage";
 
 function NotFound() {
   const { pathname } = useLocation();
@@ -48,6 +50,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<StartPage />} />
+      <Route path="/tracks" element={<CataloguePage />} />
       <Route path="/request" element={<RequestPage />} />
       <Route path="/route" element={<RoutePage />} />
       <Route path="/node/:id" element={<NodePage />} />
@@ -60,6 +63,7 @@ export function App() {
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
         <Route path="drafts" element={<DraftsPage />} />
+        <Route path="tracks" element={<WeaveReviewPage />} />
         <Route path="implementing" element={<ImplementingPage />} />
         <Route path="requests" element={<RequestsPage />} />
         <Route path="assistant" element={<AssistantPage />} />

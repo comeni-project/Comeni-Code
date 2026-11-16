@@ -90,6 +90,7 @@ export interface ApiSchemas {
   MemberOut: MemberOut;
   Message: Message;
   MoveBlockIn: MoveBlockIn;
+  NamedTrackOut: NamedTrackOut;
   NeighbourOut: NeighbourOut;
   NewNodeIn: NewNodeIn;
   NodeOut: NodeOut;
@@ -105,6 +106,7 @@ export interface ApiSchemas {
   ProblemOut: ProblemOut;
   ProposalOut: ProposalOut;
   ProviderOut: ProviderOut;
+  PublishTrackIn: PublishTrackIn;
   QuestionChecksOut: QuestionChecksOut;
   QuestionOut: QuestionOut;
   QueueKeyOut: QueueKeyOut;
@@ -130,6 +132,7 @@ export interface ApiSchemas {
   Role: Role;
   RoleIn: RoleIn;
   RouteBundleOut: RouteBundleOut;
+  RouteClaimOut: RouteClaimOut;
   RouteOut: RouteOut;
   RouteTextOut: RouteTextOut;
   SavedOut: SavedOut;
@@ -154,6 +157,8 @@ export interface ApiSchemas {
   SubmitIn: SubmitIn;
   TeamMemberOut: TeamMemberOut;
   TextBlockOut: TextBlockOut;
+  TextContextOut: TextContextOut;
+  TextDecisionIn: TextDecisionIn;
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
@@ -161,6 +166,7 @@ export interface ApiSchemas {
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+  WeaveReviewOut: WeaveReviewOut;
   WorkItemOut: WorkItemOut;
   WorkerOut: WorkerOut;
 }
@@ -1090,6 +1096,12 @@ export interface MoveBlockIn {
   revision: number;
   to: number;
 }
+export interface NamedTrackOut {
+  bundle_id: string;
+  goals: string[];
+  name: string;
+  public_id: string;
+}
 /**
  * A neighbour as a card: enough for a node page's side panel (L5) without another request.
  */
@@ -1235,6 +1247,9 @@ export interface ProblemKitOut {
   rung: number;
   sample_dataset: string;
   sample_output: string;
+}
+export interface PublishTrackIn {
+  name: string;
 }
 export interface QueueKeyOut {
   answered: boolean | null;
@@ -1450,15 +1465,24 @@ export interface RouteBundleOut {
   texts: RouteTextOut[];
 }
 export interface RouteTextOut {
-  context: {
-    [k: string]: unknown;
-  };
+  context: TextContextOut;
   flags: string[];
   key: string;
   kind: string;
   state: string;
   text: string;
   version: number;
+}
+export interface TextContextOut {
+  claims: RouteClaimOut[];
+  goals: RouteClaimOut[];
+  key: string;
+  kind: string;
+}
+export interface RouteClaimOut {
+  claim: string;
+  id: string;
+  title: string;
 }
 export interface RouteOut {
   goals: string[];
@@ -1540,6 +1564,13 @@ export interface TeamMemberOut {
   public_id: string;
   role: string;
 }
+export interface TextDecisionIn {
+  action: "approve" | "edit" | "rewrite";
+  key: string;
+  note?: string;
+  text?: string;
+  version: number;
+}
 export interface UpdateBlockIn {
   block: BlockIn;
   question?: TryQuestionIn | null;
@@ -1572,6 +1603,17 @@ export interface VerdictsIn {
 export interface VerifyOut {
   clean: boolean;
   problems: ProblemOut[];
+}
+export interface WeaveReviewOut {
+  bundle: RouteBundleOut;
+  eligible: boolean;
+  history: {
+    [k: string]: unknown;
+  }[];
+  route: RouteOut | null;
+  snapshot: {
+    [k: string]: unknown;
+  };
 }
 export interface WorkItemOut {
   asked: number;

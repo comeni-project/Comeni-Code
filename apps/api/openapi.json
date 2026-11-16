@@ -3198,6 +3198,39 @@
         "title": "MoveBlockIn",
         "type": "object"
       },
+      "NamedTrackOut": {
+        "properties": {
+          "bundle_id": {
+            "format": "uuid",
+            "title": "Bundle Id",
+            "type": "string"
+          },
+          "goals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "name",
+          "goals",
+          "bundle_id"
+        ],
+        "title": "NamedTrackOut",
+        "type": "object"
+      },
       "NeighbourOut": {
         "description": "A neighbour as a card: enough for a node page's side panel (L5) without another request.",
         "properties": {
@@ -4006,6 +4039,21 @@
           "name"
         ],
         "title": "ProviderOut",
+        "type": "object"
+      },
+      "PublishTrackIn": {
+        "properties": {
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "PublishTrackIn",
         "type": "object"
       },
       "QuestionChecksOut": {
@@ -5502,6 +5550,29 @@
         "title": "RouteBundleOut",
         "type": "object"
       },
+      "RouteClaimOut": {
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "claim"
+        ],
+        "title": "RouteClaimOut",
+        "type": "object"
+      },
       "RouteOut": {
         "properties": {
           "goals": {
@@ -5546,9 +5617,7 @@
       "RouteTextOut": {
         "properties": {
           "context": {
-            "additionalProperties": true,
-            "title": "Context",
-            "type": "object"
+            "$ref": "#/components/schemas/TextContextOut"
           },
           "flags": {
             "items": {
@@ -6719,6 +6788,82 @@
         "title": "TextBlockOut",
         "type": "object"
       },
+      "TextContextOut": {
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/RouteClaimOut"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "goals": {
+            "items": {
+              "$ref": "#/components/schemas/RouteClaimOut"
+            },
+            "title": "Goals",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "claims",
+          "goals"
+        ],
+        "title": "TextContextOut",
+        "type": "object"
+      },
+      "TextDecisionIn": {
+        "properties": {
+          "action": {
+            "enum": [
+              "approve",
+              "edit",
+              "rewrite"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "key": {
+            "maxLength": 240,
+            "title": "Key",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Note",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Text",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "version",
+          "action"
+        ],
+        "title": "TextDecisionIn",
+        "type": "object"
+      },
       "TryBlockOut": {
         "description": "Where a try question sits; the question itself is in `questions`.",
         "properties": {
@@ -7057,6 +7202,49 @@
           "problems"
         ],
         "title": "VerifyOut",
+        "type": "object"
+      },
+      "WeaveReviewOut": {
+        "properties": {
+          "bundle": {
+            "$ref": "#/components/schemas/RouteBundleOut"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "history": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RouteOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot": {
+            "additionalProperties": true,
+            "title": "Snapshot",
+            "type": "object"
+          }
+        },
+        "required": [
+          "bundle",
+          "route",
+          "snapshot",
+          "eligible",
+          "history"
+        ],
+        "title": "WeaveReviewOut",
         "type": "object"
       },
       "WorkItemOut": {
@@ -12614,6 +12802,249 @@
         ]
       }
     },
+    "/api/studio/tracks": {
+      "get": {
+        "operationId": "code_api_studio_tracks_api_queue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RouteBundleOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Queue",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/tracks/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_tracks_api_read",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeaveReviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/tracks/{identity}/publish": {
+      "post": {
+        "operationId": "code_api_studio_tracks_api_publish",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishTrackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NamedTrackOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Publish",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/tracks/{identity}/refresh": {
+      "post": {
+        "operationId": "code_api_studio_tracks_api_refresh",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeaveReviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Refresh",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/tracks/{identity}/review": {
+      "post": {
+        "operationId": "code_api_studio_tracks_api_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextDecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeaveReviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Review",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
     "/api/team/invites": {
       "get": {
         "operationId": "code_api_accounts_api_pending_invites",
@@ -12886,6 +13317,32 @@
         "summary": "Deactivate",
         "tags": [
           "accounts"
+        ]
+      }
+    },
+    "/api/tracks": {
+      "get": {
+        "operationId": "code_api_studio_tracks_api_catalogue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NamedTrackOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Catalogue",
+        "tags": [
+          "content"
         ]
       }
     }
