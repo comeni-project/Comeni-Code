@@ -2,9 +2,9 @@
 
 ## Where things stand
 
-- M5.5 is implemented on `feat/m5-5-author-assistant`, stacked on M5.4. M5.4 PR #478 has all three CI jobs green. M5.5 PR #479 is open on #478; its CI jobs are queued.
+- M5.5 is implemented on `feat/m5-5-author-assistant`, stacked on M5.4. M5.4 PR #478 and M5.5 PR #479 are open and all three CI jobs pass on both.
 - Focused assistant API/OpenAPI checks pass (10 tests); the browser assistant flow passes (1 test). Django checks, migration consistency, Ruff, mypy, web lint, TypeScript and production build pass.
-- Full Python suite: 1,973 passed. Full web suite: 973 passed across 103 files. Both were run once at the end of M5 as requested.
+- Full Python suite: 1,973 passed. Full web suite: 973 passed across 103 files. Both were run once at the end of M5 as requested. PR #479 CI passes Python, web and stack jobs.
 
 ## What changed
 
@@ -20,5 +20,4 @@
 
 ## What is next
 
-1. Address any failures in PR #479's CI; leave the PR open.
-2. M5 has no remaining parts after M5.5. M4's first real landing (#324) remains required before M7–M9.
+1. M5 has no remaining parts after M5.5. M4's first real landing (#324) remains required before M7–M9.
