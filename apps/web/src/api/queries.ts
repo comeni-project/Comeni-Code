@@ -8,6 +8,7 @@ import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-quer
 import { useEffect, useRef } from "react";
 import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
 import { fetchAISettings, fetchUsage, type UsageRange } from "./ai";
+import { fetchAssistantSession, fetchAssistantSessions } from "./assistant";
 import { fetchProviders } from "./auth";
 import { getJson } from "./client";
 import { fetchProposal, fetchProposals } from "./drafting";
@@ -53,6 +54,8 @@ export const queryKeys = {
   linkTargets: ["link-targets"] as const,
   reviewQueue: ["review-queue"] as const,
   review: (id: string) => ["review", id] as const,
+  assistantSessions: ["assistant-sessions"] as const,
+  assistantSession: (id: string) => ["assistant-session", id] as const,
   landReady: ["land", "ready"] as const,
   landings: ["land", "landings"] as const,
   landing: (id: string) => ["land", "landing", id] as const,
@@ -215,6 +218,33 @@ export const useReview = (id: string | null) =>
     queryFn: ({ signal }) => fetchReview(id ?? "", signal),
     enabled: id !== null,
     retry: false,
+  });
+
+export const useAssistantSessions = () =>
+  useQuery({
+    queryKey: queryKeys.assistantSessions,
+    queryFn: ({ signal }) => fetchAssistantSessions(signal),
+    retry: false,
+  });
+
+export const useAssistantSession = (id: string) =>
+  useQuery({
+    queryKey: queryKeys.assistantSession(id),
+    queryFn: ({ signal }) => fetchAssistantSession(id, signal),
+    enabled: id !== "",
+    retry: false,
+    refetchInterval: (query) => {
+      const turns = query.state.data?.turns ?? [];
+      return turns.some(
+        (turn) =>
+          turn.state === "running" ||
+          turn.actions.some((action) =>
+            ["queued", "running"].includes(action.proposal_state ?? ""),
+          ),
+      )
+        ? 1500
+        : false;
+    },
   });
 
 /** A review a write answered with: in its own cache, and its verdicts and answers in the queue. */

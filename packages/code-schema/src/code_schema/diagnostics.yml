@@ -3235,6 +3235,17 @@ codes:
       Goal suggestions send the learner's words to a model, so the request has a small fixed input
       bound (M5.4 spec).
 
+  CA0410:
+    emitted_by: api
+    concern: ai
+    says: an assistant turn is already running or the session is bounded
+    refuses: true
+    fix: |
+      Wait for the current turn, use a new request id for a new message, or start a new conversation after 20 turns.
+    explanation: |
+      Author conversations have idempotent turns, one in-flight response, and a 20-turn limit so
+      the assistant cannot create an unbounded call chain (M5.5 spec).
+
   CS1200:
     emitted_by: schema
     concern: provenance
