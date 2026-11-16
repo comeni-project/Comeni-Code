@@ -2555,3 +2555,21 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
 
 **Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+### CA0600–CA0699 · requests
+
+#### CA0600 — a request operation is invalid or conflicts with its current state
+
+*Refuses.*
+
+**Fix.** Reload the request, check its state and required decision fields, and try again.
+
+**Why.** Human triage is version checked and each transition records its actor and reason (M7).
+
+#### CA0601 — too many anonymous requests
+
+*Refuses.*
+
+**Fix.** Wait until the next intake window before submitting another request.
+
+**Why.** Anonymous intake has a per-client and site-wide hourly bound to keep the queue usable.

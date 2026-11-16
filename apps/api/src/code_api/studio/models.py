@@ -164,6 +164,7 @@ class ContentRequest(models.Model):
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     title = models.CharField(max_length=240)
+    grouping_key = models.CharField(max_length=64, null=True, unique=True)
     description = models.TextField()
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
@@ -177,6 +178,19 @@ class ContentRequest(models.Model):
 
     class Meta:
         ordering = ["created_at", "pk"]
+
+
+class RequestSubmission(models.Model):
+    """An opaque learner receipt; retries with the same caller ID add no demand."""
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    idempotency_key = models.UUIDField(unique=True)
+    request = models.ForeignKey(
+        ContentRequest, on_delete=models.CASCADE, related_name="submissions"
+    )
+    title = models.CharField(max_length=240)
+    description = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
 
 
 class RequestDecision(models.Model):

@@ -25,6 +25,7 @@ export interface ApiSchemas {
   AssistantTurnOut: AssistantTurnOut;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
+  BulkIn: BulkIn;
   CallOut: CallOut;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
@@ -33,8 +34,11 @@ export interface ApiSchemas {
   ConnectionChangeIn: ConnectionChangeIn;
   ConnectionIn: ConnectionIn;
   ConnectionOut: ConnectionOut;
+  ContentRequestOut: ContentRequestOut;
   CreateProposalIn: CreateProposalIn;
   CreditOut: CreditOut;
+  DecisionIn: DecisionIn;
+  DecisionOut: DecisionOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
@@ -103,9 +107,11 @@ export interface ApiSchemas {
   QueueKeyOut: QueueKeyOut;
   QueuedDraftOut: QueuedDraftOut;
   ReadyDraftOut: ReadyDraftOut;
+  ReceiptOut: ReceiptOut;
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
+  RequestIn: RequestIn;
   RequestOut: RequestOut;
   RequestsOut: RequestsOut;
   ResourceIn: ResourceIn;
@@ -656,6 +662,21 @@ export interface BuildOut {
   outcome: string;
   problems: string[];
 }
+export interface BulkIn {
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  decisions: [DecisionIn, ...DecisionIn[]];
+}
+export interface DecisionIn {
+  action: "accept" | "decline" | "merge" | "snooze" | "resume";
+  identity: string;
+  node_id?: string;
+  reason?: string;
+  until?: string | null;
+  version: number;
+}
 export interface CallOut {
   at: string;
   code: string;
@@ -710,6 +731,26 @@ export interface ConnectionIn {
   key?: string | null;
   kind: "self-hosted" | "hosted";
   name: string;
+}
+export interface ContentRequestOut {
+  asked: number;
+  created_at: string;
+  decisions: DecisionOut[];
+  description: string;
+  merged_node_id: string;
+  public_id: string;
+  snoozed_until: string | null;
+  state: string;
+  title: string;
+  updated_at: string;
+  version: number;
+}
+export interface DecisionOut {
+  action: string;
+  actor: string;
+  created_at: string;
+  reason: string;
+  version: number;
 }
 export interface CreateProposalIn {
   based_on: number;
@@ -1200,6 +1241,13 @@ export interface ReadyDraftOut {
   revision: number;
   self_approved: boolean;
 }
+export interface ReceiptOut {
+  node_id: string;
+  reason: string;
+  receipt: string;
+  state: string;
+  title: string;
+}
 /**
  * A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist
  * that fails, its items (M4.5 spec, M4R.6).
@@ -1209,6 +1257,11 @@ export interface RefusedOut {
   detail: string;
   items?: ItemOut[];
   problems: ProblemOut[];
+}
+export interface RequestIn {
+  description: string;
+  request_id: string;
+  title: string;
 }
 export interface ResourceIn {
   covers: string;

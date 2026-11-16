@@ -605,6 +605,24 @@
         "title": "BuildOut",
         "type": "object"
       },
+      "BulkIn": {
+        "properties": {
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionIn"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Decisions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "decisions"
+        ],
+        "title": "BulkIn",
+        "type": "object"
+      },
       "CallOut": {
         "properties": {
           "at": {
@@ -940,6 +958,83 @@
         "title": "ConnectionOut",
         "type": "object"
       },
+      "ContentRequestOut": {
+        "properties": {
+          "asked": {
+            "title": "Asked",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionOut"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "merged_node_id": {
+            "title": "Merged Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "snoozed_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snoozed Until"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "public_id",
+          "title",
+          "description",
+          "state",
+          "version",
+          "asked",
+          "created_at",
+          "updated_at",
+          "snoozed_until",
+          "merged_node_id",
+          "decisions"
+        ],
+        "title": "ContentRequestOut",
+        "type": "object"
+      },
       "CreateProposalIn": {
         "additionalProperties": false,
         "properties": {
@@ -1074,6 +1169,96 @@
           "thumb_url"
         ],
         "title": "CreditOut",
+        "type": "object"
+      },
+      "DecisionIn": {
+        "properties": {
+          "action": {
+            "enum": [
+              "accept",
+              "decline",
+              "merge",
+              "snooze",
+              "resume"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "identity": {
+            "format": "uuid",
+            "title": "Identity",
+            "type": "string"
+          },
+          "node_id": {
+            "default": "",
+            "maxLength": 240,
+            "title": "Node Id",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Reason",
+            "type": "string"
+          },
+          "until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Until"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "identity",
+          "version",
+          "action"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
+      "DecisionOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action",
+          "reason",
+          "actor",
+          "version",
+          "created_at"
+        ],
+        "title": "DecisionOut",
         "type": "object"
       },
       "DraftNodeOut": {
@@ -4092,6 +4277,40 @@
         "title": "ReadyDraftOut",
         "type": "object"
       },
+      "ReceiptOut": {
+        "properties": {
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "receipt": {
+            "format": "uuid",
+            "title": "Receipt",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "receipt",
+          "title",
+          "state",
+          "reason",
+          "node_id"
+        ],
+        "title": "ReceiptOut",
+        "type": "object"
+      },
       "RefusedOut": {
         "description": "A refusal: why, every problem the draft's files would have (M4W.3), and for a checklist\nthat fails, its items (M4.5 spec, M4R.6).",
         "properties": {
@@ -4161,6 +4380,34 @@
           "name"
         ],
         "title": "RegionOut",
+        "type": "object"
+      },
+      "RequestIn": {
+        "properties": {
+          "description": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "title",
+          "description"
+        ],
+        "title": "RequestIn",
         "type": "object"
       },
       "RequestOut": {
@@ -7102,6 +7349,101 @@
         "summary": "A learner's dataset for the node's problem",
         "tags": [
           "content"
+        ]
+      }
+    },
+    "/api/requests": {
+      "post": {
+        "operationId": "code_api_studio_request_api_submit",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Submit",
+        "tags": [
+          "requests"
+        ]
+      }
+    },
+    "/api/requests/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_request_api_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "requests"
         ]
       }
     },
@@ -11526,6 +11868,119 @@
           }
         ],
         "summary": "The problem kits, as the builder offers them",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/requests": {
+      "get": {
+        "operationId": "code_api_studio_request_api_queue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "State",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContentRequestOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Queue",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/requests/decisions": {
+      "post": {
+        "operationId": "code_api_studio_request_api_decisions",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContentRequestOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Decisions",
         "tags": [
           "studio"
         ]

@@ -191,7 +191,13 @@ export function StartPage() {
               ) : results.length === 0 ? (
                 <p className="text-[15px] text-ink-2">
                   Nothing here is about “{search.data.unmatched.join("”, “") || words}” yet. Try
-                  another word, or a tool's name.
+                  another word, or a tool's name.{" "}
+                  <a
+                    className="text-sel hover:underline"
+                    href={`/request?goal=${encodeURIComponent(words)}`}
+                  >
+                    Request this topic
+                  </a>
                 </p>
               ) : (
                 <>
