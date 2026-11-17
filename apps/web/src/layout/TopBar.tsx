@@ -1,7 +1,7 @@
 // The top bar every page shares: the transit-line mark, search (W6.1, M3 part 3 spec), and the
 // account cell (M4.8a spec, M4S.1), beside whatever a page puts there.
 import { type ReactNode, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { AccountButton } from "./AccountButton";
 import { Mark } from "./Mark";
 
@@ -73,6 +73,9 @@ export function TopBar({ children }: { children?: ReactNode }) {
       </search>
 
       <div className="flex items-center justify-end gap-3">
+        <Link to="/tracks" className="text-sm text-ink-2 hover:text-ink">
+          Tracks
+        </Link>
         {children}
         <AccountButton />
       </div>

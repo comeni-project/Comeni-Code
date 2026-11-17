@@ -255,6 +255,28 @@ class ConnectingText(models.Model):
         ]
 
 
+class TextReviewEvent(models.Model):
+    text = models.ForeignKey(ConnectingText, on_delete=models.CASCADE, related_name="events")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    action = models.CharField(max_length=16)
+    version = models.PositiveIntegerField()
+    note = models.TextField(blank=True)
+    body = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["pk"]
+
+
+class NamedTrack(models.Model):
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    target_key = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=120)
+    bundle = models.ForeignKey(RouteBundle, on_delete=models.PROTECT, related_name="tracks")
+    published_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    published_at = models.DateTimeField(default=timezone.now)
+
+
 class AssistantSession(models.Model):
     """A private author conversation about one draft; transcripts do not enter AICall."""
 

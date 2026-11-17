@@ -22,6 +22,19 @@ class ConnectIn(Schema):
     known: list[str] = Field(default_factory=list, max_length=200)
 
 
+class RouteClaimOut(Schema):
+    id: str
+    title: str
+    claim: str
+
+
+class TextContextOut(Schema):
+    key: str
+    kind: str
+    claims: list[RouteClaimOut]
+    goals: list[RouteClaimOut]
+
+
 class RouteTextOut(Schema):
     key: str
     kind: str
@@ -29,7 +42,7 @@ class RouteTextOut(Schema):
     state: str
     version: int
     flags: list[str]
-    context: dict[str, Any]
+    context: TextContextOut
 
 
 class RouteBundleOut(Schema):

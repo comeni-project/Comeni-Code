@@ -17,6 +17,7 @@ decision records.
 | [2026-11-16 — M7.2 Requests](2026-11-16-m7-requests-design.md) | part design | bounded learner intake, private receipts and staff triage |
 | [2026-11-16 — M7.3 Implementing](2026-11-16-m7-implementing-design.md) | part design | assignment, draft handoff and stages derived from the existing workflow |
 | [2026-11-16 — M7.4 connecting text](2026-11-16-m7-connecting-text-design.md) | part design | optional route prose bound to exact claims and route order |
+| [2026-11-16 — M7.5 weave review and tracks](2026-11-16-m7-tracks-design.md) | part design | versioned human text review, publication gate and canonical-goal catalogue |
 
 **Finished specs** (the parts of M0–M3 and of M4, one per part, and the docs compaction of
 2026-09-29) are in [`archive/`](archive/). Each records what it decided and rejected;
