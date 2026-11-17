@@ -5,23 +5,22 @@ The consolidated state of the project. **Read this first**; then any entry still
 [the compaction rules](compaction.md). Each line cites the entry it came from; the long form of any
 line is in [the archive](journal/archive/).
 
-**Compacted through: 2026-11-15** (M5.1 review and acceptance). M5.2 and M5.3 implementation status is in the current journals. Old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
+**Compacted through: 2026-11-17** (M5 and M7 merged). Old `CLAUDE.md`: `git show 23da290:CLAUDE.md`.
 
 ## Where the work is
 
-- **M0–M3 are done** (#79). **M4, the Studio core** (#74): M4.1–M4.8 are done (#119–#126), and
-  M4.9's screens: verdicts per block (#272), Review (#281), Land (#306). (2026-09-29 to 10-15)
-- **The order is now M7 → M8 → operator walkthrough and fixes → M4.9d real landing → M9** (operator, 11-16). DNA is the first content candidate. M7's real request-to-landed acceptance waits for M4.9d; local authoring and approval come first.
-- **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
-- **M5.1 PR #465 remains open**; live sign-in waived. **M5.2 PR #476 is merged into #465's head branch**, not `main`. **M5.3 PR #477 is open against #465's head branch; all three CI jobs pass. M5.4 PR #478 is open against #477 and all three CI jobs pass. M5.5 PR #479 is open against #478; all three CI jobs pass.** M5 has five parts, with no part after M5.5. The end-of-M5 suites pass: Python 1,973, web 973. (11-16)
+- **Done**: M0–M3 (#79); M4 but its landing (#74: #119–#126, #272, #281, #306); M6 (#325); **M5
+  (#445) and M7 (#481), merged into `main` at `6b81fcd`**. (2026-09-29 to 11-17)
+- **Next: M8 → operator walkthrough and fixes → M4.9d's real landing → M9** (operator, 11-16).
+  **Build everything first; walk the screens and fix in rounds at the end** (operator, 11-17). DNA
+  is the first content candidate. M7's local acceptance is a request-to-approved-draft test. (11-17)
 
 ## How work is done now
 
 - **Every defect gets an issue first**, `mechanical` or `protocol` (`docs/internals/walking.md`);
   the plan is a sub-issue tree; deferred minors go in one `deferred` issue. (2026-09-29)
 - **A phase is split into parts; each is spec → plan → test-first build → journal entry** (R5),
-  the operator approving each; a fresh reviewer mid-plan and over the branch. (2026-09-17, 09-29)
-- **The agent merges a pull request only after the operator says yes to that one.** (2026-09-29)
+  the operator approving each; a fresh reviewer over the branch. **Merge only on the operator's yes.** (09-17, 09-29)
 - **A quality pass between parts**, when asked: recommend, don't survey; agreed mechanical work is
   built without stopping, issues and tests first. **New screens are drawn as boards** and shown on
   a Design canvas before any spec. (2026-10-05, 10-07)
@@ -142,8 +141,29 @@ line is in [the archive](journal/archive/).
   LiteLLM cannot borrow a host key. Learner records discard identity; no prompt/reply logs. (11-15)
 - **ChatGPT tokens belong to Code**: shared folder, atomic writes, Redis refresh/poll locks;
   the page polls once at a time. Tests pin private library methods and prohibit model calls. (11-15)
-- **#461 stays deferred; live sign-in unverified, not a gate.** Stub/Chrome walk and CI passed:
-  1,883 Python / 962 web tests. (11-15)
+- **#461 stays deferred; live ChatGPT sign-in is unverified and not a gate.** (11-15)
+- **Drafting (M5.2)**: Redraft, Suggest a resource and figure Ask run as jobs and make proposals;
+  nothing changes a draft before the author's Keep; human edits replay, overlap is a conflict.
+  The public provenance file survives landing and rebuilds; excerpts and authors stay in Studio. (11-16)
+- **Block scores (M5.3)**: a fresh judge call on a versioned rubric, one bounded redraft below a
+  threshold; scores bound to revision and digest, Studio only; a scored key needs the reviewer's
+  agree/disagree before approval. (11-16)
+- **Goal suggestions (M5.4)**: `POST /api/goals/suggest` picks ≤ 3 ids from search and *related*
+  peers; any failure is plain search; ≤ 240 characters, anonymous. **The assistant (M5.5)**: private,
+  one open draft a session; its actions are M5.2 proposals; it cannot save, submit or approve. (11-16)
+
+## Requests, tracks and skeletons (M7, `code_api.studio`)
+
+- **Requests**: learners submit an unresolved search (opaque idempotent receipt, hourly bound); a
+  person accepts, merges (into a node or a live request, its demand moving), declines or snoozes,
+  version checked and logged. **Grouping only suggests.** S7: facets, saved views, keys. (11-16)
+- **Implementing (S8)**: assign an author and a reviewer, start a normal draft; stages follow the
+  draft, and approved is never live; ranked by route attempts blocked, then demand. (11-16)
+- **Connecting text**: bound to a route snapshot (≤ 40 stops, 80 texts), labelled unreviewed,
+  hidden on a graph change. **Tracks (S9)**: a reviewer passes each text; stale tracks leave the
+  catalogue. `/api/routes` with missing goals returns what exists and `missing_goals`. (11-16)
+- **Skeletons (S18)**: a pasted outline with source, version and licence; ≤ 20 stubs, ≤ 4 needs
+  each; a judge scores 1–5, one redraft, ≤ 4 calls; a person maps stubs and sends them to Requests. (11-16)
 
 ## The weaver and search (`code-weaver`, pure)
 
@@ -152,38 +172,24 @@ line is in [the archive](journal/archive/).
 
 ## The web app (`apps/web`)
 
-- React Router: `/` Start (L1), `/route` (L4), `/node/:id` (L5, and its First steps form), `/health`,
-  `/identity`, the account pages and `/studio/*`. Page state lives in the URL. (2026-09-21, 10-07)
-- **Accounts on the web**: a button per provider; `NotYet` answers without an invite; `safeNext`
-  keeps return addresses on the site. **Studio has one gate**: `STUDIO_PAGES` lists each page and
-  its role: Drafts (S19), Review (S6), Land (S10), Team (S14). (10-07 to 10-15)
-- **The workbench (S3)**: each edit is an `edits.ts` command sent by `useDraftEdit` (one GET to open,
-  one write per save); editors save when left; a click during a save waits for it (#255); Checks
-  asked only while shown; Math and Example editors; the Links tab suggests nodes and drafts. (10-09 to 10-16)
-- **Review (S6)**: the queue, the open block as read or changed (a colourless word diff), a verdict
-  per key, bulk approval; requests show in the workbench. **Land (S10)**: Ready to land, the
-  landings (a moving one asked every 15 s), a failed one's Close, main and the index. (10-14 to 10-16)
-- **Problems on the web**: `node/Problem.tsx` (a seed per browser, one answer); the **Problem tab**
-  (S5): a form over `problem.yaml` (`yaml/document.ts`), an explicit Save, a tab hold; Review draws
-  the problem key. (11-09 to 11-13)
-- **Formulas** (`node/Formula.tsx`): KaTeX 0.19.0 strict in a `try`, untrusted commands throwing,
-  bounded; unreadable shows as source, marked only in Studio; its CSS in the base layer. (10-16)
-- **The exam pool's builder**: the list, `ExamEditor`, `ExamSidePanel` (as `TestQuestion` asks it,
-  and its checks); `AnswerEditor` serves both pools; `data-theme="dark"` boxes go dark. (10-13)
-- **`sendJson` is the one write** (`sendForm` to upload); `useMe` the one *who am I*; `test-kit.tsx`
-  answers fetch by method and path in tests. (2026-10-07, 10-16)
-- **The Route map** is a pure metro layout (`shapes.fixture.ts`). **The Node page**: *Learn it*
-  resources, the body block by block, *Around this node*; First steps its own (Read · Watch). (09-21, 09-29)
-- **Figures on the page** (`apps/web/src/figures/`): one *Figure N* sequence with images; every server
-  check and computed value twinned (`kits.ts`, `read.ts`) on `tests/fixtures/figures/cases.json`;
-  a failing one shows its alt. The chart: Vega lazily, vega-interpreter, no loader, SVG (#371).
-  **`FigureAnswer`** draws a question's figure: each k-mer a button, picks along arrows only, a live
-  line, four states, nothing given away while asked. (10-16 to 11-06)
-- **The composer (S4)**, `/studio/drafts/:id/figures/:stem` (`?for=` a question): Choose, Data
-  (sheets, a form from the schema, Edit as YAML), Interaction for a kit with tasks, Describe; the
-  file a `yaml` Document edited by ops, every untouched line kept (#385); Save waits on checks. (11-06)
-- **`api/queries.ts` alone makes query keys and hooks**; `url.ts` holds route params; `ErrorNotice`
-  is the one error sentence. **No page invents learner state**: absent, not faked. (09-21, 10-05)
+- React Router: `/` Start (L1), `/route` (L4), `/node/:id` (L5; First steps its own, Read · Watch),
+  `/health`, `/identity`, the account pages, `/studio/*`. Page state lives in the URL. (09-21, 10-07)
+- **Accounts**: a button per provider; `NotYet` without an invite; `safeNext` keeps returns on the
+  site. **Studio has one gate**: `STUDIO_PAGES` lists each page and its role. (10-07 to 10-15)
+- **The workbench (S3)**: `edits.ts` commands sent by `useDraftEdit` (one GET, one write a save);
+  editors save when left; a click during a save waits (#255); Checks asked only while shown. (10-09 to 10-16)
+- **Review (S6)**: the queue, a colourless word diff, a verdict per key, bulk approval. **Land
+  (S10)**: Ready, the landings (a moving one asked every 15 s), Close, main and the index. (10-14 to 10-16)
+- **Problems**: `node/Problem.tsx` (a seed per browser); the Problem tab (S5), a form over
+  `problem.yaml` (`yaml/document.ts`) with an explicit Save. (11-09 to 11-13)
+- **Formulas**: KaTeX 0.19.0 strict in a `try`, bounded; unreadable shows as source. **The exam
+  builder**: `ExamEditor`, `ExamSidePanel` (as `TestQuestion` asks it); `AnswerEditor` for both. (10-13, 10-16)
+- **Figures** (`apps/web/src/figures/`): one *Figure N* sequence; server checks twinned (`kits.ts`, `read.ts`)
+  on `cases.json`; Vega lazily, interpreter, SVG (#371). `FigureAnswer`: k-mer buttons, picks along
+  arrows, nothing given away. **The composer (S4)**: Choose, Data, Interaction, Describe; a `yaml`
+  Document edited by ops, untouched lines kept (#385). (10-16 to 11-06)
+- **One of each**: `sendJson` writes (`sendForm` uploads), `useMe`, `api/queries.ts` (every key and
+  hook), `url.ts`, `ErrorNotice`; `test-kit.tsx` fakes fetch. **No page invents learner state.** (09-21 to 10-16)
 
 ## The stack, CI and guardrails
 
@@ -192,12 +198,11 @@ line is in [the archive](journal/archive/).
   Policy on the app's pages, not `/api/`; no `form-action` (GitHub sign-in). (2026-09-21, 10-21)
 - CI runs `python`, `web` and `stack`; `main` here and in `comeni-code-content` takes only green
   pull requests, with no bypass. There, `review` passes Studio's app and `MAINTAINERS`; anyone
-  else needs a maintainer's approval (#102). (2026-09-17, 2026-10-06)
-- **Test names stop at 300 characters** (root `conftest.py`); a 1 MB name hung CI (#435). (11-13)
+  else needs a maintainer's approval (#102). Test names stop at 300 characters (#435). (09-17 to 11-13)
 
 ## Decided, and not to reopen
 
-- **#451: same judge model, fresh conversation**; record settings/agreement. M5.3 updates T8.2/invariant 5. (11-13)
+- **#451: same judge model, fresh conversation**, settings and agreement recorded (built, M5.3). (11-13)
 - Code organises existing teaching, pointing outward, and never scrapes; skeletons come from open
   outlines. **Khan Academy is linked, never embedded** (#76). (2026-09-17, 2026-09-29)
 - **Five content levels** describe nodes, never learners; accounts 13+ until a consent spec; First
@@ -208,42 +213,38 @@ line is in [the archive](journal/archive/).
 
 ## Open
 
-- **M7 starts** with request records and human triage; parts are in `docs/notes/journal/2026-11-16-m7-parts.md`. First landing (#324) follows M7, M8 and the operator walkthrough; operator narrows the app to `comeni-code-content`. (11-16)
+- **First landing (#324)** follows M8 and the walkthrough; the operator narrows the app to
+  `comeni-code-content`. The local `.env` is gone: the App's key must be found or reissued. (11-16, 11-17)
 - **Unplaced**: citations (W5.1's `cite`, S3's Sources; no phase owns them), `step_back_to` before
-  M8, the Graph screen (S2). A rate limit on the problem routes before the site is public. (to 11-13)
+  M8, the Graph screen (S2). A rate limit on the problem routes before the site is public.
+  Pruning `IndexBuild` rows; three light chip pairs under 4.5 : 1; R8's open questions. (09-29 to 11-13)
 - **For self-tests** (M4E.7): a cap per node in one exam, unseen questions first; whether grading
   runs in the browser; whether exam rows keep an empty `misconception`. (2026-10-05)
 - **Deferred**: #131, #134, #176, #188, #189, #203, #204, #216, #217, #234, #235, PR #139's minors;
-  **#260 … #407, #421, #426, #433, #442 at the end of the MVP's first loop**; the composer's Ask
-  box waits for M5 (#383). (to 11-13)
-- Pruning `IndexBuild` rows; three light chip pairs under 4.5 : 1; R8's open questions. (09-29)
+  **#260 … #407, #421, #426, #433, #442 at the end of the MVP's first loop**. (to 11-13)
 
 ## Known traps
 
-- **Trust a check's exit code**, not a pipe's; use CI's env. Link checks read tracked files only:
-  stage new documents first. (09-17 to 10-21)
-- **Compose rebuilds nothing by itself**: rebuild the index after a fixture change, `--build` after
-  a code change, reload the browser. Migrations 0007 and 0009 need `rebuild_index`. (09-21, 10-09)
-- **An app must declare every workspace package it imports**; the image installs only those. **Stop
-  a server by its PID**, never `pkill -f` a pattern in your own command line. (2026-09-17, 09-20)
+- **Trust a check's exit code**, not a pipe's; use CI's env. Link checks read tracked files only. (09-17 to 10-21)
+- **Compose rebuilds nothing by itself**: `rebuild_index` after a fixture change (and migrations 0007,
+  0009), `--build` after code, reload the browser. Restart Postgres/Redis after reboot. (09-21 to 11-13)
+- **An app declares every workspace package it imports**. **Stop a server by its PID**, never
+  `pkill -f`. Concurrent pytest runs collide. Check ports with `ss -ltnp`. (09-17 to 11-13)
 - **`comeni-code-content` holds no nodes yet**; its `code-schema validate` is pinned at `38d09dc`,
   moved only by a pull request there. (2026-09-18, 2026-10-05)
-- Restart Postgres/Redis after reboot; concurrent pytest runs collide. Retarget stacked PRs before
-  merging. Canvas links are account-bound; M6.8: https://claude.ai/artifact/XBAFuB5b2X7WKG8SdAgx3i. (11-13)
-- **Node 24**: `/usr/bin/node` v24.18. Check occupied ports with `ss -ltnp`; CDP uses port 0
-  and `DevToolsActivePort` to avoid controlling another browser. (10-16, 10-21)
+- **Stacked PRs**: retarget each to `main` before merging; its green checks carry over. Canvas
+  links are account-bound; M6.8: https://claude.ai/artifact/XBAFuB5b2X7WKG8SdAgx3i. (11-13, 11-17)
 - **A walk that must not reach GitHub**: `runserver` with an `.env` leaving the app out, Compose's
-  worker and beat stopped. Tests turn the app off unless one sets it (#337). (10-16)
-- zsh `echo` interprets `\n`: parse saved JSON. Ruff re-wraps calls. `Closes #1, #2` closes only #1.
-  CI may need PR reopen; nginx must forward `Host $http_host` for CSRF. (10-05, 10-06)
-- GitHub compares ≤ 300 files; Celery acknowledges delivery; importlib mode omits test folders.
-  tarfile `data` drops leading `/`; `on_commit` needs `robust=True`. Dark Reader alters colours;
-  screenshot headless. Rebuild breaks `vite preview`; React Router moves in a transition. (10-06, 10-07)
-- **Browser walks**: CDP + Node 24 `WebSocket`; `force_login` (container `SERVER_NAME="localhost"`).
-  Enter is `text: "\r"`; use multi-node drafts (CA0202). Stubbed web tests miss schema errors. (11-13)
-- **`useBlocker` needs the data router**: page tests go through `renderAt`. **`userEvent.type`**
-  takes `[`, `{` as keys: double them. zsh never splits an unquoted `$var`. (10-22 to 11-06)
-- Pin `accounts` in migration tests. Schema codes/messages/lines/order are pinned; no `functools`.
-  API source may not name CS codes (ownership guard). (10-05, 10-16)
-- Tailwind 4: third-party CSS goes in `layer(base)`. Biome ignores generated API/figure schemas.
-  Ninja fixed routes precede `{param}` routes. (10-16, 10-21)
+  worker and beat stopped; tests turn the app off unless one sets it (#337). (10-16)
+- **Browser walks**: CDP on port 0 with `DevToolsActivePort`, Node 24 `WebSocket`; `force_login`
+  (container `SERVER_NAME="localhost"`); Enter is `text: "\r"`; use multi-node drafts (CA0202);
+  Dark Reader alters colours, so screenshot headless. Stubbed web tests miss schema errors. (10-16 to 11-13)
+- zsh: `echo` interprets `\n`, an unquoted `$var` never splits. `Closes #1, #2` closes only #1. CI
+  may need a PR reopen; nginx forwards `Host $http_host` for CSRF. GitHub compares ≤ 300 files. (10-05, 10-06)
+- Celery acknowledges delivery; `on_commit` needs `robust=True`; importlib mode omits test folders;
+  tarfile `data` drops a leading `/`. Rebuild breaks `vite preview`. (10-06, 10-07)
+- **`useBlocker` needs the data router** (page tests use `renderAt`); `userEvent.type` reads `[`, `{`
+  as keys: double them. React Router moves in a transition. (10-07 to 11-06)
+- Pin `accounts` in migration tests. Schema codes, messages, lines and order are pinned; no
+  `functools`; API source names no CS code. Tailwind 4: third-party CSS in `layer(base)`; Biome
+  ignores generated schemas; Ninja fixed routes precede `{param}` routes. (10-05 to 10-21)
