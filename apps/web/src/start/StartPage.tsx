@@ -4,7 +4,7 @@
 // button steps through them, a refresh keeps them, and a half-finished search is a link.
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { useRoute, useSearch } from "../api/queries";
+import { useGoalSuggestions, useRoute } from "../api/queries";
 import type { ResultOut } from "../api/schema";
 import { ErrorNotice } from "../layout/ErrorNotice";
 import { TopBar } from "../layout/TopBar";
@@ -80,7 +80,7 @@ export function StartPage() {
   // Once a target is chosen the other candidates fold away, as on the board, until asked for.
   const [adding, setAdding] = useState(false);
 
-  const search = useSearch(words);
+  const search = useGoalSuggestions(words);
 
   function ask(next: string) {
     setTyped(next);
@@ -132,6 +132,9 @@ export function StartPage() {
             className="flex h-[58px] w-full items-center gap-3 rounded-panel border-2 border-ink bg-surface pr-2.5 pl-5 focus-within:border-sel"
             onSubmit={(event) => {
               event.preventDefault();
+              if (typed.trim() !== "" && typed.trim() === words.trim()) {
+                void search.refetch();
+              }
               ask(typed);
             }}
           >
@@ -140,6 +143,7 @@ export function StartPage() {
             </label>
             <input
               id="goal-words"
+              maxLength={240}
               value={typed}
               onChange={(event) => setTyped(event.target.value)}
               placeholder="salmon"

@@ -2466,6 +2466,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** The judge's threshold and redraft count are bounded operator settings, so one proposal can only trigger a small, predictable number of calls (M5.3 spec).
 
+#### CA0409 — a goal query is too long
+
+*Refuses.*
+
+**Fix.** Shorten the goal to 240 characters or fewer.
+
+**Why.** Goal suggestions send the learner's words to a model, so the request has a small fixed input bound (M5.4 spec).
+
 ### CA0500–CA0599 · drafting
 
 #### CA0500 — unsupported drafting target or operation
