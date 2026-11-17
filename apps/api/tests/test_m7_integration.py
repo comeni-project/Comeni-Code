@@ -180,3 +180,104 @@ def test_reviewer_assignment_and_receipt_progress_follow_the_real_draft(
     made.draft.save(update_fields=["state"])
     assert client.get(f"/api/requests/{receipt['receipt']}").json()["state"] == "approved"
     assert client.get(f"/api/requests/{receipt['receipt']}").json()["state"] != "live"
+
+
+TPM_ANSWERS: dict[str, object] = {
+    "tpm-sums-to": 1000000,
+    "tpm-or-count": 0,
+    "twice-as-long": 0,
+    "tpm-of-a": 750000,
+    "tpm-steps": [
+        "Count the reads on each transcript",
+        "Divide each count by the transcript's effective length",
+        "Add up the rates across the sample",
+        "Scale each rate so the rates add up to a million",
+    ],
+    "tpm-unit-name": "Transcripts per million",
+}
+
+
+def test_a_learner_request_reaches_an_approved_draft_through_every_human_gate(
+    indexed: None, ada: Any, grace: Any, client: Client
+) -> None:
+    """M7's local acceptance: intake, triage, assignment, a new node's draft, submission, a
+    reviewer's verdicts and approval. Approval is not landing; the receipt never says live."""
+    from dataclasses import replace
+
+    from code_api.studio import drafts, review
+    from code_api.studio.keys import review_keys
+    from code_schema import Resource
+    from code_schema.content import read_content
+    from code_schema.edits import set_resources
+
+    receipt = post(
+        client,
+        "/api/requests",
+        {"request_id": str(uuid.uuid4()), "title": "TPM again", "description": "A second TPM."},
+    ).json()
+    item = ContentRequest.objects.get()
+    assert item.state == "requested" and item.draft is None
+
+    item = requests.decide(item.public_id, "accept", expected_version=1, by=ada)
+    assert item.draft is None  # accepting makes no draft
+    item = implementing.assign(item.public_id, item.version, ada.public_id, by=ada)
+    item = implementing.assign(
+        item.public_id, item.version, grace.public_id, by=ada, reviewing=True
+    )
+    item = implementing.start(
+        item.public_id,
+        item.version,
+        by=ada,
+        node_id="tpm-again",
+        claim="TPM makes expression comparable across transcripts.",
+        region=Region.objects.earliest("position").id,
+        level=Level.FOUNDATIONS,
+        minutes=10,
+    )
+    draft = item.draft
+    assert draft is not None and implementing.stage(item) == "writing"
+
+    tpm = read_content(Path(__file__).resolve().parents[3] / "tests/fixtures/salmon").nodes["tpm"]
+    reading = Resource(
+        kind="reading",
+        provider="openstax",
+        url="https://openstax.org/books/biology-2e/pages/17-1",
+        covers="How fragments are read from transcripts.",
+        licence="CC BY 4.0",
+        display="link",
+        level=Level.FOUNDATIONS,
+    )
+    drafts.save(
+        draft,
+        based_on=1,
+        edit=lambda n: set_resources(
+            replace(n, body=tpm.body, exam=tpm.exam, figures=tpm.figures), [reading]
+        ),
+        by=ada,
+        change="write it",
+    )
+    assert all(entry.passed for entry in drafts.checklist(draft))
+
+    revision = drafts.latest(draft).number
+    review.submit(draft, revision=revision, by=ada)
+    item.refresh_from_db()
+    assert implementing.stage(item) == "waiting for review"
+
+    with pytest.raises((review.RoleTooLow, review.Contributor)):
+        review.approve(draft, revision=revision, reason="", by=ada)  # nobody approves their own
+    for question in tpm.exam:
+        review.answer(draft, question.id, TPM_ANSWERS[question.id], by=grace)
+    node, _ = drafts.node_of(draft)
+    assert node is not None
+    review.set_verdicts(
+        draft,
+        revision=revision,
+        verdicts=[review.Given(key.key, "approved") for key in review_keys(node)],
+        by=grace,
+    )
+    review.approve(draft, revision=revision, reason="", by=grace)
+
+    item.refresh_from_db()
+    assert implementing.stage(item) == "approved"
+    state = client.get(f"/api/requests/{receipt['receipt']}").json()["state"]
+    assert state == "approved"  # a local approval is never reported as a landing
