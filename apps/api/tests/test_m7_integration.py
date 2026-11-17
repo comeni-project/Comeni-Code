@@ -162,7 +162,7 @@ def test_reviewer_assignment_and_receipt_progress_follow_the_real_draft(
     ).json()
     item = ContentRequest.objects.get()
     requests.decide(item.public_id, "accept", expected_version=1, by=ada)
-    with pytest.raises(RequestError):
+    with pytest.raises(RequestError, match="Assign an active reviewer"):
         implementing.assign(item.public_id, 2, ada.public_id, by=ada, reviewing=True)
     implementing.assign(item.public_id, 2, grace.public_id, by=ada, reviewing=True)
     made = implementing.start(

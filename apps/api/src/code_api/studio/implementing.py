@@ -61,7 +61,8 @@ def assign(
     if assignee is not None and (
         owner is None or not can_act_as(owner.role, Role.REVIEWER if reviewing else Role.AUTHOR)
     ):
-        raise RequestError("Assign an active author, or leave the request unassigned.")
+        role = "reviewer" if reviewing else "author"
+        raise RequestError(f"Assign an active {role}, or leave the request unassigned.")
     if reviewing:
         item.reviewer = owner
     else:
