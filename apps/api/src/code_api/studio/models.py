@@ -159,6 +159,49 @@ class DraftScore(models.Model):
     judge_settings = models.JSONField(default=dict)
 
 
+class ContentRequest(models.Model):
+    """A proposed topic, independent of the index; people decide whether it proceeds."""
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    title = models.CharField(max_length=240)
+    description = models.TextField()
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    state = models.CharField(max_length=16, default="requested")
+    version = models.PositiveIntegerField(default=1)
+    merged_node_id = models.TextField(blank=True)
+    snoozed_until = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+
+
+class RequestDecision(models.Model):
+    """The actor and reason for one request transition, committed with its state."""
+
+    request = models.ForeignKey(ContentRequest, on_delete=models.CASCADE, related_name="decisions")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    action = models.CharField(max_length=16)
+    before = models.CharField(max_length=16)
+    after = models.CharField(max_length=16)
+    version = models.PositiveIntegerField()
+    reason = models.TextField(blank=True)
+    node_id = models.TextField(blank=True)
+    snoozed_until = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["version"]
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["request", "version"], name="studio_request_decision_once"
+            )
+        ]
+
+
 class AssistantSession(models.Model):
     """A private author conversation about one draft; transcripts do not enter AICall."""
 
