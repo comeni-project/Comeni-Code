@@ -116,6 +116,8 @@ def _site_out(key: str, rows: dict[str, SiteSetting], env_locked: bool) -> SiteO
         temperature=None if row is None else row.temperature,
         reasoning_effort="" if row is None else row.reasoning_effort,
         timeout=None if row is None else row.timeout,
+        minimum_score=3 if row is None else row.minimum_score,
+        max_redrafts=1 if row is None else row.max_redrafts,
         locked=locked,
         problem=routed.sentence if isinstance(routed, Refused) else None,
     )
@@ -295,6 +297,10 @@ def set_site(request: HttpRequest, key: str, body: SiteIn) -> AISettingsOut | St
         return Status(404, Message(detail=f"{key} is not a call site.", code="CA0400"))
     if key == "default" and env_route() is not None:
         return _refused(409, Refused("CA0407", "The default model is set in .env."))
+    if key == "block-evaluation" and not 1 <= body.minimum_score <= 5:
+        return _refused(422, Refused("CA0408", "The minimum score must be from 1 to 5."))
+    if key == "block-evaluation" and not 0 <= body.max_redrafts <= 3:
+        return _refused(422, Refused("CA0408", "The redraft limit must be from 0 to 3."))
     connection = None
     if not body.same_as_default or key == "default":
         if body.connection is not None:
@@ -327,6 +333,8 @@ def set_site(request: HttpRequest, key: str, body: SiteIn) -> AISettingsOut | St
             "temperature": None if changed_model else body.temperature,
             "reasoning_effort": "" if changed_model else body.reasoning_effort,
             "timeout": None if changed_model else body.timeout,
+            "minimum_score": body.minimum_score if key == "block-evaluation" else 3,
+            "max_redrafts": body.max_redrafts if key == "block-evaluation" else 1,
         },
     )
     return state()

@@ -9,7 +9,7 @@ finds the state moved.
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from django.db import transaction
 from django.utils import timezone
@@ -18,12 +18,22 @@ from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.content.snapshot import image_shas_from_index, node_from_index
 from code_api.studio import drafts
+from code_api.studio.ai_schemas import DraftingError
 from code_api.studio.keys import Key, align, review_keys, same
 from code_api.studio.landing import AlreadyLanding
 from code_api.studio.log import record
-from code_api.studio.models import Draft, DraftEvent, LandingDraft, Review, Revision, Verdict
-from code_schema import ExamQuestion, TryQuestion
+from code_api.studio.models import (
+    Draft,
+    DraftEvent,
+    DraftScore,
+    LandingDraft,
+    Review,
+    Revision,
+    Verdict,
+)
+from code_schema import ExamQuestion, Figure, TryQuestion
 from code_schema.grading import is_right
+from code_schema.provenance import digest
 
 State = Draft.State
 Kind = DraftEvent.Kind
@@ -235,6 +245,34 @@ def question_of(key: Key) -> Asked | None:
     return None
 
 
+def _current_score(draft: Draft, key: Key) -> dict[str, Any] | None:
+    from code_api.studio.ai_edits import payload
+
+    revision = drafts.latest(draft)
+    node, _ = drafts.node_of(draft, revision)
+    if node is None:
+        return None
+    target = f"figure/{key.content.file}" if isinstance(key.content, Figure) else key.key
+    try:
+        current = payload(node, target)
+    except DraftingError, ValueError, TypeError, KeyError, IndexError:
+        return None
+    score = (
+        DraftScore.objects.filter(draft=draft, target=target, revision__number__lte=revision.number)
+        .select_related("call")
+        .order_by("-revision__number", "-pk")
+        .first()
+    )
+    if score is None or score.content_digest != digest(current):
+        return None
+    return {
+        "overall": score.overall,
+        "version": score.rubric_version,
+        "parts": score.parts,
+        "model": score.judge_model,
+    }
+
+
 def asked(draft: Draft) -> list[Asked]:
     """Every question the latest revision asks, in reading order: its try blocks, then its pool."""
     return [question for key in keys_of(draft) if (question := question_of(key)) is not None]
@@ -292,6 +330,8 @@ class Reviewed:
     answered: Answered | None  # None unless the key is a question
     change: str  # new, changed or same, against the live index (M4.9b spec, M4RS.2)
     before: Key | None = None  # what it was, when changed
+    score: dict[str, Any] | None = None
+    score_agreement: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -306,6 +346,7 @@ def _sheet(draft: Draft, by: User) -> Sheet:
     given = {} if found is None else dict(found.answers)
     verdicts = _verdicts(found)
     keys = keys_of(draft)
+    scores = {key.key: _current_score(draft, key) for key in keys}
     live = node_from_index(draft.node_id)
     earlier = [] if live is None else review_keys(live, image_shas_from_index(draft.node_id))
     by_key = {key.key: key for key in earlier}
@@ -325,6 +366,8 @@ def _sheet(draft: Draft, by: User) -> Sheet:
                 answered=None if question is None else _graded(question, given.get(question.id)),
                 change=change,
                 before=old if change == "changed" else None,
+                score=scores[key.key],
+                score_agreement=None if verdict is None else verdict.score_agreement,
             )
         )
     return Sheet(drafts.latest(draft).number, items)
@@ -364,6 +407,8 @@ class QueuedKey:
     key: Key
     verdict: str | None
     answered: bool | None  # None unless the key is a question
+    score: dict[str, Any] | None = None
+    score_agreement: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -374,6 +419,7 @@ class Queued:
     submitted_at: datetime
     reads: bool
     keys: list[QueuedKey]
+    lowest_score: int | None
 
 
 def queue(by: User) -> list[Queued]:
@@ -390,6 +436,7 @@ def queue(by: User) -> list[Queued]:
         given = {} if mine is None else dict(mine.answers)
         node, _ = drafts.node_of(draft)
         keys = [] if node is None else review_keys(node, drafts.latest(draft).images)
+        scored_keys = {key.key: _current_score(draft, key) for key in keys}
         found.append(
             Queued(
                 draft=draft,
@@ -402,12 +449,27 @@ def queue(by: User) -> list[Queued]:
                         key=key,
                         verdict=None if (v := verdicts.get(key.key)) is None else v.verdict,
                         answered=None if (q := question_of(key)) is None else q.id in given,
+                        score=scored_keys[key.key],
+                        score_agreement=(
+                            None if (v := verdicts.get(key.key)) is None else v.score_agreement
+                        ),
                     )
                     for key in keys
                 ],
+                lowest_score=min(
+                    (int(score["overall"]) for score in scored_keys.values() if score is not None),
+                    default=None,
+                ),
             )
         )
-    return sorted(found, key=lambda queued: queued.submitted_at)
+    return sorted(
+        found,
+        key=lambda queued: (
+            queued.lowest_score is None,
+            6 if queued.lowest_score is None else queued.lowest_score,
+            queued.submitted_at,
+        ),
+    )
 
 
 # ── Verdicts (M4.9a spec, M4V.2) ────────────────────────────────────────────────────────────────
@@ -433,6 +495,10 @@ class NeedsNote(Keyed):
     """`changes` verdicts without a note (CA0221)."""
 
 
+class NeedsScoreAgreement(Keyed):
+    """A reviewed score needs this reviewer's agree/disagree answer (CA0227)."""
+
+
 def _refuse(error: type[Keyed], keys: list[str]) -> None:
     if keys:
         raise error(keys)
@@ -443,6 +509,7 @@ class Given:
     key: str
     verdict: Literal["approved", "changes"] | None  # None clears it
     note: str = ""
+    score_agreement: bool | None = None
 
 
 def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: User) -> Sheet:
@@ -453,6 +520,7 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
         _judge(locked, by)
         _submitted(locked, revision)
         keys = {key.key: key for key in keys_of(locked)}
+        scores = {key: _current_score(locked, item) for key, item in keys.items()}
         _refuse(NoSuchKey, [g.key for g in verdicts if g.key not in keys])
         given = _given(locked, by)
         _refuse(
@@ -469,6 +537,14 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
             NeedsNote,
             [g.key for g in verdicts if g.verdict == "changes" and not g.note.strip()],
         )
+        _refuse(
+            NeedsScoreAgreement,
+            [
+                g.key
+                for g in verdicts
+                if g.verdict is not None and scores[g.key] is not None and g.score_agreement is None
+            ],
+        )
         found = _review_for(locked, by)
         for g in verdicts:
             if g.verdict is None:
@@ -481,6 +557,7 @@ def set_verdicts(draft: Draft, *, revision: int, verdicts: Sequence[Given], by: 
                     "kind": keys[g.key].kind,
                     "verdict": g.verdict,
                     "note": g.note.strip() if g.verdict == "changes" else "",
+                    "score_agreement": g.score_agreement if scores[g.key] is not None else None,
                     "at": timezone.now(),
                 },
             )

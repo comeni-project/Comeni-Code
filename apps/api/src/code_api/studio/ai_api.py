@@ -83,6 +83,7 @@ def shown(proposal: DraftProposal) -> ProposalOut:
         if proposal.accepted_revision is None
         else proposal.accepted_revision.number,
         created_at=proposal.created_at,
+        evaluations=proposal.evaluations,
     )
 
 

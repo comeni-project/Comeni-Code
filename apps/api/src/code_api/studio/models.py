@@ -128,6 +128,7 @@ class DraftProposal(models.Model):
     accepted_revision = models.ForeignKey(
         Revision, null=True, on_delete=models.PROTECT, related_name="accepted_proposals"
     )
+    evaluations = models.JSONField(default=list, blank=True)
 
     class Meta:
         constraints = [
@@ -140,6 +141,22 @@ class DraftProposal(models.Model):
         for revision in (self.base_revision, self.accepted_revision):
             if revision is not None and revision.draft_id != self.draft_id:
                 raise ValidationError("A proposal's revisions belong to its own draft.")
+
+
+class DraftScore(models.Model):
+    """A final private judge score attached to the accepted revision and exact target value."""
+
+    proposal = models.OneToOneField(DraftProposal, on_delete=models.PROTECT, related_name="score")
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="scores")
+    revision = models.ForeignKey(Revision, on_delete=models.PROTECT, related_name="scores")
+    call = models.ForeignKey("ai.AICall", on_delete=models.PROTECT, related_name="scores")
+    target = models.TextField()
+    content_digest = models.CharField(max_length=64)
+    rubric_version = models.TextField()
+    overall = models.PositiveSmallIntegerField()
+    parts = models.JSONField(default=dict)
+    judge_model = models.TextField()
+    judge_settings = models.JSONField(default=dict)
 
 
 class Review(models.Model):
@@ -180,6 +197,7 @@ class Verdict(models.Model):
     kind = models.CharField(max_length=16)  # the key's kind (M4V.1), kept for M5's analysis
     verdict = models.CharField(max_length=16, choices=Given.choices)
     note = models.TextField(blank=True)
+    score_agreement = models.BooleanField(null=True, blank=True)
     at = models.DateTimeField(default=timezone.now)
 
     class Meta:

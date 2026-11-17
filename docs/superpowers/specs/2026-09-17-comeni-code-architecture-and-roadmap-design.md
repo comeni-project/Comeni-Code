@@ -174,8 +174,9 @@ decided part by part (R5).
   through the content API.
 - **Done when** a drafted block carries its provenance, and the AI pages show real usage.
   *Against W9; S15–S17.*
-- *2026-09-17 (tutor spec T8): block evaluation, with a judge from a different model family,
-  automatic redrafts below x, and review sorted by score. Also skeleton drafting and resource
+- *2026-09-17 (tutor spec T8): block evaluation, bounded redrafts below x, and review sorted by
+  score. M5.3's later decision (#451, 2026-11-13) allows the judge to use the drafter's model as a
+  fresh call with no drafting conversation; see its part spec. Also skeleton drafting and resource
   suggestion as declared call sites. **Done when** also includes: a drafted block shows its score
   and reasons, and a low score triggers a bounded redraft.*
 

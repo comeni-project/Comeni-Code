@@ -33,6 +33,8 @@ class SiteOut(Schema):
     temperature: float | None
     reasoning_effort: str
     timeout: int | None
+    minimum_score: int
+    max_redrafts: int
     locked: bool
     problem: str | None  # why the site has no model, in the page's words
 
@@ -65,6 +67,8 @@ class SiteIn(Schema):
     temperature: float | None = None
     reasoning_effort: str = ""
     timeout: int | None = None
+    minimum_score: int = 3
+    max_redrafts: int = 1
 
 
 class SignInOut(Schema):

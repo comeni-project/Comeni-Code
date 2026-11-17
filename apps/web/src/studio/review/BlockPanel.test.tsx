@@ -14,7 +14,7 @@ describe("ReviewPage — the open block", () => {
     renderReview();
     await openBlock(/^TPM is not a count of reads/);
     expect(await screen.findByText("Equal reads, unequal TPM.")).toBeInTheDocument();
-    expect(screen.getByText("Judge’s score · arrives with M5")).toBeInTheDocument();
+    expect(screen.queryByText("Judge’s score · arrives with M5")).toBeNull();
   });
 
   it("shows a changed text block's words, gone and new", async () => {

@@ -3,7 +3,7 @@ answers and the exam pool included: it is the team's, behind `studio(min_role)`.
 
 from collections.abc import Mapping
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, cast
 from uuid import UUID
 
 from ninja import Schema
@@ -586,6 +586,18 @@ class ReviewContentOut(Schema):
     problem: NodeProblemOut | None = None  # the problem key's file and sample (M6PR.6)
 
 
+class JudgePartOut(Schema):
+    score: int
+    reason: str
+
+
+class JudgeScoreOut(Schema):
+    overall: int
+    version: str
+    model: str
+    parts: dict[str, JudgePartOut]
+
+
 class ReviewItemOut(ReviewContentOut):
     """One key of your review (M4V.4): its content, your verdict and note, and what it was before
     this draft when it changed (M4.9b spec, M4RS.2)."""
@@ -594,6 +606,8 @@ class ReviewItemOut(ReviewContentOut):
     kind: str
     verdict: str | None
     note: str
+    score: JudgeScoreOut | None = None
+    score_agreement: bool | None = None
     change: str  # new, changed or same, against the live index
     before: ReviewContentOut | None
 
@@ -604,6 +618,8 @@ class QueueKeyOut(Schema):
     label: str
     verdict: str | None
     answered: bool | None  # a question's: whether you answered it; null for other keys
+    score: int | None = None
+    score_agreement: bool | None = None
 
 
 class QueuedDraftOut(Schema):
@@ -685,6 +701,8 @@ def _review_item_out(item: Reviewed) -> ReviewItemOut:
         kind=item.key.kind,
         verdict=item.verdict,
         note=item.note,
+        score=cast(JudgeScoreOut | None, item.score),
+        score_agreement=item.score_agreement,
         change=item.change,
         before=None if item.before is None else _content(item.before, given),
     )

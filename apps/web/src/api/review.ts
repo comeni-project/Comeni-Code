@@ -9,6 +9,7 @@ export interface VerdictIn {
   key: string;
   verdict: "approved" | "changes" | null;
   note?: string;
+  score_agreement?: boolean | null;
 }
 
 export const fetchQueue = (signal?: AbortSignal) =>

@@ -59,6 +59,29 @@ class AcceptProposalIn(Schema):
     resolutions: dict[str, Any] = Field(default_factory=dict)
 
 
+class EvaluationPartOut(Schema):
+    score: int
+    reason: str
+
+
+class EvaluationScoreOut(Schema):
+    overall: int
+    version: str
+    parts: dict[str, EvaluationPartOut]
+
+
+class EvaluationOut(Schema):
+    number: int
+    candidate: dict[str, Any]
+    score_value: dict[str, Any]
+    draft_call_id: int
+    judge_call_id: int | None
+    score: EvaluationScoreOut | None
+    detail: str
+    judge_model: str | None = None
+    judge_settings: dict[str, Any] | None = None
+
+
 class ProposalOut(Schema):
     public_id: UUID
     kind: Literal["block", "resource", "figure"]
@@ -78,6 +101,7 @@ class ProposalOut(Schema):
     receipt: dict[str, Any] | None
     copy_digest: str
     accepted_revision: int | None
+    evaluations: list[EvaluationOut]
     created_at: datetime
 
 

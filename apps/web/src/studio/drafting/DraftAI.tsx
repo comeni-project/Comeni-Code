@@ -371,6 +371,50 @@ function Panel({
           </p>
           {proposal.state === "ready" && (
             <>
+              {proposal.evaluations.length > 0 && (
+                <section
+                  aria-label="Judge score and redraft history"
+                  className="rounded-control border border-border bg-bg p-3"
+                >
+                  <h4 className="text-[13px] font-semibold">
+                    {`Judge score · ${proposal.evaluations.length} ${proposal.evaluations.length === 1 ? "attempt" : "attempts"}`}
+                  </h4>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {proposal.evaluations.map((attempt, at) => {
+                      const score = attempt.score as {
+                        overall?: number;
+                        version?: string;
+                        parts?: Record<string, { score: number; reason: string }>;
+                      } | null;
+                      return (
+                        <details key={`${String(attempt.number)}:${String(attempt.judge_call_id)}`}>
+                          <summary className="cursor-pointer text-[12.5px]">
+                            {score
+                              ? `Attempt ${at + 1} · ${score.overall}/5 · ${score.version}`
+                              : `Attempt ${at + 1} · unscored`}
+                          </summary>
+                          {score?.parts &&
+                            Object.entries(score.parts).map(([name, part]) => (
+                              <p key={name} className="ml-3 mt-1 text-[12px] text-ink-2">
+                                <b>{`${name} · ${part.score}/5:`}</b> {part.reason}
+                              </p>
+                            ))}
+                          {attempt.detail && (
+                            <p className="ml-3 mt-1 text-[12px] text-ink-2">
+                              {String(attempt.detail)}
+                            </p>
+                          )}
+                          {typeof attempt.candidate === "object" && attempt.candidate !== null && (
+                            <pre className="ml-3 mt-1 whitespace-pre-wrap break-words text-[12px]">
+                              {readable(attempt.candidate)}
+                            </pre>
+                          )}
+                        </details>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
               <div
                 className="grid min-w-0 gap-3"
                 style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))" }}

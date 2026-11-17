@@ -15,6 +15,8 @@ const keyOf = (
   label,
   verdict: null,
   answered,
+  score: null,
+  score_agreement: null,
 });
 
 export const QUEUE: QueuedDraftOut[] = [
@@ -42,6 +44,8 @@ const item = (key: string, kind: string, content: Partial<ReviewItemOut>): Revie
   kind,
   verdict: null,
   note: "",
+  score: null,
+  score_agreement: null,
   change: "same",
   before: null,
   ...content,

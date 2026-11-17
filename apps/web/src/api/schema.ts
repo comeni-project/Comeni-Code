@@ -32,6 +32,9 @@ export interface ApiSchemas {
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
   DraftingFailure: DraftingFailure;
+  EvaluationOut: EvaluationOut;
+  EvaluationPartOut: EvaluationPartOut;
+  EvaluationScoreOut: EvaluationScoreOut;
   EventOut: EventOut;
   ExamIn: ExamIn;
   ExamQuestionIn: ExamQuestionIn;
@@ -54,6 +57,8 @@ export interface ApiSchemas {
   InviteIn: InviteIn;
   InviteOut: InviteOut;
   ItemOut: ItemOut;
+  JudgePartOut: JudgePartOut;
+  JudgeScoreOut: JudgeScoreOut;
   KitMistakeOut: KitMistakeOut;
   LandingEntryOut: LandingEntryOut;
   LandingIn: LandingIn;
@@ -161,6 +166,8 @@ export interface SiteOut {
   key: string;
   label: string;
   locked: boolean;
+  max_redrafts: number;
+  minimum_score: number;
   model: string;
   problem: string | null;
   reasoning_effort: string;
@@ -520,6 +527,7 @@ export interface ProposalOut {
     [k: string]: unknown;
   };
   detail: string;
+  evaluations: EvaluationOut[];
   findings: {
     [k: string]: unknown;
   }[];
@@ -537,6 +545,34 @@ export interface ProposalOut {
   }[];
   state: "queued" | "running" | "ready" | "refused" | "failed" | "accepted" | "discarded";
   target: string;
+}
+export interface EvaluationOut {
+  candidate: {
+    [k: string]: unknown;
+  };
+  detail: string;
+  draft_call_id: number;
+  judge_call_id: number | null;
+  judge_model?: string | null;
+  judge_settings?: {
+    [k: string]: unknown;
+  } | null;
+  number: number;
+  score: EvaluationScoreOut | null;
+  score_value: {
+    [k: string]: unknown;
+  };
+}
+export interface EvaluationScoreOut {
+  overall: number;
+  parts: {
+    [k: string]: EvaluationPartOut;
+  };
+  version: string;
+}
+export interface EvaluationPartOut {
+  reason: string;
+  score: number;
 }
 export interface ApproveIn {
   reason?: string;
@@ -838,6 +874,18 @@ export interface InviteOut {
   email: string;
   role: string;
 }
+export interface JudgePartOut {
+  reason: string;
+  score: number;
+}
+export interface JudgeScoreOut {
+  model: string;
+  overall: number;
+  parts: {
+    [k: string]: JudgePartOut;
+  };
+  version: string;
+}
 export interface KitMistakeOut {
   name: string;
   says: string;
@@ -1064,6 +1112,8 @@ export interface QueueKeyOut {
   key: string;
   kind: string;
   label: string;
+  score?: number | null;
+  score_agreement?: boolean | null;
   verdict: string | null;
 }
 /**
@@ -1230,6 +1280,8 @@ export interface ReviewItemOut {
   problem?: NodeProblemOut | null;
   question: ReviewQuestionOut | null;
   resource: StudioResourceOut | null;
+  score?: JudgeScoreOut | null;
+  score_agreement?: boolean | null;
   verdict: string | null;
 }
 export interface ReviewOut {
@@ -1295,6 +1347,8 @@ export interface SignInStateOut {
 export interface SiteIn {
   cap?: number | null;
   connection?: number | null;
+  max_redrafts?: number;
+  minimum_score?: number;
   model?: string;
   reasoning_effort?: string;
   same_as_default?: boolean;
@@ -1337,6 +1391,7 @@ export interface UsageOut {
 export interface VerdictIn {
   key: string;
   note?: string;
+  score_agreement?: boolean | null;
   verdict: ("approved" | "changes") | null;
 }
 export interface VerdictsIn {

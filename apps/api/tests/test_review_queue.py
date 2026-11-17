@@ -56,6 +56,8 @@ def test_a_reviewer_sees_each_submitted_draft_with_its_keys(
         "label": "TPM is not a count of reads",
         "verdict": "changes",
         "answered": None,
+        "score": None,
+        "score_agreement": None,
     }
     assert (keys["exam/tpm-or-count"]["answered"], keys["exam/tpm-of-a"]["answered"]) == (
         True,

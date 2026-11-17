@@ -2286,6 +2286,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** An image from Commons comes with the credit Commons itself gives it, and only licences that allow copying are kept (M6.3 spec, M6IM.4).
 
+#### CA0227 — a scored block has no reviewer agreement answer
+
+*Refuses.*
+
+**Fix.** Say whether you agree or disagree with the judge's score before giving your verdict.
+
+**Why.** Each reviewer records their own agreement with a score so later Quality reporting can compare judge and human decisions (M5.3 spec, T8.3).
+
 ### CA0300–CA0399 · landing
 
 #### CA0301 — landing is not configured
@@ -2449,6 +2457,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Change it in .env and restart, or remove it there to set it on the AI page.
 
 **Why.** .env's model, key and endpoint win over the page (M5G.3), as in Labs: a lock, not a seed.
+
+#### CA0408 — a judge setting is outside its allowed range
+
+*Refuses.*
+
+**Fix.** Set the minimum score from 1 to 5 and the redraft limit from 0 to 3.
+
+**Why.** The judge's threshold and redraft count are bounded operator settings, so one proposal can only trigger a small, predictable number of calls (M5.3 spec).
 
 ### CA0500–CA0599 · drafting
 

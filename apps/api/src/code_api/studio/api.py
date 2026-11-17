@@ -977,6 +977,9 @@ def _refusal(error: Exception) -> Status[Message] | Status[RefusedOut]:
         case review.NeedsNote(keys=keys):
             detail = f"Say what to change: {', '.join(keys)}."
             return Status(422, RefusedOut(detail=detail, code="CA0221", problems=[]))
+        case review.NeedsScoreAgreement(keys=keys):
+            detail = f"Say whether you agree with the score: {', '.join(keys)}."
+            return Status(422, RefusedOut(detail=detail, code="CA0227", problems=[]))
         case review.NotApproved(keys=keys):
             detail = f"Approve every block first; not approved: {', '.join(keys)}."
             return Status(422, RefusedOut(detail=detail, code="CA0222", problems=[]))
@@ -1016,6 +1019,7 @@ _REFUSALS = (
     review.NoSuchKey,
     review.NotAnswered,
     review.NeedsNote,
+    review.NeedsScoreAgreement,
     review.NotApproved,
     review.NothingToSendBack,
     review.NoSuchQuestion,
@@ -1095,6 +1099,7 @@ class VerdictIn(Schema):
     key: str
     verdict: Literal["approved", "changes"] | None  # null clears it
     note: str = ""
+    score_agreement: bool | None = None
 
 
 class VerdictsIn(Schema):
@@ -1111,7 +1116,7 @@ def set_verdicts(request: HttpRequest, public_id: UUID, body: VerdictsIn) -> Rev
     draft = find(public_id)
     if draft is None:
         return Status(404, _NO_DRAFT)
-    given = [review.Given(v.key, v.verdict, v.note) for v in body.verdicts]
+    given = [review.Given(v.key, v.verdict, v.note, v.score_agreement) for v in body.verdicts]
     try:
         sheet = review.set_verdicts(
             draft, revision=body.revision, verdicts=given, by=_member(request)

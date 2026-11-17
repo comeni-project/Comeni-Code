@@ -8,10 +8,13 @@ import pytest
 from django.test import Client
 
 from code_api.accounts.models import User
+from code_api.ai.models import AICall
 from code_api.content.index import rebuild_index
 from code_api.studio import drafts
-from code_api.studio.models import Draft
+from code_api.studio.ai_edits import payload
+from code_api.studio.models import Draft, DraftProposal, DraftScore
 from code_schema.edits import set_fields
+from code_schema.provenance import digest
 
 pytestmark = pytest.mark.django_db
 
@@ -295,6 +298,38 @@ def test_verdicts_come_back_with_the_review(ada: User, grace: User, ready: Ready
     assert (item["verdict"], item["note"]) == ("changes", "Long.")
     cleared = verdicts(draft, grace, [{"key": "block/0", "verdict": None}])
     assert next(i for i in cleared.json()["items"] if i["key"] == "block/0")["verdict"] is None
+
+
+def test_a_scored_block_needs_an_agreement_answer(ada: User, grace: User, ready: Ready) -> None:
+    draft = submitted(ada, ready)
+    revision = drafts.latest(draft)
+    node, _ = drafts.node_of(draft, revision)
+    assert node is not None
+    call_row = AICall.objects.create(site="block-evaluation", outcome="answered")
+    proposal = DraftProposal.objects.create(draft=draft, base_revision=revision, state="accepted")
+    DraftScore.objects.create(
+        proposal=proposal,
+        draft=draft,
+        revision=revision,
+        call=call_row,
+        target="block/1",
+        content_digest=digest(payload(node, "block/1")),
+        rubric_version="block@1",
+        overall=2,
+        parts={"accuracy": {"score": 2, "reason": "Needs evidence."}},
+        judge_model="local/test",
+        judge_settings={},
+    )
+    without_answer = verdicts(draft, grace, [{"key": "block/1", "verdict": "approved"}])
+    assert code_of(without_answer) == (422, "CA0227")
+    recorded = verdicts(
+        draft,
+        grace,
+        [{"key": "block/1", "verdict": "approved", "score_agreement": False}],
+    )
+    assert recorded.status_code == 200
+    item = next(each for each in recorded.json()["items"] if each["key"] == "block/1")
+    assert item["score"]["overall"] == 2 and item["score_agreement"] is False
 
 
 def test_the_author_reads_the_requests_on_the_draft(ada: User, grace: User, ready: Ready) -> None:

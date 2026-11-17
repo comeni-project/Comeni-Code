@@ -6,11 +6,14 @@ from pathlib import Path
 import pytest
 
 from code_api.accounts.models import User
+from code_api.ai.models import AICall
 from code_api.content.index import rebuild_index
 from code_api.studio import drafts, review
+from code_api.studio.ai_edits import payload
 from code_api.studio.log import history, replay
-from code_api.studio.models import Draft
+from code_api.studio.models import Draft, DraftProposal, DraftScore
 from code_schema.edits import set_fields
+from code_schema.provenance import digest
 
 pytestmark = pytest.mark.django_db
 
@@ -40,6 +43,47 @@ def test_submitting_needs_the_checklist(ada: User) -> None:
 def test_submitting_names_the_latest_revision(ada: User, ready: Ready) -> None:
     with pytest.raises(drafts.Stale):
         review.submit(ready(ada), revision=1, by=ada)
+
+
+def test_scored_verdict_requires_and_keeps_each_reviewers_agreement(
+    ada: User, grace: User, ready: Ready
+) -> None:
+    draft = ready(ada)
+    revision = drafts.latest(draft)
+    node, _ = drafts.node_of(draft, revision)
+    assert node is not None
+    call = AICall.objects.create(site="block-evaluation", outcome="answered")
+    proposal = DraftProposal.objects.create(draft=draft, base_revision=revision, state="accepted")
+    DraftScore.objects.create(
+        proposal=proposal,
+        draft=draft,
+        revision=revision,
+        call=call,
+        target="block/1",
+        content_digest=digest(payload(node, "block/1")),
+        rubric_version="block@1",
+        overall=2,
+        parts={"accuracy": {"score": 2, "reason": "Needs evidence."}},
+        judge_model="local/test",
+        judge_settings={},
+    )
+    review.submit(draft, revision=revision.number, by=ada)
+    with pytest.raises(review.NeedsScoreAgreement):
+        review.set_verdicts(
+            draft,
+            revision=revision.number,
+            verdicts=[review.Given("block/1", "approved")],
+            by=grace,
+        )
+    sheet = review.set_verdicts(
+        draft,
+        revision=revision.number,
+        verdicts=[review.Given("block/1", "approved", score_agreement=False)],
+        by=grace,
+    )
+    item = next(item for item in sheet.items if item.key.key == "block/1")
+    assert item.score is not None and item.score["overall"] == 2
+    assert item.score_agreement is False
 
 
 def test_withdrawing_reopens_it_for_a_contributor_or_an_operator(

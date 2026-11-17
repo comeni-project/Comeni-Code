@@ -334,16 +334,17 @@ landed files, and **are never shown to learners** (invariants 9 and 10).
 2. **A judge model scores the block** against a versioned rubric for its type. The score has
    named parts (for text: *accurate to the cited sources*, *clear at the node's level*, *serves
    the claim*), each on a 1–5 scale with a written reason, and an overall score.
-3. **The judge is a different model family from the drafter.** A model scoring its own family's
-   work is a model approving its own draft, which invariant 5 forbids for people too. Judge
-   models also favour longer answers, the first option shown and their own family's output
-   (Zheng et al. 2023).
+3. **The judge is a fresh call, with no drafting conversation.** It sees only the candidate, its
+   public sources, and the rubric. The same model may judge and draft (#451, operator decision,
+   2026-11-13). Judge settings are recorded; Quality (S11) measures judge–human agreement per
+   block kind and rubric version to watch for self-preference and other bias (Zheng et al. 2023).
 4. Each score records the rubric version, the judge model, the prompt id and the cost.
 
 ### T8.3 What scores do
 
-- **Below x: automatic redraft.** The critique goes back to the drafting call, at most **N
-  attempts** within a cost cap. After that, the block goes to a person marked *stuck*.
+- **Below x: bounded redraft.** The critique goes to a new drafting call, at most **N redrafts**;
+  M5.3 bounds N to 3 and subjects every call to its site's daily cap and timeout. A person still
+  chooses whether to keep the result; the proposal is marked unscored if judging stops.
 - **Triage.** Review (S6), Workbench (S3), Skeletons (S18) and Requests (S7) sort and filter by
   score. Reviewers see the parts and reasons beside the block. The lowest and most uncertain
   blocks come first.

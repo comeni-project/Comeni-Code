@@ -22,6 +22,8 @@ const site = (key: string, label: string, extra: Partial<AISettingsOut["sites"][
   same_as_default: key !== "default",
   connection: null,
   model: "",
+  minimum_score: 3,
+  max_redrafts: 1,
   cap: null,
   default_cap: 200,
   temperature: null,

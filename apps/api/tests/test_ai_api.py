@@ -102,6 +102,15 @@ def test_a_hosted_model_must_be_provider_slash_model(operator: Client) -> None:
     assert (site["model"], site["cap"], site["same_as_default"]) == ("openai/gpt-6.1", 7, False)
 
 
+@pytest.mark.parametrize(
+    "change",
+    [{"minimum_score": 0}, {"minimum_score": 6}, {"max_redrafts": -1}, {"max_redrafts": 4}],
+)
+def test_judge_settings_are_bounded(operator: Client, change: dict[str, int]) -> None:
+    refused = put(operator, "sites/block-evaluation", change)
+    assert (refused.status_code, refused.json()["code"]) == (422, "CA0408")
+
+
 def test_test_lists_models_and_records_a_call(
     operator: Client, monkeypatch: pytest.MonkeyPatch
 ) -> None:

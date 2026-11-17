@@ -1187,6 +1187,131 @@
         "title": "DraftingFailure",
         "type": "object"
       },
+      "EvaluationOut": {
+        "properties": {
+          "candidate": {
+            "additionalProperties": true,
+            "title": "Candidate",
+            "type": "object"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "draft_call_id": {
+            "title": "Draft Call Id",
+            "type": "integer"
+          },
+          "judge_call_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Call Id"
+          },
+          "judge_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Model"
+          },
+          "judge_settings": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Judge Settings"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationScoreOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "score_value": {
+            "additionalProperties": true,
+            "title": "Score Value",
+            "type": "object"
+          }
+        },
+        "required": [
+          "number",
+          "candidate",
+          "score_value",
+          "draft_call_id",
+          "judge_call_id",
+          "score",
+          "detail"
+        ],
+        "title": "EvaluationOut",
+        "type": "object"
+      },
+      "EvaluationPartOut": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "score",
+          "reason"
+        ],
+        "title": "EvaluationPartOut",
+        "type": "object"
+      },
+      "EvaluationScoreOut": {
+        "properties": {
+          "overall": {
+            "title": "Overall",
+            "type": "integer"
+          },
+          "parts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EvaluationPartOut"
+            },
+            "title": "Parts",
+            "type": "object"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "overall",
+          "version",
+          "parts"
+        ],
+        "title": "EvaluationScoreOut",
+        "type": "object"
+      },
       "EventOut": {
         "description": "One entry of a draft's log (M4R.5).",
         "properties": {
@@ -2045,6 +2170,55 @@
           "detail"
         ],
         "title": "ItemOut",
+        "type": "object"
+      },
+      "JudgePartOut": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "score",
+          "reason"
+        ],
+        "title": "JudgePartOut",
+        "type": "object"
+      },
+      "JudgeScoreOut": {
+        "properties": {
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "overall": {
+            "title": "Overall",
+            "type": "integer"
+          },
+          "parts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JudgePartOut"
+            },
+            "title": "Parts",
+            "type": "object"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "overall",
+          "version",
+          "model",
+          "parts"
+        ],
+        "title": "JudgeScoreOut",
         "type": "object"
       },
       "KitMistakeOut": {
@@ -3178,6 +3352,13 @@
             "title": "Detail",
             "type": "string"
           },
+          "evaluations": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationOut"
+            },
+            "title": "Evaluations",
+            "type": "array"
+          },
           "findings": {
             "items": {
               "additionalProperties": true,
@@ -3273,6 +3454,7 @@
           "receipt",
           "copy_digest",
           "accepted_revision",
+          "evaluations",
           "created_at"
         ],
         "title": "ProposalOut",
@@ -3472,6 +3654,28 @@
           "label": {
             "title": "Label",
             "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "score_agreement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Agreement"
           },
           "verdict": {
             "anyOf": [
@@ -4257,6 +4461,27 @@
               }
             ]
           },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JudgeScoreOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "score_agreement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Agreement"
+          },
           "verdict": {
             "anyOf": [
               {
@@ -4867,6 +5092,16 @@
             ],
             "title": "Connection"
           },
+          "max_redrafts": {
+            "default": 1,
+            "title": "Max Redrafts",
+            "type": "integer"
+          },
+          "minimum_score": {
+            "default": 3,
+            "title": "Minimum Score",
+            "type": "integer"
+          },
           "model": {
             "default": "",
             "title": "Model",
@@ -4955,6 +5190,14 @@
             "title": "Locked",
             "type": "boolean"
           },
+          "max_redrafts": {
+            "title": "Max Redrafts",
+            "type": "integer"
+          },
+          "minimum_score": {
+            "title": "Minimum Score",
+            "type": "integer"
+          },
           "model": {
             "title": "Model",
             "type": "string"
@@ -5031,6 +5274,8 @@
           "temperature",
           "reasoning_effort",
           "timeout",
+          "minimum_score",
+          "max_redrafts",
           "locked",
           "problem"
         ],
@@ -5999,6 +6244,17 @@
             "default": "",
             "title": "Note",
             "type": "string"
+          },
+          "score_agreement": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Agreement"
           },
           "verdict": {
             "anyOf": [

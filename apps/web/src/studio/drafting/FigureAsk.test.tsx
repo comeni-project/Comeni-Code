@@ -33,6 +33,7 @@ it("Use changes only the working copy, and a later copy makes the suggestion sta
     copy_digest: digest,
     accepted_revision: null,
     created_at: "2026-11-15T12:00:00Z",
+    evaluations: [],
   };
   const fake = answering({
     "GET /api/studio/drafts/d-1/ai/proposals?target=figure%2Fnew": { body: [] },

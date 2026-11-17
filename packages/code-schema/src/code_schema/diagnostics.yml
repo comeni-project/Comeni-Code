@@ -2988,6 +2988,17 @@ codes:
       An image from Commons comes with the credit Commons itself gives it, and only licences that
       allow copying are kept (M6.3 spec, M6IM.4).
 
+  CA0227:
+    emitted_by: api
+    concern: drafts
+    says: a scored block has no reviewer agreement answer
+    refuses: true
+    fix: |
+      Say whether you agree or disagree with the judge's score before giving your verdict.
+    explanation: |
+      Each reviewer records their own agreement with a score so later Quality reporting can
+      compare judge and human decisions (M5.3 spec, T8.3).
+
   # ── CA0300–CA0399 · landing ─────────────────────────────────────────────────────────────────
 
   CA0301:
@@ -3201,6 +3212,17 @@ codes:
       Change it in .env and restart, or remove it there to set it on the AI page.
     explanation: |
       .env's model, key and endpoint win over the page (M5G.3), as in Labs: a lock, not a seed.
+
+  CA0408:
+    emitted_by: api
+    concern: ai
+    says: a judge setting is outside its allowed range
+    refuses: true
+    fix: |
+      Set the minimum score from 1 to 5 and the redraft limit from 0 to 3.
+    explanation: |
+      The judge's threshold and redraft count are bounded operator settings, so one proposal can
+      only trigger a small, predictable number of calls (M5.3 spec).
 
   CS1200:
     emitted_by: schema

@@ -33,6 +33,8 @@ def queue(request: HttpRequest) -> list[QueuedDraftOut]:
                     label=label(k.key),
                     verdict=k.verdict,
                     answered=k.answered,
+                    score=None if k.score is None else int(k.score["overall"]),
+                    score_agreement=k.score_agreement,
                 )
                 for k in queued.keys
             ],

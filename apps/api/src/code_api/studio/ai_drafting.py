@@ -12,6 +12,17 @@ from django.utils import timezone
 from code_api.accounts.models import User
 from code_api.accounts.roles import Role
 from code_api.ai import gateway
+from code_api.ai.evaluation import (
+    RUBRICS,
+    EvaluationAnswer,
+)
+from code_api.ai.evaluation import (
+    checked as checked_score,
+)
+from code_api.ai.evaluation import (
+    messages as evaluation_messages,
+)
+from code_api.ai.models import AICall, SiteSetting
 from code_api.ai.resolve import Refused
 from code_api.ai.resolve import resolve as route_for
 from code_api.content.models import Resource as IndexedResource
@@ -21,13 +32,14 @@ from code_api.studio.ai_edits import add_candidate, apply_candidate, checked, fi
 from code_api.studio.ai_replay import Replay, replay, resolve
 from code_api.studio.ai_schemas import CreateProposalIn, DraftAnswer, DraftingError
 from code_api.studio.edit_inputs import ResourceIn
-from code_api.studio.models import Draft, DraftProposal, Revision
+from code_api.studio.models import Draft, DraftProposal, DraftScore, Revision
 from code_schema import Node
 from code_schema.edits import EditError
 from code_schema.provenance import attach, digest
 
 SITES = {"block": "page-drafting", "resource": "resource-suggestion", "figure": "figure-data"}
 PROMPTS = {"block": "draft-block@1", "resource": "suggest-resource@1", "figure": "draft-figure@1"}
+EVALUATION_PROMPT = "block-evaluation@1"
 
 
 def text_digest(text: str) -> str:
@@ -275,6 +287,100 @@ def _fail(proposal: DraftProposal, error: DraftingError, *, state: str = "refuse
     )
 
 
+def _evaluate(
+    proposal: DraftProposal, node: Node, candidate: dict[str, Any], *, by: User
+) -> tuple[dict[str, Any] | None, int | None, str]:
+    rubric = RUBRICS[proposal.kind]
+    public_sources = [
+        {key: source[key] for key in ("title", "url", "licence") if source.get(key)}
+        for source in proposal.sources
+        if source.get("public")
+    ]
+    if proposal.kind == "resource" and candidate.get("candidate_id"):
+        found = next(
+            (item for item in proposal.candidates if item["id"] == candidate["candidate_id"]), None
+        )
+        if found is None:
+            return None, None, "The selected resource is not in this proposal."
+        candidate = {key: value for key, value in found.items() if key != "id"}
+        public_sources.append(
+            {key: candidate[key] for key in ("title", "url", "licence") if candidate.get(key)}
+        )
+    messages = evaluation_messages(
+        rubric=rubric,
+        title=node.title,
+        claim=node.claim,
+        level=node.level.value,
+        candidate=candidate,
+        public_sources=public_sources,
+    )
+    reply = gateway.call(
+        "block-evaluation",
+        messages,
+        by=by,
+        prompt_id=EVALUATION_PROMPT,
+        reply=EvaluationAnswer,
+        draft=proposal.draft.public_id,
+    )
+    if isinstance(reply, Refused):
+        return None, reply.call_id, reply.sentence
+    assert isinstance(reply.value, EvaluationAnswer)
+    try:
+        return checked_score(reply.value, rubric), reply.call_id, ""
+    except ValueError as error:
+        return None, reply.call_id, str(error)
+
+
+def _draft_again(
+    proposal: DraftProposal, *, by: User, critique: str
+) -> tuple[DraftAnswer | None, int | None, str]:
+    import json
+
+    messages = [dict(message) for message in proposal.context["messages"]]
+    user_message = json.loads(messages[-1]["content"])
+    user_message["judge_feedback"] = critique
+    messages[-1]["content"] = json.dumps(user_message, ensure_ascii=False, allow_nan=False)
+    reply = gateway.call(
+        SITES[proposal.kind],
+        messages,
+        by=by,
+        prompt_id=proposal.prompt_id,
+        reply=DraftAnswer,
+        draft=proposal.draft.public_id,
+    )
+    if isinstance(reply, Refused):
+        return None, reply.call_id, reply.sentence
+    assert isinstance(reply.value, DraftAnswer)
+    return reply.value, reply.call_id, ""
+
+
+def _save_score(proposal: DraftProposal, revision: Revision, target: str) -> None:
+    final = next(
+        (attempt for attempt in reversed(proposal.evaluations) if attempt.get("score")), None
+    )
+    if final is None:
+        return
+    call_id = final.get("judge_call_id")
+    call = AICall.objects.filter(pk=call_id).first()
+    if call is None:
+        return
+    DraftScore.objects.update_or_create(
+        proposal=proposal,
+        defaults={
+            "draft": proposal.draft,
+            "revision": revision,
+            "call": call,
+            "target": target,
+            "content_digest": digest(final["score_value"]),
+            "rubric_version": final["score"]["version"],
+            "overall": final["score"]["overall"],
+            "parts": final["score"]["parts"],
+            "judge_model": call.model,
+            "judge_settings": call.call_settings,
+        },
+    )
+
+
 def run(identity: str) -> None:
     with transaction.atomic():
         proposal = DraftProposal.objects.select_for_update().filter(public_id=identity).first()
@@ -295,8 +401,10 @@ def run(identity: str) -> None:
             _fail(proposal, DraftingError(route.code, route.sentence))
             return
         proposal.state, proposal.started_at = "running", timezone.now()
+        setting = SiteSetting.objects.filter(site="block-evaluation").first()
+        rounds = 1 if setting is None else setting.max_redrafts
         proposal.deadline_at = proposal.started_at + timedelta(
-            seconds=(route.timeout or gateway.DEFAULT_TIMEOUT) + 60
+            seconds=(route.timeout or gateway.DEFAULT_TIMEOUT) * (2 * rounds + 2) + 60
         )
         proposal.save(update_fields=["state", "started_at", "deadline_at"])
     try:
@@ -316,22 +424,91 @@ def run(identity: str) -> None:
             return
         assert isinstance(reply.value, DraftAnswer)
         proposal.call_id = reply.call_id
-        proposal.raw = reply.value.model_dump()
         allowed = {s["id"] for s in proposal.sources}
-        if not set(reply.value.source_ids) <= allowed:
-            raise DraftingError("CA0501", "The reply cited a source outside this request.")
-        value = reply.value.value
-        if proposal.kind == "figure":
-            figure_text(value, proposal.context["current"]["component"])
-            source = value.get("source")
-            if (
-                source
-                and source != proposal.context["current"].get("source")
-                and source.get("url") not in {s["url"] for s in proposal.sources if s.get("public")}
-            ):
-                raise DraftingError("CA0501", "The figure cited an unseen source.")
-        else:
-            validate(proposal.draft, proposal.base_revision, _candidate_node(proposal, node, value))
+        attempts: list[dict[str, Any]] = []
+        setting = SiteSetting.objects.filter(site="block-evaluation").first()
+        minimum = 3 if setting is None else setting.minimum_score
+        max_redrafts = 1 if setting is None else setting.max_redrafts
+        current_answer = reply.value
+        current_call_id = reply.call_id
+        stop_detail = ""
+        for attempt_number in range(max_redrafts + 1):
+            if not set(current_answer.source_ids) <= allowed:
+                raise DraftingError("CA0501", "The reply cited a source outside this request.")
+            value = current_answer.value
+            score_value = value
+            if proposal.kind == "figure":
+                figure_text(value, proposal.context["current"]["component"])
+                source = value.get("source")
+                if (
+                    source
+                    and source != proposal.context["current"].get("source")
+                    and source.get("url")
+                    not in {s["url"] for s in proposal.sources if s.get("public")}
+                ):
+                    raise DraftingError("CA0501", "The figure cited an unseen source.")
+                if proposal.target != "figure/new":
+                    score_value = payload(_candidate_node(proposal, node, value), proposal.target)
+            else:
+                candidate_node = _candidate_node(proposal, node, value)
+                validate(proposal.draft, proposal.base_revision, candidate_node)
+                if proposal.kind == "resource":
+                    resource = next(
+                        (
+                            item
+                            for item in proposal.candidates
+                            if item["id"] == value["candidate_id"]
+                        ),
+                        None,
+                    )
+                    score_value = (
+                        {}
+                        if resource is None
+                        else {key: field for key, field in resource.items() if key != "id"}
+                    )
+                else:
+                    score_value = payload(candidate_node, proposal.target)
+            score, judge_call_id, judge_detail = _evaluate(
+                proposal, node, score_value, by=proposal.requested_by
+            )
+            attempt_record: dict[str, Any] = {
+                "number": attempt_number + 1,
+                "candidate": value,
+                "score_value": score_value,
+                "draft_call_id": current_call_id,
+                "judge_call_id": judge_call_id,
+                "score": score,
+                "detail": judge_detail,
+            }
+            if score is not None and judge_call_id is not None:
+                judge_call = AICall.objects.get(pk=judge_call_id)
+                attempt_record["judge_model"] = judge_call.model
+                attempt_record["judge_settings"] = judge_call.call_settings
+            attempts.append(attempt_record)
+            proposal.call_id = current_call_id
+            proposal.raw = current_answer.model_dump()
+            if score is None:
+                stop_detail = "The draft is ready, but judging stopped: " + judge_detail
+                break
+            if score["overall"] >= minimum or attempt_number >= max_redrafts:
+                break
+            critique = "\n".join(
+                f"{name} ({part['score']}/5): {part['reason']}"
+                for name, part in score["parts"].items()
+            )
+            next_reply, call_id, detail = _draft_again(
+                proposal,
+                by=proposal.requested_by,
+                critique=(
+                    f"Overall score {score['overall']}/5; improve these rubric parts:\n{critique}"
+                ),
+            )
+            if next_reply is None:
+                stop_detail = "The last valid draft is ready; redrafting stopped: " + detail
+                break
+            assert call_id is not None
+            current_answer, current_call_id = next_reply, call_id
+        proposal.evaluations = attempts
         merged = replayed(proposal, node, value)
         if not merged.conflicts and proposal.kind != "figure":
             validate(
@@ -346,14 +523,24 @@ def run(identity: str) -> None:
                     held.call_id = reply.call_id
                     held.save(update_fields=["call"])
                 return
-            held.call_id, held.raw = reply.call_id, proposal.raw
+            held.call_id, held.raw = proposal.call_id, proposal.raw
+            held.evaluations = attempts
             held.candidate, held.conflicts, held.state = merged.value, merged.conflicts, "ready"
             held.code = merged.conflicts[0].get("code", "CA0503") if merged.conflicts else ""
             held.detail = (
-                "Resolve the human-edit conflicts before applying." if merged.conflicts else ""
-            )
+                "Resolve the human-edit conflicts before applying. " if merged.conflicts else ""
+            ) + stop_detail
             held.save(
-                update_fields=["call", "raw", "candidate", "conflicts", "state", "code", "detail"]
+                update_fields=[
+                    "call",
+                    "raw",
+                    "candidate",
+                    "conflicts",
+                    "state",
+                    "code",
+                    "detail",
+                    "evaluations",
+                ]
             )
     except DraftingError as error:
         if proposal.call_id:
@@ -417,6 +604,8 @@ def accept(
                 "CA0507", "Use the composer and Save to the page to apply figure data."
             )
         value = chosen(held, resolutions)
+        node = _node(draft, current)
+        score_target = f"resource/{len(node.resources)}" if held.kind == "resource" else held.target
 
         def edit(node: Node) -> Node:
             changed = _candidate_node(held, node, value)
@@ -428,6 +617,23 @@ def accept(
         )
         held.state, held.accepted_revision, held.applied_by = "accepted", saved.revision, by
         held.save(update_fields=["state", "accepted_revision", "applied_by"])
+        final = next(
+            (attempt for attempt in reversed(held.evaluations) if attempt.get("score")), None
+        )
+        if final is not None:
+            score_value = final["score_value"]
+            if held.kind == "resource":
+                selected = next(
+                    (item for item in held.candidates if item["id"] == value.get("candidate_id")),
+                    None,
+                )
+                score_matches = selected is not None and digest(
+                    {key: field for key, field in selected.items() if key != "id"}
+                ) == digest(score_value)
+            else:
+                score_matches = digest(value) == digest(score_value)
+            if score_matches:
+                _save_score(held, saved.revision, score_target)
         return saved.revision
 
 
@@ -495,8 +701,10 @@ def save_figure(
             raise DraftingError("CA0507", "The new figure's placement changed.")
         value = chosen(held, association.get("resolutions", {}))
         figure_text(value, held.context["current"]["component"])
+        score_target = target
 
         def with_receipt(node: Node) -> Node:
+            nonlocal score_target
             changed = edit(node)
             if target == "figure/new":
                 old = {f.stem for f in node.figures}
@@ -507,6 +715,7 @@ def save_figure(
             else:
                 key = target
             actual = payload(changed, key)
+            score_target = key
             if actual.get("component") != held.context["current"]["component"]:
                 raise DraftingError("CA0507", "The chosen figure component changed.")
             return attach(changed, key, str(held.public_id), public_receipt(held))
@@ -514,4 +723,9 @@ def save_figure(
         saved = drafts.save(locked, based_on=based_on, by=by, edit=with_receipt, change=change)
         held.state, held.accepted_revision, held.applied_by = "accepted", saved.revision, by
         held.save(update_fields=["state", "accepted_revision", "applied_by"])
+        final = next(
+            (attempt for attempt in reversed(held.evaluations) if attempt.get("score")), None
+        )
+        if final is not None and digest(value) == digest(final["score_value"]):
+            _save_score(held, saved.revision, score_target)
         return saved
