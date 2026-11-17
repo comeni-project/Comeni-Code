@@ -1780,6 +1780,40 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** A hint leaves work for the learner (T6.2); the sample's answer in a hint gives it away.
 
+### CS1200–CS1299 · provenance
+
+#### CS1200 — invalid provenance JSON
+
+*Refuses.*
+
+**Fix.** Use JSON without duplicate keys or non-finite numbers.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1201 — invalid public provenance format
+
+*Refuses.*
+
+**Fix.** Use version 1 and only the public receipt fields; keep private draft evidence in Studio.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1202 — provenance does not match its content
+
+*Refuses.*
+
+**Fix.** Update the receipt binding with the content edit, or remove the stale origin.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
+#### CS1203 — invalid receipt or source reference
+
+*Refuses.*
+
+**Fix.** Reference an existing receipt UUID and a valid source hash.
+
+**Why.** Public provenance is validated and bound to its content; it must not invent authorship (M5D.5).
+
 ## CW — code-weaver: routes and search
 
 ### CW0001–CW0099 · routes
@@ -2349,3 +2383,143 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Tick the draft the message names, or land this one after it is approved or after its landing merges.
 
 **Why.** A new node a batch links to must land with it, or the content repository's check refuses the pull request; Studio says which draft to add and never adds it for you (M6.1 spec, M6LD.3).
+
+### CA0400–CA0499 · ai
+
+#### CA0400 — no model for this call site
+
+*Refuses.*
+
+**Fix.** Add a connection on the AI page, or choose a model for the site; with none, Code calls no model and every page still works.
+
+**Why.** A call site resolves to a model through its setting or the default (M5.1 spec, M5G.3). With no connection, or one that was removed, there is none.
+
+#### CA0401 — a model not in provider/model form
+
+*Refuses.*
+
+**Fix.** Write the model as provider/model, as LiteLLM names it, such as openai/gpt-6.1 or ollama_chat/qwen2.5:7b.
+
+**Why.** A hosted provider lists no models, so its model is typed; LiteLLM routes by the provider before the slash (M5G.3).
+
+#### CA0402 — a key without CODE_SETTINGS_KEY
+
+*Refuses.*
+
+**Fix.** Set CODE_SETTINGS_KEY in .env (a Fernet key), restart, and add the key again; or set the key in .env directly.
+
+**Why.** Keys are kept encrypted with CODE_SETTINGS_KEY (M5G.3); without it Code cannot keep one.
+
+#### CA0403 — no ChatGPT sign-in
+
+*Refuses.*
+
+**Fix.** Sign in with ChatGPT on the AI page, and approve the code within 15 minutes.
+
+**Why.** A ChatGPT plan answers only with a token: none was made, the code was not approved in time, or its refresh failed (M5G.4). Code refuses rather than let LiteLLM sign in inside a call.
+
+#### CA0404 — a call site reached its cap
+
+*Refuses.*
+
+**Fix.** Wait for tomorrow (UTC), or raise the site's cap on the AI page.
+
+**Why.** Each call site has a cap in calls a day, counted from the call record (M5G.5).
+
+#### CA0405 — the provider refused the call
+
+*Refuses.*
+
+**Fix.** Read the provider's words; check the connection with Test.
+
+**Why.** The provider answered with an error: a bad key, a model it does not serve, a limit, or it could not be reached (M5G.1).
+
+#### CA0406 — a reply not in the shape asked for
+
+*Refuses.*
+
+**Fix.** Try again; if it repeats, the site's prompt or model needs a look.
+
+**Why.** A caller can ask for a reply of a given shape; a reply that does not fit is refused, never repaired (M5G.1).
+
+#### CA0407 — a setting locked by .env
+
+*Refuses.*
+
+**Fix.** Change it in .env and restart, or remove it there to set it on the AI page.
+
+**Why.** .env's model, key and endpoint win over the page (M5G.3), as in Labs: a lock, not a seed.
+
+### CA0500–CA0599 · drafting
+
+#### CA0500 — unsupported drafting target or operation
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0501 — invalid drafting source or candidate reference
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0502 — invalid proposed content
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0503 — unresolved human-edit conflicts
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0504 — missing or ambiguous AI baseline
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0505 — drafting interrupted
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0506 — figure working copy changed
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0507 — invalid proposal transition
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).
+
+#### CA0508 — prompt version unavailable
+
+*Refuses.*
+
+**Fix.** Read the drafting panel, resolve the indicated problem, and ask again or keep editing by hand.
+
+**Why.** AI proposes an exact-revision validated edit; a failure never replaces human work (M5D.1–M5D.6).

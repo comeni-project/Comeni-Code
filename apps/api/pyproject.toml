@@ -19,6 +19,9 @@ dependencies = [
     "django-allauth[headless,socialaccount]>=65.19,<65.20",
     "pyjwt[crypto]>=2.15,<3",
     "requests>=2.34,<3",
+    # Models, through code_api.ai only (M5.1 spec, M5G.1). Pinned exactly: the ChatGPT sign-in
+    # drives private methods a release may change (M5G.4).
+    "litellm==1.105.1",
 ]
 
 # The node format and the weaver, from this workspace: the index reads content as CI does, and

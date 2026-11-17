@@ -38,6 +38,13 @@ export const STUDIO_PAGES: readonly StudioPage[] = [
     place: "top",
   },
   {
+    path: "/studio/ai",
+    label: "AI",
+    icon: "M2.5 13.5a5.5 5.5 0 0 1 11 0M8 13.5l3-4",
+    minRole: "operator",
+    place: "foot",
+  },
+  {
     path: "/studio/team",
     label: "Team",
     icon: "M6 7a2.3 2.3 0 1 0 0-.01M1.8 13.5c.6-2.3 2.2-3.5 4.2-3.5s3.6 1.2 4.2 3.5M11 6.5a2 2 0 1 0 0-.01M11.5 9.8c1.4.2 2.4 1.3 2.8 3.2",

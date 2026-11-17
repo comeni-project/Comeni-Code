@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from code_api.config.env import Env, database_from_url
+from code_api.config.env import Env, database_from_url, export_for_libraries
 from code_api.config.landing import GitHubApp, github_app
 
 KEY = "k" * 50
@@ -38,6 +38,11 @@ def _clean_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "GITHUB_APP_PRIVATE_KEY",
         "CONTENT_REPOSITORY",
         "GITHUB_API_URL",
+        "AI_MODEL",
+        "AI_API_KEY",
+        "AI_BASE_URL",
+        "SETTINGS_KEY",
+        "AI_CHATGPT_DIR",
     ):
         monkeypatch.delenv(f"CODE_{name}", raising=False)
 
@@ -227,3 +232,43 @@ def test_half_an_app_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_a_repository_is_owner_slash_name(monkeypatch: pytest.MonkeyPatch) -> None:
     with pytest.raises(ValidationError, match="owner/name"):
         make_env(monkeypatch, **BASE, content_repository="comeni-code-content")
+
+
+def test_the_ai_settings_read_and_empty_is_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    """M5.1 spec, M5G.3: CODE_AI_* and CODE_SETTINGS_KEY; an empty variable is unset."""
+    base = {"secret_key": KEY, "database_url": URL, "redis_url": REDIS}
+    env = make_env(monkeypatch, **base)
+    assert (env.ai_model, env.ai_api_key, env.ai_base_url) == (None, None, None)
+    assert (env.settings_key, env.ai_chatgpt_dir) == (None, None)
+    env = make_env(
+        monkeypatch,
+        **base,
+        ai_model="ollama_chat/qwen2.5:7b",
+        ai_api_key="",
+        ai_base_url="http://ollama:11434",
+        settings_key="",
+        ai_chatgpt_dir="/var/lib/code/chatgpt",
+    )
+    assert env.ai_model == "ollama_chat/qwen2.5:7b"
+    assert env.ai_api_key is None and env.settings_key is None
+    assert env.ai_base_url == "http://ollama:11434"
+    assert env.ai_chatgpt_dir == Path("/var/lib/code/chatgpt")
+
+
+def test_the_chatgpt_folder_is_handed_to_litellm(monkeypatch: pytest.MonkeyPatch) -> None:
+    """M5G.4: LiteLLM reads CHATGPT_TOKEN_DIR; Code sets it from CODE_AI_CHATGPT_DIR, once."""
+    base = {"secret_key": KEY, "database_url": URL, "redis_url": REDIS}
+    monkeypatch.delenv("CHATGPT_TOKEN_DIR", raising=False)
+    import os
+
+    export_for_libraries(make_env(monkeypatch, **base))
+    assert "CHATGPT_TOKEN_DIR" not in os.environ
+    export_for_libraries(make_env(monkeypatch, **base, ai_chatgpt_dir="/tmp/chatgpt"))
+    assert os.environ["CHATGPT_TOKEN_DIR"] == "/tmp/chatgpt"
+
+
+def test_the_settings_key_is_a_fernet_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """#454: a malformed key would fail every call site's resolve, so it fails at start."""
+    base = {"secret_key": KEY, "database_url": URL, "redis_url": REDIS}
+    with pytest.raises(ValidationError, match="Fernet"):
+        make_env(monkeypatch, **base, settings_key="not-a-key")

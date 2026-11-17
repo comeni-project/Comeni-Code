@@ -8,6 +8,7 @@ import uuid
 from typing import ClassVar
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -78,6 +79,8 @@ class Revision(models.Model):
     )
     saved_at = models.DateTimeField(default=timezone.now)
     change = models.TextField()
+    origins = models.JSONField(default=dict, blank=True)
+    provenance = models.JSONField(null=True, blank=True)
 
     class Meta:
         constraints: ClassVar = [
@@ -86,6 +89,57 @@ class Revision(models.Model):
 
     def __str__(self) -> str:
         return f"{self.draft.node_id} r{self.number}"
+
+
+class DraftProposal(models.Model):
+    """Private drafting evidence; applying an answer is a separate, revision-bound action."""
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    request_id = models.UUIDField(default=uuid.uuid4)
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="proposals")
+    base_revision = models.ForeignKey(Revision, on_delete=models.PROTECT, related_name="proposals")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    applied_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    kind = models.CharField(max_length=16, default="block")
+    target = models.TextField(blank=True)
+    instruction = models.TextField(blank=True)
+    sources = models.JSONField(default=list)
+    candidates = models.JSONField(default=list)
+    context = models.JSONField(default=dict)
+    prompt_id = models.TextField(blank=True)
+    state = models.CharField(max_length=16, default="queued")
+    call = models.ForeignKey(
+        "ai.AICall", null=True, on_delete=models.PROTECT, related_name="proposals"
+    )
+    raw = models.JSONField(null=True)
+    candidate = models.JSONField(null=True)
+    conflicts = models.JSONField(default=list)
+    findings = models.JSONField(default=list)
+    code = models.TextField(blank=True)
+    detail = models.TextField(blank=True)
+    copy_digest = models.TextField(blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True)
+    deadline_at = models.DateTimeField(null=True)
+    accepted_revision = models.ForeignKey(
+        Revision, null=True, on_delete=models.PROTECT, related_name="accepted_proposals"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["draft", "request_id"], name="studio_proposal_request_once"
+            )
+        ]
+
+    def clean(self) -> None:
+        for revision in (self.base_revision, self.accepted_revision):
+            if revision is not None and revision.draft_id != self.draft_id:
+                raise ValidationError("A proposal's revisions belong to its own draft.")
 
 
 class Review(models.Model):

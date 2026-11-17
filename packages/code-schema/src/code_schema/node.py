@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Collection, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
+from typing import Any
 
 from code_schema.blocks import Block, Callout, Image, ProblemBlock, Try, parse_blocks
 from code_schema.exam import EXAM_FILE, ExamQuestion, parse_exam
@@ -39,6 +40,7 @@ from code_schema.levels import Level as Level
 from code_schema.links import LINK_FIELDS, Link, parse_links
 from code_schema.problem_file import PROBLEM_FILE, ProblemFile, read_problem
 from code_schema.problems import Problem
+from code_schema.provenance import PROVENANCE_FILE, read_provenance
 from code_schema.providers import Provider
 from code_schema.questions import TRY_FIELD, TryQuestion, parse_questions
 from code_schema.resources import RESOURCE_FIELD, Resource, parse_resources
@@ -69,6 +71,9 @@ class Node:
     images: tuple[ImageRecord, ...] = ()  # each file in images/ and its credit (M6IM.1)
     figures: tuple[FigureFile, ...] = ()  # each file in figures/, read (M6FG.1)
     problem: ProblemFile | None = None  # problem.yaml, placed by one :::{problem} (M6PR.3)
+
+    provenance: dict[str, Any] | None = None
+    origin_mapped: bool = field(default=False, compare=False, repr=False)
 
     @property
     def blocks(self) -> tuple[Block, ...]:
@@ -399,6 +404,13 @@ def read_node(
         if figure_folder.is_dir()
         else {}
     )
+    provenance_text: str | None = None
+    if (folder / PROVENANCE_FILE).is_file():
+        provenance_text, provenance_error = _read_text(folder / PROVENANCE_FILE)
+        if provenance_error is not None:
+            near_misses.append(
+                Problem(file=f"{where}{PROVENANCE_FILE}", code="CS0022", message=provenance_error)
+            )
     node, problems = parse_node_files(
         node_yaml,
         body,
@@ -409,6 +421,7 @@ def read_node(
         where=where,
         images=images,
         figures=figures,
+        provenance_json=provenance_text,
         problem_yaml=problem_text,
     )
     if not near_misses:
@@ -431,6 +444,7 @@ def parse_node_files(
     images: Mapping[str, bytes] | None = None,
     figures: Mapping[str, str] | None = None,
     problem_yaml: str | None = None,
+    provenance_json: str | None = None,
 ) -> tuple[Node | None, list[Problem]]:
     """A node from its three texts, as a folder holds them (M4.4 spec, M4W.3). Never raises.
 
@@ -483,7 +497,10 @@ def parse_node_files(
     if node is None or any(problem.refuses for problem in problems):
         return None, problems
     # Only warnings, if anything: the node is kept, and its warnings go with it (spec M4E.4).
-    return replace(node, exam=exam, figures=read, problem=problem), problems
+    complete = replace(node, exam=exam, figures=read, problem=problem)
+    provenance, found = read_provenance(provenance_json, complete, file=f"{where}{PROVENANCE_FILE}")
+    problems += found
+    return (None if found else replace(complete, provenance=provenance)), problems
 
 
 def _problem(

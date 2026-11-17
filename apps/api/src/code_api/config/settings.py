@@ -4,11 +4,19 @@ M0 part 2 spec, P2.3.
 """
 
 from code_api.config.auth import caches, mailers, social_providers
-from code_api.config.env import Env, database_from_url
+from code_api.config.env import Env, database_from_url, export_for_libraries
 from code_api.config.landing import github_app
 from code_api.health.heartbeat import HEARTBEAT_INTERVAL_SECONDS
 
 ENV = Env()
+export_for_libraries(ENV)
+
+# AI (M5.1 spec, M5G.3): `.env`'s locked connection, and the key that seals the page's keys.
+CODE_AI_MODEL = ENV.ai_model
+CODE_AI_API_KEY = None if ENV.ai_api_key is None else ENV.ai_api_key.get_secret_value()
+CODE_AI_BASE_URL = ENV.ai_base_url
+CODE_SETTINGS_KEY = None if ENV.settings_key is None else ENV.settings_key.get_secret_value()
+CODE_AI_CHATGPT_DIR = ENV.ai_chatgpt_dir
 
 SECRET_KEY = ENV.secret_key.get_secret_value()
 DEBUG = ENV.debug
@@ -31,6 +39,7 @@ INSTALLED_APPS = [
     "code_api.accounts",
     "code_api.content",
     "code_api.studio",
+    "code_api.ai",
 ]
 
 MIDDLEWARE = [
@@ -154,6 +163,10 @@ WATCH_LANDINGS_SECONDS = 120
 # Seconds between looks at the content repository's main (M4F.4).
 FOLLOW_SECONDS = 300
 CELERY_BEAT_SCHEDULE = {
+    "studio-expire-ai-proposals": {
+        "task": "code_api.studio.tasks.expire_ai_proposals",
+        "schedule": 60,
+    },
     "health-heartbeat": {
         "task": "code_api.health.tasks.heartbeat",
         "schedule": HEARTBEAT_INTERVAL_SECONDS,

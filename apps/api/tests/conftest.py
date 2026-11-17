@@ -33,6 +33,19 @@ def _landing_off(settings: Any) -> None:
     settings.CODE_GITHUB_APP = None
 
 
+@pytest.fixture(autouse=True)
+def _no_model_calls(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test reaches a model (M5G.1, #460): LiteLLM's completion fails the test, which a fake
+    transport or a test's own completion replaces. pytest.fail is not an Exception, so the
+    gateway cannot turn it into a refusal."""
+    import litellm
+
+    def reached(**asked: Any) -> Any:
+        pytest.fail(f"a test reached the network through the gateway: {asked.get('model')}")
+
+    monkeypatch.setattr(litellm, "completion", reached)
+
+
 # ── Review (M4.5): three members and a draft ready to submit ─────────────────────────────────────
 
 

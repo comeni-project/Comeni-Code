@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useReview, useReviewQueue } from "../../api/queries";
 import type { QueuedDraftOut } from "../../api/schema";
 import { ErrorNotice } from "../../layout/ErrorNotice";
+import { Origin } from "../drafting/Origin";
 import { BlockPanel } from "./BlockPanel";
 import { BulkBar } from "./BulkBar";
 import { inView, type Opened, QueueList, VIEWS, type View } from "./QueueList";
@@ -143,6 +144,12 @@ function OpenedBlock({ queue, open }: { queue: QueuedDraftOut[]; open: Opened | 
     <>
       {/* Keyed by block, so nothing typed or picked for one carries to the next (#296); each
           panel's key its own, as siblings' must be (#373). */}
+      <Origin
+        draftId={open.draft}
+        provenance={review.data?.provenance}
+        target={open.key}
+        reviewed={item.verdict === "approved"}
+      />
       <BlockPanel key={`block:${open.draft}:${open.key}`} draft={draft} item={item} />
       <VerdictPanel key={`verdict:${open.draft}:${open.key}`} draft={draft} item={item} />
     </>

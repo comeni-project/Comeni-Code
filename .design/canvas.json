@@ -376,10 +376,37 @@
       "page": "studio"
     },
     {
+      "file": "AISettings.dc.html",
+      "title": "S17 · AI, M5.1 — connections and the call sites",
+      "x": 0,
+      "y": 10440,
+      "w": 1440,
+      "h": 1240,
+      "page": "studio"
+    },
+    {
+      "file": "AISignIn.dc.html",
+      "title": "S17 · AI, M5.1 — Sign in with ChatGPT",
+      "x": 1560,
+      "y": 10440,
+      "w": 1440,
+      "h": 1000,
+      "page": "studio"
+    },
+    {
+      "file": "AIUsageM5.dc.html",
+      "title": "S16 · AI, M5.1 — usage from recorded calls",
+      "x": 3120,
+      "y": 10440,
+      "w": 1440,
+      "h": 1040,
+      "page": "studio"
+    },
+    {
       "file": "Drafts.dc.html",
       "title": "S19 · Drafts — your open drafts, and a new node",
       "x": 0,
-      "y": 10440,
+      "y": 12040,
       "w": 1680,
       "h": 1000,
       "page": "studio"
@@ -388,7 +415,7 @@
       "file": "WorkbenchSettings.dc.html",
       "title": "S3 · Workbench — Settings",
       "x": 1800,
-      "y": 10440,
+      "y": 12040,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -397,7 +424,7 @@
       "file": "WorkbenchLinks.dc.html",
       "title": "S3 · Workbench — Links",
       "x": 3600,
-      "y": 10440,
+      "y": 12040,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -406,7 +433,7 @@
       "file": "WorkbenchResources.dc.html",
       "title": "S3 · Workbench — Resources",
       "x": 0,
-      "y": 11860,
+      "y": 13460,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -415,7 +442,7 @@
       "file": "WorkbenchFigure.dc.html",
       "title": "S3 · Workbench — a figure block (M6.4)",
       "x": 1800,
-      "y": 11860,
+      "y": 13460,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -424,7 +451,7 @@
       "file": "WorkbenchProblem.dc.html",
       "title": "S5 · Workbench — Problem, M6.8: the problem builder",
       "x": 3600,
-      "y": 11860,
+      "y": 13460,
       "w": 1680,
       "h": 1860,
       "page": "studio"
@@ -433,7 +460,7 @@
       "file": "WorkbenchProblemNew.dc.html",
       "title": "S5 · Workbench — Problem, M6.8: a node with none",
       "x": 0,
-      "y": 14080,
+      "y": 15680,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -442,7 +469,7 @@
       "file": "ReviewProblem.dc.html",
       "title": "S6 · Review, M6.8b — a problem key",
       "x": 1800,
-      "y": 14080,
+      "y": 15680,
       "w": 1680,
       "h": 1000,
       "page": "studio"
@@ -451,7 +478,7 @@
       "file": "WorkbenchExamFigure.dc.html",
       "title": "S3 · Workbench — Exam pool, M6.6b: a figure answer and figure options",
       "x": 3600,
-      "y": 14080,
+      "y": 15680,
       "w": 1680,
       "h": 1060,
       "page": "studio"
@@ -460,9 +487,54 @@
       "file": "Team.dc.html",
       "title": "S14 · Team — members, roles and invites",
       "x": 0,
-      "y": 15500,
+      "y": 17100,
       "w": 1680,
       "h": 1060,
+      "page": "studio"
+    },
+    {
+      "file": "DraftBlockAI.dc.html",
+      "title": "S3 · M5.2 — compare an AI redraft",
+      "x": 1800,
+      "y": 17100,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftBlockAIConflict.dc.html",
+      "title": "S3 · M5.2 — human correction conflicts",
+      "x": 3600,
+      "y": 17100,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftResourceAI.dc.html",
+      "title": "S3 · M5.2 — a suggested resource",
+      "x": 0,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftFigureAI.dc.html",
+      "title": "S4 · M5.2 — Ask for a figure change",
+      "x": 1800,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
+      "page": "studio"
+    },
+    {
+      "file": "DraftBlockAIDark.dc.html",
+      "title": "S3 · M5.2 — compare, dark",
+      "x": 3600,
+      "y": 18560,
+      "w": 1680,
+      "h": 1100,
       "page": "studio"
     },
     {
@@ -824,9 +896,33 @@
       "page": "studio"
     },
     {
-      "id": "note-drafts",
+      "id": "note-aisettings",
       "x": 0,
       "y": 10190,
+      "w": 620,
+      "text": "M5.1: as Labs’ Settings → Models, rebuilt for Code. Connections (ChatGPT plan, self-hosted, a hosted provider, From .env locked), each with Test; a model per declared call site, same as default or its own, with a fallback, a cap and call settings. The judge may be the default model, as a fresh call (#451). No connection, no model call.",
+      "page": "studio"
+    },
+    {
+      "id": "note-aisignin",
+      "x": 1560,
+      "y": 10190,
+      "w": 620,
+      "text": "M5.1: the ChatGPT plan connection, signed in from the page by LiteLLM’s device-code flow: start, waiting with the link and code, signed in and tested, and run out.",
+      "page": "studio"
+    },
+    {
+      "id": "note-aiusagem5",
+      "x": 3120,
+      "y": 10190,
+      "w": 620,
+      "text": "M5.1: totals by call site and person, cost only where a key is billed (a plan counts calls), and the recent calls, a drafted block linking back to its call.",
+      "page": "studio"
+    },
+    {
+      "id": "note-drafts",
+      "x": 0,
+      "y": 11790,
       "w": 620,
       "text": "Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.",
       "page": "studio"
@@ -834,7 +930,7 @@
     {
       "id": "note-workbenchsettings",
       "x": 1800,
-      "y": 10190,
+      "y": 11790,
       "w": 620,
       "text": "M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.",
       "page": "studio"
@@ -842,7 +938,7 @@
     {
       "id": "note-workbenchlinks",
       "x": 3600,
-      "y": 10190,
+      "y": 11790,
       "w": 620,
       "text": "M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.",
       "page": "studio"
@@ -850,7 +946,7 @@
     {
       "id": "note-workbenchresources",
       "x": 0,
-      "y": 11610,
+      "y": 13210,
       "w": 620,
       "text": "M4.8b: one card per resource; an open card edits every field ResourceIn has, and saves the list when you leave it.",
       "page": "studio"
@@ -858,7 +954,7 @@
     {
       "id": "note-workbenchfigure",
       "x": 1800,
-      "y": 11610,
+      "y": 13210,
       "w": 620,
       "text": "M6.4: a figure block open in Content. Component and file, caption, and the figure’s file itself, saved when you leave it; checks name the code and the path (a chart that links out is refused). Superseded in M6.5: a figure block’s Edit now opens the figure composer (S4), and this editor is gone.",
       "page": "studio"
@@ -866,7 +962,7 @@
     {
       "id": "note-workbenchproblem",
       "x": 3600,
-      "y": 11610,
+      "y": 13210,
       "w": 620,
       "text": "M6.8: the node’s problem.yaml as a form: the words, the kit and its params (fields from the kit’s schema), the sample, hints, the kit’s mistakes each pointed at a misconception callout or left to the checker, and the rationale. Edit as YAML opens the file itself. Save sends the whole file; the server runs the 20-seed self-test and refuses it with the problems shown in Checks.",
       "page": "studio"
@@ -874,7 +970,7 @@
     {
       "id": "note-workbenchproblemnew",
       "x": 0,
-      "y": 13830,
+      "y": 15430,
       "w": 620,
       "text": "M6.8: a node without a problem. Each kit is shown with its sample; starting from one writes a first file from the kit’s example params and adds the block at the body’s end.",
       "page": "studio"
@@ -882,7 +978,7 @@
     {
       "id": "note-reviewproblem",
       "x": 1800,
-      "y": 13830,
+      "y": 15430,
       "w": 620,
       "text": "M6.8b: the problem key drawn as the learner page draws it, with no Download or answer, then what only a reviewer judges: the rationale, which mistakes name which callout, the kit and its params, the self-test, and the file itself. Changes shows the file before and after.",
       "page": "studio"
@@ -890,7 +986,7 @@
     {
       "id": "note-workbenchexamfigure",
       "x": 3600,
-      "y": 13830,
+      "y": 15430,
       "w": 620,
       "text": "M6.6b: the answer kind Figure takes a figure whose file has a task, made in the composer; its right answers are computed and named. A choice option holds text or a figure. The preview answers it as a learner would, then shows the results view with the marks.",
       "page": "studio"
@@ -898,9 +994,49 @@
     {
       "id": "note-team",
       "x": 0,
-      "y": 15250,
+      "y": 16850,
       "w": 620,
       "text": "Reached from: Team at the bottom of the rail (operators only).\nM4.8a: invite by email and role (a one-use link for 7 days), withdraw a pending invite, change a role, deactivate a member. Studio always keeps an active operator (CA0108, shown as the API words it).",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockai",
+      "x": 1800,
+      "y": 16850,
+      "w": 620,
+      "text": "M5.2 draft: author-triggered redraft, before/after, preserved human corrections, provenance and explicit Keep or Discard. Keeping is a draft save, never approval.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockaiconflict",
+      "x": 3600,
+      "y": 16850,
+      "w": 620,
+      "text": "A model change overlaps a human correction. Applying stays disabled until the author resolves the passage; no human edit is silently lost.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftresourceai",
+      "x": 0,
+      "y": 18310,
+      "w": 620,
+      "text": "Suggest from supplied candidates and indexed resource records. The author checks the link, part and licence; Add still creates an unreviewed draft.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftfigureai",
+      "x": 1800,
+      "y": 18310,
+      "w": 620,
+      "text": "Ask proposes validated data for the chosen component. Use updates the working copy; Save to the page remains explicit and keeps the AI provenance.",
+      "page": "studio"
+    },
+    {
+      "id": "note-draftblockaidark",
+      "x": 3600,
+      "y": 18310,
+      "w": 620,
+      "text": "Same proposal in the dark identity.",
       "page": "studio"
     },
     {

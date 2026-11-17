@@ -7,8 +7,10 @@
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { fetchInvite, fetchInvites, fetchMe, fetchMembers } from "./accounts";
+import { fetchAISettings, fetchUsage, type UsageRange } from "./ai";
 import { fetchProviders } from "./auth";
 import { getJson } from "./client";
+import { fetchProposal, fetchProposals } from "./drafting";
 import { type DraftState, fetchChecks, fetchDraft, fetchDrafts } from "./drafts";
 import { fetchHealth } from "./health";
 import { fetchKits } from "./kits";
@@ -53,6 +55,10 @@ export const queryKeys = {
   landings: ["land", "landings"] as const,
   landing: (id: string) => ["land", "landing", id] as const,
   problemKits: ["problem-kits"] as const,
+  proposals: (draft: string, target: string) => ["draft", draft, "proposals", target] as const,
+  proposal: (draft: string, identity: string) => ["draft", draft, "proposal", identity] as const,
+  ai: ["ai", "settings"] as const,
+  aiUsage: (range: UsageRange) => ["ai", "usage", range] as const,
 };
 
 export const useNode = (id: string) =>
@@ -331,4 +337,34 @@ export const useProblemKits = () =>
     queryKey: queryKeys.problemKits,
     queryFn: ({ signal }) => fetchKits(signal),
     staleTime: Number.POSITIVE_INFINITY,
+  });
+
+/** The AI page's state; writes answer it whole, so they set it rather than refetch (M5G.7). */
+export const useAISettings = () =>
+  useQuery({ queryKey: queryKeys.ai, queryFn: ({ signal }) => fetchAISettings(signal) });
+
+export const useAIUsage = (range: UsageRange) =>
+  useQuery({
+    queryKey: queryKeys.aiUsage(range),
+    queryFn: ({ signal }) => fetchUsage(range, signal),
+  });
+
+export const useDraftProposals = (draft: string, target: string) =>
+  useQuery({
+    queryKey: queryKeys.proposals(draft, target),
+    queryFn: ({ signal }) => fetchProposals(draft, target, signal),
+    retry: false,
+    staleTime: 0,
+  });
+
+export const useDraftProposal = (draft: string, identity: string | null) =>
+  useQuery({
+    queryKey: queryKeys.proposal(draft, identity ?? ""),
+    queryFn: ({ signal }) => fetchProposal(draft, identity ?? "", signal),
+    enabled: identity !== null,
+    retry: false,
+    staleTime: 0,
+    refetchInterval: (query) =>
+      ["queued", "running"].includes(query.state.data?.state ?? "") ? 1500 : false,
+    refetchIntervalInBackground: false,
   });

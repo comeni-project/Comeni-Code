@@ -10,6 +10,7 @@ import type { Finding } from "../../figures/validate";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 import { openFile, writeFile } from "../../yaml/document";
 import { useLeaveGuard } from "../composer/useLeaveGuard";
+import { DraftAI } from "../drafting/DraftAI";
 import { removeProblem, setProblem } from "../workbench/edits";
 import { RefusalNotice } from "../workbench/RefusalNotice";
 import { refusalOf } from "../workbench/refusal";
@@ -67,7 +68,12 @@ export function ProblemTab({
   const kits = useProblemKits();
   if (kits.isPending) return <p className="text-[14px] text-ink-2">Loading the kits…</p>;
   if (kits.isError) return <ErrorNotice error={kits.error} />;
-  return <Builder draftId={draftId} node={node} editable={editable} kits={kits.data} />;
+  return (
+    <>
+      {editable && node.problem && <DraftAI draftId={draftId} target="problem" />}
+      <Builder draftId={draftId} node={node} editable={editable} kits={kits.data} />
+    </>
+  );
 }
 
 function Builder({

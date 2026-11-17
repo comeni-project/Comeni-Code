@@ -4,6 +4,7 @@
 //   node .design/build_pages.mjs
 import { writeFileSync } from 'node:fs';
 import { T, head, foot, logo, chip, primary, secondary, panel, label, seg, gridBg, labs, code, MONO, UI } from './_identity.mjs';
+import { draftingBoards } from './_m5_drafting.mjs';
 
 const D = new URL('.', import.meta.url).pathname;
 const c = T.light;
@@ -3222,6 +3223,124 @@ rationale: Each read adds the edges between its consecutive k-mers, …`;
   return reviewM4({ middle });
 }
 
+// ── M5.1 · S17 AI settings: connections and the call sites; the ChatGPT sign-in; S16 usage ──
+const AI_CONN = (name, lane, where, status, actions, o = {}) => `<div style="display:grid;grid-template-columns:minmax(0, 1.1fr) 150px minmax(0, 1.4fr) 170px auto;gap:14px;align-items:center;padding:12px 16px;border-top:1px solid ${c.border};font-size:13.5px;${o.locked ? `background:${c.bg}` : ''}">
+  <span style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">${name}</span>${o.note ? `<span style="font-size:12px;color:${c.ink3}">${o.note}</span>` : ''}</span>
+  <span style="color:${c.ink2}">${lane}</span>
+  <span style="font-family:${MONO};font-size:12.5px;color:${c.ink2};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${where}</span>
+  <span>${status}</span>
+  <span style="display:flex;gap:8px;justify-content:flex-end">${actions}</span></div>`;
+const AI_SITE_COLS = 'minmax(0, 1.25fr) 110px minmax(0, 1.5fr) minmax(0, 1fr) 140px 120px';
+const AI_SITE = (site, who, model, fb, cap, tune, o = {}) => `<div style="display:grid;grid-template-columns:${AI_SITE_COLS};gap:12px;align-items:center;padding:10px 16px;border-top:1px solid ${c.border};font-size:13px;${o.later ? `color:${c.ink3}` : ''}">
+  <span style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">${site}</span>${o.note ? `<span style="font-size:11.5px;color:${c.ink3};font-weight:400">${o.note}</span>` : ''}</span>
+  <span style="color:${o.later ? c.ink3 : c.ink2}">${who}</span>
+  ${o.later ? `<span style="font-size:12.5px">${model}</span>` : `<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;border:1px solid ${c.border2};justify-self:start;max-width:100%;overflow:hidden;white-space:nowrap">${model}${ic.chevron}</span>`}
+  <span style="color:${o.later ? c.ink3 : c.ink2}">${fb}</span><span style="color:${o.later ? c.ink3 : c.ink2}">${cap}</span>
+  <span style="font-size:12.5px;color:${o.later ? c.ink3 : c.sel}">${tune}</span></div>`;
+const chatgpt = (model) => `<span style="font-size:12px;color:${c.ink3}">ChatGPT plan ·</span>${mono(model, 'font-size:12px')}`;
+const same = `<span style="font-size:12.5px">same as default</span>`;
+
+function aiSettings() {
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('AI', 26)}<span style="font-size:13px;color:${c.ink2}">Where models come from, and which one each call site uses. Operators only.</span></div>
+      <span style="font-size:12.5px;color:${c.ink3}">Each change applies to the next call · no restart</span>
+    </div>
+    ${aiTabs('Models')}
+    <div style="${panel(c)};overflow:hidden;flex:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Connections</span><span style="font-size:12.5px;color:${c.ink3}">Keys are kept encrypted and never sent back: you see that one is set, and its last four characters.</span></div>
+        ${secondary(c, '+ Add a connection')}
+      </div>
+      ${AI_CONN('ChatGPT plan', 'ChatGPT sign-in', 'chatgpt/ · no key', greenTag('signed in · last answered 2 min ago'), `${secondary(c, 'Test')}${secondary(c, 'Sign in again')}`, { note: 'calls count against the plan’s limits' })}
+      ${AI_CONN('Local Ollama', 'Self-hosted', 'http://ollama:11434 · 3 models', greenTag('answering'), `${secondary(c, 'Test')}${secondary(c, 'Edit')}`)}
+      ${AI_CONN('Anthropic', 'A hosted provider', 'key ····7f2a', redTag('refused: key not valid'), `${secondary(c, 'Test')}${secondary(c, 'Edit')}`)}
+      ${AI_CONN('From .env', 'A hosted provider', 'CODE_AI_MODEL · CODE_AI_API_KEY', greyTag(`${ic.lock} set in .env`), '<span style="font-size:12.5px;color:' + c.ink3 + '">change it in .env</span>', { locked: true, note: 'locked: .env wins over this page' })}
+    </div>
+    <div style="${panel(c)};overflow:hidden;flex:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Where Code calls a model</span><span style="font-size:12.5px;color:${c.ink3}">The list is fixed: adding a call site is a reviewed code change. Choosing a model chooses its connection.</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:${AI_SITE_COLS};gap:12px;padding:8px 16px;font-size:11.5px;color:${c.ink3};border-top:1px solid ${c.border}"><span>Call site</span><span>Who calls it</span><span>Model</span><span>If it fails or runs out</span><span>Cap</span><span>Call settings</span></div>
+      ${AI_SITE('Default', '—', chatgpt('gpt-6.1-sol'), 'no fallback', 'per site', 'temperature 1')}
+      ${AI_SITE('Page drafting', 'authors', same, 'stop and say so', '200 calls a day', 'default')}
+      ${AI_SITE('Figure data and problems', 'authors', same, 'stop and say so', '100 calls a day', 'default')}
+      ${AI_SITE('Resource suggestion', 'authors', `<span style="font-size:12px;color:${c.ink3}">Local Ollama ·</span>${mono('qwen2.5:7b', 'font-size:12px')}`, 'search by hand', '100 calls a day', 'temperature 0')}
+      ${AI_SITE('Block evaluation (judge)', 'every draft', same, 'leave unscored', '400 calls a day', 'effort high', { note: 'a fresh call: it never sees the draft’s conversation (#451)' })}
+      ${AI_SITE('Goal suggestions', 'learners', same, 'plain search', '500 calls a day', 'default')}
+      ${AI_SITE('Assistant chats', 'team', same, 'stop and say so', '50 chats a person a day', 'default')}
+      ${AI_SITE('Connecting text · request grouping · skeleton drafting', 'M7', 'arrive with their screens', '—', '—', '—', { later: true })}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:16px">
+      ${card(`<span style="font-size:15px;font-weight:600">No connection, no AI</span><span style="font-size:13px;color:${c.ink2};line-height:1.55">With no connection, nothing calls a model. Every page still works: routes are computed, learners get search instead of suggestions, and authors write by hand.</span>`)}
+      ${card(`<span style="font-size:15px;font-weight:600">A cap on a plan is calls</span><span style="font-size:13px;color:${c.ink2};line-height:1.55">A ChatGPT plan has no price per call, so its caps count calls. A connection with a key may also cap cost; both are shown in Usage.</span>`)}
+      ${card(`<span style="font-size:15px;font-weight:600">What’s recorded for every call</span><span style="font-size:13px;color:${c.ink2};line-height:1.55">Call site, person, connection and model, prompt id, tokens, cost when the provider gives one, how long it took, and whether it fell back — attached to the draft it produced as provenance. A learner’s call keeps no identity.</span>`)}
+    </div>`;
+  return studio('AI', inner, 1440, 1240);
+}
+
+function aiSignIn() {
+  const box = (n, t, d, inner) => `<div style="display:flex;flex-direction:column;gap:10px">${stateLabel(n, t, d)}
+    <div style="${panel(c)};padding:18px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:${c.float}">${inner}</div></div>`;
+  const head = `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">Add a connection</span>${seg(c, ['Self-hosted', 'A hosted provider', 'ChatGPT plan'], 2)}</div>`;
+  const states = [
+    box('1', 'start', 'one button; nothing to paste', `${head}
+      ${p('A ChatGPT plan that includes Codex answers Code’s calls with no API key. Calls count against the plan’s limits. Turn on device code sign-in in ChatGPT’s security settings first.', 'font-size:14px')}
+      <div style="display:flex;gap:10px">${primary(c, 'Sign in with ChatGPT', '')}</div>`),
+    box('2', 'waiting', 'the link and code; approve in the browser', `${head}
+      ${p('Open the link, sign in to ChatGPT and enter this code. This page waits for you.', 'font-size:14px')}
+      <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:10px;background:${c.bg}">
+        <span style="font-family:${MONO};font-size:24px;font-weight:600;letter-spacing:.1em">K7QF-9MZD</span>${secondary(c, 'Copy')}
+        <span style="flex:1"></span><a style="font-size:13.5px;font-weight:500">auth.openai.com/codex/device ↗</a></div>
+      <span style="font-size:12.5px;color:${c.ink3}">Waiting for you to approve · the code lasts 15 minutes · ${'<a>Cancel</a>'}</span>`),
+    box('3', 'signed in', 'the connection is added and tested', `${head}
+      <div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:${c.lineSoft}"><span style="font-size:14px;font-weight:600;color:${c.btn}">Signed in. Test passed: ${mono('chatgpt/gpt-6.1-sol', 'font-size:13px')} answered.</span><span style="font-size:13px">LiteLLM keeps it fresh by itself; this page says if a refresh ever fails.</span></div>
+      <div style="display:flex;gap:10px">${primary(c, 'Use it as the default', '')}${secondary(c, 'Done')}</div>`),
+    box('4', 'expired', 'calls fail; the call sites say why', `<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">ChatGPT plan</span>${redTag('sign-in ran out')}</div>
+      ${p('Calls through this connection are refused until you sign in again. Call sites that use it fall back as their row says, or stop and say so.', 'font-size:14px')}
+      <div style="display:flex;gap:10px">${primary(c, 'Sign in again', '')}</div>`),
+  ];
+  const inner = `
+    <div style="display:flex;align-items:baseline;gap:14px">${h1('AI', 26)}<span style="font-size:13px;color:${c.ink2}">Sign in with ChatGPT in the page, with no command.</span></div>
+    ${aiTabs('Models')}
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:26px 30px">${states.join('')}</div>
+    ${p('The sign-in is LiteLLM’s chatgpt/ device-code flow, which Labs runs from a command; here the page starts it, shows the link and code, and waits. The token is kept by the API, never sent to the browser. If LiteLLM cannot be driven this way, M5.1 keeps Labs’ command and this card shows it.', 'font-size:13.5px;max-width:90ch')}`;
+  return studio('AI', inner, 1440, 1000);
+}
+
+function aiUsageM5() {
+  const bar = (label, n, of, cost) => `<div style="display:grid;grid-template-columns:200px minmax(0, 1fr) 90px 90px;gap:12px;align-items:center;font-size:13px">
+    <span>${label}</span><span style="height:8px;border-radius:4px;background:${c.border};overflow:hidden"><span style="display:block;height:100%;width:${Math.round((100 * n) / of)}%;background:${c.ink2}"></span></span>
+    <span style="font-family:${MONO};font-size:12.5px;text-align:right">${n.toLocaleString('en')} calls</span><span style="font-family:${MONO};font-size:12.5px;color:${c.ink3};text-align:right">${cost}</span></div>`;
+  const call = (when, site, who, model, tok, ms, out) => `<div style="display:grid;grid-template-columns:110px minmax(0, 1fr) 120px minmax(0, 1fr) 90px 70px 150px;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid ${c.border};font-size:12.5px">
+    <span style="color:${c.ink3}">${when}</span><span style="font-weight:600">${site}</span><span style="color:${c.ink2}">${who}</span>${mono(model, 'font-size:12px;color:' + c.ink2)}
+    <span style="font-family:${MONO};text-align:right">${tok}</span><span style="font-family:${MONO};text-align:right;color:${c.ink3}">${ms}</span><span>${out}</span></div>`;
+  const inner = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:baseline;gap:14px">${h1('AI', 26)}<span style="font-size:13px;color:${c.ink2}">What the call sites used, from every recorded call.</span></div>
+      ${seg(c, ['Today', 'This week', 'This month'], 2)}
+    </div>
+    ${aiTabs('Usage')}
+    <div style="display:flex;gap:12px">${[['1,284', 'calls this month'], ['3.1 M', 'tokens'], ['$4.20', 'cost where a key is billed'], ['1,190', 'calls on the ChatGPT plan'], ['6', 'fell back']].map(([v, k]) => `<div style="flex:1;${panel(c)};padding:14px 16px;display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:600;font-family:${MONO}">${v}</span><span style="font-size:12.5px;color:${c.ink2}">${k}</span></div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:16px">
+      ${card(`<span style="font-size:15px;font-weight:600">By call site</span>
+        ${bar('Block evaluation', 610, 610, 'plan')}${bar('Page drafting', 402, 610, 'plan')}${bar('Goal suggestions', 168, 610, 'plan')}${bar('Resource suggestion', 94, 610, 'local')}${bar('Figure data', 10, 610, '$4.20')}`)}
+      ${card(`<span style="font-size:15px;font-weight:600">By person</span>
+        ${bar('[Author A]', 520, 520, '')}${bar('[Author B]', 401, 520, '')}${bar('[Reviewer]', 195, 520, '')}${bar('learners, together', 168, 520, '')}
+        <span style="font-size:12px;color:${c.ink3}">Learners are counted together: a learner’s call keeps no identity.</span>`)}
+    </div>
+    <div style="${panel(c)};overflow:hidden;flex:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px"><span style="font-size:15px;font-weight:600">Recent calls</span><span style="font-size:12.5px;color:${c.ink3}">a drafted block links back to its call</span></div>
+      <div style="display:grid;grid-template-columns:110px minmax(0, 1fr) 120px minmax(0, 1fr) 90px 70px 150px;gap:12px;padding:8px 16px;font-size:11.5px;color:${c.ink3};border-top:1px solid ${c.border}"><span>When</span><span>Call site</span><span>Who</span><span>Model</span><span style="text-align:right">Tokens</span><span style="text-align:right">Time</span><span>Outcome</span></div>
+      ${call('2 min ago', 'Block evaluation', '[Author A]', 'chatgpt/gpt-6.1-sol', '3,410', '6.2 s', greyTag('scored 4.1'))}
+      ${call('3 min ago', 'Page drafting', '[Author A]', 'chatgpt/gpt-6.1-sol', '5,902', '11 s', `<a style="font-size:12.5px">de Bruijn graphs · block 7</a>`)}
+      ${call('9 min ago', 'Goal suggestions', 'a learner', 'chatgpt/gpt-6.1-sol', '812', '1.4 s', greyTag('3 targets'))}
+      ${call('14 min ago', 'Resource suggestion', '[Author B]', 'ollama_chat/qwen2.5:7b', '2,044', '4.0 s', greyTag('2 links'))}
+      ${call('20 min ago', 'Page drafting', '[Author B]', 'chatgpt/gpt-6.1-sol', '—', '0.3 s', redTag('refused: sign-in ran out'))}
+    </div>`;
+  return studio('AI', inner, 1440, 1040);
+}
+
 // ── write everything ────────────────────────────────────────────
 const LEARN = [
   ['Main', 'L3 · Home — the overview', home(), 1440, 1120, 'Reached from: the logo, every return visit, closing a page.\nLeads to: Continue, the route shown (last opened), a ready node, Review, the weekly problem, Your whole network.\nOnly the route you last opened is drawn here; the full network lives on Your knowledge.'],
@@ -3266,6 +3385,9 @@ const STUDIO = [
   ['Assistant', 'S15 · Assistant — chat that acts through the content API', assistant(), 1680, 1060, 'Reached from: the rail, “Ask the assistant” in the workbench, a request or a route.\nEvery chat is tied to a node, request or route. The assistant acts only through the content API; each action is a card you keep or discard. Kept changes become drafts that still need checks and review. It cannot approve, publish, land or move requests.'],
   ['AIUsage', 'S16 · AI — usage', usage(), 1680, 1180, 'Reached from: AI at the bottom of the rail.\nTokens and cost by task, person and model, from the LiteLLM gateway; budget meters and alerts that say what happens when a cap is reached. Chart colours validated for colour-blind separation; the tables are its accessible view.'],
   ['AIModels', 'S17 · AI — models, budgets and scoring', models(), 1440, 1260, 'The three lanes from Labs (no AI, self-hosted, hosted keys), the fixed list of places Code calls a model with a model, fallback and cap for each — now including skeleton drafting, resource suggestion and the judge — budgets, and the scoring settings: redraft threshold, redraft limit, the different-family rule, and automatic deployment shown locked.'],
+  ['AISettings', 'S17 · AI, M5.1 — connections and the call sites', aiSettings(), 1440, 1240, 'M5.1: as Labs’ Settings → Models, rebuilt for Code. Connections (ChatGPT plan, self-hosted, a hosted provider, From .env locked), each with Test; a model per declared call site, same as default or its own, with a fallback, a cap and call settings. The judge may be the default model, as a fresh call (#451). No connection, no model call.'],
+  ['AISignIn', 'S17 · AI, M5.1 — Sign in with ChatGPT', aiSignIn(), 1440, 1000, 'M5.1: the ChatGPT plan connection, signed in from the page by LiteLLM’s device-code flow: start, waiting with the link and code, signed in and tested, and run out.'],
+  ['AIUsageM5', 'S16 · AI, M5.1 — usage from recorded calls', aiUsageM5(), 1440, 1040, 'M5.1: totals by call site and person, cost only where a key is billed (a plan counts calls), and the recent calls, a drafted block linking back to its call.'],
   ['Drafts', 'S19 · Drafts — your open drafts, and a new node', drafts(), 1680, 1000, 'Reached from: Drafts in the rail (authors and above).\nLeads to: a draft in the workbench (S3).\nM4.8b: the open drafts, Mine first; New node creates a draft with its fields; Edit a node that exists opens a draft of its live version. A node has one draft at a time; the API says so in words when it already has one.'],
   ['WorkbenchSettings', 'S3 · Workbench — Settings', workbench({ tab: 'Settings', body: benchSettings() }), 1680, 1060, 'M4.8b: the fields, each saved when you leave it, with a problem about a field shown under it; Discard at the foot (contributors and operators), confirmed in place.'],
   ['WorkbenchLinks', 'S3 · Workbench — Links', workbench({ tab: 'Links', body: benchLinks() }), 1680, 1060, 'M4.8b: the three link kinds, each a list of node and reason, saved when you leave the list. Related is at most four.'],
@@ -3297,7 +3419,7 @@ function layout(list, pageId, cols) {
   });
 }
 layout(LEARN, 'learn', 3);
-layout(STUDIO, 'studio', 3);
+layout([...STUDIO, ...draftingBoards()], 'studio', 3);
 layout(IDENTITY, 'identity', 2);
 annotations.push({ id: 'note-brief', x: -760, y: -250, w: 620, page: 'learn', text: 'Comeni Code — key pages, hybrid identity, light mode (dark is on the Identity page).\n\nThe idea: Code is the tutor on top of existing material (tutor spec). Nodes are standalone pages that also point to the best existing videos and readings; a goal is woven into a route by following what each page needs. AI suggests targets and writes short connecting text (marked until reviewed); it never chooses the route. Missing pages go to a request queue, and only a person moves them to Implementing.\n\nNavigation: learner top bar = logo · search · account. Home is the overview. Lessons use a focused bar.' });
 writeFileSync(`${D}canvas.json`, JSON.stringify({

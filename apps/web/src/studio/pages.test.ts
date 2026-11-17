@@ -13,6 +13,7 @@ describe("Studio's pages", () => {
       "Drafts",
       "Review",
       "Land",
+      "AI",
       "Team",
     ]);
     expect(pagesFor("author").map((page) => page.label)).toEqual(["Drafts"]);

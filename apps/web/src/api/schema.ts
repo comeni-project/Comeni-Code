@@ -9,25 +9,35 @@ export type Level = "first-steps" | "foundations" | "introductory" | "intermedia
 export type Role = "author" | "reviewer" | "operator";
 
 export interface ApiSchemas {
+  AISettingsOut: AISettingsOut;
+  AcceptProposalIn: AcceptProposalIn;
   AddFigureIn: AddFigureIn;
   AnswerIn: AnswerIn;
   AnswerOut: AnswerOut;
+  AppliedProposalOut: AppliedProposalOut;
   ApproveIn: ApproveIn;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
+  CallOut: CallOut;
   CalloutBlockOut: CalloutBlockOut;
   CheckOut: CheckOut;
   ChecklistOut: ChecklistOut;
   CommonsIn: CommonsIn;
+  ConnectionChangeIn: ConnectionChangeIn;
+  ConnectionIn: ConnectionIn;
+  ConnectionOut: ConnectionOut;
+  CreateProposalIn: CreateProposalIn;
   CreditOut: CreditOut;
   DraftNodeOut: DraftNodeOut;
   DraftOut: DraftOut;
   DraftSummaryOut: DraftSummaryOut;
+  DraftingFailure: DraftingFailure;
   EventOut: EventOut;
   ExamIn: ExamIn;
   ExamQuestionIn: ExamQuestionIn;
   ExampleBlockOut: ExampleBlockOut;
   FieldsIn: FieldsIn;
+  FigureAssociationIn: FigureAssociationIn;
   FigureBlockOut: FigureBlockOut;
   FigureOut: FigureOut;
   FigureSourceOut: FigureSourceOut;
@@ -68,10 +78,12 @@ export interface ApiSchemas {
   OptionIn: OptionIn;
   OptionOut: OptionOut;
   PendingInviteOut: PendingInviteOut;
+  PersonUsageOut: PersonUsageOut;
   ProblemBlockOut: ProblemBlockOut;
   ProblemIn: ProblemIn;
   ProblemKitOut: ProblemKitOut;
   ProblemOut: ProblemOut;
+  ProposalOut: ProposalOut;
   ProviderOut: ProviderOut;
   QuestionChecksOut: QuestionChecksOut;
   QuestionOut: QuestionOut;
@@ -101,6 +113,12 @@ export interface ApiSchemas {
   SendBackIn: SendBackIn;
   SequenceBlockOut: SequenceBlockOut;
   SideCardOut: SideCardOut;
+  SignInOut: SignInOut;
+  SignInStateOut: SignInStateOut;
+  SiteIn: SiteIn;
+  SiteOut: SiteOut;
+  SiteUsageOut: SiteUsageOut;
+  SourceIn: SourceIn;
   SpanOut: SpanOut;
   StopOut: StopOut;
   StudioExamQuestionOut: StudioExamQuestionOut;
@@ -114,9 +132,50 @@ export interface ApiSchemas {
   TryBlockOut: TryBlockOut;
   TryQuestionIn: TryQuestionIn;
   UpdateBlockIn: UpdateBlockIn;
+  UsageOut: UsageOut;
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+}
+export interface AISettingsOut {
+  chatgpt_ready: boolean;
+  connections: ConnectionOut[];
+  settings_key_ready: boolean;
+  sites: SiteOut[];
+}
+export interface ConnectionOut {
+  endpoint: string;
+  id: number;
+  key: string | null;
+  kind: "chatgpt" | "self-hosted" | "hosted" | "env";
+  locked: boolean;
+  models: string[];
+  name: string;
+  status: string;
+  tested_at: string | null;
+}
+export interface SiteOut {
+  cap: number | null;
+  connection: number | null;
+  default_cap: number | null;
+  key: string;
+  label: string;
+  locked: boolean;
+  model: string;
+  problem: string | null;
+  reasoning_effort: string;
+  refused: string;
+  same_as_default: boolean;
+  temperature: number | null;
+  timeout: number | null;
+  who: string;
+  wired: "M5" | "M7";
+}
+export interface AcceptProposalIn {
+  based_on: number;
+  resolutions?: {
+    [k: string]: unknown;
+  };
 }
 /**
  * A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and
@@ -124,6 +183,7 @@ export interface ApiSchemas {
  * body, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).
  */
 export interface AddFigureIn {
+  ai_proposal?: FigureAssociationIn | null;
   alt?: string | null;
   at?: number | null;
   caption?: string;
@@ -131,6 +191,13 @@ export interface AddFigureIn {
   question?: string | null;
   revision: number;
   text?: string | null;
+}
+export interface FigureAssociationIn {
+  copy_digest: string;
+  proposal_id: string;
+  resolutions?: {
+    [k: string]: unknown;
+  };
 }
 /**
  * A learner's answer (M6LP.4). The seed is digits, as a JSON number loses them past 2**53.
@@ -149,95 +216,37 @@ export interface AnswerOut {
   right: boolean;
   said: string;
 }
-export interface ApproveIn {
-  reason?: string;
-  revision: number;
+export interface AppliedProposalOut {
+  draft: DraftOut;
+  proposal: ProposalOut;
+  warnings: ProblemOut[];
 }
 /**
- * A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`
- * (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
- * markdown).
+ * The node, or null with `problems` when its latest revision no longer reads against the
+ * index's registries (#173).
  */
-export interface BlockIn {
-  callout?: string;
-  caption?: string;
-  file?: string;
-  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image" | "figure";
-  letters?: string;
-  markdown?: string;
-  question?: string;
-  tex?: string;
-  title?: string;
+export interface DraftOut {
+  base_digest: string;
+  contributors: MemberOut[];
+  folder: string;
+  landing?: string | null;
+  node: DraftNodeOut | null;
+  node_id: string;
+  problems: ProblemOut[];
+  public_id: string;
+  requests?: RequestsOut | null;
+  revision: number;
+  state: string;
+  submitted_revision: number | null;
 }
-export interface BuildOut {
-  commit: string;
-  created_at: string;
-  digest: string;
-  node_count: number;
-  outcome: string;
-  problems: string[];
-}
-export interface CalloutBlockOut {
-  callout: "misconception" | "caveat" | "convention";
-  kind: "callout";
-  markdown: string;
-  title: string;
-}
-export interface CheckOut {
-  duration_ms: number;
+/**
+ * A member, named by public id; the integer key never leaves the database (M4A.1).
+ */
+export interface MemberOut {
+  email: string;
   name: string;
-  status: "ok" | "down";
-}
-/**
- * The checklist, the problems behind it and each exam question's checks, so Checks is one
- * request (M4K.6, M4P.4).
- */
-export interface ChecklistOut {
-  items: ItemOut[];
-  passed: boolean;
-  problems?: ProblemOut[];
-  questions?: QuestionChecksOut[];
-}
-export interface ItemOut {
-  detail: string;
-  passed: boolean;
-  rule: string;
-}
-/**
- * One problem, as `code-schema validate` reports it; `text` is its printed line.
- */
-export interface ProblemOut {
-  code: string;
-  field: string | null;
-  file: string;
-  line: number | null;
-  message: string;
-  question?: string | null;
-  text: string;
-}
-/**
- * One exam question's checks (M4P.4).
- */
-export interface QuestionChecksOut {
-  id: string;
-  items: ItemOut[];
-}
-export interface CommonsIn {
-  alt: string;
-  at: number;
-  caption: string;
-  link: string;
-  revision: number;
-}
-/**
- * A Commons file's credit, before it is kept (M6IM.4).
- */
-export interface CreditOut {
-  author: string;
-  file: string;
-  licence: string;
-  source: string;
-  thumb_url: string;
+  public_id: string;
+  role: string;
 }
 export interface DraftNodeOut {
   blocks: (
@@ -260,6 +269,9 @@ export interface DraftNodeOut {
   minutes: number;
   needs: LinkOut[];
   problem?: NodeProblemOut | null;
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   questions: StudioQuestionOut[];
   region: string;
   related: LinkOut[];
@@ -276,6 +288,12 @@ export interface TextBlockOut {
 export interface TryBlockOut {
   kind: "try";
   question: string;
+}
+export interface CalloutBlockOut {
+  callout: "misconception" | "caveat" | "convention";
+  kind: "callout";
+  markdown: string;
+  title: string;
 }
 /**
  * DNA, RNA or protein letters, drawn in groups of ten (M4.8c spec, M4Q.2).
@@ -457,31 +475,16 @@ export interface StudioResourceOut {
   video: string;
 }
 /**
- * The node, or null with `problems` when its latest revision no longer reads against the
- * index's registries (#173).
+ * One problem, as `code-schema validate` reports it; `text` is its printed line.
  */
-export interface DraftOut {
-  base_digest: string;
-  contributors: MemberOut[];
-  folder: string;
-  landing?: string | null;
-  node: DraftNodeOut | null;
-  node_id: string;
-  problems: ProblemOut[];
-  public_id: string;
-  requests?: RequestsOut | null;
-  revision: number;
-  state: string;
-  submitted_revision: number | null;
-}
-/**
- * A member, named by public id; the integer key never leaves the database (M4A.1).
- */
-export interface MemberOut {
-  email: string;
-  name: string;
-  public_id: string;
-  role: string;
+export interface ProblemOut {
+  code: string;
+  field: string | null;
+  file: string;
+  line: number | null;
+  message: string;
+  question?: string | null;
+  text: string;
 }
 /**
  * The last send back, while the draft has not been submitted again (M4.9a spec, M4V.4).
@@ -498,6 +501,172 @@ export interface RequestOut {
   note: string;
   now: string | null;
 }
+export interface ProposalOut {
+  accepted_revision: number | null;
+  base_revision: number;
+  candidate: {
+    [k: string]: unknown;
+  } | null;
+  candidates: {
+    [k: string]: unknown;
+  }[];
+  code: string;
+  conflicts: {
+    [k: string]: unknown;
+  }[];
+  copy_digest: string;
+  created_at: string;
+  current: {
+    [k: string]: unknown;
+  };
+  detail: string;
+  findings: {
+    [k: string]: unknown;
+  }[];
+  instruction: string;
+  kind: "block" | "resource" | "figure";
+  public_id: string;
+  raw: {
+    [k: string]: unknown;
+  } | null;
+  receipt: {
+    [k: string]: unknown;
+  } | null;
+  sources: {
+    [k: string]: unknown;
+  }[];
+  state: "queued" | "running" | "ready" | "refused" | "failed" | "accepted" | "discarded";
+  target: string;
+}
+export interface ApproveIn {
+  reason?: string;
+  revision: number;
+}
+/**
+ * A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`
+ * (callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,
+ * markdown).
+ */
+export interface BlockIn {
+  callout?: string;
+  caption?: string;
+  file?: string;
+  kind: "text" | "try" | "callout" | "sequence" | "math" | "example" | "image" | "figure";
+  letters?: string;
+  markdown?: string;
+  question?: string;
+  tex?: string;
+  title?: string;
+}
+export interface BuildOut {
+  commit: string;
+  created_at: string;
+  digest: string;
+  node_count: number;
+  outcome: string;
+  problems: string[];
+}
+export interface CallOut {
+  at: string;
+  code: string;
+  duration_ms: number;
+  model: string;
+  outcome: string;
+  site: string;
+  tokens: number;
+  who: string;
+}
+export interface CheckOut {
+  duration_ms: number;
+  name: string;
+  status: "ok" | "down";
+}
+/**
+ * The checklist, the problems behind it and each exam question's checks, so Checks is one
+ * request (M4K.6, M4P.4).
+ */
+export interface ChecklistOut {
+  items: ItemOut[];
+  passed: boolean;
+  problems?: ProblemOut[];
+  questions?: QuestionChecksOut[];
+}
+export interface ItemOut {
+  detail: string;
+  passed: boolean;
+  rule: string;
+}
+/**
+ * One exam question's checks (M4P.4).
+ */
+export interface QuestionChecksOut {
+  id: string;
+  items: ItemOut[];
+}
+export interface CommonsIn {
+  alt: string;
+  at: number;
+  caption: string;
+  link: string;
+  revision: number;
+}
+export interface ConnectionChangeIn {
+  endpoint?: string | null;
+  key?: string | null;
+  name?: string | null;
+}
+export interface ConnectionIn {
+  endpoint?: string;
+  key?: string | null;
+  kind: "self-hosted" | "hosted";
+  name: string;
+}
+export interface CreateProposalIn {
+  based_on: number;
+  /**
+   * @maxItems 30
+   */
+  candidates?: {
+    [k: string]: unknown;
+  }[];
+  copy_digest?: string;
+  copy_text?: string | null;
+  figure_at?: number | null;
+  figure_question?: string | null;
+  instruction: string;
+  kind: "block" | "resource" | "figure";
+  request_id: string;
+  /**
+   * @maxItems 6
+   */
+  sources?:
+    | []
+    | [SourceIn]
+    | [SourceIn, SourceIn]
+    | [SourceIn, SourceIn, SourceIn]
+    | [SourceIn, SourceIn, SourceIn, SourceIn]
+    | [SourceIn, SourceIn, SourceIn, SourceIn, SourceIn]
+    | [SourceIn, SourceIn, SourceIn, SourceIn, SourceIn, SourceIn];
+  target: string;
+}
+export interface SourceIn {
+  excerpt: string;
+  id: string;
+  licence: string;
+  public?: boolean;
+  title: string;
+  url?: string;
+}
+/**
+ * A Commons file's credit, before it is kept (M6IM.4).
+ */
+export interface CreditOut {
+  author: string;
+  file: string;
+  licence: string;
+  source: string;
+  thumb_url: string;
+}
 export interface DraftSummaryOut {
   base_digest: string;
   contributors: MemberOut[];
@@ -508,6 +677,13 @@ export interface DraftSummaryOut {
   revision: number;
   state: string;
   submitted_revision: number | null;
+}
+export interface DraftingFailure {
+  code: string;
+  detail: string;
+  findings?: {
+    [k: string]: unknown;
+  }[];
 }
 /**
  * One entry of a draft's log (M4R.5).
@@ -581,6 +757,7 @@ export interface FigureOut {
   stem: string;
 }
 export interface FigureTextIn {
+  ai_proposal?: FigureAssociationIn | null;
   revision: number;
   text: string;
 }
@@ -605,6 +782,7 @@ export interface GivenIn {
   given: unknown;
 }
 export interface HealthOut {
+  ai?: "configured" | "not configured";
   checks: CheckOut[];
   status: "ok" | "down";
 }
@@ -774,6 +952,9 @@ export interface NodeOut {
   needed_by: SideCardOut[];
   needs: SideCardOut[];
   problem?: LearnerProblemOut | null;
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   questions: QuestionOut[];
   region: RegionOut;
   related: SideCardOut[];
@@ -852,6 +1033,10 @@ export interface PendingInviteOut {
   expires_at: string;
   public_id: string;
   role: string;
+}
+export interface PersonUsageOut {
+  calls: number;
+  name: string;
 }
 export interface ProblemIn {
   revision: number;
@@ -1049,6 +1234,9 @@ export interface ReviewItemOut {
 }
 export interface ReviewOut {
   items: ReviewItemOut[];
+  provenance?: {
+    [k: string]: unknown;
+  } | null;
   revision: number;
 }
 export interface RevisionOut {
@@ -1096,6 +1284,30 @@ export interface SendBackIn {
   reason?: string;
   revision?: number | null;
 }
+export interface SignInOut {
+  expires_at: number;
+  link: string;
+  user_code: string;
+}
+export interface SignInStateOut {
+  state: "waiting" | "signed-in";
+}
+export interface SiteIn {
+  cap?: number | null;
+  connection?: number | null;
+  model?: string;
+  reasoning_effort?: string;
+  same_as_default?: boolean;
+  temperature?: number | null;
+  timeout?: number | null;
+}
+export interface SiteUsageOut {
+  calls: number;
+  cost: string | null;
+  label: string;
+  priced: "billed" | "plan" | "local";
+  site: string;
+}
 export interface SubmitIn {
   revision: number;
 }
@@ -1110,6 +1322,17 @@ export interface UpdateBlockIn {
   block: BlockIn;
   question?: TryQuestionIn | null;
   revision: number;
+}
+export interface UsageOut {
+  by_person: PersonUsageOut[];
+  by_site: SiteUsageOut[];
+  calls: number;
+  cost: string | null;
+  plan_calls: number;
+  range: "today" | "week" | "month";
+  recent: CallOut[];
+  refused: number;
+  tokens: number;
 }
 export interface VerdictIn {
   key: string;

@@ -49,6 +49,8 @@ ALLOWED: Mapping[str, frozenset[str]] = {
     ),
     "code-schema": frozenset(
         {
+            "hashlib",
+            "json",
             "__future__",
             "argparse",
             # M6.4: a figure's data is checked by its component (M6FG.2).

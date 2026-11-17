@@ -11,9 +11,10 @@ down as you need and as far up as research.
 
 > **You learn the thing you are about to run, and every sentence says where it came from.**
 
-**Status: building phase M0 (the skeleton).** The Python workspace, the purity guards and the
-Django project exist; there is no learner-facing feature yet. Read the specs and the newest
-journal entry before proposing code.
+**Status: building M5 (AI).** The content core, route weaving, learner pages, Studio, figures
+and problems are implemented. M5.1 adds the AI gateway and Studio's model settings; AI drafting,
+scores, goal suggestions and the assistant follow. Read [the current state](docs/notes/now.md)
+and [the journal](docs/notes/journal/) before proposing code.
 
 ## The idea in five lines
 
@@ -39,7 +40,7 @@ journal entry before proposing code.
 | Why this exists, and why two earlier attempts at it died | [`2026-09-02-comeni-code-design.md`](docs/superpowers/specs/2026-09-02-comeni-code-design.md) |
 | How routes are woven, every page, figures, AI use, the visual identity | [`2026-09-16-comeni-code-weaving-and-pages-design.md`](docs/superpowers/specs/2026-09-16-comeni-code-weaving-and-pages-design.md) |
 | The stack and the order it will be built in | [`2026-09-17-comeni-code-architecture-and-roadmap-design.md`](docs/superpowers/specs/2026-09-17-comeni-code-architecture-and-roadmap-design.md) |
-| Where things stand today | [the newest journal entry](docs/notes/journal/) |
+| Where things stand today | [the current state](docs/notes/now.md), then [the journal](docs/notes/journal/) |
 | The screens | [`docs/design/`](docs/design/) and the generator in [`.design/`](.design/) |
 | Everything else | [`docs/index.md`](docs/index.md) |
 

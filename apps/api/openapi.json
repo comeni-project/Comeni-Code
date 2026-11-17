@@ -1,9 +1,72 @@
 {
   "components": {
     "schemas": {
+      "AISettingsOut": {
+        "properties": {
+          "chatgpt_ready": {
+            "title": "Chatgpt Ready",
+            "type": "boolean"
+          },
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectionOut"
+            },
+            "title": "Connections",
+            "type": "array"
+          },
+          "settings_key_ready": {
+            "title": "Settings Key Ready",
+            "type": "boolean"
+          },
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/SiteOut"
+            },
+            "title": "Sites",
+            "type": "array"
+          }
+        },
+        "required": [
+          "connections",
+          "sites",
+          "chatgpt_ready",
+          "settings_key_ready"
+        ],
+        "title": "AISettingsOut",
+        "type": "object"
+      },
+      "AcceptProposalIn": {
+        "properties": {
+          "based_on": {
+            "minimum": 1,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "resolutions": {
+            "additionalProperties": true,
+            "title": "Resolutions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "based_on"
+        ],
+        "title": "AcceptProposalIn",
+        "type": "object"
+      },
       "AddFigureIn": {
         "description": "A new figure: its whole file (`text`, from the composer, M6CO.2), or a `component` and\n`alt` for its starter; never both. Its block's caption either way. Placed at `at` in the\nbody, or made for a `question` it answers instead, with no block (M6.6b spec, M6FA.7).",
         "properties": {
+          "ai_proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureAssociationIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "alt": {
             "anyOf": [
               {
@@ -138,6 +201,30 @@
         "title": "AnswerOut",
         "type": "object"
       },
+      "AppliedProposalOut": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/DraftOut"
+          },
+          "proposal": {
+            "$ref": "#/components/schemas/ProposalOut"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ProblemOut"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "draft",
+          "proposal",
+          "warnings"
+        ],
+        "title": "AppliedProposalOut",
+        "type": "object"
+      },
       "ApproveIn": {
         "properties": {
           "reason": {
@@ -260,6 +347,55 @@
           "problems"
         ],
         "title": "BuildOut",
+        "type": "object"
+      },
+      "CallOut": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "duration_ms": {
+            "title": "Duration Ms",
+            "type": "integer"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          },
+          "who": {
+            "title": "Who",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "site",
+          "who",
+          "model",
+          "tokens",
+          "duration_ms",
+          "outcome",
+          "code"
+        ],
+        "title": "CallOut",
         "type": "object"
       },
       "CalloutBlockOut": {
@@ -392,6 +528,262 @@
           "alt"
         ],
         "title": "CommonsIn",
+        "type": "object"
+      },
+      "ConnectionChangeIn": {
+        "properties": {
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "ConnectionChangeIn",
+        "type": "object"
+      },
+      "ConnectionIn": {
+        "properties": {
+          "endpoint": {
+            "default": "",
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "self-hosted",
+              "hosted"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kind"
+        ],
+        "title": "ConnectionIn",
+        "type": "object"
+      },
+      "ConnectionOut": {
+        "properties": {
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "kind": {
+            "enum": [
+              "chatgpt",
+              "self-hosted",
+              "hosted",
+              "env"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tested_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tested At"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "endpoint",
+          "key",
+          "status",
+          "tested_at",
+          "models",
+          "locked"
+        ],
+        "title": "ConnectionOut",
+        "type": "object"
+      },
+      "CreateProposalIn": {
+        "additionalProperties": false,
+        "properties": {
+          "based_on": {
+            "minimum": 1,
+            "title": "Based On",
+            "type": "integer"
+          },
+          "candidates": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 30,
+            "title": "Candidates",
+            "type": "array"
+          },
+          "copy_digest": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Copy Digest",
+            "type": "string"
+          },
+          "copy_text": {
+            "anyOf": [
+              {
+                "maxLength": 100000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Copy Text"
+          },
+          "figure_at": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure At"
+          },
+          "figure_question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure Question"
+          },
+          "instruction": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Instruction",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "block",
+              "resource",
+              "figure"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceIn"
+            },
+            "maxItems": 6,
+            "title": "Sources",
+            "type": "array"
+          },
+          "target": {
+            "maxLength": 200,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "based_on",
+          "kind",
+          "target",
+          "instruction"
+        ],
+        "title": "CreateProposalIn",
         "type": "object"
       },
       "CreditOut": {
@@ -537,6 +929,18 @@
                 "type": "null"
               }
             ]
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
           },
           "questions": {
             "items": {
@@ -755,6 +1159,32 @@
           "contributors"
         ],
         "title": "DraftSummaryOut",
+        "type": "object"
+      },
+      "DraftingFailure": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Findings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "detail",
+          "code"
+        ],
+        "title": "DraftingFailure",
         "type": "object"
       },
       "EventOut": {
@@ -1090,6 +1520,32 @@
         "title": "FieldsIn",
         "type": "object"
       },
+      "FigureAssociationIn": {
+        "additionalProperties": false,
+        "properties": {
+          "copy_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Copy Digest",
+            "type": "string"
+          },
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "resolutions": {
+            "additionalProperties": true,
+            "title": "Resolutions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "copy_digest"
+        ],
+        "title": "FigureAssociationIn",
+        "type": "object"
+      },
       "FigureBlockOut": {
         "description": "A figure from the node's figures/ folder, by its stem, and its caption (M6.4 spec, M6FG.1);\nthe page joins it to the node's figures by stem, as images are joined to their records.",
         "properties": {
@@ -1202,6 +1658,16 @@
       },
       "FigureTextIn": {
         "properties": {
+          "ai_proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FigureAssociationIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
@@ -1280,6 +1746,15 @@
       },
       "HealthOut": {
         "properties": {
+          "ai": {
+            "default": "not configured",
+            "enum": [
+              "configured",
+              "not configured"
+            ],
+            "title": "Ai",
+            "type": "string"
+          },
           "checks": {
             "items": {
               "$ref": "#/components/schemas/CheckOut"
@@ -2198,6 +2673,18 @@
               }
             ]
           },
+          "provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          },
           "questions": {
             "items": {
               "$ref": "#/components/schemas/QuestionOut"
@@ -2455,6 +2942,24 @@
         "title": "PendingInviteOut",
         "type": "object"
       },
+      "PersonUsageOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "calls"
+        ],
+        "title": "PersonUsageOut",
+        "type": "object"
+      },
       "ProblemBlockOut": {
         "description": "Where the node's problem sits (M6PR.3); the problem itself is the node's `problem`.",
         "properties": {
@@ -2604,6 +3109,173 @@
           "text"
         ],
         "title": "ProblemOut",
+        "type": "object"
+      },
+      "ProposalOut": {
+        "properties": {
+          "accepted_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Revision"
+          },
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "candidate": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candidate"
+          },
+          "candidates": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "conflicts": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Conflicts",
+            "type": "array"
+          },
+          "copy_digest": {
+            "title": "Copy Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current": {
+            "additionalProperties": true,
+            "title": "Current",
+            "type": "object"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "instruction": {
+            "title": "Instruction",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "block",
+              "resource",
+              "figure"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          },
+          "receipt": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt"
+          },
+          "sources": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "running",
+              "ready",
+              "refused",
+              "failed",
+              "accepted",
+              "discarded"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "kind",
+          "target",
+          "base_revision",
+          "state",
+          "instruction",
+          "current",
+          "raw",
+          "candidate",
+          "sources",
+          "candidates",
+          "conflicts",
+          "findings",
+          "code",
+          "detail",
+          "receipt",
+          "copy_digest",
+          "accepted_revision",
+          "created_at"
+        ],
+        "title": "ProposalOut",
         "type": "object"
       },
       "ProviderOut": {
@@ -3621,6 +4293,18 @@
             "title": "Items",
             "type": "array"
           },
+          "provenance": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provenance"
+          },
           "revision": {
             "title": "Revision",
             "type": "integer"
@@ -4117,6 +4801,334 @@
           "minutes"
         ],
         "title": "SideCardOut",
+        "type": "object"
+      },
+      "SignInOut": {
+        "properties": {
+          "expires_at": {
+            "title": "Expires At",
+            "type": "number"
+          },
+          "link": {
+            "title": "Link",
+            "type": "string"
+          },
+          "user_code": {
+            "title": "User Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_code",
+          "link",
+          "expires_at"
+        ],
+        "title": "SignInOut",
+        "type": "object"
+      },
+      "SignInStateOut": {
+        "properties": {
+          "state": {
+            "enum": [
+              "waiting",
+              "signed-in"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "SignInStateOut",
+        "type": "object"
+      },
+      "SiteIn": {
+        "properties": {
+          "cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
+          },
+          "model": {
+            "default": "",
+            "title": "Model",
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "default": "",
+            "title": "Reasoning Effort",
+            "type": "string"
+          },
+          "same_as_default": {
+            "default": true,
+            "title": "Same As Default",
+            "type": "boolean"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout"
+          }
+        },
+        "title": "SiteIn",
+        "type": "object"
+      },
+      "SiteOut": {
+        "properties": {
+          "cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cap"
+          },
+          "connection": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection"
+          },
+          "default_cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Cap"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "locked": {
+            "title": "Locked",
+            "type": "boolean"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "problem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Problem"
+          },
+          "reasoning_effort": {
+            "title": "Reasoning Effort",
+            "type": "string"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "string"
+          },
+          "same_as_default": {
+            "title": "Same As Default",
+            "type": "boolean"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout"
+          },
+          "who": {
+            "title": "Who",
+            "type": "string"
+          },
+          "wired": {
+            "enum": [
+              "M5",
+              "M7"
+            ],
+            "title": "Wired",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "who",
+          "refused",
+          "wired",
+          "same_as_default",
+          "connection",
+          "model",
+          "cap",
+          "default_cap",
+          "temperature",
+          "reasoning_effort",
+          "timeout",
+          "locked",
+          "problem"
+        ],
+        "title": "SiteOut",
+        "type": "object"
+      },
+      "SiteUsageOut": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "priced": {
+            "enum": [
+              "billed",
+              "plan",
+              "local"
+            ],
+            "title": "Priced",
+            "type": "string"
+          },
+          "site": {
+            "title": "Site",
+            "type": "string"
+          }
+        },
+        "required": [
+          "site",
+          "label",
+          "calls",
+          "cost",
+          "priced"
+        ],
+        "title": "SiteUsageOut",
+        "type": "object"
+      },
+      "SourceIn": {
+        "additionalProperties": false,
+        "properties": {
+          "excerpt": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "licence": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Licence",
+            "type": "string"
+          },
+          "public": {
+            "default": false,
+            "title": "Public",
+            "type": "boolean"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "licence",
+          "excerpt"
+        ],
+        "title": "SourceIn",
         "type": "object"
       },
       "SpanOut": {
@@ -4903,6 +5915,80 @@
         "title": "UpdateBlockIn",
         "type": "object"
       },
+      "UsageOut": {
+        "properties": {
+          "by_person": {
+            "items": {
+              "$ref": "#/components/schemas/PersonUsageOut"
+            },
+            "title": "By Person",
+            "type": "array"
+          },
+          "by_site": {
+            "items": {
+              "$ref": "#/components/schemas/SiteUsageOut"
+            },
+            "title": "By Site",
+            "type": "array"
+          },
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "plan_calls": {
+            "title": "Plan Calls",
+            "type": "integer"
+          },
+          "range": {
+            "enum": [
+              "today",
+              "week",
+              "month"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/CallOut"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "refused": {
+            "title": "Refused",
+            "type": "integer"
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "range",
+          "calls",
+          "tokens",
+          "cost",
+          "plan_calls",
+          "refused",
+          "by_site",
+          "by_person",
+          "recent"
+        ],
+        "title": "UsageOut",
+        "type": "object"
+      },
       "VerdictIn": {
         "properties": {
           "key": {
@@ -5580,6 +6666,397 @@
         ]
       }
     },
+    "/api/studio/ai/chatgpt/sign-in": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_poll_sign_in",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStateOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Ask once whether the code was approved",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_ai_settings_api_start_sign_in",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Start a ChatGPT sign-in",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections": {
+      "post": {
+        "operationId": "code_api_ai_settings_api_add_connection",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Add a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections/{connection_id}": {
+      "delete": {
+        "operationId": "code_api_ai_settings_api_remove_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Remove a connection",
+        "tags": [
+          "studio"
+        ]
+      },
+      "put": {
+        "operationId": "code_api_ai_settings_api_change_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Change a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/connections/{connection_id}/test": {
+      "post": {
+        "description": "One short call through the connection's first model, recorded (M5G.3).",
+        "operationId": "code_api_ai_settings_api_test_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "connection_id",
+            "required": true,
+            "schema": {
+              "title": "Connection Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Test a connection",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/settings": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_read_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "The AI page's state",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/sites/{key}": {
+      "put": {
+        "operationId": "code_api_ai_settings_api_set_site",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Set a call site's model, cap and call settings",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/ai/usage": {
+      "get": {
+        "operationId": "code_api_ai_settings_api_usage",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "month",
+              "title": "Range",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "What the call sites used",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
     "/api/studio/drafts": {
       "get": {
         "description": "Open drafts by default; `?state=submitted` is the review queue (M4R.6).",
@@ -5736,6 +7213,408 @@
           }
         ],
         "summary": "A Commons file's credit",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{draft_id}/ai/proposals": {
+      "get": {
+        "operationId": "code_api_studio_ai_api_list_proposals",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Target",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProposalOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "List Proposals",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_studio_ai_api_create_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProposalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Create Proposal",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{draft_id}/ai/proposals/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_ai_api_read_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Read Proposal",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{draft_id}/ai/proposals/{identity}/accept": {
+      "post": {
+        "operationId": "code_api_studio_ai_api_accept_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptProposalIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppliedProposalOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Accept Proposal",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/drafts/{draft_id}/ai/proposals/{identity}/discard": {
+      "post": {
+        "operationId": "code_api_studio_ai_api_discard_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftingFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Discard Proposal",
         "tags": [
           "studio"
         ]
