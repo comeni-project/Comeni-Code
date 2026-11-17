@@ -314,6 +314,8 @@ def send(
                 title=stub.title,
                 description=stub.claim,
                 created_by=user,
+                request_type="node",
+                region=stub.region,
                 proposal={
                     "stub": stub.model_dump(mode="json"),
                     "source": {

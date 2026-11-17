@@ -56,6 +56,8 @@ export function RequestPage() {
               try {
                 const made = await sendJson<ReceiptOut>("POST", "/api/requests", {
                   request_id: pending.current.id,
+                  missing_node_id: params.get("node"),
+                  route_goals: params.getAll("route_goal"),
                   title,
                   description,
                 });

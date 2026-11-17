@@ -265,6 +265,15 @@
             "minItems": 1,
             "title": "Items",
             "type": "array"
+          },
+          "role": {
+            "default": "writer",
+            "enum": [
+              "writer",
+              "reviewer"
+            ],
+            "title": "Role",
+            "type": "string"
           }
         },
         "required": [
@@ -1040,6 +1049,16 @@
             "title": "Asked",
             "type": "integer"
           },
+          "blocked_routes": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Blocked Routes",
+            "type": "array"
+          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -1056,9 +1075,25 @@
             "title": "Description",
             "type": "string"
           },
+          "grouping_state": {
+            "title": "Grouping State",
+            "type": "string"
+          },
           "merged_node_id": {
             "title": "Merged Node Id",
             "type": "string"
+          },
+          "merged_request": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merged Request"
           },
           "proposal": {
             "additionalProperties": true,
@@ -1068,6 +1103,14 @@
           "public_id": {
             "format": "uuid",
             "title": "Public Id",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "request_type": {
+            "title": "Request Type",
             "type": "string"
           },
           "snoozed_until": {
@@ -1091,6 +1134,14 @@
               "type": "string"
             },
             "title": "Submission Notes",
+            "type": "array"
+          },
+          "suggestions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Suggestions",
             "type": "array"
           },
           "title": {
@@ -1120,7 +1171,13 @@
           "merged_node_id",
           "decisions",
           "proposal",
-          "submission_notes"
+          "submission_notes",
+          "region",
+          "request_type",
+          "suggestions",
+          "grouping_state",
+          "merged_request",
+          "blocked_routes"
         ],
         "title": "ContentRequestOut",
         "type": "object"
@@ -1290,6 +1347,18 @@
             "maxLength": 4000,
             "title": "Reason",
             "type": "string"
+          },
+          "target_request": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Request"
           },
           "until": {
             "anyOf": [
@@ -4566,6 +4635,58 @@
         "title": "RegionOut",
         "type": "object"
       },
+      "RegionTargetIn": {
+        "properties": {
+          "identity": {
+            "format": "uuid",
+            "title": "Identity",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "identity",
+          "version"
+        ],
+        "title": "RegionTargetIn",
+        "type": "object"
+      },
+      "RequestFacetsOut": {
+        "properties": {
+          "regions": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "States",
+            "type": "object"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "states",
+          "regions",
+          "total"
+        ],
+        "title": "RequestFacetsOut",
+        "type": "object"
+      },
       "RequestIn": {
         "properties": {
           "description": {
@@ -4574,10 +4695,30 @@
             "title": "Description",
             "type": "string"
           },
+          "missing_node_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Node Id"
+          },
           "request_id": {
             "format": "uuid",
             "title": "Request Id",
             "type": "string"
+          },
+          "route_goals": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Route Goals",
+            "type": "array"
           },
           "title": {
             "maxLength": 240,
@@ -4627,6 +4768,30 @@
           "now"
         ],
         "title": "RequestOut",
+        "type": "object"
+      },
+      "RequestRegionIn": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RegionTargetIn"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "region": {
+            "maxLength": 100,
+            "title": "Region",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "region"
+        ],
+        "title": "RequestRegionIn",
         "type": "object"
       },
       "RequestsOut": {
@@ -5653,6 +5818,14 @@
             "title": "Minutes",
             "type": "integer"
           },
+          "missing_goals": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Goals",
+            "type": "array"
+          },
           "span": {
             "$ref": "#/components/schemas/SpanOut"
           },
@@ -6099,7 +6272,8 @@
           "wired": {
             "enum": [
               "M5",
-              "M7"
+              "M7",
+              "ready"
             ],
             "title": "Wired",
             "type": "string"
@@ -7647,6 +7821,30 @@
             "title": "Public Id",
             "type": "string"
           },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "reviewer": {
+            "title": "Reviewer",
+            "type": "string"
+          },
+          "reviewer_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Id"
+          },
+          "routes_blocked": {
+            "title": "Routes Blocked",
+            "type": "integer"
+          },
           "stage": {
             "title": "Stage",
             "type": "string"
@@ -7691,13 +7889,21 @@
           "asked",
           "stalled",
           "updated_at",
-          "stub"
+          "stub",
+          "routes_blocked",
+          "region",
+          "reviewer_id",
+          "reviewer"
         ],
         "title": "WorkItemOut",
         "type": "object"
       },
       "WorkerOut": {
         "properties": {
+          "can_review": {
+            "title": "Can Review",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -7720,7 +7926,8 @@
           "public_id",
           "name",
           "writing",
-          "reviewing"
+          "reviewing",
+          "can_review"
         ],
         "title": "WorkerOut",
         "type": "object"
@@ -8263,6 +8470,16 @@
               }
             },
             "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
           },
           "422": {
             "content": {
@@ -13059,6 +13276,56 @@
               "title": "Offset",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "region",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Region",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "View",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "older_days",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Older Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_asked",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Min Asked",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -13134,6 +13401,132 @@
           }
         ],
         "summary": "Decisions",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/requests/facets": {
+      "get": {
+        "operationId": "code_api_studio_request_api_facets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestFacetsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Facets",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/requests/region": {
+      "post": {
+        "operationId": "code_api_studio_request_api_assign_region",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestRegionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContentRequestOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Assign Region",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/requests/{identity}/grouping": {
+      "post": {
+        "operationId": "code_api_studio_request_api_group",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentRequestOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Group",
         "tags": [
           "studio"
         ]

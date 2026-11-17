@@ -118,8 +118,11 @@ export interface ApiSchemas {
   RefusedOut: RefusedOut;
   RegionChoiceOut: RegionChoiceOut;
   RegionOut: RegionOut;
+  RegionTargetIn: RegionTargetIn;
+  RequestFacetsOut: RequestFacetsOut;
   RequestIn: RequestIn;
   RequestOut: RequestOut;
+  RequestRegionIn: RequestRegionIn;
   RequestsOut: RequestsOut;
   ResourceIn: ResourceIn;
   ResourceOut: ResourceOut;
@@ -213,7 +216,7 @@ export interface SiteOut {
   temperature: number | null;
   timeout: number | null;
   who: string;
-  wired: "M5" | "M7";
+  wired: "M5" | "M7" | "ready";
 }
 export interface AcceptProposalIn {
   based_on: number;
@@ -622,6 +625,7 @@ export interface AssignWorkIn {
    * @maxItems 50
    */
   items: [AssignmentIn, ...AssignmentIn[]];
+  role?: "writer" | "reviewer";
 }
 export interface AssignmentIn {
   identity: string;
@@ -709,6 +713,7 @@ export interface DecisionIn {
   identity: string;
   node_id?: string;
   reason?: string;
+  target_request?: string | null;
   until?: string | null;
   version: number;
 }
@@ -780,17 +785,25 @@ export interface ConnectionIn {
 }
 export interface ContentRequestOut {
   asked: number;
+  blocked_routes: string[][];
   created_at: string;
   decisions: DecisionOut[];
   description: string;
+  grouping_state: string;
   merged_node_id: string;
+  merged_request: string | null;
   proposal: {
     [k: string]: unknown;
   };
   public_id: string;
+  region: string;
+  request_type: string;
   snoozed_until: string | null;
   state: string;
   submission_notes: string[];
+  suggestions: {
+    [k: string]: unknown;
+  }[];
   title: string;
   updated_at: string;
   version: number;
@@ -1325,10 +1338,36 @@ export interface RefusedOut {
   items?: ItemOut[];
   problems: ProblemOut[];
 }
+export interface RegionTargetIn {
+  identity: string;
+  version: number;
+}
+export interface RequestFacetsOut {
+  regions: {
+    [k: string]: string;
+  }[];
+  states: {
+    [k: string]: number;
+  };
+  total: number;
+}
 export interface RequestIn {
   description: string;
+  missing_node_id?: string | null;
   request_id: string;
+  /**
+   * @maxItems 3
+   */
+  route_goals?: [] | [string] | [string, string] | [string, string, string];
   title: string;
+}
+export interface RequestRegionIn {
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  items: [RegionTargetIn, ...RegionTargetIn[]];
+  region: string;
 }
 export interface ResourceIn {
   covers: string;
@@ -1509,6 +1548,7 @@ export interface RouteOut {
   goals: string[];
   known: string[];
   minutes: number;
+  missing_goals?: string[];
   span: SpanOut;
   stops: StopOut[];
 }
@@ -1936,6 +1976,10 @@ export interface WorkItemOut {
   draft_id: string | null;
   node_id: string;
   public_id: string;
+  region: string;
+  reviewer: string;
+  reviewer_id: string | null;
+  routes_blocked: number;
   stage: string;
   stalled: boolean;
   stub: StubProposal | null;
@@ -1944,6 +1988,7 @@ export interface WorkItemOut {
   version: number;
 }
 export interface WorkerOut {
+  can_review: boolean;
   name: string;
   public_id: string;
   reviewing: number;

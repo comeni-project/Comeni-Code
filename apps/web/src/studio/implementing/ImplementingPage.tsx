@@ -7,6 +7,8 @@ import type { WorkerOut, WorkItemOut } from "../../api/schema";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 
+import { SavedViews } from "../SavedViews";
+
 const FIELD = "rounded-control border border-border-2 bg-bg p-2 text-sm";
 const STAGES = ["accepted", "writing", "waiting for review", "approved", "live", "discarded"];
 export function ImplementingPage() {
@@ -27,6 +29,7 @@ export function ImplementingPage() {
   const regions = useRegions();
   const [selected, setSelected] = useState<string[]>([]);
   const [assignee, setAssignee] = useState("");
+  const [assignRole, setAssignRole] = useState("writer");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [opening, setOpening] = useState<WorkItemOut | null>(null);
@@ -35,17 +38,26 @@ export function ImplementingPage() {
   const [region, setRegion] = useState("");
   const [level, setLevel] = useState("introductory");
   const [minutes, setMinutes] = useState(10);
-  const rows = (work.data ?? []).filter((row) =>
-    view === "unassigned"
-      ? row.assignee_id === null
-      : view === "mine"
-        ? row.assignee_id === me.data?.user?.public_id
-        : view === "waiting"
-          ? row.stage === "waiting for review"
-          : view === "stalled"
-            ? row.stalled
-            : true,
-  );
+  const rows = (work.data ?? [])
+    .filter(
+      (row) =>
+        (!params.get("region") || row.region === params.get("region")) &&
+        (!params.get("q") ||
+          row.title.toLowerCase().includes((params.get("q") ?? "").toLowerCase())) &&
+        (row.routes_blocked ?? 0) >= Number(params.get("min_routes") ?? 0),
+    )
+    .filter((row) =>
+      view === "unassigned"
+        ? row.assignee_id === null
+        : view === "mine"
+          ? row.assignee_id === me.data?.user?.public_id ||
+            row.reviewer_id === me.data?.user?.public_id
+          : view === "waiting"
+            ? row.stage === "waiting for review"
+            : view === "stalled"
+              ? row.stalled
+              : true,
+    );
   async function change(url: string, body: unknown) {
     if (busy) return;
     setBusy(true);
@@ -79,7 +91,9 @@ export function ImplementingPage() {
             className={SECONDARY}
             aria-pressed={view === value}
             onClick={() => {
-              setParams({ view: value });
+              const next = new URLSearchParams(params);
+              next.set("view", value);
+              setParams(next);
               setSelected([]);
             }}
           >
@@ -87,6 +101,64 @@ export function ImplementingPage() {
           </button>
         ))}
       </nav>
+      <SavedViews
+        scope="implementing"
+        params={params}
+        onApply={(next) => {
+          setParams(next);
+          setSelected([]);
+        }}
+      />
+      <div className="flex flex-wrap gap-3">
+        <label>
+          Find work{" "}
+          <input
+            className={FIELD}
+            value={params.get("q") ?? ""}
+            onChange={(event) => {
+              const next = new URLSearchParams(params);
+              next.set("q", event.target.value);
+              setParams(next);
+              setSelected([]);
+            }}
+          />
+        </label>
+        <label>
+          Region{" "}
+          <select
+            className={FIELD}
+            value={params.get("region") ?? ""}
+            onChange={(event) => {
+              const next = new URLSearchParams(params);
+              next.set("region", event.target.value);
+              setParams(next);
+              setSelected([]);
+            }}
+          >
+            <option value="">All regions</option>
+            {regions.data?.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Routes blocked at least{" "}
+          <input
+            className={`${FIELD} w-20`}
+            type="number"
+            min={0}
+            value={params.get("min_routes") ?? 0}
+            onChange={(event) => {
+              const next = new URLSearchParams(params);
+              next.set("min_routes", event.target.value);
+              setParams(next);
+              setSelected([]);
+            }}
+          />
+        </label>
+      </div>
       {work.isPending && <p>Loading work…</p>}
       {work.isError && <ErrorNotice error={work.error} />}
       {error && <ErrorNotice error={error} />}
@@ -128,10 +200,15 @@ export function ImplementingPage() {
                         }
                       />
                       <span className="min-w-40 flex-1 font-medium">{row.title}</span>
-                      <span>{row.asked} asked</span>
+                      <span>
+                        {row.asked} asked · {row.routes_blocked ?? 0} routes blocked
+                      </span>
                       <span>{row.assignee}</span>
+                      <span className="text-xs text-ink-3">
+                        Review: {row.reviewer ?? "Unassigned"}
+                      </span>
                       {row.stalled && <span className="text-open">Stalled · 14 days</span>}
-                      {row.draft_id ? (
+                      {row.draft_id && row.stage !== "discarded" ? (
                         <Link className="text-sel" to={`/studio/drafts/${row.draft_id}`}>
                           Open draft
                         </Link>
@@ -165,11 +242,25 @@ export function ImplementingPage() {
               <li key={person.public_id} className="py-2 text-sm">
                 {person.name}
                 <p className="text-xs text-ink-3">
-                  {person.writing} writing · {person.reviewing} waiting for review
+                  {person.writing} writing · {person.reviewing} reviewing
                 </p>
               </li>
             ))}
           </ul>
+          <label className="text-sm">
+            Assignment role
+            <select
+              className={`${FIELD} block w-full`}
+              value={assignRole}
+              onChange={(event) => {
+                setAssignRole(event.target.value);
+                setAssignee("");
+              }}
+            >
+              <option value="writer">Writer</option>
+              <option value="reviewer">Reviewer</option>
+            </select>
+          </label>
           <label className="text-sm">
             Assign selected
             <select
@@ -178,11 +269,13 @@ export function ImplementingPage() {
               onChange={(e) => setAssignee(e.target.value)}
             >
               <option value="">Unassigned</option>
-              {(team.data ?? []).map((person) => (
-                <option key={person.public_id} value={person.public_id}>
-                  {person.name}
-                </option>
-              ))}
+              {(team.data ?? [])
+                .filter((person) => assignRole === "writer" || person.can_review)
+                .map((person) => (
+                  <option key={person.public_id} value={person.public_id}>
+                    {person.name}
+                  </option>
+                ))}
             </select>
           </label>
           <button
@@ -195,6 +288,7 @@ export function ImplementingPage() {
                   .filter((row) => selected.includes(row.public_id))
                   .map((row) => ({ identity: row.public_id, version: row.version })),
                 assignee: assignee || null,
+                role: assignRole,
               })
             }
           >

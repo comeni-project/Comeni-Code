@@ -28,4 +28,10 @@ def route(
     try:
         return Status(200, reads.route(goal, known or []))
     except UnknownGoal as unknown:
+        missing = set(unknown.ids)
+        available = [identity for identity in goal if identity not in missing]
+        if available:
+            partial = reads.route(available, known or [])
+            partial.missing_goals = list(unknown.ids)
+            return Status(200, partial)
         return reads.missing(unknown.ids)

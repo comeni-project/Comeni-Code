@@ -25,7 +25,7 @@ class SiteOut(Schema):
     label: str
     who: str
     refused: str
-    wired: Literal["M5", "M7"]
+    wired: Literal["M5", "M7", "ready"]
     same_as_default: bool
     connection: int | None
     model: str

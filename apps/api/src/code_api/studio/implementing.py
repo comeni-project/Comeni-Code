@@ -48,7 +48,9 @@ def record(item: ContentRequest, by: User, action: str, before: str, reason: str
 
 
 @transaction.atomic
-def assign(identity: UUID, version: int, assignee: UUID | None, *, by: User) -> ContentRequest:
+def assign(
+    identity: UUID, version: int, assignee: UUID | None, *, by: User, reviewing: bool = False
+) -> ContentRequest:
     user = actor(by)
     item = locked(identity, version)
     owner = (
@@ -56,10 +58,21 @@ def assign(identity: UUID, version: int, assignee: UUID | None, *, by: User) -> 
         if assignee is None
         else User.objects.filter(public_id=assignee, is_active=True).first()
     )
-    if assignee is not None and (owner is None or not can_act_as(owner.role, Role.AUTHOR)):
+    if assignee is not None and (
+        owner is None or not can_act_as(owner.role, Role.REVIEWER if reviewing else Role.AUTHOR)
+    ):
         raise RequestError("Assign an active author, or leave the request unassigned.")
-    item.assignee = owner
-    record(item, user, "assign", item.state, "Unassigned" if owner is None else owner.name)
+    if reviewing:
+        item.reviewer = owner
+    else:
+        item.assignee = owner
+    record(
+        item,
+        user,
+        "assign_review" if reviewing else "assign",
+        item.state,
+        "Unassigned" if owner is None else owner.name,
+    )
     return item
 
 
@@ -79,7 +92,7 @@ def start(
     item = ContentRequest.objects.select_for_update().filter(public_id=identity).first()
     if item is None:
         raise RequestError("No request has that id.")
-    if item.draft is not None:
+    if item.draft is not None and item.draft.state != "discarded":
         if item.draft.node_id != node_id:
             raise RequestError("This request already has a different draft.")
         return item

@@ -75,3 +75,10 @@ def draft_skeleton(identity: str) -> None:
     from code_api.studio.skeletons import generate
 
     generate(identity)
+
+
+@shared_task(name="code_api.studio.tasks.group_request", soft_time_limit=90, time_limit=100)
+def group_request(identity: str) -> None:
+    from code_api.studio.request_grouping import generate
+
+    generate(identity)

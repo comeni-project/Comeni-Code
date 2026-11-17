@@ -3,11 +3,25 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { getJson, sendJson } from "../../api/client";
 import { useLinkTargets } from "../../api/queries";
-import type { SkeletonOut, StubMapping } from "../../api/schema";
+import type { SkeletonOut, SkeletonScoreOut, StubMapping } from "../../api/schema";
 import { PRIMARY, SECONDARY } from "../../layout/buttons";
 import { ErrorNotice } from "../../layout/ErrorNotice";
 
 const FIELD = "w-full rounded-control border border-border-2 bg-bg p-2 text-sm";
+function ScoreDetails({ score }: { score: SkeletonScoreOut }) {
+  return (
+    <details className="mt-2">
+      <summary className="cursor-pointer text-xs text-ink-3">Score parts · {score.rubric}</summary>
+      <ul>
+        {Object.entries(score.parts).map(([part, value]) => (
+          <li className="text-xs text-ink-2" key={part}>
+            {part}: {value.score}/5 · {value.reason}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
 export function SkeletonsPage() {
   const [params, setParams] = useSearchParams();
   const identity = params.get("import") ?? "";
@@ -234,7 +248,12 @@ export function SkeletonsPage() {
                         </div>
                         <span className="text-sm">{score ? `${score.score}/5` : "Unscored"}</span>
                       </div>
-                      {score && <p className="mt-2 text-sm text-ink-2">{score.reason}</p>}
+                      {score && (
+                        <>
+                          <p className="mt-2 text-sm text-ink-2">{score.reason}</p>
+                          <ScoreDetails score={score} />
+                        </>
+                      )}
                       <ul className="my-3 flex flex-col gap-2">
                         {(stub.needs ?? []).map((need) => {
                           const scored = made.scores.find(
@@ -244,7 +263,12 @@ export function SkeletonsPage() {
                             <li key={need.target} className="text-sm">
                               Needs {need.target} · {scored ? `${scored.score}/5` : "Unscored"}
                               <p className="text-ink-2">{need.reason}</p>
-                              {scored && <p className="text-xs text-ink-3">{scored.reason}</p>}
+                              {scored && (
+                                <>
+                                  <p className="text-xs text-ink-3">{scored.reason}</p>
+                                  <ScoreDetails score={scored} />
+                                </>
+                              )}
                             </li>
                           );
                         })}
