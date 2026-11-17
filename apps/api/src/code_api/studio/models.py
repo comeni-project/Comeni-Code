@@ -159,6 +159,68 @@ class DraftScore(models.Model):
     judge_settings = models.JSONField(default=dict)
 
 
+class AssistantSession(models.Model):
+    """A private author conversation about one draft; transcripts do not enter AICall."""
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    draft = models.ForeignKey(Draft, on_delete=models.CASCADE, related_name="assistant_sessions")
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="assistant_sessions"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-updated_at", "-pk"]
+
+
+class AssistantTurn(models.Model):
+    """One idempotent author turn and its answer, kept only in the owner's session."""
+
+    session = models.ForeignKey(AssistantSession, on_delete=models.CASCADE, related_name="turns")
+    number = models.PositiveSmallIntegerField()
+    request_id = models.UUIDField()
+    user_text = models.TextField()
+    answer = models.TextField(blank=True)
+    state = models.CharField(max_length=12, default="running")
+    code = models.TextField(blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["number"]
+        constraints: ClassVar = [
+            models.UniqueConstraint(fields=["session", "number"], name="studio_assistant_turn"),
+            models.UniqueConstraint(
+                fields=["session", "request_id"], name="studio_assistant_request_once"
+            ),
+        ]
+
+
+class AssistantAction(models.Model):
+    """A bounded block replacement suggestion, optionally linked to its normal proposal."""
+
+    turn = models.ForeignKey(AssistantTurn, on_delete=models.CASCADE, related_name="actions")
+    number = models.PositiveSmallIntegerField()
+    request_id = models.UUIDField(default=uuid.uuid4, unique=True)
+    target = models.TextField()
+    instruction = models.TextField()
+    proposal = models.ForeignKey(
+        DraftProposal,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assistant_actions",
+    )
+    code = models.TextField(blank=True)
+    detail = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["number"]
+        constraints: ClassVar = [
+            models.UniqueConstraint(fields=["turn", "number"], name="studio_assistant_action")
+        ]
+
+
 class Review(models.Model):
     """One reviewer's answers to the questions of one submission (M4.5 spec, M4R.4). Keyed on the
     submission, its `submitted` event, not the revision: a revision submitted again after a

@@ -2474,6 +2474,14 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 
 **Why.** Goal suggestions send the learner's words to a model, so the request has a small fixed input bound (M5.4 spec).
 
+#### CA0410 — an assistant turn is already running or the session is bounded
+
+*Refuses.*
+
+**Fix.** Wait for the current turn, use a new request id for a new message, or start a new conversation after 20 turns.
+
+**Why.** Author conversations have idempotent turns, one in-flight response, and a 20-turn limit so the assistant cannot create an unbounded call chain (M5.5 spec).
+
 ### CA0500–CA0599 · drafting
 
 #### CA0500 — unsupported drafting target or operation

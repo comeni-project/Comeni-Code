@@ -14,7 +14,7 @@ line is in [the archive](journal/archive/).
 - **The order is now M4 → M6 → M5 → the first landing → M7–M9** (R4, revised by the operator): the
   first node lands with every block and AI drafting; M4 stays open until M4.9d (#324). (10-16)
 - **M6 is done** (#325); seeded variants moved to M8. **M5's parts are approved** (#446–#450). (11-15)
-- **M5.1 PR #465 remains open**; live sign-in waived. **M5.2 PR #476 is merged into #465's head branch**, not `main`. **M5.3 PR #477 is open against #465's head branch; all three CI jobs pass.** M5.4 is locally implemented on a branch stacked on M5.3; its PR is next. (11-16)
+- **M5.1 PR #465 remains open**; live sign-in waived. **M5.2 PR #476 is merged into #465's head branch**, not `main`. **M5.3 PR #477 is open against #465's head branch; all three CI jobs pass. M5.4 PR #478 is open against #477 and all three CI jobs pass. M5.5 PR #479 is open against #478; CI is queued.** M5 has five parts, with no part after M5.5. The end-of-M5 suites pass: Python 1,973, web 973. (11-16)
 
 ## How work is done now
 

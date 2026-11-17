@@ -11,6 +11,7 @@ import { NodePage } from "./node/NodePage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
 import { AIPage } from "./studio/ai/AIPage";
+import { AssistantPage } from "./studio/assistant/AssistantPage";
 import { ComposerPage } from "./studio/composer/ComposerPage";
 import { DraftsPage } from "./studio/drafts/DraftsPage";
 import { LandPage } from "./studio/land/LandPage";
@@ -55,6 +56,7 @@ export function App() {
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
         <Route path="drafts" element={<DraftsPage />} />
+        <Route path="assistant" element={<AssistantPage />} />
         <Route path="drafts/:id" element={<WorkbenchPage />} />
         <Route path="drafts/:id/preview" element={<PreviewPage />} />
         <Route path="drafts/:id/figures/:stem" element={<ComposerPage />} />

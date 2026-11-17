@@ -21,6 +21,7 @@ type Props = {
   copyText?: string;
   figureAt?: number;
   figureQuestion?: string;
+  openProposal?: { id: string; revision: number };
   onUse?: (value: Record<string, unknown>, receipt: FigureUse) => void;
   disabled?: boolean;
 };
@@ -30,39 +31,54 @@ export async function copyDigest(text: string) {
   return Array.from(new Uint8Array(hash), (n) => n.toString(16).padStart(2, "0")).join("");
 }
 export function DraftAI(props: Props) {
-  const [opened, setOpened] = useState<{ revision: number; target: string } | null>(null);
+  const [opened, setOpened] = useState<{
+    revision: number;
+    target: string;
+    proposalId?: string;
+  } | null>(() =>
+    props.openProposal === undefined
+      ? null
+      : {
+          revision: props.openProposal.revision,
+          target: props.target,
+          proposalId: props.openProposal.id,
+        },
+  );
   const after = useAfterSaves(props.draftId);
   return (
     <div className="min-w-0">
-      <button
-        type="button"
-        className={SECONDARY}
-        disabled={props.disabled}
-        onClick={() =>
-          after((draft, landed) => {
-            const at = props.target.startsWith("block/")
-              ? follow(Number(props.target.slice(6)), landed)
-              : undefined;
-            if (at === null) return;
-            setOpened({
-              revision: draft.revision,
-              target: at === undefined ? props.target : `block/${at}`,
-            });
-          })
-        }
-      >
-        {props.kind === "figure"
-          ? "Ask AI"
-          : props.kind === "resource"
-            ? "Suggest a resource"
-            : "Draft with AI"}
-      </button>
+      {props.openProposal === undefined && (
+        <button
+          type="button"
+          className={SECONDARY}
+          disabled={props.disabled}
+          onClick={() =>
+            after((draft, landed) => {
+              const at = props.target.startsWith("block/")
+                ? follow(Number(props.target.slice(6)), landed)
+                : undefined;
+              if (at === null) return;
+              setOpened({
+                revision: draft.revision,
+                target: at === undefined ? props.target : `block/${at}`,
+              });
+            })
+          }
+        >
+          {props.kind === "figure"
+            ? "Ask AI"
+            : props.kind === "resource"
+              ? "Suggest a resource"
+              : "Draft with AI"}
+        </button>
+      )}
       {opened && (
         <Panel
-          key={`${opened.target}:${opened.revision}`}
+          key={`${opened.target}:${opened.revision}:${opened.proposalId ?? ""}`}
           {...props}
           target={opened.target}
           revision={opened.revision}
+          initialIdentity={opened.proposalId}
           close={() => setOpened(null)}
         />
       )}
@@ -89,13 +105,14 @@ function Panel({
   copyText,
   figureAt,
   figureQuestion,
+  initialIdentity,
   onUse,
   close,
-}: Props & { revision: number; close: () => void }) {
+}: Props & { revision: number; initialIdentity?: string | undefined; close: () => void }) {
   const client = useQueryClient();
   const draft = useDraft(draftId);
   const history = useDraftProposals(draftId, target);
-  const [identity, setIdentity] = useState<string | null>(null);
+  const [identity, setIdentity] = useState<string | null>(initialIdentity ?? null);
   const poll = useDraftProposal(draftId, identity);
   const [instruction, setInstruction] = useState("");
   const [source, setSource] = useState({

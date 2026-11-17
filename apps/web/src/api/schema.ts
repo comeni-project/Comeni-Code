@@ -16,6 +16,13 @@ export interface ApiSchemas {
   AnswerOut: AnswerOut;
   AppliedProposalOut: AppliedProposalOut;
   ApproveIn: ApproveIn;
+  AssistantActionOut: AssistantActionOut;
+  AssistantFailure: AssistantFailure;
+  AssistantSessionCreateIn: AssistantSessionCreateIn;
+  AssistantSessionListOut: AssistantSessionListOut;
+  AssistantSessionOut: AssistantSessionOut;
+  AssistantTurnIn: AssistantTurnIn;
+  AssistantTurnOut: AssistantTurnOut;
   BlockIn: BlockIn;
   BuildOut: BuildOut;
   CallOut: CallOut;
@@ -578,6 +585,52 @@ export interface EvaluationPartOut {
 export interface ApproveIn {
   reason?: string;
   revision: number;
+}
+export interface AssistantActionOut {
+  code: string;
+  detail: string;
+  instruction: string;
+  number: number;
+  proposal_id: string | null;
+  proposal_state: string | null;
+  target: string;
+}
+export interface AssistantFailure {
+  code: string;
+  detail: string;
+}
+export interface AssistantSessionCreateIn {
+  draft_id: string;
+}
+export interface AssistantSessionListOut {
+  created_at: string;
+  draft_id: string;
+  node_id: string;
+  public_id: string;
+  turn_count: number;
+  updated_at: string;
+}
+export interface AssistantSessionOut {
+  created_at: string;
+  draft_id: string;
+  node_id: string;
+  public_id: string;
+  revision: number;
+  turns: AssistantTurnOut[];
+}
+export interface AssistantTurnOut {
+  actions: AssistantActionOut[];
+  answer: string;
+  code: string;
+  created_at: string;
+  number: number;
+  request_id: string;
+  state: "running" | "ready" | "refused" | "failed";
+  user_text: string;
+}
+export interface AssistantTurnIn {
+  request_id: string;
+  text: string;
 }
 /**
  * A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`

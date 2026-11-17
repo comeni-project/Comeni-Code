@@ -243,6 +243,262 @@
         "title": "ApproveIn",
         "type": "object"
       },
+      "AssistantActionOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "instruction": {
+            "title": "Instruction",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "proposal_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal State"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "target",
+          "instruction",
+          "proposal_id",
+          "proposal_state",
+          "code",
+          "detail"
+        ],
+        "title": "AssistantActionOut",
+        "type": "object"
+      },
+      "AssistantFailure": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "detail"
+        ],
+        "title": "AssistantFailure",
+        "type": "object"
+      },
+      "AssistantSessionCreateIn": {
+        "properties": {
+          "draft_id": {
+            "format": "uuid",
+            "title": "Draft Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "draft_id"
+        ],
+        "title": "AssistantSessionCreateIn",
+        "type": "object"
+      },
+      "AssistantSessionListOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_id": {
+            "format": "uuid",
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "turn_count": {
+            "title": "Turn Count",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "public_id",
+          "draft_id",
+          "node_id",
+          "created_at",
+          "updated_at",
+          "turn_count"
+        ],
+        "title": "AssistantSessionListOut",
+        "type": "object"
+      },
+      "AssistantSessionOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_id": {
+            "format": "uuid",
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantTurnOut"
+            },
+            "title": "Turns",
+            "type": "array"
+          }
+        },
+        "required": [
+          "public_id",
+          "draft_id",
+          "node_id",
+          "revision",
+          "created_at",
+          "turns"
+        ],
+        "title": "AssistantSessionOut",
+        "type": "object"
+      },
+      "AssistantTurnIn": {
+        "properties": {
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "text"
+        ],
+        "title": "AssistantTurnIn",
+        "type": "object"
+      },
+      "AssistantTurnOut": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantActionOut"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "answer": {
+            "title": "Answer",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "ready",
+              "refused",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "user_text": {
+            "title": "User Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "request_id",
+          "user_text",
+          "answer",
+          "state",
+          "code",
+          "created_at",
+          "actions"
+        ],
+        "title": "AssistantTurnOut",
+        "type": "object"
+      },
       "BlockIn": {
         "description": "A block as the node's JSON shows it: `text` (markdown), `try` (question), `callout`\n(callout, title, markdown), `sequence` (letters), `math` (tex) or `example` (title,\nmarkdown).",
         "properties": {
@@ -7373,6 +7629,228 @@
           }
         ],
         "summary": "What the call sites used",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/assistant/sessions": {
+      "get": {
+        "operationId": "code_api_studio_assistant_api_sessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssistantSessionListOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Sessions",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_studio_assistant_api_create_session",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantSessionCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantSessionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Create Session",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/assistant/sessions/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_assistant_api_read_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantSessionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Read Session",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/assistant/sessions/{identity}/turns": {
+      "post": {
+        "operationId": "code_api_studio_assistant_api_send_turn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantTurnIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantSessionOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantFailure"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Send Turn",
         "tags": [
           "studio"
         ]

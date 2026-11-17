@@ -32,6 +32,18 @@ class DraftAnswer(BaseModel):
     source_ids: list[str] = Field(default_factory=list, max_length=20)
 
 
+class AssistantActionReply(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    target: str = Field(min_length=1, max_length=200)
+    instruction: str = Field(min_length=1, max_length=1000)
+
+
+class AssistantReply(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    answer: str = Field(max_length=2000)
+    actions: list[AssistantActionReply] = Field(default_factory=list, max_length=3)
+
+
 class FigureAssociationIn(Schema):
     model_config = ConfigDict(extra="forbid")
     proposal_id: UUID
@@ -103,6 +115,59 @@ class ProposalOut(Schema):
     accepted_revision: int | None
     evaluations: list[EvaluationOut]
     created_at: datetime
+
+
+class AssistantSessionCreateIn(Schema):
+    draft_id: UUID
+
+
+class AssistantTurnIn(Schema):
+    request_id: UUID
+    text: str = Field(min_length=1, max_length=4000)
+
+
+class AssistantActionOut(Schema):
+    number: int
+    target: str
+    instruction: str
+    proposal_id: UUID | None
+    proposal_state: str | None
+    code: str
+    detail: str
+
+
+class AssistantTurnOut(Schema):
+    number: int
+    request_id: UUID
+    user_text: str
+    answer: str
+    state: Literal["running", "ready", "refused", "failed"]
+    code: str
+    created_at: datetime
+    actions: list[AssistantActionOut]
+
+
+class AssistantSessionOut(Schema):
+    public_id: UUID
+    draft_id: UUID
+    node_id: str
+    revision: int
+    created_at: datetime
+    turns: list[AssistantTurnOut]
+
+
+class AssistantSessionListOut(Schema):
+    public_id: UUID
+    draft_id: UUID
+    node_id: str
+    created_at: datetime
+    updated_at: datetime
+    turn_count: int
+
+
+class AssistantFailure(Schema):
+    code: str
+    detail: str
 
 
 class DraftingFailure(Schema):

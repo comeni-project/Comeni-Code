@@ -12,6 +12,7 @@ decision records.
 | [2026-09-17 — the tutor on top of what exists](2026-09-17-code-as-tutor-design.md) | **current statement of the product** | Code complements Khan Academy: outside resources and video, skeletons from public outlines, step backs and hints, learner state as evidence, **self-tests from node exam pools** (T7.1), AI block scores (automatic deployment deferred), **five content levels** (First steps → Advanced) and rules for young learners; what is deferred past v1 |
 | [2026-11-16 — M5.3 block scores](2026-11-16-m5-block-scores-design.md) | part design | fresh-call judge, versioned rubrics, bounded redrafts, private score history, Review ordering and reviewer agreement |
 | [2026-11-16 — M5.4 goal suggestions](2026-11-16-m5-goal-suggestions-design.md) | part design | learner goal suggestions constrained to indexed candidates and reviewed peers, with plain-search fallback |
+| [2026-11-16 — M5.5 author assistant](2026-11-16-m5-author-assistant-design.md) | part design | private draft chat that creates bounded M5.2 proposals for author review |
 
 **Finished specs** (the parts of M0–M3 and of M4, one per part, and the docs compaction of
 2026-09-29) are in [`archive/`](archive/). Each records what it decided and rejected;
