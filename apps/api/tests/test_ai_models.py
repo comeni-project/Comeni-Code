@@ -27,8 +27,8 @@ def test_the_call_sites_are_the_declared_ten() -> None:
         "request-grouping",
         "skeleton-drafting",
     ]
-    assert {s.wired for s in SITES} == {"M5", "M7"}
-    assert [s.key for s in SITES if s.wired == "M7"] == [
+    assert {s.wired for s in SITES} == {"M5", "ready"}
+    assert [s.key for s in SITES if s.wired == "ready"] == [
         "connecting-text",
         "request-grouping",
         "skeleton-drafting",

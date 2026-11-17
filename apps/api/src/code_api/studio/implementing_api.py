@@ -1,7 +1,7 @@
 """S8 reads the real draft state and writes through the accepted-request service."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from django.db import transaction
@@ -35,6 +35,10 @@ class WorkItemOut(Schema):
     stalled: bool
     updated_at: datetime
     stub: StubProposal | None
+    routes_blocked: int
+    region: str
+    reviewer_id: UUID | None
+    reviewer: str
 
 
 class WorkerOut(Schema):
@@ -42,6 +46,7 @@ class WorkerOut(Schema):
     name: str
     writing: int
     reviewing: int
+    can_review: bool
 
 
 class AssignmentIn(Schema):
@@ -52,6 +57,7 @@ class AssignmentIn(Schema):
 class AssignWorkIn(Schema):
     items: list[AssignmentIn] = Field(min_length=1, max_length=50)
     assignee: UUID | None = None
+    role: Literal["writer", "reviewer"] = "writer"
 
 
 class StartWorkIn(Schema):
@@ -76,6 +82,16 @@ def out(item: ContentRequest) -> WorkItemOut:
         asked=max(1, item.submissions.count()),
         stalled=implementing.stalled(item),
         updated_at=item.updated_at,
+        routes_blocked=len(
+            {
+                tuple(sorted(set(submission.route_goals)))
+                for submission in item.submissions.all()
+                if submission.route_goals
+            }
+        ),
+        region=item.region,
+        reviewer_id=None if item.reviewer is None else item.reviewer.public_id,
+        reviewer="Unassigned" if item.reviewer is None else item.reviewer.name,
         stub=None
         if not item.proposal.get("stub")
         else StubProposal.model_validate(item.proposal["stub"]),
@@ -91,7 +107,9 @@ def queue(request: HttpRequest) -> Any:
     )
     # Count demand from submissions; persisted route candidates later supply route impact.
     rows = [out(item) for item in items]
-    return sorted(rows, key=lambda row: (-row.asked, row.updated_at, str(row.public_id)))
+    return sorted(
+        rows, key=lambda row: (-row.routes_blocked, -row.asked, row.updated_at, str(row.public_id))
+    )
 
 
 @router.get("/team", response=list[WorkerOut])
@@ -111,8 +129,11 @@ def team(request: HttpRequest) -> Any:
                         implementing.stage(item) in {"accepted", "writing"} for item in assigned
                     ),
                     reviewing=sum(
-                        implementing.stage(item) == "waiting for review" for item in assigned
+                        implementing.stage(item) == "waiting for review"
+                        for item in items
+                        if item.reviewer_id == user.pk
                     ),
+                    can_review=can_act_as(user.role, Role.REVIEWER),
                 )
             )
     return rows
@@ -131,7 +152,13 @@ def assign(request: HttpRequest, body: AssignWorkIn) -> Any:
             )
             return [
                 out(
-                    implementing.assign(item.identity, item.version, body.assignee, by=request.user)
+                    implementing.assign(
+                        item.identity,
+                        item.version,
+                        body.assignee,
+                        by=request.user,
+                        reviewing=body.role == "reviewer",
+                    )
                 )
                 for item in body.items
             ]

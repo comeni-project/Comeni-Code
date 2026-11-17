@@ -282,6 +282,7 @@ class RouteOut(Schema):
     stops: list[StopOut]
     span: SpanOut
     minutes: int
+    missing_goals: list[str] = []
 
 
 class ResultOut(Schema):

@@ -44,7 +44,9 @@ it("requires human mapping selection and a note before creating requested items"
     "/studio/skeletons?import=i-1",
     <Route path="/studio/skeletons" element={<SkeletonsPage />} />,
   );
-  await userEvent.click(await screen.findByRole("checkbox", { name: "Select DNA pairing" }));
+  await screen.findByRole("checkbox", { name: "Select DNA pairing" });
+  expect(screen.getByRole("combobox", { name: "Previous outlines" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("checkbox", { name: "Select DNA pairing" }));
   expect(screen.getByRole("button", { name: "Send 1 selected to Requests" })).toBeDisabled();
   await userEvent.type(
     screen.getByLabelText("Mapping review note"),

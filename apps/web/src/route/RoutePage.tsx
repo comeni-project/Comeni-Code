@@ -4,6 +4,7 @@
 // a shortened map are each a link someone can send (M3P3.2).
 import { useState } from "react";
 import { useSearchParams } from "react-router";
+import { ApiUnreachable } from "../api/client";
 import { useRoute } from "../api/queries";
 import type { RouteOut } from "../api/schema";
 import { ErrorNotice } from "../layout/ErrorNotice";
@@ -141,7 +142,20 @@ export function RoutePage() {
         ) : query.isPending ? (
           <p className="text-[15px] text-ink-2">Weaving your route…</p>
         ) : query.isError ? (
-          <ErrorNotice error={query.error} />
+          <div className="flex flex-col gap-3">
+            <ErrorNotice error={query.error} />
+            {query.error instanceof ApiUnreachable &&
+              query.error.status === 404 &&
+              goals.map((goal) => (
+                <a
+                  className="text-sel"
+                  key={goal}
+                  href={`/request?${new URLSearchParams([["goal", goal], ["node", goal], ...goals.map((id) => ["route_goal", id])])}`}
+                >
+                  Request {goal} · not written yet
+                </a>
+              ))}
+          </div>
         ) : route === undefined ? null : (
           <>
             <section className="flex flex-wrap items-start justify-between gap-6">
@@ -191,7 +205,30 @@ export function RoutePage() {
               </div>
             </section>
 
-            <RouteWords goals={goals} known={known} />
+            {(route.missing_goals ?? []).length > 0 && (
+              <section
+                aria-label="Not written yet"
+                className="rounded-panel border border-border bg-surface p-4"
+              >
+                <h2 className="font-medium">Not written yet</h2>
+                <p className="text-sm text-ink-2">
+                  You can continue with the available stops and request the missing topics.
+                </p>
+                <ul>
+                  {route.missing_goals?.map((goal) => (
+                    <li key={goal}>
+                      <a
+                        className="text-sm text-sel"
+                        href={`/request?${new URLSearchParams([["goal", goal], ["node", goal], ...goals.map((id) => ["route_goal", id])])}`}
+                      >
+                        Request {goal}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            <RouteWords goals={route.goals} known={known} />
             <Facts route={route} />
 
             <div
