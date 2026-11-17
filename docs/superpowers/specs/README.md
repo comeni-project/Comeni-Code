@@ -16,6 +16,7 @@ decision records.
 | [2026-11-16 — M7.1 request foundation](2026-11-16-m7-request-foundation-design.md) | part design | persistent intake, explicit human decisions, version checks and per-person audit |
 | [2026-11-16 — M7.2 Requests](2026-11-16-m7-requests-design.md) | part design | bounded learner intake, private receipts and staff triage |
 | [2026-11-16 — M7.3 Implementing](2026-11-16-m7-implementing-design.md) | part design | assignment, draft handoff and stages derived from the existing workflow |
+| [2026-11-16 — M7.4 connecting text](2026-11-16-m7-connecting-text-design.md) | part design | optional route prose bound to exact claims and route order |
 
 **Finished specs** (the parts of M0–M3 and of M4, one per part, and the docs compaction of
 2026-09-29) are in [`archive/`](archive/). Each records what it decided and rejected;

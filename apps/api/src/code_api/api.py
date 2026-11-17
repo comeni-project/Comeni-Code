@@ -17,6 +17,7 @@ from code_api.health.api import router as health_router
 from code_api.studio.ai_api import router as drafting_router
 from code_api.studio.api import router as studio_router
 from code_api.studio.assistant_api import router as assistant_router
+from code_api.studio.connecting_api import router as connecting_router
 from code_api.studio.implementing_api import router as implementing_router
 from code_api.studio.index_api import router as index_router
 from code_api.studio.kits_api import router as kits_router
@@ -44,3 +45,4 @@ api.add_router("/studio/review", review_router)
 api.add_router("/requests", request_public)
 api.add_router("/studio/requests", request_staff)
 api.add_router("/studio/implementing", implementing_router)
+api.add_router("/routes/text", connecting_router)

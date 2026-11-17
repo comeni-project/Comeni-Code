@@ -2573,3 +2573,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Wait until the next intake window before submitting another request.
 
 **Why.** Anonymous intake has a per-client and site-wide hourly bound to keep the queue usable.
+
+#### CA0602 — connecting text is unavailable or no longer matches the current route
+
+*Refuses.*
+
+**Fix.** Continue with the deterministic route; refresh its text or ask a reviewer to inspect it.
+
+**Why.** Optional model text is bound to the woven route and claims. It cannot change a route or reuse approvals after the underlying graph changes (M7.4).

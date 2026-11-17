@@ -225,6 +225,36 @@ class RequestDecision(models.Model):
         ]
 
 
+class RouteBundle(models.Model):
+    """The exact woven route/claim input whose connecting text was generated together."""
+
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    fingerprint = models.CharField(max_length=64, unique=True)
+    snapshot = models.JSONField()
+    state = models.CharField(max_length=16, default="queued")
+    code = models.TextField(blank=True)
+    call = models.ForeignKey("ai.AICall", null=True, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True)
+
+
+class ConnectingText(models.Model):
+    bundle = models.ForeignKey(RouteBundle, on_delete=models.CASCADE, related_name="texts")
+    key = models.CharField(max_length=240)
+    kind = models.CharField(max_length=16)
+    context = models.JSONField()
+    text = models.TextField(blank=True)
+    state = models.CharField(max_length=16, default="pending")
+    version = models.PositiveIntegerField(default=1)
+    flags = models.JSONField(default=list)
+
+    class Meta:
+        ordering = ["pk"]
+        constraints: ClassVar = [
+            models.UniqueConstraint(fields=["bundle", "key"], name="studio_route_text_key")
+        ]
+
+
 class AssistantSession(models.Model):
     """A private author conversation about one draft; transcripts do not enter AICall."""
 

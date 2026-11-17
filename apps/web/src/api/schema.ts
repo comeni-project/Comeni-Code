@@ -33,6 +33,7 @@ export interface ApiSchemas {
   CheckOut: CheckOut;
   ChecklistOut: ChecklistOut;
   CommonsIn: CommonsIn;
+  ConnectIn: ConnectIn;
   ConnectionChangeIn: ConnectionChangeIn;
   ConnectionIn: ConnectionIn;
   ConnectionOut: ConnectionOut;
@@ -128,7 +129,9 @@ export interface ApiSchemas {
   RevisionOut: RevisionOut;
   Role: Role;
   RoleIn: RoleIn;
+  RouteBundleOut: RouteBundleOut;
   RouteOut: RouteOut;
+  RouteTextOut: RouteTextOut;
   SavedOut: SavedOut;
   SearchOut: SearchOut;
   SendBackIn: SendBackIn;
@@ -737,6 +740,17 @@ export interface CommonsIn {
   caption: string;
   link: string;
   revision: number;
+}
+export interface ConnectIn {
+  /**
+   * @minItems 1
+   * @maxItems 3
+   */
+  goals: [string] | [string, string] | [string, string, string];
+  /**
+   * @maxItems 200
+   */
+  known?: string[];
 }
 export interface ConnectionChangeIn {
   endpoint?: string | null;
@@ -1426,6 +1440,25 @@ export interface RevisionOut {
 }
 export interface RoleIn {
   role: Role;
+}
+export interface RouteBundleOut {
+  code: string;
+  goals: string[];
+  known: string[];
+  public_id: string;
+  state: string;
+  texts: RouteTextOut[];
+}
+export interface RouteTextOut {
+  context: {
+    [k: string]: unknown;
+  };
+  flags: string[];
+  key: string;
+  kind: string;
+  state: string;
+  text: string;
+  version: number;
 }
 export interface RouteOut {
   goals: string[];
