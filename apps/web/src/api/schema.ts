@@ -16,6 +16,8 @@ export interface ApiSchemas {
   AnswerOut: AnswerOut;
   AppliedProposalOut: AppliedProposalOut;
   ApproveIn: ApproveIn;
+  AssignWorkIn: AssignWorkIn;
+  AssignmentIn: AssignmentIn;
   AssistantActionOut: AssistantActionOut;
   AssistantFailure: AssistantFailure;
   AssistantSessionCreateIn: AssistantSessionCreateIn;
@@ -139,6 +141,7 @@ export interface ApiSchemas {
   SiteUsageOut: SiteUsageOut;
   SourceIn: SourceIn;
   SpanOut: SpanOut;
+  StartWorkIn: StartWorkIn;
   StopOut: StopOut;
   StudioExamQuestionOut: StudioExamQuestionOut;
   StudioFigureOut: StudioFigureOut;
@@ -155,6 +158,8 @@ export interface ApiSchemas {
   VerdictIn: VerdictIn;
   VerdictsIn: VerdictsIn;
   VerifyOut: VerifyOut;
+  WorkItemOut: WorkItemOut;
+  WorkerOut: WorkerOut;
 }
 export interface AISettingsOut {
   chatgpt_ready: boolean;
@@ -591,6 +596,18 @@ export interface EvaluationPartOut {
 export interface ApproveIn {
   reason?: string;
   revision: number;
+}
+export interface AssignWorkIn {
+  assignee?: string | null;
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  items: [AssignmentIn, ...AssignmentIn[]];
+}
+export interface AssignmentIn {
+  identity: string;
+  version: number;
 }
 export interface AssistantActionOut {
   code: string;
@@ -1472,6 +1489,14 @@ export interface SiteUsageOut {
   priced: "billed" | "plan" | "local";
   site: string;
 }
+export interface StartWorkIn {
+  claim: string;
+  level?: Level & string;
+  minutes: number;
+  node_id: string;
+  region: string;
+  version: number;
+}
 export interface SubmitIn {
   revision: number;
 }
@@ -1514,4 +1539,23 @@ export interface VerdictsIn {
 export interface VerifyOut {
   clean: boolean;
   problems: ProblemOut[];
+}
+export interface WorkItemOut {
+  asked: number;
+  assignee: string;
+  assignee_id: string | null;
+  draft_id: string | null;
+  node_id: string;
+  public_id: string;
+  stage: string;
+  stalled: boolean;
+  title: string;
+  updated_at: string;
+  version: number;
+}
+export interface WorkerOut {
+  name: string;
+  public_id: string;
+  reviewing: number;
+  writing: number;
 }
