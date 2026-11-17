@@ -8,6 +8,7 @@ import { HealthPage } from "./health/HealthPage";
 import { Specimen } from "./identity/Specimen";
 import { TopBar } from "./layout/TopBar";
 import { NodePage } from "./node/NodePage";
+import { RequestPage } from "./requests/RequestPage";
 import { RoutePage } from "./route/RoutePage";
 import { StartPage } from "./start/StartPage";
 import { AIPage } from "./studio/ai/AIPage";
@@ -15,6 +16,7 @@ import { AssistantPage } from "./studio/assistant/AssistantPage";
 import { ComposerPage } from "./studio/composer/ComposerPage";
 import { DraftsPage } from "./studio/drafts/DraftsPage";
 import { LandPage } from "./studio/land/LandPage";
+import { RequestsPage } from "./studio/requests/RequestsPage";
 import { ReviewPage } from "./studio/review/ReviewPage";
 import { StudioHome } from "./studio/StudioHome";
 import { StudioShell } from "./studio/StudioShell";
@@ -45,6 +47,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<StartPage />} />
+      <Route path="/request" element={<RequestPage />} />
       <Route path="/route" element={<RoutePage />} />
       <Route path="/node/:id" element={<NodePage />} />
       <Route path="/sign-in" element={<SignInPage />} />
@@ -56,6 +59,7 @@ export function App() {
       <Route path="/studio" element={<StudioShell />}>
         <Route index element={<StudioHome />} />
         <Route path="drafts" element={<DraftsPage />} />
+        <Route path="requests" element={<RequestsPage />} />
         <Route path="assistant" element={<AssistantPage />} />
         <Route path="drafts/:id" element={<WorkbenchPage />} />
         <Route path="drafts/:id/preview" element={<PreviewPage />} />

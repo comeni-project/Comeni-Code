@@ -1,10 +1,11 @@
-// /studio: the first page the member's role can open (M4S.4) — Drafts, for every role the gate
-// lets in.
+// /studio opens Drafts for every Studio role, independently of rail ordering (issue 490).
 import { Navigate } from "react-router";
 import { useMe } from "../api/queries";
 import { pagesFor } from "./pages";
 
 export function StudioHome() {
-  const first = pagesFor(useMe().data?.user?.role ?? "")[0];
+  const first = pagesFor(useMe().data?.user?.role ?? "").find(
+    (page) => page.path === "/studio/drafts",
+  );
   return first === undefined ? null : <Navigate to={first.path} replace />;
 }

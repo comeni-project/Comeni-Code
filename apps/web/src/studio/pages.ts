@@ -16,6 +16,13 @@ export interface StudioPage {
 
 export const STUDIO_PAGES: readonly StudioPage[] = [
   {
+    path: "/studio/requests",
+    label: "Requests",
+    icon: "M2 3h12v9H9l-3 2v-2H2z",
+    minRole: "author",
+    place: "top",
+  },
+  {
     path: "/studio/drafts",
     label: "Drafts",
     icon: "M4 1.5h5.5l3 3v10H4zM9.5 1.5v3h3M6 8h5M6 10.5h5M6 13h3",

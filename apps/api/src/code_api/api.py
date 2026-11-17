@@ -20,6 +20,8 @@ from code_api.studio.assistant_api import router as assistant_router
 from code_api.studio.index_api import router as index_router
 from code_api.studio.kits_api import router as kits_router
 from code_api.studio.landing_api import router as landing_router
+from code_api.studio.request_api import public as request_public
+from code_api.studio.request_api import staff as request_staff
 from code_api.studio.review_api import router as review_router
 
 api = NinjaAPI(title="Comeni Code API", version="0.1.0")
@@ -38,3 +40,5 @@ api.add_router("/studio/index", index_router)
 api.add_router("/studio/problem-kits", kits_router)
 api.add_router("/studio/ai", ai_router)
 api.add_router("/studio/review", review_router)
+api.add_router("/requests", request_public)
+api.add_router("/studio/requests", request_staff)
