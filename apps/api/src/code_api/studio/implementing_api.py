@@ -16,6 +16,7 @@ from code_api.content.schemas import Message
 from code_api.studio import implementing
 from code_api.studio.models import ContentRequest
 from code_api.studio.requests import RequestError
+from code_api.studio.skeletons import StubProposal
 from code_schema import Level
 
 router = Router(tags=["studio"], auth=studio(Role.AUTHOR))
@@ -33,6 +34,7 @@ class WorkItemOut(Schema):
     asked: int
     stalled: bool
     updated_at: datetime
+    stub: StubProposal | None
 
 
 class WorkerOut(Schema):
@@ -74,6 +76,9 @@ def out(item: ContentRequest) -> WorkItemOut:
         asked=max(1, item.submissions.count()),
         stalled=implementing.stalled(item),
         updated_at=item.updated_at,
+        stub=None
+        if not item.proposal.get("stub")
+        else StubProposal.model_validate(item.proposal["stub"]),
     )
 
 

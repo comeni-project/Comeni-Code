@@ -25,6 +25,7 @@ from code_api.studio.landing_api import router as landing_router
 from code_api.studio.request_api import public as request_public
 from code_api.studio.request_api import staff as request_staff
 from code_api.studio.review_api import router as review_router
+from code_api.studio.skeleton_api import router as skeleton_router
 from code_api.studio.tracks_api import public as tracks_public
 from code_api.studio.tracks_api import staff as tracks_staff
 
@@ -50,3 +51,4 @@ api.add_router("/studio/implementing", implementing_router)
 api.add_router("/routes/text", connecting_router)
 api.add_router("/tracks", tracks_public)
 api.add_router("/studio/tracks", tracks_staff)
+api.add_router("/studio/skeletons", skeleton_router)

@@ -2581,3 +2581,11 @@ never renumbered. `uv run code-schema explain <CODE>` prints one entry.
 **Fix.** Continue with the deterministic route; refresh its text or ask a reviewer to inspect it.
 
 **Why.** Optional model text is bound to the woven route and claims. It cannot change a route or reuse approvals after the underlying graph changes (M7.4).
+
+#### CA0603 — a skeleton import or mapping cannot proceed
+
+*Refuses.*
+
+**Fix.** Check the allowed source, proposal references, current mapping version and human review note.
+
+**Why.** Outlines propose bounded stubs and links; only a person maps them into Requests, and no imported proposal bypasses normal content review (M7.6).

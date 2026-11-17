@@ -42,6 +42,17 @@ bands:
 
 codes:
 
+  CA0603:
+    emitted_by: api
+    concern: requests
+    says: a skeleton import or mapping cannot proceed
+    refuses: true
+    fix: |
+      Check the allowed source, proposal references, current mapping version and human review note.
+    explanation: |
+      Outlines propose bounded stubs and links; only a person maps them into Requests, and no
+      imported proposal bypasses normal content review (M7.6).
+
   CA0602:
     emitted_by: api
     concern: requests

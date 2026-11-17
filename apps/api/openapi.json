@@ -1060,6 +1060,11 @@
             "title": "Merged Node Id",
             "type": "string"
           },
+          "proposal": {
+            "additionalProperties": true,
+            "title": "Proposal",
+            "type": "object"
+          },
           "public_id": {
             "format": "uuid",
             "title": "Public Id",
@@ -1080,6 +1085,13 @@
           "state": {
             "title": "State",
             "type": "string"
+          },
+          "submission_notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Submission Notes",
+            "type": "array"
           },
           "title": {
             "title": "Title",
@@ -1106,7 +1118,9 @@
           "updated_at",
           "snoozed_until",
           "merged_node_id",
-          "decisions"
+          "decisions",
+          "proposal",
+          "submission_notes"
         ],
         "title": "ContentRequestOut",
         "type": "object"
@@ -3231,6 +3245,29 @@
         "title": "NamedTrackOut",
         "type": "object"
       },
+      "NeedProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "target": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "reason"
+        ],
+        "title": "NeedProposal",
+        "type": "object"
+      },
       "NeighbourOut": {
         "description": "A neighbour as a card: enough for a node page's side panel (L5) without another request.",
         "properties": {
@@ -3647,6 +3684,29 @@
           "right"
         ],
         "title": "OptionOut",
+        "type": "object"
+      },
+      "PartScore": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 5,
+            "minimum": 1,
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "score",
+          "reason"
+        ],
+        "title": "PartScore",
         "type": "object"
       },
       "PendingInviteOut": {
@@ -5730,6 +5790,35 @@
         "title": "SendBackIn",
         "type": "object"
       },
+      "SendSkeletonIn": {
+        "properties": {
+          "mappings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StubMapping"
+            },
+            "title": "Mappings",
+            "type": "object"
+          },
+          "note": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "mappings",
+          "note"
+        ],
+        "title": "SendSkeletonIn",
+        "type": "object"
+      },
       "SequenceBlockOut": {
         "description": "DNA, RNA or protein letters, drawn in groups of ten (M4.8c spec, M4Q.2).",
         "properties": {
@@ -6083,6 +6172,201 @@
         "title": "SiteUsageOut",
         "type": "object"
       },
+      "SkeletonIn": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "college-board",
+              "openstax",
+              "galaxy-training",
+              "carpentries"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "licence": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Licence",
+            "type": "string"
+          },
+          "outline": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Outline",
+            "type": "string"
+          },
+          "rights": {
+            "title": "Rights",
+            "type": "boolean"
+          },
+          "url": {
+            "maxLength": 1000,
+            "title": "Url",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "url",
+          "version",
+          "licence",
+          "outline",
+          "rights"
+        ],
+        "title": "SkeletonIn",
+        "type": "object"
+      },
+      "SkeletonOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "mappings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StubMapping"
+            },
+            "title": "Mappings",
+            "type": "object"
+          },
+          "outline": {
+            "title": "Outline",
+            "type": "string"
+          },
+          "public_id": {
+            "format": "uuid",
+            "title": "Public Id",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkeletonReply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/SkeletonScoreOut"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "sent": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Sent",
+            "type": "object"
+          },
+          "source_kind": {
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "source_version": {
+            "title": "Source Version",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "public_id",
+          "state",
+          "version",
+          "code",
+          "source_kind",
+          "source_url",
+          "source_version",
+          "licence",
+          "outline",
+          "result",
+          "scores",
+          "mappings",
+          "sent"
+        ],
+        "title": "SkeletonOut",
+        "type": "object"
+      },
+      "SkeletonReply": {
+        "additionalProperties": false,
+        "properties": {
+          "stubs": {
+            "items": {
+              "$ref": "#/components/schemas/StubProposal"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Stubs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "stubs"
+        ],
+        "title": "SkeletonReply",
+        "type": "object"
+      },
+      "SkeletonScoreOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "parts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PartScore"
+            },
+            "title": "Parts",
+            "type": "object"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "rubric": {
+            "title": "Rubric",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "score",
+          "reason",
+          "rubric",
+          "parts"
+        ],
+        "title": "SkeletonScoreOut",
+        "type": "object"
+      },
       "SourceIn": {
         "additionalProperties": false,
         "properties": {
@@ -6244,6 +6528,79 @@
           "needed_by"
         ],
         "title": "StopOut",
+        "type": "object"
+      },
+      "StubMapping": {
+        "properties": {
+          "action": {
+            "enum": [
+              "new",
+              "existing",
+              "merge"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "target": {
+            "default": "",
+            "maxLength": 100,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "title": "StubMapping",
+        "type": "object"
+      },
+      "StubProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Claim",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 100,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "level": {
+            "$ref": "#/components/schemas/Level"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedProposal"
+            },
+            "maxItems": 4,
+            "title": "Needs",
+            "type": "array"
+          },
+          "region": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Region",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "claim",
+          "region",
+          "level"
+        ],
+        "title": "StubProposal",
         "type": "object"
       },
       "StudioExamQuestionOut": {
@@ -7298,6 +7655,16 @@
             "title": "Stalled",
             "type": "boolean"
           },
+          "stub": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StubProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -7323,7 +7690,8 @@
           "node_id",
           "asked",
           "stalled",
-          "updated_at"
+          "updated_at",
+          "stub"
         ],
         "title": "WorkItemOut",
         "type": "object"
@@ -12797,6 +13165,188 @@
           }
         ],
         "summary": "The drafts to review, and their keys",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/skeletons": {
+      "get": {
+        "operationId": "code_api_studio_skeleton_api_imports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SkeletonOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Imports",
+        "tags": [
+          "studio"
+        ]
+      },
+      "post": {
+        "operationId": "code_api_studio_skeleton_api_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkeletonIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkeletonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Create",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/skeletons/{identity}": {
+      "get": {
+        "operationId": "code_api_studio_skeleton_api_read",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkeletonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Read",
+        "tags": [
+          "studio"
+        ]
+      }
+    },
+    "/api/studio/skeletons/{identity}/send": {
+      "post": {
+        "operationId": "code_api_studio_skeleton_api_send",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendSkeletonIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkeletonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "Studio": []
+          }
+        ],
+        "summary": "Send",
         "tags": [
           "studio"
         ]
