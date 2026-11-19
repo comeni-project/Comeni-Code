@@ -50,7 +50,7 @@ services:
       retries: 30
 
   redis:
-    image: redis:8@sha256:298e5b3bc566bade82f46ad5511777a4a07a294097ce16ada2f6a42be5239df5
+    image: redis:8@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53
     ports:
       # 6380 on the host: 6379 is often taken by another project's Redis.
       - "127.0.0.1:6380:6379"
